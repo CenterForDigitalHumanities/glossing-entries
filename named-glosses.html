@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Glossing Matthew</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="/js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/app.js" type="module"></script>
+</head>
+
+<body class="container">
+    <gm-header>
+        <auth-button class="container">
+            <button is="auth-button">login</button>
+        </auth-button>
+        <img src="media/gm-logo.png" alt="logo">
+        <div class="tabs">
+            <a href="./index.html">🏠</a>
+            <a href="./manuscripts.html">📚 View Manuscripts</a>
+            <a href="./named-glosses.html">📑 Named Glosses</a>
+            <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
+        </div>
+    </gm-header>
+    <form id="ngForm" deer-type="named-gloss" deer-context="http://www.loc.gov/mods" class="row">
+        <input type="text" deer-key="title" placeholder="Display Label" class="col">
+        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
+        <input is="auth-creator" type="hidden" deer-key="creator" />
+        <input type="submit" value="Add NG : Title Only" class="col">
+    </form>
+    <deer-view id="collectionList" deer-listing="https://store.rerum.io/v1/id/610c54deffce846a83e70625"
+        deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="ngList">
+        Loading&hellip;
+    </deer-view>
+    <gm-footer>
+
+    </gm-footer>
+    <div id="globalFeedback" class="card is-center"></div>
+    <script>
+        document.addEventListener('deer-created', event => {
+            let e = new CustomEvent("deer-view", { detail: { set: [collectionList] }, bubbles: true })
+            document.dispatchEvent(e)
+            setTimeout(() => location.href = "", 3000)
+        })
+
+
+    </script>
+</body>
+
+</html>

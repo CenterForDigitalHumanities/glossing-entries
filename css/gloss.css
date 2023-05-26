@@ -1,0 +1,308 @@
+@import "https://unpkg.com/chota@latest";
+
+.tabs {
+  white-space: nowrap;
+}
+
+textarea {
+  resize    : vertical;
+  max-height: 20rem;
+}
+
+.needs-more {
+  display: inline-block;
+}
+
+.needs-more::before {
+  content: "⚠ ";
+  color  : red;
+  display: inline-block;
+}
+
+img.thumbnail {
+  max-height: 12rem;
+  margin    : 0 .1rem;
+}
+
+#thumbroll {
+  position   : relative;
+  overflow-x : auto;
+  white-space: nowrap;
+  display    : block;
+  width      : 100%;
+}
+
+#previewTranscription {
+  width   : 100%;
+  position: relative;
+}
+
+#collectionList li.is-hidden.unadd-item, #collectionList li.is-hidden.unremove-item {
+  display: block !important;
+}
+
+#collectionList li.is-hidden {
+  height: 0em;
+  opacity: 0;
+}
+
+#collectionList li {
+  transition: all 500ms;
+  opacity: 1;
+  height:1.6em;
+}
+
+#collectionList li.unadd-item {
+  opacity: 0;
+  height: 0em;
+}
+
+a.button {
+  position: relative;
+  z-index : 1;
+}
+
+a[data-change] {
+  cursor: pointer;
+}
+
+.page {
+  display   : block;
+  padding   : 1rem;
+  margin    : 1rem;
+  box-shadow: 0 0 .25rem #000000;
+  overflow  : auto;
+}
+.glossBtn {
+  margin: .25em;
+  background-color: #97a8f3;
+}
+.gloss-location {
+  white-space: nowrap;
+}
+
+.um {
+  background-color: #aaf397 !important;
+}
+
+.lm {
+  background-color: #97cff3 !important;
+}
+
+.ulm {
+  background-color: #97f3ee !important;
+}
+
+.llm {
+  background-color: #97a8f3 !important;
+}
+
+.urm {
+  background-color: #f3b997 !important;
+}
+
+.lrm {
+  background-color: #f3ea97 !important;
+}
+
+.ti {
+  background-color: #f397d4 !important;
+}
+
+.li {
+  background-color: #f39797 !important;
+}
+
+line.um,
+line.lm,
+line.ulm,
+line.llm,
+line.urm,
+line.lrm,
+line.ti,
+line.li {
+  text-overflow: ellipsis;
+  white-space  : nowrap;
+  width        : 100%;
+  overflow     : hidden;
+}
+
+i.unassign, i.gloss-badge {
+  display : none;
+  position: absolute;
+  right   : 1px;
+  top     : 1px;
+}
+
+i.gloss-badge {
+  box-shadow: 1px 1px 3px rgb(0 0 0 / 40%);
+  cursor: pointer;
+  max-width: 15%;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+i.gloss-badge+.gloss-badge {
+  right: 15%;
+  margin: 0 .2em;
+}
+
+line.um i.unassign,
+line.lm i.unassign,
+line.ulm i.unassign,
+line.llm i.unassign,
+line.urm i.unassign,
+line.lrm i.unassign,
+line.ti i.unassign,
+line.li i.unassign,
+i.gloss-badge[data-badge-uri] {
+  display: inline-block;
+}
+
+line.um+line.um,
+line.lm+line.lm,
+line.ulm+line.ulm,
+line.llm+line.llm,
+line.urm+line.urm,
+line.lrm+line.lrm,
+line.ti+line.ti,
+line.li+line.li {
+  transform: scale(0.68);
+}
+
+line.um+line.um i.unassign,
+line.lm+line.lm i.unassign,
+line.ulm+line.ulm i.unassign,
+line.llm+line.llm i.unassign,
+line.urm+line.urm i.unassign,
+line.lrm+line.lrm i.unassign,
+line.ti+line.ti i.unassign,
+line.li+line.li i.unassign {
+  display: none;
+}
+
+line {
+  display    : block;
+  position   : relative;
+  user-select: none;
+  transition : background-color .2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+line:nth-child(2n) {
+  background-color: #dddddd;
+}
+
+line.selected {
+  background-color: #ff8;
+}
+
+line:nth-child(2n).selected {
+  background-color: #dd8;
+}
+
+line.just {
+  background-color: #999;
+}
+
+line.selected.just {
+  background-color: #cc0;
+}
+
+.is-included {
+  position: relative;
+}
+.is-included::after {
+  content: '✓';
+  top: -0.4em;
+  left: 0;
+  position: absolute;
+  color: blue;
+  font-size: 1.4em;
+  font-weight: 900;
+}
+
+#zoomy {
+  position        : fixed;
+  right           : 0;
+  top             : 0;
+  height          : 100vh;
+  background-color: rgba(255, 255, 255, .4);
+  width           : 50vw;
+}
+
+/* Feedback */
+
+#globalFeedback {
+  visibility : hidden;
+  min-width  : 250px;
+  margin-left: -125px;
+  text-align : center;
+  position   : fixed;
+  z-index    : 9;
+  left       : 50%;
+  bottom     : 30px;
+}
+
+#globalFeedback.show {
+  visibility       : visible;
+  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  animation        : fadein 0.5s, fadeout 0.5s 2.5s;
+}
+
+/* Animations to fade in and out */
+@-webkit-keyframes fadein {
+  from {
+    bottom : 0;
+    opacity: 0;
+  }
+
+  to {
+    bottom : 30px;
+    opacity: 1;
+  }
+}
+
+@keyframes fadein {
+  from {
+    bottom : 0;
+    opacity: 0;
+  }
+
+  to {
+    bottom : 30px;
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes fadeout {
+  from {
+    bottom : 30px;
+    opacity: 1;
+  }
+
+  to {
+    bottom : 0;
+    opacity: 0;
+  }
+}
+
+@keyframes fadeout {
+  from {
+    bottom : 30px;
+    opacity: 1;
+  }
+
+  to {
+    bottom : 0;
+    opacity: 0;
+  }
+}
+
+auth-button {
+    position: absolute;
+    display: block;
+    text-align: right;
+    padding: 0px 20px 0px 0px !important;
+    z-index: 1;
+}

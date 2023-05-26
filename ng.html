@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Glossing Matthew</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="/js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/app.js" type="module"></script>
+    <style>
+        .tagWidget {
+            margin-bottom: 15px;
+        }
+
+        .removeTag:after {
+            content: 'x';
+            color: red;
+            padding: 1px 1px 1px 7px;
+            cursor: pointer;
+
+        }
+
+        .removeTag:hover {
+            font-weight: bolder;
+            font-size: 115%;
+        }
+
+        button.smaller {
+            padding: 0px 5px;
+            height: 2.2em;
+        }
+
+        #knownTags {
+            border-left: 1px dotted black;
+            border-bottom: 1px dotted black;
+            border-right: 1px dotted black;
+            padding: 4px;
+        }
+    </style>
+</head>
+
+<body class="container">
+    <gm-header>
+        <auth-button class="container">
+            <button is="auth-button">login</button>
+        </auth-button>
+        <img src="media/gm-logo.png" alt="logo">
+        <div class="tabs">
+            <a href="./index.html">🏠</a>
+            <a href="./manuscripts.html">📚 View Manuscripts</a>
+            <a href="./named-glosses.html">📑 Named Glosses</a>
+            <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
+        </div>
+    </gm-header>
+    <h2> Add Named Gloss </h2>
+    <p>
+        Note that you will add lines from paritcular gloss transcriptions in a different interface.
+        This mints the object with the desired basic metadata.
+    </p>
+    <form id="named-gloss" deer-type="NamedGloss" deer-context="http://purl.org/dc/terms">
+        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
+        <input is="auth-creator" type="hidden" deer-key="creator" />
+        <div class="row">
+            <label class="col-3 col-2-md text-right">Label:</label>
+            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Description:</label>
+            <input type="text" deer-key="description" placeholder="notes" class="col-9 col-10-md">
+
+            <label class="col-3 col-2-md text-right">Chapter</label>
+            <input type="number" deer-key="targetChapter" placeholder="0" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Verse</label>
+            <input type="text" deer-key="targetVerse" placeholder="0-1" class="col-9 col-4-md">
+
+            <label class="col-3 col-2-md text-right">Target Text:</label>
+            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md"></textarea>
+            <label class="col-3 col-2-md text-right">Gloss Text:</label>
+            <textarea deer-key="transcribedGloss" rows="2" class="col-9 col-10-md"></textarea>
+
+            <label class="col-3 col-2-md text-right">Notes</label>
+            <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-10-md">
+        </div>
+
+        <!-- Note this could be a template or custom HTML element -->
+        <div class="tagWidget row">
+            <p class="col-12 col-12-md">Gloss tags are displayed below the input. Click the red 'x' to remove the tag.
+            </p>
+            <input type="hidden" deer-key="tags" deer-input-type="Set">
+            <label class="col-3 col-2-md text-right">Tag Name</label>
+            <input id="tagInput" type="text" class="col-9 col-4-md" placeholder="Add one tag at a time">
+            <button class="smaller" id="addTagBtn" onclick="addTag(event)"> Add Tag </button>
+            <div id="knownTags" class="selectedEntities col-12 col-12-md"></div>
+        </div>
+
+        <input type="submit" value="Create" class="col">
+        <a href="./named-glosses.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
+    </form>
+    <!-- 
+    <pre class="card bg-light is-hidden">
+        <deer-view deer-template="entity" deer-listening="named-gloss">current state</deer-view>
+    </pre> -->
+
+    <gm-footer class="row">
+
+    </gm-footer>
+
+    <div id="globalFeedback" class="card is-center"></div>
+    <script>
+        /**
+         * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
+         * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
+         * This event will come after all deer-view-rendered events have finished.
+         * @see deer-record.js DeerReport.constructor()  
+         */
+        addEventListener('deer-form-rendered', event => {
+            let whatRecordForm = event.target.id
+            let annotationData = event.detail
+            switch (whatRecordForm) {
+                case "named-gloss":
+                    prefillTagsArea(annotationData["tags"], event.target)
+                    break
+                default:
+            }
+        })
+        window.onhashchange = onload = () => {
+            let ngID = window.location.hash.substr(1)
+            document.getElementById("named-gloss").setAttribute("deer-id", ngID)
+            if (ngID) {
+                document.querySelector("input[type='submit']").value = "Update"
+            }
+            else {
+                addEventListener('globalFeedbackFinished', event => {
+                    window.location.href = "./named-glosses.html"
+                })
+            }
+            const broadcast = function (event = {}, type, element, obj = {}) {
+                let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
+                element.dispatchEvent(e)
+            }
+            //broadcast(undefined, "deer-view", document, {})
+        }
+
+        function deleteThis(event) {
+            event.preventDefault()
+            if (confirm("Really remove this named gloss?\n(Cannot be undone)")) {
+                let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
+                fetch("https://tinymatt.rerum.io/gloss/delete", {
+                    method: "DELETE",
+                    body: collectorId,
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    }
+                }).then(obj => {
+                    location.href = "./named-glosses.html"
+                })
+            }
+        }
+
+        /**
+         * Click event handler for #addTag.  Takes the user input and adds the string to the Set if it isn't already included.
+         * Includes pagination.
+         * Note this could be part of a custom HTML tags widget or template or something.
+         * */
+        function addTag(event) {
+            event.preventDefault()
+            event.stopPropagation()
+            let selectedTagsArea = document.getElementById("knownTags")
+            const tagInput = event.target.previousElementSibling
+            let tracked_tags = document.querySelector("input[deer-key='tags']")
+            tracked_tags.value = tracked_tags.value.toLowerCase()
+            const delim = (tracked_tags.hasAttribute("deer-array-delimeter")) ? tracked_tags.getAttribute("deer-array-delimeter") : ","
+            const newTagName = tagInput.value.toLowerCase().trim()
+            let arr_tag_names = tracked_tags.value ? tracked_tags.value.split(delim) : []
+            if (newTagName && arr_tag_names.indexOf(newTagName) === -1) {
+                selectedTagsArea.innerHTML = ""
+                arr_tag_names.push(newTagName)
+                arr_tag_names.forEach(name => {
+                    let tag = `<span class="tag is-small">${name}<span class="removeTag" onclick="removeTag(event, '${name}')"></span></span>`
+                    selectedTagsArea.innerHTML += tag
+                })
+                tagInput.value = ""
+                const str_arr = arr_tag_names.join(delim)
+                tracked_tags.value = str_arr
+                tracked_tags.setAttribute("value", str_arr)
+                tracked_tags.$isDirty = true
+            }
+            else {
+                tagInput.value = ""
+            }
+        }
+
+        /**
+         * Helper function for the specialized tags area in the deer form.  This takes the Annotation
+         * containing the Set, gets the value, and populates it to the hidden input for tags.
+         * It also draws existing tags to the UI.
+         * Note this could be part of a custom HTML tags widget or template or something.
+         * */
+        function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
+            if (tagData === undefined) {
+                console.warn("Cannot set value for tags and build UI.  There is no data.")
+                return false
+            }
+            let arr_names = (tagData.hasOwnProperty("value") && tagData.value.hasOwnProperty("items")) ? tagData.value.items :
+                tagData.hasOwnProperty("items") ? tagData.items :
+                    [tagData]
+            if (arr_names.length === 0) {
+                console.warn("There are no tags recorded for this named gloss")
+                return false
+            }
+            form.querySelector("input[deer-key='tags']").value = arr_names.join(",")
+            let area = form.querySelector("input[deer-key='tags']").nextElementSibling //The view or select should always be just after the input tracking the values from it.
+            //Now build the little tags
+            let selectedTagsArea = document.getElementById("knownTags")
+            selectedTagsArea.innerHTML = ""
+            let tags = ""
+            arr_names.forEach(tagName => {
+                if (tagName) {
+                    tags += `<span class="tag is-small">${tagName}<span class="removeTag" onclick="removeTag(event, '${tagName}')"></span></span>`
+                }
+            })
+            selectedTagsArea.innerHTML = tags
+        }
+
+        /**
+         * Click event handler for .removeTag when the user clicks the little x. 
+         * Removes tag from the set of known tags (if included, it really should be though.)
+         * Includes pagination.
+         * Note this could be part of a custom HTML tags widget or template or something.
+         * */
+        function removeTag(event, tagName) {
+            event.preventDefault()
+            event.stopPropagation()
+            tagName = tagName.toLowerCase()
+            let selectedTagsArea = document.getElementById("knownTags")
+            let tracked_tags = document.querySelector("input[deer-key='tags']")
+            tracked_tags.value = tracked_tags.value.toLowerCase()
+            let delim = (tracked_tags.hasAttribute("deer-array-delimeter")) ? tracked_tags.getAttribute("deer-array-delimeter") : ","
+            let arr_tag_names = tracked_tags.value ? tracked_tags.value.split(delim) : []
+            if (arr_tag_names.indexOf(tagName) > -1) {
+                selectedTagsArea.innerHTML = ""
+                arr_tag_names.splice(arr_tag_names.indexOf(tagName), 1)
+                arr_tag_names.forEach(name => {
+                    let tag = `<span class="tag is-small">${name}<span class="removeTag" onclick="removeTag(event, '${name}')"></span></span>`
+                    selectedTagsArea.innerHTML += tag
+                })
+                let str_arr = arr_tag_names.join(delim)
+                tracked_tags.value = str_arr
+                tracked_tags.setAttribute("value", str_arr)
+                tracked_tags.$isDirty = true
+            }
+            else {
+                tagInput.value = ""
+            }
+        }
+
+        /**
+         * A hidden input is tracking a select or multi select. It is hidden and it is not a primitive, so DEER does not handle the value.
+         * Make sure to set the value of this hidden input.  The value is a string, that string contains a delimiter to join on for cases of multiple values.
+         * 
+         * @param {Object} annotationData Expanded data that is all annotation data for a form.
+         * @param {Array(String)} keys The specific annotations we are looking for in annotationData. 
+         * @param {HTMLElement} form The completely loaded HTML <form> containing the <selects>s
+         * @return None
+         */
+        function setTrackedHiddenValues(annotationData, keys = ["tag"], form = document.getElementById("named-gloss")) {
+            keys.forEach(key => {
+                let data_arr =
+                    (annotationData[key].hasOwnProperty("value") && annotationData[key].value.hasOwnProperty("items")) ? annotationData[key].value.items : annotationData[key].hasOwnProperty("items") ? annotationData[key].items : [LR.utils.getAnnoValue(annotationData[key])]
+                let input = form.querySelector("input[deer-key='" + key + "']")
+                //Set the value of the hidden input that tracks this for DEER
+                //Check if we need a different delimeter.  The input will tell us.
+                let delim = (input.hasAttribute("deer-array-delimeter")) ? input.getAttribute("deer-array-delimeter") : ","
+                //Generate the value for the input that DEER supports - "uri,uri..."
+                let str_arr = (data_arr.length > 1) ? data_arr.join(delim) : (data_arr.length === 1) ? data_arr[0] : ""
+                input.value = str_arr
+            })
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Glossing Matthew</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="/js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/app.js" type="module"></script>
+</head>
+
+<body class="container">
+    <gm-header>
+        <auth-button class="container">
+            <button is="auth-button">login</button>
+        </auth-button>
+        <img src="media/gm-logo.png" alt="logo">
+        <div class="tabs">
+            <a href="./index.html">🏠</a>
+            <a href="./named-glosses.html">✏️ Named Glosses</a>
+            <a href="./manuscripts.html">📚 View Manuscripts</a>
+            <a href="./named-glosses.html">📑 Named Glosses</a>
+            <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
+        </div>
+    </gm-header>
+
+    <h3 id="glossTitle" class="deer-view send-id" deer-template="label">Gloss Alignment</h3>
+    <input is="auth-creator" type="hidden" deer-key="creator" />
+
+    <div class="row">
+        <deer-view id="glossNumBtns" class="col-6" deer-collection="Glossing-Matthew-Named-Glosses"
+            deer-template="glossAssignments"></deer-view>
+        <deer-view id="folioLayout" deer-id="" class="send-id col-6"
+            deer-target-collection="Glossing-Matthew-Named-Glosses" deer-template="glossLines"></deer-view>
+    </div>
+
+    <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
+
+    <pre class="card bg-light is-hidden">
+        <deer-view id="frPreview" deer-template="entity">current state</deer-view>
+    </pre>
+
+    <gm-footer>
+
+    </gm-footer>
+    <div id="globalFeedback" class="card is-center"></div>
+    <script>
+        window.onhashchange = onload = () => {
+            let params = (new URL(document.location)).searchParams
+            let glossid = window.location.hash.substr(1)
+            document.querySelectorAll(".send-id").forEach(el => el.setAttribute("deer-id", glossid))
+            let page = parseInt(params.get("page")) ?? 1
+            folioLayout.setAttribute("deer-index", page - 1)
+        }
+
+        function broadcast(event = {}, type, element, obj = {}) {
+            let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
+            element.dispatchEvent(e)
+        }
+
+        function alertReturn(noid) {
+            let msg = noid
+                ? "You entered this page without a manuscript URI. Click OK to head back to the list."
+                : "The manuscript this gloss is from does not have a TPEN project associated with it."
+        }
+
+    </script>
+</body>
+
+</html>
