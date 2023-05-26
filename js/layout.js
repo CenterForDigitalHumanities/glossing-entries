@@ -5,7 +5,7 @@ export class GlossFooter extends HTMLElement {
         <a href="./manuscripts.html">📚</a>
         <a href="./named-glosses.html">📑</a>
         <a rel="noopener noreferrer" title="View on GitHub"
-            href="https://github.com/CenterForDigitalHumanities/Glossing-Matthew" target="_blank">
+            href="https://github.com/CenterForDigitalHumanities/Gallery-of-Glosses" target="_blank">
             <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
                 aria-hidden="true">
                 <path fill-rule="evenodd"
@@ -21,4 +21,4 @@ export class GlossFooter extends HTMLElement {
     }
 }
 
-customElements.define('gm-footer', GlossFooter)
+customElements.define('gog-footer', GlossFooter)

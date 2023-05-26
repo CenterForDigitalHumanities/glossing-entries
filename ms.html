@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Glossing Matthew</title>
+    <title>Gallery of Glosses</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
     <script src="/js/auth.js" type="module"></script>
@@ -11,19 +11,19 @@
 </head>
 
 <body class="container">
-    <gm-header>
+    <gog-header>
         <auth-button class="container">
             <button is="auth-button">login</button>
         </auth-button>
-        <img src="media/gm-logo.png" alt="logo">
+        <img src="media/gog-logo.png" alt="logo">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
             <a href="./named-glosses.html">📑 Named Glosses</a>
         </div>
-    </gm-header>
+    </gog-header>
     <form id="manuscript" deer-type="manuscript" deer-context="http://purl.org/dc/terms">
-        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew">
+        <input type="hidden" deer-key="targetCollection" value="Gallery-of-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
             <label class="col-3 col-2-md text-right">Label:</label>
@@ -73,9 +73,9 @@
     <pre
         class="card bg-light is-hidden"><deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view></pre>
 
-    <gm-footer class="row">
+    <gog-footer class="row">
 
-    </gm-footer>
+    </gog-footer>
 
     <div id="globalFeedback" class="card is-center"></div>
     <script>

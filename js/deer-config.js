@@ -58,7 +58,7 @@ export default {
      */
     TEMPLATES: {
         msList: function (obj, options = {}) {
-            if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
+            if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let tmpl = `<a href="./manage-mss.html" class="button">Manage Manuscript Glosses</a> <h2>Manuscripts</h2>`
             if (options.list) {
                 tmpl += `<ul>`
@@ -74,7 +74,7 @@ export default {
             return tmpl
         },
         ngList: function (obj, options = {}) {
-            if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
+            if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let html = `<a href="./manage-glosses.html" class="button">Manage Named Glosses</a> <h2>Named Glosses</h2>
             <input type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">`
             if (options.list) {

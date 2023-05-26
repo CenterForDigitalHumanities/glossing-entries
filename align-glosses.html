@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Glossing Matthew</title>
+    <title>Gallery of Glosses</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
     <script src="/js/auth.js" type="module"></script>
@@ -11,11 +11,11 @@
 </head>
 
 <body class="container">
-    <gm-header>
+    <gog-header>
         <auth-button class="container">
             <button is="auth-button">login</button>
         </auth-button>
-        <img src="media/gm-logo.png" alt="logo">
+        <img src="media/gog-logo.png" alt="logo">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./named-glosses.html">✏️ Named Glosses</a>
@@ -23,16 +23,16 @@
             <a href="./named-glosses.html">📑 Named Glosses</a>
             <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
         </div>
-    </gm-header>
+    </gog-header>
 
     <h3 id="glossTitle" class="deer-view send-id" deer-template="label">Gloss Alignment</h3>
     <input is="auth-creator" type="hidden" deer-key="creator" />
 
     <div class="row">
-        <deer-view id="glossNumBtns" class="col-6" deer-collection="Glossing-Matthew-Named-Glosses"
+        <deer-view id="glossNumBtns" class="col-6" deer-collection="Gallery-of-Glosses-Named-Glosses"
             deer-template="glossAssignments"></deer-view>
         <deer-view id="folioLayout" deer-id="" class="send-id col-6"
-            deer-target-collection="Glossing-Matthew-Named-Glosses" deer-template="glossLines"></deer-view>
+            deer-target-collection="Gallery-of-Glosses-Named-Glosses" deer-template="glossLines"></deer-view>
     </div>
 
     <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
@@ -41,9 +41,9 @@
         <deer-view id="frPreview" deer-template="entity">current state</deer-view>
     </pre>
 
-    <gm-footer>
+    <gog-footer>
 
-    </gm-footer>
+    </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
         window.onhashchange = onload = () => {

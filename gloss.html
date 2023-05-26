@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Glossing Matthew</title>
+    <title>Gallery of Glosses</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
     <script src="/js/auth.js" type="module"></script>
@@ -11,18 +11,18 @@
 </head>
 
 <body class="container">
-    <gm-header>
+    <gog-header>
         <auth-button class="container">
             <button is="auth-button" disabled>login</button>
         </auth-button>
-        <img src="media/gm-logo.png" alt="logo">
+        <img src="media/gog-logo.png" alt="logo">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
             <a href="./named-glosses.html">📑 Named Glosses</a>
             <a href="./ms.html" id="thisMS">📖 This Manuscript</a>
         </div>
-    </gm-header>
+    </gog-header>
     <div id="pageRanges"></div>
     <form id="folioRange" deer-type="Range" deer-motivation="bookmarking"
         deer-context="https://iiif.io/api/presentation/3/context.json">
@@ -96,9 +96,9 @@
     <pre
         class="card bg-light is-hidden"><deer-view id="frPreview" deer-template="entity">current state</deer-view></pre>
 
-    <gm-footer>
+    <gog-footer>
 
-    </gm-footer>
+    </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
         window.onhashchange = onload = () => {

@@ -11,18 +11,18 @@
 </head>
 
 <body class="container">
-    <gm-header>
+    <gog-header>
         <auth-button class="container">
             <button is="auth-button">login</button>
         </auth-button>
-        <img src="media/gm-logo.png" alt="logo">
+        <img src="media/gog-logo.png" alt="logo">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./named-glosses.html">✏️ Named Glosses</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
             <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
         </div>
-    </gm-header>
+    </gog-header>
     <h3 id="glossTitle" class="deer-view send-id" deer-id="" deer-template="label">Layout Editor</h3>
     <input is="auth-creator" type="hidden" deer-key="creator" />
 
@@ -37,9 +37,9 @@
         <deer-view id="frPreview" deer-template="entity">current state</deer-view>
     </pre>
 
-    <gm-footer>
+    <gog-footer>
 
-    </gm-footer>
+    </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
         window.onhashchange = onload = () => {
