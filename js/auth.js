@@ -2,7 +2,7 @@
  * @module AuthButton Adds custom element for login/logout of Auth0, based on configuration below.
  * @author cubap
  * 
- * @description This module includes a custom `<button is="auth-button">` element for authentication within 
+ * @description This module includes a custom `<button is="auth-button" disabled="true">` element for authentication within 
  * the Gallery of Glosses Project, specifically the data entry interfaces.
  * Notes: 
  * - Include this module and a button[is='auth-button'] element to use. 

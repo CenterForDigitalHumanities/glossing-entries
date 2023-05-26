@@ -1,7 +1,50 @@
 @import "https://unpkg.com/chota@latest";
+@import url('https://fonts.googleapis.com/css2?family=Eczar&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Volkhov&display=swap');
+
+:root {
+  --bg-color: hsl(0, 0%, 100%);
+  --bg-secondary-color: hsl(240, 14%, 96%);
+  --color-primary: hsl(215 35% 50%);
+  --color-accent: hsl(12.75deg 80% 40%);
+  --color-lightGrey: hsl(218, 14%, 85%);
+  --color-grey: hsl(231, 5%, 48%);
+  --color-darkGrey: hsl(216, 4%, 26%);
+  --color-error: hsl(0, 64%, 53%);
+  --color-success: hsl(113, 81%, 41%);
+  --grid-maxWidth: 120rem;
+  --grid-gutter: 2rem;
+  --font-size: 1.6rem;
+}
+
+auth-button {
+  visibility: hidden;
+}
+
+gog-header,gog-footer {
+  display: block;
+}
+
+.bg-basic {
+  background-color: var(--bg-color)!important;
+}
 
 .tabs {
   white-space: nowrap;
+  background-color: var(--bg-color);
+  font-family: 'Eczar',serif;
+}
+
+.tabs a {
+  white-space: nowrap;
+  color: var(--color-primary);
+    transition: all .2s;
+}
+
+.tabs>a:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+  background-color: var(--bg-secondary-color);
 }
 
 textarea {
@@ -17,6 +60,24 @@ textarea {
   content: "⚠ ";
   color  : red;
   display: inline-block;
+}
+
+[alt='banner'] {
+  position: absolute;
+  max-width: none;
+  min-width: 100%;
+  filter:blur(.2rem);
+  left:0;
+  top:0;
+  z-index: -1;
+}
+
+h1.title {
+  color: hsl(12.75deg 80% 40%);
+  text-shadow: 1px 1px 0 hsl(215 35% 50%), -1px -1px 0 hsl(215 35% 50%), 1px -1px 0 hsl(215 35% 50%), -1px 1px 0 hsl(215 35% 50%);
+  font-size: 3em;
+  font-family: "Eczar","Volkhov",serif;
+  margin:0;
 }
 
 img.thumbnail {

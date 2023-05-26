@@ -8,30 +8,33 @@
     <script src="/js/auth.js" type="module"></script>
 </head>
 
-<body class="container">
+<body class="container bg-light">
     <gog-header>
-        <auth-button class="container">
-            <button is="auth-button" disabled>login</button>
+        <auth-button disabled="true">
+            <button is="auth-button" disabled="true" disabled>login</button>
         </auth-button>
-        <img class="is-full-width" src="media/gog-logo.png" alt="logo">
+        <img src="media/gog-logo.jpg" alt="banner">
+        <h1 class="title">
+            Gallery of Glosses
+        </h1>
         <div class="tabs">
             <a href="./named-glosses.html">✏️ Named Glosses</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
         </div>
     </gog-header>
-
-    <div class="row">
-        <div class="column">
-            <p class="welcomeMessage">
-                Welcome to the Gallery of Glosses app. Learn more about the Gospel according to Matthew by studying the
-                glosses on the pages around the text. Click one of the links to get started.
-            </p>
-        </div>
-    </div>
+<div class="bg-basic content" style="min-height: 400px;">
+    <p>
+        This website will include all transcribed glosses to date, information on the meta-glosses of which individual
+        glosses are particular examples, information about each manuscript used, information about the history and
+        digital tools of the project, instructions on how to use the existing site, and a guide to how to apply the
+        tools and software to other projects. It will also credit all participants on the project, past and present,
+        including student workers responsible for the transcription of various glosses.
+    </p>
+</div>
 
     <gog-footer>
         <a rel="noopener noreferrer" title="View on GitHub"
-            href="https://github.com/CenterForDigitalHumanities/Gallery-of-Glosses" target="_blank">
+            href="https://github.com/CenterForDigitalHumanities/glossing-entries" target="_blank">
             <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
                 aria-hidden="true">
                 <path fill-rule="evenodd"
