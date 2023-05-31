@@ -1,3 +1,3 @@
-# Gallery-of-Glosses
+# Glossing-Entries
 
 Data entry for the NEH funded "Gallery of Glosses" project.

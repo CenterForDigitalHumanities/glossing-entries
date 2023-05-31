@@ -1,11 +1,11 @@
-export class GlossFooter extends HTMLElement {
+class GlossFooter extends HTMLElement {
     template = `
     <footer>
     <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
         <a href="./named-glosses.html">📑</a>
         <a rel="noopener noreferrer" title="View on GitHub"
-            href="https://github.com/CenterForDigitalHumanities/Gallery-of-Glosses" target="_blank">
+            href="https://github.com/CenterForDigitalHumanities/glossing-entries" target="_blank">
             <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
                 aria-hidden="true">
                 <path fill-rule="evenodd"
@@ -17,8 +17,38 @@ export class GlossFooter extends HTMLElement {
     `
     constructor() {
         super()
+    }
+
+    connectedCallback() {
         this.innerHTML = this.template
     }
 }
-
 customElements.define('gog-footer', GlossFooter)
+
+class GlossHeader extends HTMLElement {
+    template = `
+    <header>
+    <auth-button>
+        <button is="auth-button">login</button>
+    </auth-button>
+    <img src="media/gog-logo.jpg" alt="banner">
+    <h1 class="title">
+        Gallery of Glosses
+    </h1>
+    <div class="tabs">
+        <a href="./named-glosses.html">✏️ Named Glosses</a>
+        <a href="./manuscripts.html">📚 View Manuscripts</a>
+    </div>
+    </header>
+        `
+    constructor() {
+        super()
+    }
+    connectedCallback() {
+        if(this.innerHTML.length < 30) {
+            this.innerHTML = this.template
+        }
+    }
+}
+
+customElements.define('gog-header', GlossHeader)

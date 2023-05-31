@@ -41,9 +41,9 @@
 </head>
 
 <body class="container">
-    <gog-header>
+    <gog-header class="container">
         <auth-button disabled="true" class="container">
-            <button is="auth-button" disabled="true">login</button>
+            <button is="auth-button">login</button>
         </auth-button>
         <img src="media/gog-logo.jpg" alt="banner">
         <div class="tabs">
@@ -59,7 +59,7 @@
         This mints the object with the desired basic metadata.
     </p>
     <form id="named-gloss" deer-type="NamedGloss" deer-context="http://purl.org/dc/terms">
-        <input type="hidden" deer-key="targetCollection" value="Gallery-of-Glosses-Named-Glosses">
+        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
             <label class="col-3 col-2-md text-right">Label:</label>
