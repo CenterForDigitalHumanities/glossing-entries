@@ -17,10 +17,6 @@
   --font-size: 1.6rem;
 }
 
-auth-button {
-  visibility: hidden;
-}
-
 gog-header,gog-footer {
   display: block;
 }
