@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Glossing Matthew</title>
+    <title>Gallery of Glosses</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
     <script src="/js/auth.js" type="module"></script>
@@ -12,21 +12,21 @@
 </head>
 
 <body class="container">
-    <gm-header>
-        <auth-button class="container">
+    <gog-header class="container">
+        <auth-button disabled="true" class="container">
             <button is="auth-button" disabled>login</button>
         </auth-button>
-        <img src="media/gm-logo.png" alt="logo">
+        <img src="media/gog-logo.jpg" alt="banner">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
             <a href="./named-glosses.html">📑 Named Glosses</a>
             <a href="./ms.html" id="thisMS">📖 This Manuscript</a>
         </div>
-    </gm-header>
+    </gog-header>
     <div id="pageRanges"></div>
     <form id="folioRange" deer-type="Range" deer-motivation="bookmarking"
-        deer-context="https://iiif.io/api/presentation/3/context.json" data-user="HIERARCHY">
+        deer-context="https://iiif.io/api/presentation/3/context.json">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="partOf">
         <input type="hidden" deer-key="additionalType" value="Gloss">
@@ -89,7 +89,7 @@
         </div>
 
         <input type="submit" value="Save Folio Range" class="col">
-        <button type="button" onclick="removeFromCollectionAndDelete(event, 'Range')" class="button error"> delete </button>
+        <button type="button" onclick="deleteThis(event)" class="button error"> delete </button>
     </form>
 
     <deer-view id="previewTranscription" deer-template="folioTranscription"></deer-view>
@@ -97,9 +97,9 @@
     <pre
         class="card bg-light is-hidden"><deer-view id="frPreview" deer-template="entity">current state</deer-view></pre>
 
-    <gm-footer>
+    <gog-footer class="container">
 
-    </gm-footer>
+    </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
         window.onhashchange = onload = () => {

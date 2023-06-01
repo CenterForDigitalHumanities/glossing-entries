@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Glossing Matthew Named Glosses</title>
+    <title>Gallery of Glosses Named Glosses</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/gloss.css">
@@ -13,32 +13,32 @@
 </head>
 
 <body class="container">
-    <gm-header>
-        <auth-button class="container">
+    <gog-header class="container">
+        <auth-button disabled="true" class="container">
             <button is="auth-button">login</button>
         </auth-button>
-        <img src="media/gm-logo.png" alt="logo">
+        <img src="media/gog-logo.jpg" alt="banner">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./named-glosses.html">✏️ Named Glosses</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
             <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
         </div>
-    </gm-header>
-    <h1 class="text-primary"> Managing Glossing Matthew Named Glosses </h1>
+    </gog-header>
+    <h1 class="text-primary"> Managing Gallery of Glosses Named Glosses </h1>
     <input is="auth-creator" type="hidden" deer-key="creator" />
     <button id="checkAll" class="button" role="button">Check All</button>
     <button id="checkInvert" class="button" role="button">Invert Selection</button>
     <button id="saveList" style="visibility: hidden;" class="button primary" role="button">Save List</button>
     <div class="row">
         <deer-view id="collectionList" deer-listing="https://store.rerum.io/v1/id/610c54deffce846a83e70625"
-            deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ms.html#" deer-template="managedlist" data-user="HIERARCHY">
+            deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ms.html#" deer-template="managedlist">
             Loading&hellip;
         </deer-view>
     </div>
-    <gm-footer>
+    <gog-footer class="container">
 
-    </gm-footer>
+    </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
         checkAll.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.classList.has("is-included") ?? a.click()))

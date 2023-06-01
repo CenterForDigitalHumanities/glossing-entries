@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Glossing Matthew</title>
+    <title>Gallery of Glosses</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
     <script src="/js/auth.js" type="module"></script>
@@ -42,18 +42,18 @@
 </head>
 
 <body class="container">
-    <gm-header>
-        <auth-button class="container">
+    <gog-header class="container">
+        <auth-button disabled="true" class="container">
             <button is="auth-button">login</button>
         </auth-button>
-        <img src="media/gm-logo.png" alt="logo">
+        <img src="media/gog-logo.jpg" alt="banner">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
             <a href="./named-glosses.html">📑 Named Glosses</a>
             <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
         </div>
-    </gm-header>
+    </gog-header>
     <h2> Add Named Gloss </h2>
     <p>
         Note that you will add lines from paritcular gloss transcriptions in a different interface.
@@ -94,16 +94,16 @@
         </div>
 
         <input type="submit" value="Create" class="col">
-        <a href="./named-glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')" class="text-error">Drop from collection</a>
+        <a href="./named-glosses.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
     </form>
     <!-- 
     <pre class="card bg-light is-hidden">
         <deer-view deer-template="entity" deer-listening="named-gloss">current state</deer-view>
     </pre> -->
 
-    <gm-footer class="row">
+    <gog-footer class="row">
 
-    </gm-footer>
+    </gog-footer>
 
     <div id="globalFeedback" class="card is-center"></div>
     <script>
