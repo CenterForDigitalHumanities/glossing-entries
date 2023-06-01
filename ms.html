@@ -13,9 +13,7 @@
 
 <body class="container">
     <gog-header class="container">
-        <auth-button disabled="true" class="container">
-            <button is="auth-button">login</button>
-        </auth-button>
+        <button is="auth-button">login</button>
         <img src="media/gog-logo.jpg" alt="banner">
         <div class="tabs">
             <a href="./index.html">🏠</a>
@@ -85,7 +83,7 @@
             manuscript.setAttribute("deer-id", msid)
             thumbroll.setAttribute("deer-id", msid)
             newGloss.setAttribute("href", "gloss.html?partOf=" + msid + "#")
-            fetch("https://tinymatt.rerum.io/gloss/query?limit=100&skip=0", {
+            fetch("https://tinydev.rerum.io/app/query?limit=100&skip=0", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json; charset=utf-8"

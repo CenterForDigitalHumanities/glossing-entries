@@ -13,7 +13,14 @@
 </head>
 
 <body class="container">
-    <gog-header class="container"></gog-header>
+    <gog-header class="container">
+        <button is="auth-button">login</button>
+        <img src="media/gog-logo.jpg" alt="banner">
+        <div class="tabs">
+            <a href="./index.html">🏠</a>
+            <a href="./named-glosses.html">📑 Named Glosses</a>
+        </div>
+    </gog-header>
     <form id="msForm" deer-type="manuscript" deer-context="http://www.loc.gov/mods" class="row">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="text" deer-key="title" placeholder="Display Label" class="col">

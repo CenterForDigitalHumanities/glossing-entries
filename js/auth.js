@@ -59,6 +59,13 @@ class AuthButton extends HTMLButtonElement {
             }
             const ref = getReferringPage()
             if (ref && ref !== location.href) { location.href = ref }
+            if (!result || !result.idToken || !result.accessToken){
+                console.error("There was no id token.  Reset the cached User")
+                window.GOG_USER = {}
+                window.GOG_USER.authorization = "none"
+                localStorage.removeItem("userToken")
+                return
+            }
             localStorage.setItem("userToken", result.idToken)
             window.GOG_USER = result.idTokenPayload
             window.GOG_USER.authorization = result.accessToken

@@ -12,7 +12,14 @@
 </head>
 
 <body class="container">
-    <gog-header class="container"></gog-header>
+    <gog-header class="container">
+        <button is="auth-button">login</button>
+        <img src="media/gog-logo.jpg" alt="banner">
+        <div class="tabs">
+            <a href="./index.html">🏠</a>
+            <a href="./manuscripts.html">📚 View Manuscripts</a>
+        </div>
+    </gog-header>
     <form id="ngForm" deer-type="named-gloss" deer-context="http://www.loc.gov/mods" class="row">
         <input type="text" deer-key="title" placeholder="Display Label" class="col">
         <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
