@@ -12,19 +12,7 @@
 </head>
 
 <body class="container">
-    <gog-header class="container">
-        <auth-button disabled="true" class="container">
-            <button is="auth-button">login</button>
-        </auth-button>
-        <img src="media/gog-logo.jpg" alt="banner">
-        <div class="tabs">
-            <a href="./index.html">🏠</a>
-            <a href="./named-glosses.html">✏️ Named Glosses</a>
-            <a href="./manuscripts.html">📚 View Manuscripts</a>
-            <a href="./named-glosses.html">📑 Named Glosses</a>
-            <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
-        </div>
-    </gog-header>
+    <gog-header class="container"></gog-header>
 
     <h3 id="glossTitle" class="deer-view send-id" deer-template="label">Gloss Alignment</h3>
     <input is="auth-creator" type="hidden" deer-key="creator" />
