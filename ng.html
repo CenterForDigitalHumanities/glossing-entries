@@ -134,10 +134,6 @@
                     window.location.href = "./named-glosses.html"
                 })
             }
-            const broadcast = function (event = {}, type, element, obj = {}) {
-                let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
-                element.dispatchEvent(e)
-            }
             //broadcast(undefined, "deer-view", document, {})
         }
 
