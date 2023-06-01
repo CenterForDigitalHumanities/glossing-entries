@@ -33,7 +33,9 @@ const logout = () => {
     document.querySelectorAll('[is="auth-creator"]').forEach(el=>el.connectedCallback())
     webAuth.logout({ returnTo: origin })
 }
-const login = (custom) => webAuth.authorize(Object.assign({ authParamsMap: { 'app': 'glossing' } },custom))
+const login = (custom) => {
+    //webAuth.authorize(Object.assign({ authParamsMap: { 'app': 'glossing' } },custom))
+}
 
 const getReferringPage = () => {
     try {
@@ -59,6 +61,13 @@ class AuthButton extends HTMLButtonElement {
             }
             const ref = getReferringPage()
             if (ref && ref !== location.href) { location.href = ref }
+            if (!result || !result.idToken || !result.accessToken){
+                console.error("There was missing token information from the login.  Reset the cached User")
+                window.GOG_USER = {}
+                window.GOG_USER.authorization = "none"
+                localStorage.removeItem("userToken")
+                return
+            }
             localStorage.setItem("userToken", result.idToken)
             window.GOG_USER = result.idTokenPayload
             window.GOG_USER.authorization = result.accessToken

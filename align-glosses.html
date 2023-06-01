@@ -8,22 +8,11 @@
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
+    <script src="js/shared.js" type="module"></script>
 </head>
 
 <body class="container">
-    <gog-header class="container">
-        <auth-button disabled="true" class="container">
-            <button is="auth-button">login</button>
-        </auth-button>
-        <img src="media/gog-logo.jpg" alt="banner">
-        <div class="tabs">
-            <a href="./index.html">🏠</a>
-            <a href="./named-glosses.html">✏️ Named Glosses</a>
-            <a href="./manuscripts.html">📚 View Manuscripts</a>
-            <a href="./named-glosses.html">📑 Named Glosses</a>
-            <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
-        </div>
-    </gog-header>
+    <gog-header class="container"></gog-header>
 
     <h3 id="glossTitle" class="deer-view send-id" deer-template="label">Gloss Alignment</h3>
     <input is="auth-creator" type="hidden" deer-key="creator" />
@@ -52,17 +41,6 @@
             document.querySelectorAll(".send-id").forEach(el => el.setAttribute("deer-id", glossid))
             let page = parseInt(params.get("page")) ?? 1
             folioLayout.setAttribute("deer-index", page - 1)
-        }
-
-        function broadcast(event = {}, type, element, obj = {}) {
-            let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
-            element.dispatchEvent(e)
-        }
-
-        function alertReturn(noid) {
-            let msg = noid
-                ? "You entered this page without a manuscript URI. Click OK to head back to the list."
-                : "The manuscript this gloss is from does not have a TPEN project associated with it."
         }
 
     </script>

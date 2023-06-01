@@ -1072,11 +1072,16 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
 DEER.TEMPLATES.managedlist = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses managers.</h4>` }
     try {
+        // If the collection doesn't have a name, something has gone wrong.
+        if(!obj.name) return
+
         let tmpl = `<input type="hidden" deer-collection="${options.collection}">`
+        const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
+
         if (options.list) {
             tmpl += `<ul>`
             obj[options.list].forEach((val, index) => {
-                const removeBtn = `<a href="${val['@id']}" class="removeCollectionItem" title="Delete This Entry">&#x274C</a>`
+                const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C</a>`
                 const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`
                 tmpl += `<li>
                 ${visibilityBtn}
@@ -1110,8 +1115,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                             ev.preventDefault()
                             ev.stopPropagation()
                             const itemID = el.getAttribute("href")
-                            const fromCollection = document.querySelector('input[deer-collection]').getAttribute("deer-collection")
-                            deleteThis(itemID, fromCollection)
+                            const itemType = el.getAttribute("data-type")
+                            removeFromCollectionAndDelete(itemID, itemType)
                         }))
                         document.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
                             ev.preventDefault()
@@ -1156,44 +1161,150 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         .catch(err => alert(`Failed to save: ${err}`))
                 }
 
-                function deleteThis(id, collection) {
-                    if (confirm("Really remove this record?\n(Cannot be undone)")) {
-                        const historyWildcard = { "$exists": true, "$eq": [] }
-                        const queryObj = {
-                            $or: [{
-                                "targetCollection": collection
-                            }, {
-                                "body.targetCollection": collection
-                            }],
-                            target: httpsIdArray(id),
-                            "__rerum.history.next": historyWildcard
-                        }
-                        fetch("https://tinymatt.rerum.io/gloss/query", {
-                            method: "POST",
-                            body: JSON.stringify(queryObj)
-                        })
-                            .then(r => r.ok ? r.json() : Promise.reject(new Error(r?.text)))
-                            .then(annos => {
-                                let all = annos.map(anno => {
-                                    return fetch("https://tinymatt.rerum.io/gloss/delete", {
-                                        method: "DELETE",
-                                        body: anno["@id"],
-                                        headers: {
-                                        "Content-Type": "application/json; charset=utf-8",
-                                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                                        }
-                                    })
-                                        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                                        .catch(err => { throw err })
-                                })
-                                Promise.all(all).then(success => {
-                                    document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
-                                })
-                            })
-                            .catch(err => console.error(`Failed to delete: ${err}`))
-                    }
-                }
+                /**
+                 * An archetype entity is being deleted.  Delete it and some choice Annotations connected to it.
+                 * 
+                 * Might want to update the name of this to be delete from collection instead of delete this
+                 * 
+                 * 
+                 * @param event {Event} A button/link click event
+                 * @param type {String} The archtype object's type or @type.
+                 */ 
+                async function removeFromCollectionAndDelete(id, type) {
+                    event.preventDefault()
 
+                    // This won't do 
+                    if(!id){
+                        alert(`No URI supplied for delete.  Cannot delete.`)
+                        return
+                    }
+                    const thing = 
+                        (type === "manuscript") ? "Manuscript" :
+                        (type === "named-gloss") ? "Named Gloss" :
+                        (type === "Range") ? "Gloss" : null
+
+
+                    // If it is an unexpected type, we probably shouldn't go through with the delete.
+                    if(thing === null){
+                        alert(`Not sure what a ${type} is.  Cannot delete.`)
+                        return
+                    }
+
+                    // Confirm they want to do this
+                    if (!confirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
+
+                    const historyWildcard = { "$exists": true, "$size": 0 }
+
+                    /**
+                     * A customized delete functionality for manuscripts, since they have Annotations and Glosses.
+                     */ 
+                    if(type==="manuscript"){
+                        // Such as ' [ Pn ] Paris, BnF, lat. 17233 ''
+
+                        const allGlossesOfManuscriptQueryObj = {
+                            "body.partOf.value": httpsIdArray(id),
+                            "__rerum.generatedBy" : httpsIdArray("http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90"),
+                            "__rerum.history.next" : historyWildcard
+                        }
+                        const allGlossIds = await getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
+                        .then(annos => annos.map(anno => anno.target))
+                        .catch(err => {
+                            alert("Could not gather Glosses to delete.")
+                            console.log(err)
+                            return null
+                        })
+                        // This is bad enough to stop here, we will not continue on towards deleting the entity.
+                        if(allGlossIds === null) {return}
+
+                        const allGlosses = allGlossIds.map(glossUri => {
+                            return fetch("https://tinydev.rerum.io/app/delete", {
+                                method: "DELETE",
+                                body: JSON.stringify({"@id":glossUri.replace(/^https?:/,'https:')}),
+                                headers: {
+                                    "Content-Type": "application/json; charset=utf-8",
+                                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                                }
+                            })
+                            .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                            .catch(err => { 
+                                console.warn(`There was an issue removing a connected Gloss: ${glossUri}`)
+                                console.log(err)
+                            })
+                        })
+                        // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
+                        await Promise.all(allGlosses).then(success => {
+                            console.log("Connected Glosses successfully removed.")
+                        })
+                        .catch(err => {
+                            // OK they may be orphaned.  We will continue on towards deleting the entity.
+                            console.warn(`There was an issue removing Connected Glosses`)
+                            console.log(err)
+                        })
+                    }
+
+                    // Get all Annotations throughout history targeting this object that were generated by this application.
+                    const allAnnotationsTargetingEntityQueryObj = {
+                        target: httpsIdArray(id),
+                        "__rerum.generatedBy" : httpsIdArray("http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90")
+                    }
+                    const allAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
+                    .then(annos => annos.map(anno => anno["@id"]))
+                    .catch(err => {
+                        alert("Could not gather Annotations to delete.")
+                        console.log(err)
+                        return null
+                    })
+                    // This is bad enough to stop here, we will not continue on towards deleting the entity.
+                    if(allAnnotationIds === null) return
+
+                    const allAnnotations = allAnnotationIds.map(annoUri => {
+                        return fetch("https://tinydev.rerum.io/app/delete", {
+                            method: "DELETE",
+                            body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
+                            headers: {
+                                "Content-Type": "application/json; charset=utf-8",
+                                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                            }
+                        })
+                        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                        .catch(err => { 
+                            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
+                            console.log(err)
+                        })
+                    })
+                    
+                    // In this case, we don't have to wait on these.  We can run this and the entity delete syncronously.
+                    Promise.all(allAnnotations).then(success => {
+                        console.log("Connected Annotationss successfully removed.")
+                    })
+                    .catch(err => {
+                        // OK they may be orphaned.  We will continue on towards deleting the entity.
+                        console.warn("There was an issue removing connected Annotations.")
+                        console.log(err)
+                    })
+
+                    // Now the entity itself
+                    fetch("https://tinydev.rerum.io/app/delete", {
+                        method: "DELETE",
+                        body: JSON.stringify({"@id":id}),
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                            "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                        }
+                    })
+                    .then(r => {
+                        if(r.ok){
+                            document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
+                        }
+                        else{
+                            return Promise.reject(Error(r.text))
+                        }
+                    })
+                    .catch(err => { 
+                        alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
+                        console.log(err)
+                    })
+                }
             }
         }
     } catch (err) {
@@ -1421,9 +1532,13 @@ export default class DeerRender {
                         })
 
                     function getPagedQuery(lim, it = 0) {
-                        return fetch(`${DEER.URLS.QUERY}?limit=${lim}&skip=${it}`, {
+                        const q = DEER.URLS.QUERY.replace("?limit=100&skip=0", "")
+                        return fetch(`${q}?limit=${lim}&skip=${it}`, {
                             method: "POST",
                             mode: "cors",
+                            headers: {
+                                "Content-Type": "application/json; charset=utf-8"
+                            },
                             body: JSON.stringify(queryObj)
                         }).then(response => response.json())
                             .then(list => {
@@ -1504,4 +1619,28 @@ function httpsIdArray(id,justArray) {
     if (!id.startsWith("http")) return justArray ? [ id ] : id
     if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
     return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
+}
+
+function pagedQuery(lim, it = 0, queryObj, allResults = []) {
+    const q = DEER.URLS.QUERY.replace("?limit=100&skip=0", "")
+    return fetch(`${q}?limit=${lim}&skip=${it}`, {
+        method: "POST",
+        mode: "cors",
+        headers: {
+            "Content-Type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify(queryObj)
+    })
+    .then(response => response.json())
+    .then(results => {
+        if (results.length) {
+            allResults = allResults.concat(results)
+            return pagedQuery(lim, it + results.length, queryObj, allResults)
+        }
+        return allResults
+    })
+    .catch(err => {
+        console.warn("Could not process a result in paged query")
+        throw err
+    })
 }

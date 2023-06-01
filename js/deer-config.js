@@ -1,4 +1,5 @@
 import deerUtils from "./deer-utils.js"
+import AuthButton from './auth.js'
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render
@@ -27,10 +28,11 @@ export default {
 
     URLS: {
         BASE_ID: "https://store.rerum.io/v1",
-        CREATE: "https://tinymatt.rerum.io/gloss/create",
-        UPDATE: "https://tinymatt.rerum.io/gloss/update",
-        QUERY: "https://tinymatt.rerum.io/gloss/query",
-        OVERWRITE: "https://tinymatt.rerum.io/gloss/overwrite",
+        CREATE: "https://tinydev.rerum.io/app/create",
+        UPDATE: "https://tinydev.rerum.io/app/update",
+        QUERY: "https://tinydev.rerum.io/app/query?limit=100&skip=0",
+        OVERWRITE: "https://tinydev.rerum.io/app/overwrite",
+        DELETE: "https://tinydev.rerum.io/app/delete",
         SINCE: "https://store.rerum.io/v1/since"
     },
 

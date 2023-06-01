@@ -8,6 +8,7 @@
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
+    <script src="js/shared.js"></script>
     <style>
         .tagWidget {
             margin-bottom: 15px;
@@ -41,18 +42,7 @@
 </head>
 
 <body class="container">
-    <gog-header class="container">
-        <auth-button disabled="true" class="container">
-            <button is="auth-button">login</button>
-        </auth-button>
-        <img src="media/gog-logo.jpg" alt="banner">
-        <div class="tabs">
-            <a href="./index.html">🏠</a>
-            <a href="./manuscripts.html">📚 View Manuscripts</a>
-            <a href="./named-glosses.html">📑 Named Glosses</a>
-            <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
-        </div>
-    </gog-header>
+    <gog-header class="container"></gog-header>
     <h2> Add Named Gloss </h2>
     <p>
         Note that you will add lines from paritcular gloss transcriptions in a different interface.
@@ -93,7 +83,7 @@
         </div>
 
         <input type="submit" value="Create" class="col">
-        <a href="./named-glosses.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
+        <a href="./named-glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')" class="text-error">Drop from collection</a>
     </form>
     <!-- 
     <pre class="card bg-light is-hidden">
@@ -133,28 +123,7 @@
                     window.location.href = "./named-glosses.html"
                 })
             }
-            const broadcast = function (event = {}, type, element, obj = {}) {
-                let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
-                element.dispatchEvent(e)
-            }
             //broadcast(undefined, "deer-view", document, {})
-        }
-
-        function deleteThis(event) {
-            event.preventDefault()
-            if (confirm("Really remove this named gloss?\n(Cannot be undone)")) {
-                let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
-                fetch("https://tinymatt.rerum.io/gloss/delete", {
-                    method: "DELETE",
-                    body: collectorId,
-                    headers: {
-                        "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                    }
-                }).then(obj => {
-                    location.href = "./named-glosses.html"
-                })
-            }
         }
 
         /**
