@@ -34,7 +34,7 @@ const logout = () => {
     webAuth.logout({ returnTo: origin })
 }
 const login = (custom) => {
-    webAuth.authorize(Object.assign({ authParamsMap: { 'app': 'glossing' } },custom))
+    //webAuth.authorize(Object.assign({ authParamsMap: { 'app': 'glossing' } },custom))
 }
 
 const getReferringPage = () => {
