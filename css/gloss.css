@@ -357,7 +357,7 @@ line.selected.just {
   }
 }
 
-auth-button {
+[is='auth-button'] {
     position: absolute;
     top: 0.5em; right: 0.5em;
     display: block;
