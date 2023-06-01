@@ -8,15 +8,15 @@
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
-    <script src="js/shared.js"></script>
+    <script src="js/shared.js" type="module"></script>
 </head>
 
 <body class="container">
-    <gm-header>
-        <auth-button class="container">
+    <gog-header class="container">
+        <auth-button disabled="true" class="container">
             <button is="auth-button">login</button>
         </auth-button>
-        <img src="media/gm-logo.png" alt="logo">
+        <img src="media/gog-logo.jpg" alt="banner">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./named-glosses.html">✏️ Named Glosses</a>
@@ -24,12 +24,12 @@
             <a href="./named-glosses.html">📑 Named Glosses</a>
             <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
         </div>
-    </gm-header>
+    </gog-header>
 
     <h3 id="glossTitle" class="deer-view send-id" deer-template="label">Gloss Alignment</h3>
     <input is="auth-creator" type="hidden" deer-key="creator" />
 
-    <div class="row" data-user="HIERARCHY">
+    <div class="row">
         <deer-view id="glossNumBtns" class="col-6" deer-collection="Glossing-Matthew-Named-Glosses"
             deer-template="glossAssignments"></deer-view>
         <deer-view id="folioLayout" deer-id="" class="send-id col-6"
@@ -42,9 +42,9 @@
         <deer-view id="frPreview" deer-template="entity">current state</deer-view>
     </pre>
 
-    <gm-footer>
+    <gog-footer class="container">
 
-    </gm-footer>
+    </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
         window.onhashchange = onload = () => {

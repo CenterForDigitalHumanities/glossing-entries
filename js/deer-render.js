@@ -183,12 +183,12 @@ DEER.TEMPLATES.thumbs = function (obj, options = {}) {
 }
 
 DEER.TEMPLATES.pageLinks = function (obj, options = {}) {
-    if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
+    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
     return obj.sequences[0].canvases.reduce((a, b, i) => a += `<a class="button" href="?page=${i + 1}#${obj["@id"]}">${b.label}</a>`, ``)
 }
 
 DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
-    if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
+    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
     return {
         html: obj.tpenProject ? `<div class="is-full-width"> <h3> ... loading preview ... </h3> </div>` : ``,
         then: (elem) => {
@@ -215,7 +215,7 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
 }
 
 DEER.TEMPLATES.glossAssignments = function (obj, options = {}) {
-    if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
+    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
     return {
         html: `Loading Glosses&hellip;`,
         then: elem => {
@@ -272,7 +272,7 @@ function AttachClickToRemoveHandler(elem) {
 }
 
 DEER.TEMPLATES.glossLines = function (obj, options = {}) {
-    if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
+    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
     //TODO we need to know the GlossID here as well.
     let c = obj.sequences[0].canvases[options.index ?? 0]
 
@@ -504,7 +504,7 @@ DEER.TEMPLATES.osd = function (obj, options = {}) {
 }
 
 DEER.TEMPLATES.lines_new = function (obj, options = {}) {
-    if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
+    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
     const index = options.index && !isNaN(options.index) ? options.index : 0
     let c = obj.sequences[0].canvases[index]
     return {
@@ -806,7 +806,7 @@ DEER.TEMPLATES.lines_new = function (obj, options = {}) {
 }
 
 DEER.TEMPLATES.lines = function (obj, options = {}) {
-    if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
+    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
     let c = obj.sequences[0].canvases[options.index ?? 0]
     return {
         html: `
@@ -1070,7 +1070,7 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
 }
 
 DEER.TEMPLATES.managedlist = function (obj, options = {}) {
-    if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew managers.</h4>` }
+    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew managers.</h4>` }
     try {
         // If the collection doesn't have a name, something has gone wrong.
         if(!obj.name) return
@@ -1404,7 +1404,7 @@ DEER.TEMPLATES.person = function (obj, options = {}) {
  * @param {Object} options additional properties to draw with the Person
  */
 DEER.TEMPLATES.pageRanges = function (obj, options = {}) {
-    if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
+    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Glossing Matthew users.</h4>` }
     return {
         then: (elem) => {
             let queryObj = { "body.isPartOf.value": httpsIdArray(obj['@id']) }

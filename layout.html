@@ -12,22 +12,22 @@
 </head>
 
 <body class="container">
-    <gm-header>
-        <auth-button class="container">
+    <gog-header class="container">
+        <auth-button disabled="true" class="container">
             <button is="auth-button">login</button>
         </auth-button>
-        <img src="media/gm-logo.png" alt="logo">
+        <img src="media/gog-logo.jpg" alt="banner">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./named-glosses.html">✏️ Named Glosses</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
             <a href="./ms.html" id="thisMS" class="is-hidden">📖 This Manuscript</a>
         </div>
-    </gm-header>
+    </gog-header>
     <h3 id="glossTitle" class="deer-view send-id" deer-id="" deer-template="label">Layout Editor</h3>
     <input is="auth-creator" type="hidden" deer-key="creator" />
 
-    <div class="row" data-user="HIERARCHY">
+    <div class="row">
         <deer-view id="folioLayout" deer-id="" class="send-id col-6" deer-template="lines_new"></deer-view>
         <deer-view class="col-6 send-id" deer-id="" id="zoomy" deer-template="osd"></deer-view>
     </div>
@@ -38,28 +38,7 @@
         <deer-view id="frPreview" deer-template="entity">current state</deer-view>
     </pre>
 
-    <gm-footer>
+    <gog-footer class="container">
 
-    </gm-footer>
+    </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
-    <script>
-        window.onhashchange = onload = () => {
-            let params = (new URL(document.location)).searchParams
-            let glossid = window.location.hash.substr(1)
-            let msid = params.get("partOf")
-            if (msid) {
-                thisMS.setAttribute("href", "./ms.html#" + msid)
-                thisMS.classList.remove("is-hidden")
-            }
-
-            document.querySelectorAll(".send-id").forEach(el => el.setAttribute("deer-id", glossid))
-            let page = parseInt(params.get("page")) ?? 1
-            folioLayout.setAttribute("deer-index", page - 1)
-            zoomy.setAttribute("deer-index", page - 1)
-        }
-
-
-    </script>
-</body>
-
-</html>
