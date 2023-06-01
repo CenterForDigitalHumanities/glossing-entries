@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon">
+    <script src="/js/auth.js" type="module"></script>
+    <script src="/js/layout.js"></script>
+    <title>Browse Themes</title>
+</head>
+<body>
+    <gog-header class="container"></gog-header>
+    <div class="content container">
+        <h2>Tags and Themes</h2>
+        <tags></tags>
+    </div>
+    <gog-footer class="container"></gog-footer>
+    
+    <script>
+        const queryObj = {
+            "body.tags.items" : {$exists:true, $type: 'array', $ne: [""] },
+            '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] }
+        }
+        fetch("https://tinymatt.rerum.io/gloss/query?limit=100&skip=0", {
+            method: 'POST',
+            mode: 'cors',
+            headers:{
+                "Content-Type" : "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(queryObj)
+        }).then(res => {
+            if (!res.ok) {
+                throw Error(res.statusText)
+            }
+            return res.json()
+        }).then(annotations => {
+            return new Set(annotations.map(a=>a.body.tags.items).flat())
+        }).then(tags=>{
+            const ul = document.createElement('ul')
+            ul.innerHTML = [...tags].map(tag=>`<li>${tag}</li>`).join('\n')
+            document.querySelector('tags').replaceWith(ul)
+        })
+    </script>
+</body>
+</html>

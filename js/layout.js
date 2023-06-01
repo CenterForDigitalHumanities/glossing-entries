@@ -53,6 +53,7 @@ class GlossHeader extends HTMLElement {
         }
         ::slotted(a){
             border-bottom: 2px solid var(--color-lightGrey);
+            background-color: var(--bg-color);
             color: var(--color-darkGrey);
             -ms-flex: 0 1 auto;
             flex: 0 1 auto;
