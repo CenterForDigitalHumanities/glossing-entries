@@ -2,27 +2,28 @@
 <html lang="en">
 
 <head>
-    <title>Gallery of Glosses</title>
+    <title>Glossing Matthew</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
+    <script src="js/shared.js"></script>
 </head>
 
 <body class="container">
-    <gog-header class="container">
-        <auth-button disabled="true" class="container">
+    <gm-header>
+        <auth-button class="container">
             <button is="auth-button">login</button>
         </auth-button>
-        <img src="media/gog-logo.jpg" alt="banner">
+        <img src="media/gm-logo.png" alt="logo">
         <div class="tabs">
             <a href="./index.html">🏠</a>
             <a href="./manuscripts.html">📚 View Manuscripts</a>
             <a href="./named-glosses.html">📑 Named Glosses</a>
         </div>
-    </gog-header>
-    <form id="manuscript" deer-type="manuscript" deer-context="http://purl.org/dc/terms">
+    </gm-header>
+    <form id="manuscript" deer-type="manuscript" deer-context="http://purl.org/dc/terms" data-user="HIERARCHY">
         <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
@@ -59,7 +60,7 @@
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-4-md">
         </div>
         <input type="submit" value="update" class="col">
-        <a href="./manuscripts.html" onclick="deleteThis(event)" class="text-error">Drop from collection</a>
+        <a href="./manuscripts.html" onclick="removeFromCollectionAndDelete(event, 'manuscript')" class="text-error">Drop from collection</a>
     </form>
 
     <div class="col">
@@ -73,9 +74,9 @@
     <pre
         class="card bg-light is-hidden"><deer-view deer-template="entity" deer-listening="manuscript">current state</deer-view></pre>
 
-    <gog-footer class="row">
+    <gm-footer class="row">
 
-    </gog-footer>
+    </gm-footer>
 
     <div id="globalFeedback" class="card is-center"></div>
     <script>
@@ -84,8 +85,11 @@
             manuscript.setAttribute("deer-id", msid)
             thumbroll.setAttribute("deer-id", msid)
             newGloss.setAttribute("href", "gloss.html?partOf=" + msid + "#")
-            fetch("//tinymatt.rerum.io/gloss/query", {
+            fetch("https://tinymatt.rerum.io/gloss/query?limit=100&skip=0", {
                 method: "POST",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8"
+                },
                 body: JSON.stringify({
                     "body.partOf.value": httpsIdArray(msid)
                 })
@@ -108,28 +112,6 @@
 
         document.querySelector("input[deer-key='tpen://base-project']").addEventListener('input', e => document.querySelector("a[deer-key='tpen://base-project']").setAttribute("href", "https://t-pen.org/TPEN/project.jsp?projectID=" + e.target.value))
 
-        function deleteThis(event) {
-            event.preventDefault()
-            if (confirm("Really remove this manuscript?\n(Cannot be undone)")) {
-                let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
-                fetch("//tinymatt.rerum.io/gloss/delete", {
-                    method: "DELETE",
-                    body: collectorId,
-                    headers: {
-                        "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                    }
-                }).then(obj => {
-                    location.href = "./manuscripts.html"
-                })
-            }
-        }
-
-        function httpsIdArray(id, justArray) {
-            if (!id.startsWith("http")) return justArray ? [id] : id
-            if (id.startsWith("https://")) return justArray ? [id, id.replace('https', 'http')] : { $in: [id, id.replace('https', 'http')] }
-            return justArray ? [id, id.replace('http', 'https')] : { $in: [id, id.replace('http', 'https')] }
-        }
     </script>
 </body>
 

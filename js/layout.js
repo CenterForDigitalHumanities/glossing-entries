@@ -1,11 +1,11 @@
-class GlossFooter extends HTMLElement {
+export class GlossFooter extends HTMLElement {
     template = `
     <footer>
     <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
         <a href="./named-glosses.html">📑</a>
         <a rel="noopener noreferrer" title="View on GitHub"
-            href="https://github.com/CenterForDigitalHumanities/glossing-entries" target="_blank">
+            href="https://github.com/CenterForDigitalHumanities/Glossing-Matthew" target="_blank">
             <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
                 aria-hidden="true">
                 <path fill-rule="evenodd"
@@ -17,37 +17,8 @@ class GlossFooter extends HTMLElement {
     `
     constructor() {
         super()
-    }
-
-    connectedCallback() {
         this.innerHTML = this.template
     }
 }
-customElements.define('gog-footer', GlossFooter)
 
-class GlossHeader extends HTMLElement {
-    #template = new DOMParser().parseFromString(`<template>
-    <header>
-    <link rel="stylesheet" href="css/gloss.css">
-    <auth-button>
-        <button is="auth-button">login</button>
-    </auth-button>
-    <a href="/"><img src="media/gog-logo.jpg" alt="banner"></a>
-    <h1 class="title">
-        Gallery of Glosses
-    </h1>
-    <div class="tabs">
-    <slot name="tabs">
-        <a href="./named-glosses.html">✏️ Named Glosses</a>
-        <a href="./manuscripts.html">📚 View Manuscripts</a>
-    </div>
-    </header></template>
-        `,'text/html').head.firstChild
-    constructor() {
-        super()
-        const shadowRoot = this.attachShadow({ mode: "open" })
-        shadowRoot.appendChild(this.#template.content)
-    }
-}
-
-customElements.define('gog-header', GlossHeader)
+customElements.define('gm-footer', GlossFooter)

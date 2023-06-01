@@ -2,29 +2,39 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <title>Gallery of Glosses</title>
+    <title>Glossing Matthew</title>
     <link rel="stylesheet" href="css/gloss.css">
-    <link href="favicon.ico" rel="icon" type="image/x-icon">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
+    <script src="js/shared.js"></script>
 </head>
 
 <body class="container">
-    <gog-header class="container"></gog-header>
-    <form id="msForm" deer-type="manuscript" deer-context="http://www.loc.gov/mods" class="row">
+    <gm-header>
+        <auth-button class="container">
+            <button is="auth-button">login</button>
+        </auth-button>
+        <img src="media/gm-logo.png" alt="logo">
+        <div class="tabs">
+            <a href="./index.html">🏠</a>
+            <a href="./manuscripts.html">📚 View Manuscripts</a>
+            <a href="./named-glosses.html">📑 Named Glosses</a>
+        </div>
+    </gm-header>
+    <form id="msForm" deer-type="manuscript" deer-context="http://www.loc.gov/mods" class="row" data-user="HIERARCHY">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="text" deer-key="title" placeholder="Display Label" class="col">
         <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew">
         <input type="submit" value="Add MS to Collection" class="col">
     </form>
-    <deer-view id="collectionList" deer-collection="Glossing-Matthew" deer-link="ms.html#" deer-template="msList" class="bg-basic">
+    <deer-view id="collectionList" deer-collection="Glossing-Matthew" deer-link="ms.html#" deer-template="msList">
         Loading&hellip;
     </deer-view>
-    <gog-footer class="container">
+    <gm-footer>
 
-    </gog-footer>
+    </gm-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
         document.addEventListener('deer-created', event => {
