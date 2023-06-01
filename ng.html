@@ -8,6 +8,7 @@
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
+    <script src="js/shared.js"></script>
     <style>
         .tagWidget {
             margin-bottom: 15px;
@@ -133,28 +134,7 @@
                     window.location.href = "./named-glosses.html"
                 })
             }
-            const broadcast = function (event = {}, type, element, obj = {}) {
-                let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
-                element.dispatchEvent(e)
-            }
             //broadcast(undefined, "deer-view", document, {})
-        }
-
-        function deleteThis(event) {
-            event.preventDefault()
-            if (confirm("Really remove this named gloss?\n(Cannot be undone)")) {
-                let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
-                fetch("https://tinymatt.rerum.io/gloss/delete", {
-                    method: "DELETE",
-                    body: collectorId,
-                    headers: {
-                        "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                    }
-                }).then(obj => {
-                    location.href = "./named-glosses.html"
-                })
-            }
         }
 
         /**

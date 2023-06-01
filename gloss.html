@@ -8,6 +8,7 @@
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
+    <script src="js/shared.js"></script>
 </head>
 
 <body class="container">
@@ -111,8 +112,11 @@
             thisMS.setAttribute("href", "./ms.html#" + msid)
             folioRange.setAttribute("deer-id", glossid)
             frPreview.setAttribute("deer-id", glossid)
-            fetch("https://tinymatt.rerum.io/gloss/query", {
+            fetch("https://tinymatt.rerum.io/gloss/query?limit=100&skip=0", {
                 method: "POST",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8"
+                },
                 body: JSON.stringify({
                     "body.partOf.value": httpsIdArray(msid)
                 })
@@ -177,47 +181,6 @@
             })
             // broadcast(undefined, "deer-form", document, { set: [ folioRange ] })
         }
-
-        function broadcast(event = {}, type, element, obj = {}) {
-            let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
-            element.dispatchEvent(e)
-        }
-
-        function deleteThis(event) {
-            event.preventDefault()
-            try {
-                let gloss = event.target.closest("[deer-id]")
-                gloss.reset()
-                let id = gloss.getAttribute("deer-id")
-                if (id.length === 0) throw "new form"
-                fetch("https://tinymatt.rerum.io/gloss/delete", {
-                    method: "DELETE",
-                    body: id,
-                    headers: {
-                        "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                    }
-                }).then(obj => {
-                    broadcast(event, "deer-updated", gloss)
-                    setTimeout(() => location.hash = "", 2000)
-                })
-            } catch {
-                location.hash = ""
-            }
-        }
-
-        function alertReturn(noid) {
-            let msg = noid
-                ? "You entered this page without a manuscript URI. Click OK to head back to the list."
-                : "The manuscript this gloss is from does not have a TPEN project associated with it."
-        }
-
-        function httpsIdArray(id, justArray) {
-            if (!id.startsWith("http")) return justArray ? [id] : id
-            if (id.startsWith("https://")) return justArray ? [id, id.replace('https', 'http')] : { $in: [id, id.replace('https', 'http')] }
-            return justArray ? [id, id.replace('http', 'https')] : { $in: [id, id.replace('http', 'https')] }
-        }
-
     </script>
 </body>
 

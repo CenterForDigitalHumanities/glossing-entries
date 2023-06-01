@@ -8,6 +8,7 @@
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
+    <script src="js/shared.js"></script>
 </head>
 
 <body class="container">
@@ -84,8 +85,11 @@
             manuscript.setAttribute("deer-id", msid)
             thumbroll.setAttribute("deer-id", msid)
             newGloss.setAttribute("href", "gloss.html?partOf=" + msid + "#")
-            fetch("//tinymatt.rerum.io/gloss/query", {
+            fetch("https://tinymatt.rerum.io/gloss/query?limit=100&skip=0", {
                 method: "POST",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8"
+                },
                 body: JSON.stringify({
                     "body.partOf.value": httpsIdArray(msid)
                 })
@@ -99,37 +103,11 @@
                     pageRanges.innerHTML = html
                     broadcast(undefined, "deer-view", document, { set: pageRanges.childNodes })
                 })
-            const broadcast = function (event = {}, type, element, obj = {}) {
-                let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
-                element.dispatchEvent(e)
-            }
             broadcast(undefined, "deer-view", document, { set: [pageRanges] })
         }
 
         document.querySelector("input[deer-key='tpen://base-project']").addEventListener('input', e => document.querySelector("a[deer-key='tpen://base-project']").setAttribute("href", "https://t-pen.org/TPEN/project.jsp?projectID=" + e.target.value))
 
-        function deleteThis(event) {
-            event.preventDefault()
-            if (confirm("Really remove this manuscript?\n(Cannot be undone)")) {
-                let collectorId = document.querySelector('[deer-key="targetCollection"]').getAttribute("deer-source")
-                fetch("//tinymatt.rerum.io/gloss/delete", {
-                    method: "DELETE",
-                    body: collectorId,
-                    headers: {
-                        "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                    }
-                }).then(obj => {
-                    location.href = "./manuscripts.html"
-                })
-            }
-        }
-
-        function httpsIdArray(id, justArray) {
-            if (!id.startsWith("http")) return justArray ? [id] : id
-            if (id.startsWith("https://")) return justArray ? [id, id.replace('https', 'http')] : { $in: [id, id.replace('https', 'http')] }
-            return justArray ? [id, id.replace('http', 'https')] : { $in: [id, id.replace('http', 'https')] }
-        }
     </script>
 </body>
 

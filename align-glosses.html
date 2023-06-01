@@ -8,6 +8,7 @@
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
+    <script src="js/shared.js" type="module"></script>
 </head>
 
 <body class="container">
@@ -52,17 +53,6 @@
             document.querySelectorAll(".send-id").forEach(el => el.setAttribute("deer-id", glossid))
             let page = parseInt(params.get("page")) ?? 1
             folioLayout.setAttribute("deer-index", page - 1)
-        }
-
-        function broadcast(event = {}, type, element, obj = {}) {
-            let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
-            element.dispatchEvent(e)
-        }
-
-        function alertReturn(noid) {
-            let msg = noid
-                ? "You entered this page without a manuscript URI. Click OK to head back to the list."
-                : "The manuscript this gloss is from does not have a TPEN project associated with it."
         }
 
     </script>
