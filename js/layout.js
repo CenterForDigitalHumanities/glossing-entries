@@ -26,28 +26,27 @@ class GlossFooter extends HTMLElement {
 customElements.define('gog-footer', GlossFooter)
 
 class GlossHeader extends HTMLElement {
-    template = `
+    #template = new DOMParser().parseFromString(`<template>
     <header>
+    <link rel="stylesheet" href="css/gloss.css">
     <auth-button>
         <button is="auth-button">login</button>
     </auth-button>
-    <img src="media/gog-logo.jpg" alt="banner">
+    <a href="/"><img src="media/gog-logo.jpg" alt="banner"></a>
     <h1 class="title">
         Gallery of Glosses
     </h1>
     <div class="tabs">
+    <slot name="tabs">
         <a href="./named-glosses.html">✏️ Named Glosses</a>
         <a href="./manuscripts.html">📚 View Manuscripts</a>
     </div>
-    </header>
-        `
+    </header></template>
+        `,'text/html').head.firstChild
     constructor() {
         super()
-    }
-    connectedCallback() {
-        if(this.innerHTML.length < 30) {
-            this.innerHTML = this.template
-        }
+        const shadowRoot = this.attachShadow({ mode: "open" })
+        shadowRoot.appendChild(this.#template.content)
     }
 }
 

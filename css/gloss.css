@@ -359,6 +359,7 @@ line.selected.just {
 
 auth-button {
     position: absolute;
+    top: 0.5em; right: 0.5em;
     display: block;
     text-align: right;
     padding: 0px 20px 0px 0px !important;
