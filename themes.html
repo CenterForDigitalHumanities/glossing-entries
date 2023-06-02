@@ -14,8 +14,18 @@
     <gog-header class="container"></gog-header>
     <div class="content container">
         <h2>Tags and Themes</h2>
-        <input type="text" oninput="filterTags(this)" placeholder="Type to filter">
-        <tags></tags>
+        <div class="row">
+            <div class="col-6">
+                <h4>Recorded Tags</h4>
+                <input type="text" oninput="filterTags(this)" placeholder="Type to filter">
+                <tags></tags>
+            </div>
+            <div class="col-6">
+                <h4>Recorded Themes</h4>
+                <input type="text" oninput="filterTags(this)" placeholder="Type to filter">
+                <themes></themes>
+            </div>
+        </div>
     </div>
     <gog-footer class="container"></gog-footer>
     
