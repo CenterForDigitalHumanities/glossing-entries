@@ -51,7 +51,7 @@ class GlossHeader extends HTMLElement {
             --grid-gutter: 2rem;
             --font-size: 1.6rem;
         }
-        ::slotted(a){
+        ::slotted(a), slot a{
             border-bottom: 2px solid var(--color-lightGrey);
             background-color: var(--bg-color);
             color: var(--color-darkGrey);
@@ -65,7 +65,7 @@ class GlossHeader extends HTMLElement {
             color: var(--color-primary);
             transition: all .2s;
         }
-        ::slotted(a:hover) {
+        ::slotted(a:hover), slot a:hover {
             color: var(--color-accent)!important;
             background-color: var(--bg-secondary-color);
             border-bottom: 2px solid var(--color-darkGrey);

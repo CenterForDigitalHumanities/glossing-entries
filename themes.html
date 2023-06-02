@@ -14,6 +14,7 @@
     <gog-header class="container"></gog-header>
     <div class="content container">
         <h2>Tags and Themes</h2>
+        <input type="text" oninput="filterTags(this)" placeholder="Type to filter">
         <tags></tags>
     </div>
     <gog-footer class="container"></gog-footer>
@@ -36,12 +37,20 @@
             }
             return res.json()
         }).then(annotations => {
-            return new Set(annotations.map(a=>a.body.tags.items).flat())
+            return new Set(annotations.map(a=>a.body.tags.items).flat().sort())
         }).then(tags=>{
             const ul = document.createElement('ul')
             ul.innerHTML = [...tags].map(tag=>`<li>${tag}</li>`).join('\n')
             document.querySelector('tags').replaceWith(ul)
         })
+
+        function filterTags(elem) {
+            const queryString = elem.value
+            ;[...elem.nextElementSibling.children].forEach(li=>{
+                const action = li.textContent.includes(queryString) ? 'remove' : 'add'
+                li.classList[action]('is-hidden')
+            })
+        }
     </script>
 </body>
 </html>
