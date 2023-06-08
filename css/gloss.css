@@ -21,6 +21,10 @@ gog-header,gog-footer {
   display: block;
 }
 
+gog-header + div.container {
+  min-height: 400px;
+}
+
 .bg-basic, div.container, form {
   background-color: var(--bg-color)!important;
   display: block;
