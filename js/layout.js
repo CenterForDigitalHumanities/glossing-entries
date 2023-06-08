@@ -26,16 +26,53 @@ class GlossFooter extends HTMLElement {
 customElements.define('gog-footer', GlossFooter)
 
 class GlossHeader extends HTMLElement {
-    #template = new DOMParser().parseFromString(`<template>
+    #template = new DOMParser().parseFromString(`<template id="headerTemplate">
     <header>
     <link rel="stylesheet" href="css/gloss.css">
     <button is="auth-button" disabled="true">login</button>
-    <a href="/"><img src="media/gog-logo.jpg" alt="banner"></a>
-    <h1 class="title">
+    <img src="media/gog-logo.jpg" alt="banner">
+    <a href="/"><h1 class="title">
         Gallery of Glosses
-    </h1>
+    </h1></a>
     <div class="tabs">
     <slot name="tabs">
+    <style>
+        :host {
+            --bg-color: hsl(0, 0%, 100%);
+            --bg-secondary-color: hsl(240, 14%, 96%);
+            --color-primary: hsl(215 35% 50%);
+            --color-accent: hsl(12.75deg 80% 40%);
+            --color-lightGrey: hsl(218, 14%, 85%);
+            --color-grey: hsl(231, 5%, 48%);
+            --color-darkGrey: hsl(216, 4%, 26%);
+            --color-error: hsl(0, 64%, 53%);
+            --color-success: hsl(113, 81%, 41%);
+            --grid-maxWidth: 120rem;
+            --grid-gutter: 2rem;
+            --font-size: 1.6rem;
+        }
+        ::slotted(a), slot a{
+            border-bottom: 2px solid var(--color-lightGrey);
+            background-color: var(--bg-color);
+            color: var(--color-darkGrey);
+            -ms-flex: 0 1 auto;
+            flex: 0 1 auto;
+            padding: 1rem 2rem;
+            text-align: center;
+            text-decoration: none;
+            font-family: 'Eczar',serif;
+            white-space: nowrap;
+            color: var(--color-primary);
+            transition: all .2s;
+        }
+        ::slotted(a:hover), slot a:hover {
+            color: var(--color-accent)!important;
+            background-color: var(--bg-secondary-color);
+            border-bottom: 2px solid var(--color-darkGrey);
+            border-color: var(--color-accent);
+            opacity: 1;
+        }
+    </style>
         <a href="./named-glosses.html">✏️ Named Glosses</a>
         <a href="./manuscripts.html">📚 View Manuscripts</a>
     </div>

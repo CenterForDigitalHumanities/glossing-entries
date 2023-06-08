@@ -21,14 +21,19 @@ gog-header,gog-footer {
   display: block;
 }
 
+gog-header + div.container {
+  min-height: 400px;
+}
+
 .bg-basic, div.container, form {
   background-color: var(--bg-color)!important;
   display: block;
 }
-
+div.content {
+  min-height: 400px;
+}
 .tabs {
   white-space: nowrap;
-  background-color: var(--bg-color);
   font-family: 'Eczar',serif;
 }
 
@@ -70,11 +75,16 @@ textarea {
 }
 
 h1.title {
-  color: hsl(12.75deg 80% 40%);
+  color:var(--color-accent);
   text-shadow: 1px 1px 0 hsl(215 35% 50%), -1px -1px 0 hsl(215 35% 50%), 1px -1px 0 hsl(215 35% 50%), -1px 1px 0 hsl(215 35% 50%);
   font-size: 3em;
   font-family: "Eczar","Volkhov",serif;
   margin:0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: "Eczar","Volkhov",serif;
+  color:var(--color-primary);
 }
 
 img.thumbnail {
@@ -357,7 +367,7 @@ line.selected.just {
   }
 }
 
-auth-button, button[is="auth-button"] {
+[is='auth-button'] {
     position: absolute;
     top: 0.5em; 
     right: 0.5em;
