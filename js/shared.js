@@ -60,7 +60,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
         if(allGlossIds === null) {return}
 
         const allGlosses = allGlossIds.map(glossUri => {
-            return fetch("https://tinymatt.rerum.io/app/delete", {
+            return fetch("https://tinymatt.rerum.io/gloss/delete", {
                 method: "DELETE",
                 body: JSON.stringify({"@id":glossUri.replace(/^https?:/,'https:')}),
                 headers: {
@@ -101,7 +101,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
     if(allAnnotationIds === null) return
 
     const allAnnotations = allAnnotationIds.map(annoUri => {
-        return fetch("https://tinymatt.rerum.io/app/delete", {
+        return fetch("https://tinymatt.rerum.io/gloss/delete", {
             method: "DELETE",
             body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
             headers: {
@@ -127,7 +127,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
     })
 
     // Now the entity itself
-    fetch("https://tinymatt.rerum.io/app/delete", {
+    fetch("https://tinymatt.rerum.io/gloss/delete", {
         method: "DELETE",
         body: JSON.stringify({"@id":id}),
         headers: {
@@ -177,7 +177,7 @@ function alertReturn(noid) {
 }
 
 function getPagedQuery(lim, it = 0, queryObj, allResults = []) {
-    return fetch(`https://tinymatt.rerum.io/app/query?limit=${lim}&skip=${it}`, {
+    return fetch(`https://tinymatt.rerum.io/gloss/query?limit=${lim}&skip=${it}`, {
         method: "POST",
         mode: "cors",
         headers: {
