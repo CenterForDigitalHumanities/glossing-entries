@@ -1069,6 +1069,120 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
     }
 }
 
+DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
+    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses managers.</h4>` }
+    try {
+        // If the collection doesn't have a name, something has gone wrong.
+        if(!obj.name) return
+
+        let tmpl = `<input type="hidden" deer-collection="${options.collection}">`
+        const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
+
+        if (options.list) {
+            tmpl += `<ul>`
+            obj[options.list].forEach((val, index) => {
+                const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`
+                tmpl += `<li>
+                ${visibilityBtn}
+                <a href="${options.link}${val['@id']}">
+                    <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
+                </a>
+                </li>`
+            })
+            tmpl += `</ul>`
+        }
+        else {
+            console.log("There are no items in this list to draw.")
+            console.log(obj)
+        }
+        return {
+            html: tmpl,
+            then: elem => {
+                // This deer-listing needs to become the ID of the User Named Gloss Collection when provided.
+                const listing = elem.getAttribute("deer-listing")
+                if(listing){
+
+                }
+                fetch(elem.getAttribute("deer-listing"))
+                    .then(r => r.json())
+                    .then(list => {
+                        elem.listCache = new Set()
+                        list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
+                        for (const a of document.querySelectorAll('.togglePublic')) {
+                            const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
+                            a.classList[include]("is-included")
+                        }
+                    })
+                    .then(() => {
+                        document.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
+                            ev.preventDefault()
+                            ev.stopPropagation()
+                            const uri = a.getAttribute("href")
+                            const included = elem.listCache.has(uri)
+                            a.classList[included ? "remove" : "add"]("is-included")
+                            elem.listCache[included ? "delete" : "add"](uri)
+                            //TODO this is the submit button
+                            //saveList.style.visibility = "visible"
+                        }))
+                        //TODO this is the submit button
+                        //saveList.addEventListener('click', overwriteList)
+                    })
+
+
+                function overwriteList() {
+                    alert("Not Yet...Under Development")
+                    return true
+                    let mss = []
+                    elem.listCache.forEach(uri => {
+                        mss.push({
+                            label: document.querySelector(`deer-view[deer-id='${uri}']`).textContent.trim(),
+                            '@id': uri
+                        })
+                    })
+
+                    const list = {
+                        '@id': elem.getAttribute("deer-listing"),
+                        '@context': 'https://schema.org/',
+                        '@type': "ItemList",
+                        name: elem.getAttribute("deer-listing") ?? "Gallery of Glosses",
+                        numberOfItems: elem.listCache.size,
+                        itemListElement: mss
+                    }
+
+                    fetch(DEER.URLS.OVERWRITE, {
+                        method: "PUT",
+                        mode: 'cors',
+                        body: JSON.stringify(list),
+                        headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                        }
+                    }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                        .catch(err => alert(`Failed to save: ${err}`))
+                }
+
+                /**
+                 * An archetype entity is being deleted.  Delete it and some choice Annotations connected to it.
+                 * 
+                 * Might want to update the name of this to be delete from collection instead of delete this
+                 * 
+                 * 
+                 * @param event {Event} A button/link click event
+                 * @param type {String} The archtype object's type or @type.
+                 */ 
+                async function removeUserNamedGlossCollection(id) {
+                    alert("Not Yet...Under Development")
+                    return true
+                }
+            }
+        }
+    } catch (err) {
+        console.log("Could not build list template.")
+        console.error(err)
+        return null
+    }
+}
+
 DEER.TEMPLATES.managedlist = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses managers.</h4>` }
     try {
@@ -1203,7 +1317,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
 
                         const allGlossesOfManuscriptQueryObj = {
                             "body.partOf.value": httpsIdArray(id),
-                            "__rerum.generatedBy" : httpsIdArray("http://store.rerum.io/v1/id/61043ad4ffce846a83e700dd"),
+                            "__rerum.generatedBy" : httpsIdArray("http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90"),
                             "__rerum.history.next" : historyWildcard
                         }
                         const allGlossIds = await getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
@@ -1217,7 +1331,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         if(allGlossIds === null) {return}
 
                         const allGlosses = allGlossIds.map(glossUri => {
-                            return fetch("https://tinymatt.rerum.io/gloss/delete", {
+                            return fetch("https://tinydev.rerum.io/app/delete", {
                                 method: "DELETE",
                                 body: JSON.stringify({"@id":glossUri.replace(/^https?:/,'https:')}),
                                 headers: {
@@ -1245,7 +1359,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     // Get all Annotations throughout history targeting this object that were generated by this application.
                     const allAnnotationsTargetingEntityQueryObj = {
                         target: httpsIdArray(id),
-                        "__rerum.generatedBy" : httpsIdArray("http://store.rerum.io/v1/id/61043ad4ffce846a83e700dd")
+                        "__rerum.generatedBy" : httpsIdArray("http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90")
                     }
                     const allAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
                     .then(annos => annos.map(anno => anno["@id"]))
@@ -1258,7 +1372,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     if(allAnnotationIds === null) return
 
                     const allAnnotations = allAnnotationIds.map(annoUri => {
-                        return fetch("https://tinymatt.rerum.io/gloss/delete", {
+                        return fetch("https://tinydev.rerum.io/app/delete", {
                             method: "DELETE",
                             body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
                             headers: {
@@ -1284,7 +1398,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     })
 
                     // Now the entity itself
-                    fetch("https://tinymatt.rerum.io/gloss/delete", {
+                    fetch("https://tinydev.rerum.io/app/delete", {
                         method: "DELETE",
                         body: JSON.stringify({"@id":id}),
                         headers: {
