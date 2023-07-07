@@ -1084,6 +1084,9 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
         const hashURI = window.location.hash.substr(1)
 
+        //Hmm we should make sure they never overwrite the managed/public lists 
+        if(hashURI.endsWith("610c54deffce846a83e70625") || hashURI.endsWith("610ad6f1ffce846a83e70613")) return
+
         if (options.list) {
             tmpl += `<ul>`
             obj[options.list].forEach((val, index) => {
@@ -1091,7 +1094,7 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                 tmpl += `<li itemid="${val['@id']}">
                 ${inclusionBtn}
                 <a href="${options.link}${val['@id']}">
-                    <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
+                    <deer-view deer-template="label">${index + 1}</deer-view>
                 </a>
                 </li>`
             })
@@ -1120,7 +1123,12 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                     .then(list => {
                         list.itemListElement?.forEach(item => elem.publicListCache.add(item['@id']))
                         for (const li of document.querySelectorAll('li[itemid]')) {
-                            if(!elem.publicListCache.has(li.getAttribute("itemid"))) li.remove()
+                            if(elem.publicListCache.has(li.getAttribute("itemid"))){
+                                li.querySelector("deer-view").setAttribute("deer-id", li.getAttribute("itemid"))
+                            }
+                            else{
+                                li.remove()
+                            }
                         }
                     })
                     .catch(err => {
@@ -1147,6 +1155,7 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                         throw new Error(err.getMessage())
                     })
                 }
+                
                 saveList.addEventListener('click', listify)
                 document.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
                     ev.preventDefault()
