@@ -1186,7 +1186,7 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                     //     const ev = new CustomEvent("Named Gloss collection saved")
                     //     globalFeedbackBlip(ev, `Named Gloss collection saved successfully.`, true)
                     // })
-                    // .catch(err => alert(`Failed to save named gloss collection: ${err}`))
+                    // .catch(err => throw new Error(err.getMessage())`))
 
                 }
 
@@ -1483,6 +1483,48 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
         }
     } catch (err) {
         console.log("Could not build list template.")
+        console.error(err)
+        return null
+    }
+}
+
+DEER.TEMPLATES.userNgCollections = async function (obj, options = {}) {
+    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses managers.</h4>` }
+    try {
+        const collectionsQuery = {
+            "@type" : "UserNamedGlossCollection",
+            "creator" : "https://devstore.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
+        }
+        let tmpl = ``
+        const collections = await fetch(DEER.URLS.QUERY, {
+            method: "POST",
+            mode: "cors",
+            headers:{
+                "Content-Type" : "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(collectionsQuery)
+        })
+        .then(response => response.json())
+        .catch(err => {
+            console.error(err)
+            throw new Error(err.getMessage())
+        })
+        tmpl += `<ul>`
+        collections.forEach((collection, index) => {
+            tmpl += `<li>`
+            tmpl += `
+            <a href="${options.link}${collection['@id']}">
+                <deer-view deer-id="${collection["@id"]}" deer-template="label">${index + 1}</deer-view>
+            </a>
+            </li>`
+        })
+        tmpl += `</ul>`
+        return {
+            html: tmpl
+        }
+    }
+    catch(err){
+        console.log("Could not get User Named Gloss Collections.")
         console.error(err)
         return null
     }
