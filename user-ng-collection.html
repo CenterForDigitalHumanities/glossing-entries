@@ -93,7 +93,7 @@
         <!-- If the user comes in with a hash, that is the listing here.  Otherwise, there is no list yet and no item should be included yet  -->
         <!-- If the user should only be able to pick from public Named Glosses, then we can't use deer-collection here. -->
 
-        <deer-view id="ngCollectionList" deer-listing="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" public-collection="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="namedGlossesSelector" class="bg-basic">
+        <deer-view id="ngCollectionList" deer-listing="" public-collection="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="namedGlossesSelector" class="bg-basic">
             Loading&hellip;
         </deer-view>
     </form>
@@ -120,9 +120,13 @@
         })
         window.onhashchange = onload = () => {
             let ngID = window.location.hash.substr(1)
-            
+            //Hmm we should make sure they never overwrite the managed/public lists 
+            if(ngID.endsWith("610c54deffce846a83e70625") || ngID.endsWith("610ad6f1ffce846a83e70613")) {
+                window.location.href = "./user-ng-collections.html"
+                return
+            }
             if (ngID) {
-                document.querySelector("input[type='submit']").value = "Update Named Gloss Collection"
+                saveList.value = "Update Named Gloss Collection"
                 document.getElementById("named-gloss-collection").setAttribute("deer-id", ngID)
                 document.getElementById("ngCollectionList").setAttribute("deer-listing", ngID)
             }

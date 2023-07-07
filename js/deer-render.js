@@ -1069,6 +1069,11 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
     }
 }
 
+/**
+ * Used in the Named Glosses Collection generator form.  It shows an actionable list of Named Glosses to choose from.
+ * If you only want to let users choose from the Public Named Glosses List, add the attribute public-collection to the deer view element.
+ * This template used the template 'managedlist' as a guideline for the UI.
+ */ 
 DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses managers.</h4>` }
     try {
@@ -1115,7 +1120,7 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                     .then(list => {
                         list.itemListElement?.forEach(item => elem.publicListCache.add(item['@id']))
                         for (const li of document.querySelectorAll('li[itemid]')) {
-                            if(!elem.publicListCache.has(li.getAttribute("itemid"))) li.classList.add("is-hidden")
+                            if(!elem.publicListCache.has(li.getAttribute("itemid"))) li.remove()
                         }
                     })
                     .catch(err => {

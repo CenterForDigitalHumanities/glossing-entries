@@ -87,11 +87,14 @@ class GlossHeader extends HTMLElement {
 
 customElements.define('gog-header', GlossHeader)
 
+
+/**
+ * A list of all Named Glosses Collections created by the logged in user. 
+ */ 
 class ngCollections extends HTMLElement {
     constructor() {
         super()
     }
-
     connectedCallback() {
         try {
             const collectionsQuery = {
