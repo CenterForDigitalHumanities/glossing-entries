@@ -1155,7 +1155,7 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                         throw new Error(err.getMessage())
                     })
                 }
-                
+                ngCollectionActions.classList.remove("is-hidden")
                 saveList.addEventListener('click', listify)
                 document.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
                     ev.preventDefault()
@@ -1170,6 +1170,10 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                 filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
 
                 function listify() {
+                    if(elem.listCache.size === 0){
+                        alert("You have not made any Named Gloss selections.")
+                        return
+                    }
                     let ngs = []
                     const listing = elem.getAttribute("deer-listing")
                     elem.listCache.forEach(uri => {
