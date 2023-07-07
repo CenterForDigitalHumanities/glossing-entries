@@ -96,7 +96,7 @@
             </deer-view>
             <div id="ngCollectionActions" class="is-hidden col-4">
                 <input id="saveList" type="submit" value="Create Named Gloss Collection"><br>
-                <input class="button error" onclick="removeUserNamedGlossCollection(event, 'named-gloss-collection')" type="button" value="Remove Named Gloss Collection"/>
+                <input class="button error" onclick="removeUserNamedGlossCollection(event)" type="button" value="Remove Named Gloss Collection"/>
             </div>
         </div>
     </form>
@@ -121,6 +121,12 @@
                 default:
             }
         })
+
+        // A Named Gloss Collection was successfully created, updated, or deleted.
+        addEventListener('globalFeedbackFinished', event => {
+            window.location.href = "./user-ng-collections.html"
+        })
+
         window.onhashchange = onload = () => {
             let ngID = window.location.hash.substr(1)
             //Hmm we should make sure they never overwrite the managed/public lists 
@@ -133,12 +139,6 @@
                 document.getElementById("named-gloss-collection").setAttribute("deer-id", ngID)
                 document.getElementById("ngCollectionList").setAttribute("deer-listing", ngID)
             }
-            else {
-                addEventListener('globalFeedbackFinished', event => {
-                    window.location.href = "./user-ng-collections.html"
-                })
-            }
-            //broadcast(undefined, "deer-view", document, {})
         }
 
         /**
@@ -238,6 +238,41 @@
             }
         }
 
+        /**
+         * The user would like to delete this collection.  It has no annotations, just delete the id provided.
+         * 
+         * @param event {Event} A button/link click event
+         * @param type {String} The archtype object's type or @type.
+         */ 
+        function removeUserNamedGlossCollection(event) {
+            const id = document.getElementById("named-gloss-collection").getAttribute("deer-id")
+            
+            const ev = new CustomEvent("Named Gloss Collection delete")
+            globalFeedbackBlip(ev, `Named Gloss collection was deleted.`, true)
+            event.target.parentElement.classList.add("is-hidden")
+
+            // fetch("https://tinydev.rerum.io/app/delete", {
+            //     method: "DELETE",
+            //     body: JSON.stringify({"@id":id.replace(/^https?:/,'https:')}),
+            //     headers: {
+            //         "Content-Type": "application/json; charset=utf-8",
+            //         "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            //     }
+            // })
+            // .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+            // .then(() => {
+            //     const ev = new CustomEvent("Named Gloss Collection delete")
+            //     globalFeedbackBlip(ev, `Named Gloss collection was deleted.`, true)
+            //     event.target.parentElement.classList.add("is-hidden")
+
+            // })
+            // .catch(err => { 
+            //     console.error(`There was an issue removing a Named Gloss Collection: ${id}`)
+            //     console.log(err)
+            //     alert(`There was an issue removing a Named Gloss Collection: ${id}`)
+            // })
+            
+        }
     </script>
 </body>
 

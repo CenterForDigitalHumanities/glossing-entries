@@ -1169,6 +1169,9 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                 filter.classList.remove('is-hidden')
                 filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
 
+                /**
+                 * Make or overwrite a User Named Glosses Collection based on the selected Named Glosses in this template.
+                 */ 
                 function listify() {
                     if(elem.listCache.size === 0){
                         alert("You have not made any Named Gloss selections.")
@@ -1225,20 +1228,7 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                     // .catch(err => throw new Error(err.getMessage())`))
 
                 }
-
-                /**
-                 * An archetype entity is being deleted.  Delete it and some choice Annotations connected to it.
-                 * 
-                 * Might want to update the name of this to be delete from collection instead of delete this
-                 * 
-                 * 
-                 * @param event {Event} A button/link click event
-                 * @param type {String} The archtype object's type or @type.
-                 */ 
-                async function removeUserNamedGlossCollection(id) {
-                    alert("Not Yet...Under Development")
-                    return true
-                }
+               
                 function debounce(func,timeout = 500) {
                     let timeRemains
                     return (...args) => {
