@@ -32,7 +32,7 @@
             height: 2.2em;
         }
 
-        #knownTags {
+        #knownTags, #knownThemes {
             border-left: 1px dotted black;
             border-bottom: 1px dotted black;
             border-right: 1px dotted black;
@@ -48,12 +48,21 @@
         Note that you will add lines from paritcular gloss transcriptions in a different interface.
         This collects together Named Glosses connected with basic metadata.
     </p>
-    <form id="named-gloss-collection" deer-id="" deer-type="UserNamedGlossCollection" deer-context="http://purl.org/dc/terms">
+
+    <form id="ngForm" deer-type="named-gloss" deer-context="http://www.loc.gov/mods">
+        <input type="text" deer-key="title" placeholder="Display Label" class="col">
+        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
+        <input type="submit" value="Add NG : Title Only" class="col">
+    </form>
+    <!-- If the user comes in with a hash, that is the deer-id here.  Otherwise, there is no list yet and everything is blank.  -->
+    <!-- Note here the submit button is customized.  It is not a regular deer form submit because we are generating/overwriting a user based collection  -->
+    <form id="named-gloss-collection" deer-id="" deer-type="UserNamedGlossCollection" deer-context="http://purl.org/dc/terms">
+        <!-- <input is="auth-creator" type="hidden" deer-key="creator" /> -->
         <p> Define basic metadata for this collection</p>
-        <div class="row">
+        <div>
             <label class="col-3 col-2-md text-right">Label:</label>
-            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md">
+            <input type="text" deer-key="name" placeholder="Label" class="col-9 col-10-md">
 
             <label class="col-3 col-2-md text-right">Description:</label>
             <input type="text" deer-key="description" placeholder="notes" class="col-9 col-10-md">
@@ -61,24 +70,7 @@
             <label class="col-3 col-2-md text-right">Notes</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-10-md">
         </div>
-        <p> Add Glosses to the Collection.  Select from existing glosses or create a new one.</p>
-        <h4> Create New Gloss </h4>
-        <form id="ngForm" deer-type="named-gloss" deer-context="http://www.loc.gov/mods" class="row">
-            <input type="text" deer-key="title" placeholder="Display Label" class="col">
-            <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
-            <input is="auth-creator" type="hidden" deer-key="creator" />
-            <input type="submit" value="Add NG : Title Only" class="col">
-        </form>
-        <h4> Select from Existing Glosses </h4>
-        <div class="row">
-            <!--  -->
-            <deer-view id="ngCollectionList" deer-listing="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625"
-            deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="namedGlossesSelector" class="bg-basic">
-                Loading&hellip;
-            </deer-view>
-        </div>
-        <!-- Note this could be a template or custom HTML element -->
-        <div class="tagWidget row">
+        <div class="tagWidget">
             <p class="col-12 col-12-md">Tags are displayed below the input. Click the red 'x' to remove the tag.
             </p>
             <input type="hidden" deer-key="tags" deer-input-type="Set">
@@ -87,9 +79,17 @@
             <button class="smaller" id="addTagBtn" onclick="addTag(event)"> Add Tag </button>
             <div id="knownTags" class="selectedEntities col-12 col-12-md"></div>
         </div>
-
-        <input type="submit" value="Make Named Gloss Collection" class="col">
+        <input id="saveList" type="submit" value="Make Named Gloss Collection" class="col">
         <a onclick="removeUserNamedGlossCollection(event, 'named-gloss-collection')" class="text-error">Drop Named Gloss Collection</a>
+        
+        <p> Add Glosses to your Collection.  Select from existing Named Glosses.  If you need to create a new Named Gloss, you can do so at the top of the page.</p>
+        <!--  -->
+        <h4> Select from Existing Glosses </h4>
+        <!-- If the user comes in with a hash, that is the listing here.  Otherwise, there is no list yet and no item should be included yet  -->
+        <deer-view id="ngCollectionList" deer-listing=""
+        deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="namedGlossesSelector" class="bg-basic">
+            Loading&hellip;
+        </deer-view>
     </form>
 
     <gog-footer class="row"> </gog-footer>
@@ -115,6 +115,7 @@
         window.onhashchange = onload = () => {
             let ngID = window.location.hash.substr(1)
             document.getElementById("named-gloss-collection").setAttribute("deer-id", ngID)
+            document.getElementById("ngCollectionList").setAttribute("deer-listing", ngID)
             if (ngID) {
                 document.querySelector("input[type='submit']").value = "Update"
             }

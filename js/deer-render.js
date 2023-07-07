@@ -1075,15 +1075,16 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
         // If the collection doesn't have a name, something has gone wrong.
         if(!obj.name) return
 
-        let tmpl = `<input type="hidden" deer-collection="${options.collection}">`
+        let tmpl = `<input type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">`
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
+        const hashURI = window.location.hash.substr(1)
 
         if (options.list) {
             tmpl += `<ul>`
             obj[options.list].forEach((val, index) => {
-                const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`
+                const inclusionBtn = `<a class="toggleInclusion" href="${val['@id']}" title="Toggle Named Gloss Inclusion"> 👁 </a>`
                 tmpl += `<li>
-                ${visibilityBtn}
+                ${inclusionBtn}
                 <a href="${options.link}${val['@id']}">
                     <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
                 </a>
@@ -1097,68 +1098,96 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
         }
         return {
             html: tmpl,
-            then: elem => {
+            then: async (elem) => {
                 // This deer-listing needs to become the ID of the User Named Gloss Collection when provided.
                 const listing = elem.getAttribute("deer-listing")
-                if(listing){
-
+                elem.listCache = new Set()
+                let userNamedGlossCollection = {
+                    "@context": "https://schema.org/",
+                    "@type" : "UserNamedGlossCollection",
+                    "creator" : "https://devstore.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
                 }
-                fetch(elem.getAttribute("deer-listing"))
+                if(listing){
+                    await fetch(listing)
                     .then(r => r.json())
                     .then(list => {
-                        elem.listCache = new Set()
+                        userNamedGlossCollection["@id"] = list["@id"] ?? list.id ?? ""
                         list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
-                        for (const a of document.querySelectorAll('.togglePublic')) {
+                        for (const a of document.querySelectorAll('.toggleInclusion')) {
                             const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
                             a.classList[include]("is-included")
                         }
                     })
-                    .then(() => {
-                        document.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
-                            ev.preventDefault()
-                            ev.stopPropagation()
-                            const uri = a.getAttribute("href")
-                            const included = elem.listCache.has(uri)
-                            a.classList[included ? "remove" : "add"]("is-included")
-                            elem.listCache[included ? "delete" : "add"](uri)
-                            //TODO this is the submit button
-                            //saveList.style.visibility = "visible"
-                        }))
-                        //TODO this is the submit button
-                        //saveList.addEventListener('click', overwriteList)
+                    .catch(err => {
+                        console.error(err)
+                        alert("Could not resolve the provided UserNamedGlossCollection URI")
+                        throw new Error(err.getMessage())
                     })
+                }
+                saveList.addEventListener('click', listify)
+                document.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    const uri = a.getAttribute("href")
+                    const included = elem.listCache.has(uri)
+                    a.classList[included ? "remove" : "add"]("is-included")
+                    elem.listCache[included ? "delete" : "add"](uri)
+                }))
+                const filter = elem.querySelector('input')
+                filter.classList.remove('is-hidden')
+                filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
 
-
-                function overwriteList() {
-                    alert("Not Yet...Under Development")
-                    return true
-                    let mss = []
+                function listify() {
+                    let ngs = []
+                    const listing = elem.getAttribute("deer-listing")
                     elem.listCache.forEach(uri => {
-                        mss.push({
+                        ngs.push({
                             label: document.querySelector(`deer-view[deer-id='${uri}']`).textContent.trim(),
                             '@id': uri
                         })
                     })
-
-                    const list = {
-                        '@id': elem.getAttribute("deer-listing"),
-                        '@context': 'https://schema.org/',
-                        '@type': "ItemList",
-                        name: elem.getAttribute("deer-listing") ?? "Gallery of Glosses",
-                        numberOfItems: elem.listCache.size,
-                        itemListElement: mss
+                    const description = elem.closest("form").querySelector("input[deer-key='description']").value
+                    const notes = elem.closest("form").querySelector("input[deer-key='notes']").value
+                    const name = elem.closest("form").querySelector("input[deer-key='name']").value
+                    const tagArr = elem.closest("form").querySelector("input[deer-key='tags']").value.split(",")
+                    const tags = {
+                        "@type" : "Set",
+                        "items" : tagArr
                     }
+                    const data = {
+                        name,
+                        description,
+                        notes,
+                        tags,
+                        "numberOfItems": elem.listCache.size,
+                        "itemListElement": ngs,
+                    }
+                    if(!name){
+                        alert("Please enter a name before saving your selection.")
+                        return
+                    }
+                    Object.assign(userNamedGlossCollection, data)
+                    console.log(`Going to ${listing ? DEER.URLS.OVERWRITE : DEER.URLS.CREATE} the following UserNamedGlossCollection`)
+                    console.log(userNamedGlossCollection)
+                    const ev = new CustomEvent("Named Gloss collection saved")
+                    globalFeedbackBlip(ev, `Named Gloss collection saved successfully.`, true)
 
-                    fetch(DEER.URLS.OVERWRITE, {
-                        method: "PUT",
-                        mode: 'cors',
-                        body: JSON.stringify(list),
-                        headers: {
-                        "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                        }
-                    }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                        .catch(err => alert(`Failed to save: ${err}`))
+                    // fetch(listing ? DEER.URLS.OVERWRITE : DEER.URLS.CREATE, {
+                    //     method: listing ? "PUT" : "POST",
+                    //     mode: 'cors',
+                    //     body: JSON.stringify(userNamedGlossCollection),
+                    //     headers: {
+                    //         "Content-Type": "application/json; charset=utf-8",
+                    //         "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    //     }
+                    // })
+                    // .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                    // .then(json => {
+                    //     const ev = new CustomEvent("Named Gloss collection saved")
+                    //     globalFeedbackBlip(ev, `Named Gloss collection saved successfully.`, true)
+                    // })
+                    // .catch(err => alert(`Failed to save named gloss collection: ${err}`))
+
                 }
 
                 /**
@@ -1173,6 +1202,37 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                 async function removeUserNamedGlossCollection(id) {
                     alert("Not Yet...Under Development")
                     return true
+                }
+                function debounce(func,timeout = 500) {
+                    let timeRemains
+                    return (...args) => {
+                        clearTimeout(timeRemains)
+                        timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
+                    }
+                }
+                function filterGlosses(queryString=''){
+                    const query = queryString.trim().toLowerCase()
+                    const items = elem.querySelectorAll('li')
+                    items.forEach(el=>{
+                        const action = el.textContent.trim().toLowerCase().includes(query) ? "remove" : "add"
+                        el.classList[action](`is-hidden`,`un${action}-item`)
+                        setTimeout(()=>el.classList.remove(`un${action}-item`),500)
+                    })
+                }
+                function globalFeedbackBlip(event, message, success) {
+                    globalFeedback.innerText = message
+                    globalFeedback.classList.add("show")
+                    if (success) {
+                        globalFeedback.classList.add("bg-success")
+                    } else {
+                        globalFeedback.classList.add("bg-error")
+                    }
+                    setTimeout(function () {
+                        globalFeedback.classList.remove("show")
+                        globalFeedback.classList.remove("bg-error")
+                        // backup to page before the form
+                        UTILS.broadcast(event, "globalFeedbackFinished", globalFeedback, { message: message })
+                    }, 3000)
                 }
             }
         }
