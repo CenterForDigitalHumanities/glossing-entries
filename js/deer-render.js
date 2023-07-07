@@ -1083,7 +1083,7 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
             tmpl += `<ul>`
             obj[options.list].forEach((val, index) => {
                 const inclusionBtn = `<a class="toggleInclusion" href="${val['@id']}" title="Toggle Named Gloss Inclusion"> 👁 </a>`
-                tmpl += `<li>
+                tmpl += `<li itemid="${val['@id']}">
                 ${inclusionBtn}
                 <a href="${options.link}${val['@id']}">
                     <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
@@ -1101,12 +1101,30 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
             then: async (elem) => {
                 // This deer-listing needs to become the ID of the User Named Gloss Collection when provided.
                 const listing = elem.getAttribute("deer-listing")
+                const publicOnly = elem.getAttribute("public-collection")
                 elem.listCache = new Set()
+                elem.publicListCache = new Set()
                 let userNamedGlossCollection = {
                     "@context": "https://schema.org/",
                     "@type" : "UserNamedGlossCollection",
                     "creator" : "https://devstore.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
                 }
+                if(publicOnly){
+                    await fetch(publicOnly)
+                    .then(r => r.json())
+                    .then(list => {
+                        list.itemListElement?.forEach(item => elem.publicListCache.add(item['@id']))
+                        for (const li of document.querySelectorAll('li[itemid]')) {
+                            if(!elem.publicListCache.has(li.getAttribute("itemid"))) li.classList.add("is-hidden")
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err)
+                        alert("Could not resolve the provided UserNamedGlossCollection URI")
+                        throw new Error(err.getMessage())
+                    })    
+                }
+
                 if(listing){
                     await fetch(listing)
                     .then(r => r.json())
@@ -1483,48 +1501,6 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
         }
     } catch (err) {
         console.log("Could not build list template.")
-        console.error(err)
-        return null
-    }
-}
-
-DEER.TEMPLATES.userNgCollections = async function (obj, options = {}) {
-    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses managers.</h4>` }
-    try {
-        const collectionsQuery = {
-            "@type" : "UserNamedGlossCollection",
-            "creator" : "https://devstore.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
-        }
-        let tmpl = ``
-        const collections = await fetch(DEER.URLS.QUERY, {
-            method: "POST",
-            mode: "cors",
-            headers:{
-                "Content-Type" : "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(collectionsQuery)
-        })
-        .then(response => response.json())
-        .catch(err => {
-            console.error(err)
-            throw new Error(err.getMessage())
-        })
-        tmpl += `<ul>`
-        collections.forEach((collection, index) => {
-            tmpl += `<li>`
-            tmpl += `
-            <a href="${options.link}${collection['@id']}">
-                <deer-view deer-id="${collection["@id"]}" deer-template="label">${index + 1}</deer-view>
-            </a>
-            </li>`
-        })
-        tmpl += `</ul>`
-        return {
-            html: tmpl
-        }
-    }
-    catch(err){
-        console.log("Could not get User Named Gloss Collections.")
         console.error(err)
         return null
     }
