@@ -86,3 +86,59 @@ class GlossHeader extends HTMLElement {
 }
 
 customElements.define('gog-header', GlossHeader)
+
+
+/**
+ * A list of all Named Glosses Collections created by the logged in user. 
+ */ 
+class ngCollections extends HTMLElement {
+    constructor() {
+        super()
+    }
+    connectedCallback() {
+        try {
+            const collectionsQuery = {
+                "@type" : "UserNamedGlossCollection",
+                "creator" : "https://store.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
+            }
+            let tmpl = ``
+            const collections = fetch("https://tinymatt.rerum.io/gloss/query", {
+                method: "POST",
+                mode: "cors",
+                headers:{
+                    "Content-Type" : "application/json;charset=utf-8"
+                },
+                body: JSON.stringify(collectionsQuery)
+            })
+            .then(response => response.json())
+            .then(collections => {
+                if(collections.length > 0){
+                    tmpl += `<ul>`    
+                    collections.forEach((collection, index) => {
+                        tmpl += `<li>`
+                        tmpl += `
+                        <a href="user-ng-collection.html#${collection['@id']}">
+                            <deer-view deer-id="${collection["@id"]}" deer-template="label">${index + 1}</deer-view>
+                        </a>
+                        </li>`
+                    })
+                    tmpl += `</ul>`
+                }
+                else{
+                    tmpl = "<h4 class='text-error'> You do not have any Named Gloss Collections.  <a href='user-ng-collection.html'>Go here</a> to create one. </h4>"
+                }
+                this.innerHTML = tmpl
+            })
+            .catch(err => {
+                console.error(err)
+                throw new Error(err.getMessage())
+            })
+        }
+        catch(err){
+            console.log("Could not get User Named Gloss Collections.")
+            console.error(err)
+            return null
+        }
+    }
+}
+customElements.define('gog-ng-collections', ngCollections)
