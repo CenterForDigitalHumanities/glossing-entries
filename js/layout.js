@@ -99,10 +99,10 @@ class ngCollections extends HTMLElement {
         try {
             const collectionsQuery = {
                 "@type" : "UserNamedGlossCollection",
-                "creator" : "https://devstore.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
+                "creator" : "https://store.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
             }
             let tmpl = ``
-            const collections = fetch("https://tinydev.rerum.io/app/query", {
+            const collections = fetch("https://tinymatt.rerum.io/gloss/query", {
                 method: "POST",
                 mode: "cors",
                 headers:{
