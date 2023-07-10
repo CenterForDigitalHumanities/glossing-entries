@@ -129,6 +129,9 @@ export default {
                     })
                 }
                 deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
+                if(deerUtils.getURLParameter("incipit")){
+                    filterGlosses(deerUtils.getURLParameter("incipit"))
+                }
             }
             return { html, then }
         },
