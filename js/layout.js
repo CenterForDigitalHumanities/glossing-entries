@@ -87,6 +87,243 @@ class GlossHeader extends HTMLElement {
 
 customElements.define('gog-header', GlossHeader)
 
+class TagWidget extends HTMLElement {
+    template = `
+        <style>
+            .themeTag {
+                margin-bottom: 15px;
+            }
+            .removeTag:after {
+                content: 'x';
+                color: red;
+                padding: 1px 1px 1px 7px;
+                cursor: pointer;
+
+            }
+            .removeTag:hover {
+                font-weight: bolder;
+                font-size: 115%;
+            }
+
+            button.smaller {
+                padding: 0px 5px;
+                height: 2.2em;
+            }
+            .selectedEntities {
+                border-left: 1px dotted black;
+                border-bottom: 1px dotted black;
+                border-right: 1px dotted black;
+                padding: 4px;
+            }
+        </style>
+        <p class="col-12 col-12-md">Gloss tags are displayed below the input. Click the red 'x' to remove the tag.
+        </p>
+        <input type="hidden" deer-key="tags" deer-input-type="Set">
+        <label class="col-3 col-2-md text-right">Tag Name</label>
+        <input type="text" class="col-9 col-4-md tagInput" placeholder="Add one tag at a time">
+        <button class="smaller"> Add Tag </button>
+        <div class="selectedEntities col-12 col-12-md"></div>
+    `
+    constructor() {
+        super()
+    }
+    connectedCallback() {
+        this.innerHTML = this.template
+        const $this = this
+        this.querySelector("button").addEventListener("click", addTag)
+        
+        /**
+         * Click event handler for Add Tag.  Takes the user input and adds the string to the Set if it isn't already included.
+         * Includes pagination.
+         * */
+        function addTag(event) {
+            event.preventDefault()
+            event.stopPropagation()
+            let selectedTagsArea = $this.querySelector(".selectedEntities")
+            const tagInput = event.target.previousElementSibling
+            let tracked_tags = $this.querySelector("input[deer-key='tags']")
+            tracked_tags.value = tracked_tags.value.toLowerCase()
+            const delim = (tracked_tags.hasAttribute("deer-array-delimeter")) ? tracked_tags.getAttribute("deer-array-delimeter") : ","
+            const newTagName = tagInput.value.toLowerCase().trim()
+            let arr_tag_names = tracked_tags.value ? tracked_tags.value.split(delim) : []
+            if (newTagName && arr_tag_names.indexOf(newTagName) === -1) {
+                selectedTagsArea.innerHTML = ""
+                arr_tag_names.push(newTagName)
+                arr_tag_names.forEach(name => {
+                    let tag = `<span class="tag is-small">${name}<span class="removeTag" tag-name="${name}"></span></span>`
+                    selectedTagsArea.innerHTML += tag
+                })
+                selectedTagsArea.querySelectorAll(".removeTag").forEach(el => {
+                    el.addEventListener("click", $this.removeTag)
+                })
+                tagInput.value = ""
+                const str_arr = arr_tag_names.join(delim)
+                tracked_tags.value = str_arr
+                tracked_tags.setAttribute("value", str_arr)
+                tracked_tags.$isDirty = true
+            }
+            else {
+                tagInput.value = ""
+            }
+        }
+
+        /**
+         * Click event handler for .removeTag when the user clicks the little x. 
+         * Removes tag from the set of known tags (if included, it really should be though.)
+         * Includes pagination.
+         * This function is exposed so that the HTML pages can call upon it during pagination moments. 
+         * */
+        this.removeTag = function(event) {
+            event.preventDefault()
+            event.stopPropagation()
+            const tagName = event.target.getAttribute("tag-name").toLowerCase()
+            let selectedTagsArea = $this.querySelector(".selectedEntities")
+            let tracked_tags = $this.querySelector("input[deer-key='tags']")
+            tracked_tags.value = tracked_tags.value.toLowerCase()
+            let delim = (tracked_tags.hasAttribute("deer-array-delimeter")) ? tracked_tags.getAttribute("deer-array-delimeter") : ","
+            let arr_tag_names = tracked_tags.value ? tracked_tags.value.split(delim) : []
+            if (arr_tag_names.indexOf(tagName) > -1) {
+                selectedTagsArea.innerHTML = ""
+                arr_tag_names.splice(arr_tag_names.indexOf(tagName), 1)
+                arr_tag_names.forEach(name => {
+                    let tag = `<span class="tag is-small">${name}<span tag-name="${name}" class="removeTag"></span></span>`
+                    selectedTagsArea.innerHTML += tag
+                })
+                selectedTagsArea.querySelectorAll(".removeTag").forEach(el => {
+                    el.addEventListener("click", $this.removeTag)
+                })
+                let str_arr = arr_tag_names.join(delim)
+                tracked_tags.value = str_arr
+                tracked_tags.setAttribute("value", str_arr)
+                tracked_tags.$isDirty = true
+            }
+            else {
+                $this.querySelector(".tagInput").value = ""
+            }
+        }
+    }
+}
+
+customElements.define('gog-tag-widget', TagWidget)
+
+class ThemeWidget extends HTMLElement {
+    template = `
+        <style>
+            .themeWidget {
+                margin-bottom: 15px;
+            }
+            .removeTheme:after {
+                content: 'x';
+                color: red;
+                padding: 1px 1px 1px 7px;
+                cursor: pointer;
+
+            }
+            .removeTheme:hover {
+                font-weight: bolder;
+                font-size: 115%;
+            }
+
+            button.smaller {
+                padding: 0px 5px;
+                height: 2.2em;
+            }
+            .selectedEntities {
+                border-left: 1px dotted black;
+                border-bottom: 1px dotted black;
+                border-right: 1px dotted black;
+                padding: 4px;
+            }
+        </style>
+        <p class="col-12 col-12-md">Gloss themes are displayed below the input. Click the red 'x' to remove the theme.
+        </p>
+        <input type="hidden" deer-key="themes" deer-input-type="Set">
+        <label class="col-3 col-2-md text-right">Theme Name</label>
+        <input type="text" class="col-9 col-4-md themeInput" placeholder="Add one theme at a time">
+        <button class="smaller"> Add Theme </button>
+        <div class="selectedEntities col-12 col-12-md"></div>
+    `
+    constructor() {
+        super()
+    }
+    connectedCallback() {
+        this.innerHTML = this.template
+        const $this = this
+        this.querySelector("button").addEventListener("click", addTheme)
+        /**
+         * Click event handler for Add Theme.  Takes the user input and adds the string to the Set if it isn't already included.
+         * Includes pagination.
+         * */
+        function addTheme(event) {
+            event.preventDefault()
+            event.stopPropagation()
+            let selectedThemesArea = $this.querySelector(".selectedEntities")
+            const themeInput = event.target.previousElementSibling
+            let tracked_themes = $this.querySelector("input[deer-key='themes']")
+            tracked_themes.value = tracked_themes.value.toLowerCase()
+            const delim = (tracked_themes.hasAttribute("deer-array-delimeter")) ? tracked_themes.getAttribute("deer-array-delimeter") : ","
+            const newThemeName = themeInput.value.toLowerCase().trim()
+            let arr_theme_names = tracked_themes.value ? tracked_themes.value.split(delim) : []
+            if (newThemeName && arr_theme_names.indexOf(newThemeName) === -1) {
+                selectedThemesArea.innerHTML = ""
+                arr_theme_names.push(newThemeName)
+                arr_theme_names.forEach(name => {
+                    let theme = `<span class="tag is-small">${name}<span class="removeTheme" theme-name="${name}"></span></span>`
+                    selectedThemesArea.innerHTML += theme
+                })
+                selectedThemesArea.querySelectorAll(".removeTheme").forEach(el => {
+                    el.addEventListener("click", $this.removeTheme)
+                })
+                themeInput.value = ""
+                const str_arr = arr_theme_names.join(delim)
+                tracked_themes.value = str_arr
+                tracked_themes.setAttribute("value", str_arr)
+                tracked_themes.$isDirty = true
+            }
+            else {
+                themeInput.value = ""
+            }
+        }
+
+        /**
+         * Click event handler for .removeTheme when the user clicks the little x. 
+         * Removes theme from the set of known themes (if included, it really should be though.)
+         * Includes pagination.
+         * This function is exposed so that the HTML pages can call upon it during pagination moments. 
+         * */
+        this.removeTheme = function(event) {
+            event.preventDefault()
+            event.stopPropagation()
+            const themeName = event.target.getAttribute("theme-name").toLowerCase()
+            let selectedThemesArea = $this.querySelector(".selectedEntities")
+            let tracked_themes = $this.querySelector("input[deer-key='themes']")
+            tracked_themes.value = tracked_themes.value.toLowerCase()
+            let delim = (tracked_themes.hasAttribute("deer-array-delimeter")) ? tracked_themes.getAttribute("deer-array-delimeter") : ","
+            let arr_theme_names = tracked_themes.value ? tracked_themes.value.split(delim) : []
+            if (arr_theme_names.indexOf(themeName) > -1) {
+                selectedThemesArea.innerHTML = ""
+                arr_theme_names.splice(arr_theme_names.indexOf(themeName), 1)
+                arr_theme_names.forEach(name => {
+                    let theme = `<span class="tag is-small">${name}<span class="removeTheme"></span></span>`
+                    selectedThemesArea.innerHTML += theme
+                })
+                selectedThemesArea.querySelectorAll(".removeTheme").forEach(el => {
+                    el.addEventListener("click", $this.removeTheme)
+                })
+                let str_arr = arr_theme_names.join(delim)
+                tracked_themes.value = str_arr
+                tracked_themes.setAttribute("value", str_arr)
+                tracked_themes.$isDirty = true
+            }
+            else {
+                $this.querySelector(".themeInput").value = ""
+            }
+        }
+    }
+}
+
+customElements.define('gog-theme-widget', ThemeWidget)
+
 
 /**
  * A list of all Named Glosses Collections created by the logged in user. 
@@ -102,7 +339,7 @@ class ngCollections extends HTMLElement {
                 "creator" : "https://store.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
             }
             let tmpl = ``
-            const collections = fetch("https://tinymatt.rerum.io/gloss/query", {
+            const collections = fetch("https://tinydev.rerum.io/app/query", {
                 method: "POST",
                 mode: "cors",
                 headers:{

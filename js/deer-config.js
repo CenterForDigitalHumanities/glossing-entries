@@ -28,11 +28,11 @@ export default {
 
     URLS: {
         BASE_ID: "https://store.rerum.io/v1",
-        CREATE: "https://tinymatt.rerum.io/gloss/create",
-        UPDATE: "https://tinymatt.rerum.io/gloss/update",
-        QUERY: "https://tinymatt.rerum.io/gloss/query?limit=100&skip=0",
-        OVERWRITE: "https://tinymatt.rerum.io/gloss/overwrite",
-        DELETE: "https://tinymatt.rerum.io/gloss/delete",
+        CREATE: "https://tinydev.rerum.io/app/create",
+        UPDATE: "https://tinydev.rerum.io/app/update",
+        QUERY: "https://tinydev.rerum.io/app/query?limit=100&skip=0",
+        OVERWRITE: "https://tinydev.rerum.io/app/overwrite",
+        DELETE: "https://tinydev.rerum.io/app/delete",
         SINCE: "https://store.rerum.io/v1/since"
     },
 
@@ -82,9 +82,9 @@ export default {
             if (options.list) {
                 html += `<ul>`
                 obj[options.list].forEach((val, index) => {
-                    html += `<li>
+                    html += `<li deer-id="${val["@id"]}">
                     <a href="${options.link}${val['@id']}">
-                    <span deer-id="${val["@id"]}">${index + 1}</span>
+                    <span>${index + 1}</span>
                     </a>
                     </li>`
                 })
@@ -97,21 +97,26 @@ export default {
                         list[elem.getAttribute("deer-list") ?? "itemListElement"]?.forEach(item => {
                             const record = elem.querySelector(`[deer-id='${item?.['@id'] ?? item?.id ?? item}'`)
                             if (typeof record === 'object' && record.nodeType !== undefined) {
-                                record.innerHTML = item.label
-                                record.closest('a').classList.add("cached")
+                                //const filterFacets = Object.keys(items)
+                                record.setAttribute("data-title", item.label)
+                                record.querySelector("span").innerHTML = item.label
+                                record.querySelector("a").classList.add("cached")
                             }
                         })
                     })
                 await pendingLists
                 const newView = new Set()
-                elem.querySelectorAll("a:not(.cached) span").forEach((item,index) => {
+                elem.querySelectorAll("li").forEach((item,index) => {
                     item.classList.add("deer-view")
-                    item.setAttribute("deer-template","label")
+                    item.setAttribute("deer-template","filterableListItem")
                     newView.add(item)
                 })
                 const filter = elem.querySelector('input')
                 filter.classList.remove('is-hidden')
-                filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
+                filter.addEventListener('input',ev=>{
+                    const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
+                    debounce(filterGlosses(filterQuery))
+                })
                 function debounce(func,timeout = 500) {
                     let timeRemains
                     return (...args) => {
@@ -120,21 +125,66 @@ export default {
                     }
                 }
                 function filterGlosses(queryString=''){
-                    const query = queryString.trim().toLowerCase()
+                    const query = decodeContentState(queryString.trim())
                     const items = elem.querySelectorAll('li')
                     items.forEach(el=>{
-                        const action = el.textContent.trim().toLowerCase().includes(query) ? "remove" : "add"
-                        el.classList[action](`is-hidden`,`un${action}-item`)
-                        setTimeout(()=>el.classList.remove(`un${action}-item`),500)
+                        for(const prop in query){
+                            if(el.hasAttribute(`data-${prop}`)){
+                                const action = el.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
+                                el.classList[action](`is-hidden`,`un${action}-item`)
+                                setTimeout(()=>el.classList.remove(`un${action}-item`),500)
+                                break
+                            }
+                        }
                     })
                 }
                 deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
-                if(deerUtils.getURLParameter("incipit")){
-                    filterGlosses(deerUtils.getURLParameter("incipit"))
+                if(deerUtils.getURLParameter("gog-filter")){
+                    let filters = decodeContentState(deerUtils.getURLParameter("gog-filter").trim())
+                    if(deerUtils.getLabel(filters)){
+                        filterGlosses(encodeContentState(JSON.stringify({"title" : deerUtils.getLabel(filters)})))  
+                    }
                 }
             }
             return { html, then }
         },
+        filterableListItem: function (obj, options = {}) {
+            return{
+                html: ``,
+                then: (elem) => {
+                    let filterFacets = Object.keys(obj)
+                    let li = document.createElement("li")
+                    let a = document.createElement("a")
+                    let span = document.createElement("span")
+                    li.setAttribute("deer-id", obj["@id"])
+                    a.setAttribute("href", options.link + obj['@id'])
+                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
+                    
+                    filterFacets.forEach( (facet) => {
+                        if(typeof deerUtils.getValue(obj[facet]) === "string") {
+                            const val = deerUtils.getValue(obj[facet])
+                            facet = facet.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${facet}`
+                            li.setAttribute(attr, val)
+                        }
+                    })
+                    if(deerUtils.getURLParameter("gog-filter")){
+                        // Check if this object should be hidden or not
+                        const query = decodeContentState(deerUtils.getURLParameter("gog-filter").trim())
+                        for(const prop in query){
+                            if(li.hasAttribute(`data-${prop}`)){
+                                const action = li.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
+                                li.classList[action](`is-hidden`,`un${action}-item`)
+                                break
+                            }
+                        }
+                    }
+                    a.appendChild(span)
+                    li.appendChild(a)
+                    elem.replaceWith(li)
+                }
+            }
+        }
     },
     version: "alpha"
 }

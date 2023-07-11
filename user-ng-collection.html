@@ -91,7 +91,7 @@
         <!-- If the user comes in with a hash, that is the listing here.  Otherwise, there is no list yet and no item should be included yet  -->
         <!-- If the user should only be able to pick from public Named Glosses, then we can't use deer-collection here. -->
         <div class="row">
-            <deer-view class="col-8" id="ngCollectionList" deer-listing="" public-collection="https://store.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="namedGlossesSelector">
+            <deer-view class="col-8" id="ngCollectionList" deer-listing="" public-collection="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="namedGlossesSelector">
                 Loading&hellip;
             </deer-view>
             <div id="ngCollectionActions" class="is-hidden col-4">
@@ -251,7 +251,7 @@
             globalFeedbackBlip(ev, `Named Gloss collection was deleted.`, true)
             event.target.parentElement.classList.add("is-hidden")
 
-            // fetch("https://tinymatt.rerum.io/gloss/delete", {
+            // fetch("https://tinydev.rerum.io/app/delete", {
             //     method: "DELETE",
             //     body: JSON.stringify({"@id":id.replace(/^https?:/,'https:')}),
             //     headers: {
