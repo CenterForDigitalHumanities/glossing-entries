@@ -146,7 +146,7 @@ export default {
                     })
                     // TODO now manipulate the gog-filter value based on the new selection of filters.
                 }
-                deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
+                // deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
                 // The following can be used to filter on the items that were quick loaded (only by title).  I think it's better w/o it.
                 // if(deerUtils.getURLParameter("gog-filter")){
                 //     let filters = decodeContentState(deerUtils.getURLParameter("gog-filter").trim())
@@ -219,9 +219,14 @@ export default {
                     containingListElem.querySelector(".totalsProgress").setAttribute("count", numloaded)
                     containingListElem.querySelector(".totalsProgress").innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)`
                     if(numloaded === total){
+                        const providedFilters = decodeContentState(deerUtils.getURLParameter("gog-filter").trim())
                         containingListElem.querySelector(".progressArea").classList.add("is-hidden")
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
+                            // The filters that are used now need to be selected or take on the string or whatevs
                             i.classList.remove("is-hidden")
+                            if(providedFilters.hasOwnProperty(i.getAttribute("filter"))){
+                                i.value = deerUtils.getValue(providedFilters[i.getAttribute("filter")])
+                            }
                         })
                     }
                 }
