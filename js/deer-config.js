@@ -80,17 +80,14 @@ export default {
             let html = `<h2>Named Glosses</h2>
             <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
             <div class="progressArea">
-                <p> Please note that if you loaded this page with ?gog-filter, Named Glosses will not appear until they are loaded. </p>
+                <p class="filterNotice is-hidden"> I see you brought a filter into the page.  Please note that Named Glosses will not appear until they are fully loaded. </p>
                 <div class="totalsProgress" count="0"> {loaded} out of {total} (0%) </div>
-            </div>
-            
-            `
-            const f = deerUtils.getURLParameter("gog-filter")
+            </div>`
             // The entire Glossing-Matthew-Named-Glosses collection, URIs only.
             if (options.list) {
                 html += `<ul>`
                 obj[options.list].forEach((val, index) => {
-                    const c = f ? "is-hidden" : ""
+                    const c = deerUtils.getURLParameter("gog-filter") ? "is-hidden" : ""
                     html += `<li class="${c}" deer-id="${val["@id"]}">
                     <a href="${options.link}${val['@id']}">
                     <span>Loading Named Gloss #${index + 1}...</span>
@@ -100,6 +97,9 @@ export default {
                 html += `</ul>`
             }
             const then = async (elem) => {
+                if(deerUtils.getURLParameter("gog-filter")){
+                    elem.querySelector(".filterNotice").classList.remove("is-hidden")
+                }
                 elem.querySelector(".totalsProgress").innerText = `0 of ${obj[options.list].length} loaded (0%)`
                 elem.querySelector(".totalsProgress").setAttribute("total", obj[options.list].length)
                 const newView = new Set()
@@ -146,7 +146,10 @@ export default {
                     })
                     // TODO now manipulate the gog-filter value based on the new selection of filters.
                 }
+
+                // Note that this caused each <li> to be expanded a second time.  Not good, things seem to work without it.
                 // deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
+
                 // The following can be used to filter on the items that were quick loaded (only by title).  I think it's better w/o it.
                 // if(deerUtils.getURLParameter("gog-filter")){
                 //     let filters = decodeContentState(deerUtils.getURLParameter("gog-filter").trim())
@@ -219,7 +222,7 @@ export default {
                     containingListElem.querySelector(".totalsProgress").setAttribute("count", numloaded)
                     containingListElem.querySelector(".totalsProgress").innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)`
                     if(numloaded === total){
-                        const providedFilters = decodeContentState(deerUtils.getURLParameter("gog-filter").trim())
+                        const providedFilters = deerUtils.getURLParameter("gog-filter") ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                         containingListElem.querySelector(".progressArea").classList.add("is-hidden")
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be selected or take on the string or whatevs
