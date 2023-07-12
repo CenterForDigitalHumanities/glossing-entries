@@ -77,34 +77,31 @@ export default {
         },
         ngList: function (obj, options = {}) {
             // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
-            let html = `<a href="./manage-glosses.html" class="button">Manage Named Glosses</a> <h2>Named Glosses</h2>
-            <input type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">`
+            let html = `<h2>Named Glosses</h2>
+            <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
+            <div class="progressArea">
+                <p> Please note that if you loaded this page with ?gog-filter, Named Glosses will not appear until they are loaded. </p>
+                <div class="totalsProgress" count="0"> {loaded} out of {total} (0%) </div>
+            </div>
+            
+            `
+            const f = deerUtils.getURLParameter("gog-filter")
+            // The entire Glossing-Matthew-Named-Glosses collection, URIs only.
             if (options.list) {
                 html += `<ul>`
                 obj[options.list].forEach((val, index) => {
-                    html += `<li deer-id="${val["@id"]}">
+                    const c = f ? "is-hidden" : ""
+                    html += `<li class="${c}" deer-id="${val["@id"]}">
                     <a href="${options.link}${val['@id']}">
-                    <span>${index + 1}</span>
+                    <span>Loading Named Gloss #${index + 1}...</span>
                     </a>
                     </li>`
                 })
                 html += `</ul>`
             }
             const then = async (elem) => {
-                const listing = elem.getAttribute("deer-listing")
-                const pendingLists = !listing || fetch(listing).then(res => res.json())
-                    .then(list => {
-                        list[elem.getAttribute("deer-list") ?? "itemListElement"]?.forEach(item => {
-                            const record = elem.querySelector(`[deer-id='${item?.['@id'] ?? item?.id ?? item}'`)
-                            if (typeof record === 'object' && record.nodeType !== undefined) {
-                                //const filterFacets = Object.keys(items)
-                                record.setAttribute("data-title", item.label)
-                                record.querySelector("span").innerHTML = item.label
-                                record.querySelector("a").classList.add("cached")
-                            }
-                        })
-                    })
-                await pendingLists
+                elem.querySelector(".totalsProgress").innerText = `0 of ${obj[options.list].length} loaded (0%)`
+                elem.querySelector(".totalsProgress").setAttribute("total", obj[options.list].length)
                 const newView = new Set()
                 elem.querySelectorAll("li").forEach((item,index) => {
                     item.classList.add("deer-view")
@@ -112,11 +109,11 @@ export default {
                     newView.add(item)
                 })
                 const filter = elem.querySelector('input')
-                filter.classList.remove('is-hidden')
                 filter.addEventListener('input',ev=>{
                     const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
                     debounce(filterGlosses(filterQuery))
                 })
+
                 function debounce(func,timeout = 500) {
                     let timeRemains
                     return (...args) => {
@@ -124,7 +121,17 @@ export default {
                         timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
                     }
                 }
+
+                /** 
+                 * This presumes things are already loaded.  Do not use this function unless all named glosses are loaded.
+                 */ 
                 function filterGlosses(queryString=''){
+                    const numloaded = parseInt(elem.querySelector(".totalsProgress").getAttribute("count"))
+                    const total = parseInt(elem.querySelector(".totalsProgress").getAttribute("total"))
+                    if(numloaded !== total){
+                        alert("All data must be loaded to use this filter.  Please wait.")
+                        return
+                    }
                     const query = decodeContentState(queryString.trim())
                     const items = elem.querySelectorAll('li')
                     items.forEach(el=>{
@@ -137,21 +144,35 @@ export default {
                             }
                         }
                     })
+                    // TODO now manipulate the gog-filter value based on the new selection of filters.
                 }
                 deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
-                if(deerUtils.getURLParameter("gog-filter")){
-                    let filters = decodeContentState(deerUtils.getURLParameter("gog-filter").trim())
-                    if(deerUtils.getLabel(filters)){
-                        filterGlosses(encodeContentState(JSON.stringify({"title" : deerUtils.getLabel(filters)})))  
-                    }
-                }
+                // The following can be used to filter on the items that were quick loaded (only by title).  I think it's better w/o it.
+                // if(deerUtils.getURLParameter("gog-filter")){
+                //     let filters = decodeContentState(deerUtils.getURLParameter("gog-filter").trim())
+                //     if(deerUtils.getLabel(filters)){
+                //         filterGlosses(encodeContentState(JSON.stringify({"title" : deerUtils.getLabel(filters)})))  
+                //     }
+                // }
             }
             return { html, then }
         },
+
+        /**
+         * This corresponds to an existing <li> element with a deer-id property.  These <li> elements need to be filterable.
+         * As such, they require information about the Named Gloss they represent, whose URI is the deer-id.
+         * That element is expand()ed in order to get the information for this element to be filterable.
+         * 
+         * Once expanded, if reasonable, the object should be cached with its information (how would we know if it is out of date?)
+         * 
+         * If a filter was present via the URL on page load, if it matches on this <li> the <li> should be filtered immediately.
+         * 
+         */ 
         filterableListItem: function (obj, options = {}) {
             return{
                 html: ``,
                 then: (elem) => {
+                    const containingListElem = elem.closest("deer-view[deer-template='ngList']")
                     let filterFacets = Object.keys(obj)
                     let li = document.createElement("li")
                     let a = document.createElement("a")
@@ -168,20 +189,41 @@ export default {
                             li.setAttribute(attr, val)
                         }
                     })
+
+                    li.setAttribute("data-expanded", "true")
+                    // TODO Cache it / MEM map it ???
+
                     if(deerUtils.getURLParameter("gog-filter")){
+                        li.classList.add("is-hidden")
                         // Check if this object should be hidden or not
                         const query = decodeContentState(deerUtils.getURLParameter("gog-filter").trim())
                         for(const prop in query){
                             if(li.hasAttribute(`data-${prop}`)){
-                                const action = li.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
-                                li.classList[action](`is-hidden`,`un${action}-item`)
+                                if(li.getAttribute(`data-${prop}`).includes(query[prop])){
+                                    li.classList.remove("is-hidden")
+                                }
                                 break
                             }
                         }
                     }
+                    else{
+                        // Not sure if we need this
+                        li.classList.remove("is-hidden")
+                    }
+
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.replaceWith(li)
+                    const numloaded = parseInt(containingListElem.querySelector(".totalsProgress").getAttribute("count")) + 1
+                    const total = parseInt(containingListElem.querySelector(".totalsProgress").getAttribute("total"))
+                    containingListElem.querySelector(".totalsProgress").setAttribute("count", numloaded)
+                    containingListElem.querySelector(".totalsProgress").innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)`
+                    if(numloaded === total){
+                        containingListElem.querySelector(".progressArea").classList.add("is-hidden")
+                        containingListElem.querySelectorAll("input[filter]").forEach(i => {
+                            i.classList.remove("is-hidden")
+                        })
+                    }
                 }
             }
         }

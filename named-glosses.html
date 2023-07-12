@@ -19,6 +19,19 @@
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="submit" value="Add NG : Title Only" class="col">
     </form>
+
+    <!-- A stub for the future "facet selector" to inform our filtering "state" technique -->
+    <section id="facetFilter" class="is-hidden">
+        <ul>
+            <li>Type of Resource</li>
+            <facet data-facet="resource-type" data-label="Manuscript document" data-count="76" class="">Manuscript document</facet>
+            <facet data-facet="resource-type" data-label="Manuscript book" data-count="31">Manuscript book</facet>
+            <li>Genre</li>
+            <facet data-facet="genre" data-label="Legal document" data-count="51" class="">Legal document</facet>
+            <facet data-facet="genre" data-label="Narrative" data-count="13" class="">Narrative</facet>
+        </ul>
+    </section>
+
     <deer-view id="collectionList" deer-listing="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625"
         deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="ngList" class="bg-basic">
         Loading&hellip;
@@ -29,14 +42,11 @@
     <div id="globalFeedback" class="card is-center"></div>
     <script>
 
-        
-
         document.addEventListener('deer-created', event => {
             let e = new CustomEvent("deer-view", { detail: { set: [collectionList] }, bubbles: true })
             document.dispatchEvent(e)
             setTimeout(() => location.href = "", 3000)
         })
-
 
     </script>
 </body>
