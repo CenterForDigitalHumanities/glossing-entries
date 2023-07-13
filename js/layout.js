@@ -334,6 +334,8 @@ class ngCollections extends HTMLElement {
     }
     connectedCallback() {
         try {
+            // NOT USED
+            return
             const collectionsQuery = {
                 "@type" : "UserNamedGlossCollection",
                 "creator" : "https://store.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
