@@ -28,11 +28,11 @@ export default {
 
     URLS: {
         BASE_ID: "https://store.rerum.io/v1",
-        CREATE: "https://tinydev.rerum.io/app/create",
-        UPDATE: "https://tinydev.rerum.io/app/update",
-        QUERY: "https://tinydev.rerum.io/app/query?limit=100&skip=0",
-        OVERWRITE: "https://tinydev.rerum.io/app/overwrite",
-        DELETE: "https://tinydev.rerum.io/app/delete",
+        CREATE: "https://tinymatt.rerum.io/gloss/create",
+        UPDATE: "https://tinymatt.rerum.io/gloss/update",
+        QUERY: "https://tinymatt.rerum.io/gloss/query?limit=100&skip=0",
+        OVERWRITE: "https://tinymatt.rerum.io/gloss/overwrite",
+        DELETE: "https://tinymatt.rerum.io/gloss/delete",
         SINCE: "https://store.rerum.io/v1/since"
     },
 
@@ -77,6 +77,63 @@ export default {
         },
         ngList: function (obj, options = {}) {
             // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
+            let html = `<a href="./manage-glosses.html" class="button">Manage Named Glosses</a> <h2>Named Glosses</h2>
+            <input type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">`
+            if (options.list) {
+                html += `<ul>`
+                obj[options.list].forEach((val, index) => {
+                    html += `<li>
+                    <a href="${options.link}${val['@id']}">
+                    <span deer-id="${val["@id"]}">${index + 1}</span>
+                    </a>
+                    </li>`
+                })
+                html += `</ul>`
+            }
+            const then = async (elem) => {
+                const listing = elem.getAttribute("deer-listing")
+                const pendingLists = !listing || fetch(listing).then(res => res.json())
+                    .then(list => {
+                        list[elem.getAttribute("deer-list") ?? "itemListElement"]?.forEach(item => {
+                            const record = elem.querySelector(`[deer-id='${item?.['@id'] ?? item?.id ?? item}'`)
+                            if (typeof record === 'object' && record.nodeType !== undefined) {
+                                record.innerHTML = item.label
+                                record.closest('a').classList.add("cached")
+                            }
+                        })
+                    })
+                await pendingLists
+                const newView = new Set()
+                elem.querySelectorAll("a:not(.cached) span").forEach((item,index) => {
+                    item.classList.add("deer-view")
+                    item.setAttribute("deer-template","label")
+                    newView.add(item)
+                })
+                const filter = elem.querySelector('input')
+                filter.classList.remove('is-hidden')
+                filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
+                function debounce(func,timeout = 500) {
+                    let timeRemains
+                    return (...args) => {
+                        clearTimeout(timeRemains)
+                        timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
+                    }
+                }
+                function filterGlosses(queryString=''){
+                    const query = queryString.trim().toLowerCase()
+                    const items = elem.querySelectorAll('li')
+                    items.forEach(el=>{
+                        const action = el.textContent.trim().toLowerCase().includes(query) ? "remove" : "add"
+                        el.classList[action](`is-hidden`,`un${action}-item`)
+                        setTimeout(()=>el.classList.remove(`un${action}-item`),500)
+                    })
+                }
+                deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
+            }
+            return { html, then }
+        },
+        ngListFilterable: function (obj, options = {}) {
+            // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let html = `
             <style>
                 .cachedNotice{
@@ -108,29 +165,34 @@ export default {
                 <p class="filterNotice is-hidden"> Named Gloss filter detected.  Please note that Named Glosses will appear as they are fully loaded. </p>
                 <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.</div>
             </div>`
-            // The entire Glossing-Matthew-Named-Glosses collection, URIs only.
+            
+            // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
             const total = obj[options.list].length
             const filterPresent = deerUtils.getURLParameter("gog-filter") ? true : false
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
+                // Then obj[options.list] is the entire Glossing-Matthew-Named-Glosses collection, URIs only.
                 html += `<ul>`
-                let c = filterPresent ? "is-hidden" : ""
+                const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
                     if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
+                        // We cached it in the past and are going to trust it right now.
                         const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))
-                        let filterFacets = Object.keys(cachedObj)
-                        
-                        let li = `<li class="${c}" deer-id="${val["@id"]}" data-expanded="true" `
-                        filterFacets.forEach( (facet) => {
-                            if(typeof deerUtils.getValue(cachedObj[facet]) === "string") {
-                                const value = deerUtils.getValue(cachedObj[facet])
-                                facet = facet.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
-                                const attr = `data-${facet}`
+                        let filteringProps = Object.keys(cachedObj)
+                        // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
+                        let li = `<li class="${hide}" deer-id="${val["@id"]}" data-expanded="true" `
+                        // Add all Named Gloss object properties to the <li> element as attributes to match on later
+                        filteringProps.forEach( (prop) => {
+                            // Only processing numbers and strings. FIXME do we need to process anything more complext into an attribute, such as an Array of strings?
+                            if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
+                                const value = deerUtils.getValue(cachedObj[prop])
+                                prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                                const attr = `data-${prop}`
                                 li += `${attr}="${value}" `
-                                if(value.includes(filterObj[facet])){
-                                    li = li.replace(`class="${c}"`, "")
+                                if(value.includes(filterObj[prop])){
+                                    li = li.replace(hide, "")
                                 }
                             }
                         })
@@ -143,7 +205,9 @@ export default {
                         numloaded++
                     }
                     else{
-                        html += `<li class="${c}" deer-id="${val["@id"]}">
+                        // This object was not cached so we do not have its properties.
+                        // Make this a deer-view so this Named Gloss is expanded and we can make attributes from its properties.
+                        html += `<li deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
                             <a href="${options.link}${val["@id"]}">
                             <span>Loading Named Gloss #${index + 1}...</span>
                             </a>
@@ -156,21 +220,17 @@ export default {
                 if(filterPresent){
                     elem.querySelector(".filterNotice").classList.remove("is-hidden")
                 }
+                // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                 elem.querySelector(".totalsProgress").innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.`
                 elem.querySelector(".totalsProgress").setAttribute("total", total)
                 elem.querySelector(".totalsProgress").setAttribute("count", numloaded)
-                elem.querySelectorAll("li").forEach((item,index) => {
-                    item.setAttribute("deer-template","filterableListItem")
-                    item.setAttribute("deer-link", "ng.html#")
-                    if(!item.hasAttribute("data-expanded")){
-                        item.classList.add("deer-view")
-                    }
-                })
                 elem.querySelector(".newcache").addEventListener("click", ev => {
                     localStorage.clear()
                     location.reload()
                     return
                 })
+
+                // Filter the list of named glosses as users type their query against 'title'
                 const filter = elem.querySelector('input')
                 filter.addEventListener('input', ev =>{
                     const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
@@ -203,6 +263,7 @@ export default {
 
                 /** 
                  * This presumes things are already loaded.  Do not use this function unless all named glosses are loaded.
+                 * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
                  */ 
                 function filterGlosses(queryString=''){
                     const numloaded = parseInt(elem.querySelector(".totalsProgress").getAttribute("count"))
@@ -227,6 +288,8 @@ export default {
                             }
                         }
                     })
+
+                    // This query was applied.  Make this the encoded query in the URL, but don't cause a page reload.
                     const url = new URL(window.location.href)
                     url.searchParams.set("gog-filter", queryString)
                     window.history.replaceState(null, null, url);
@@ -240,7 +303,7 @@ export default {
          * As such, they require information about the Named Gloss they represent, whose URI is the deer-id.
          * That element is expand()ed in order to get the information for this element to be filterable.
          * 
-         * Once expanded, if reasonable, the object should be cached with its information (how would we know if it is out of date?)
+         * Since the object is expanded, if reasonable, it should be cached with its information (how would we know if it is out of date?)
          * 
          * If a filter was present via the URL on page load, if it matches on this <li> the <li> should be filtered immediately.
          * 
@@ -250,8 +313,8 @@ export default {
                 html: ``,
                 then: (elem) => {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
-                    const containingListElem = elem.closest("deer-view[deer-template='ngList']")
-                    let filterFacets = Object.keys(obj)
+                    const containingListElem = elem.closest("deer-view[deer-template='ngListFilterable']")
+                    let filteringProps = Object.keys(obj)
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
@@ -260,39 +323,34 @@ export default {
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     li.setAttribute("deer-id", obj["@id"])
                     a.setAttribute("href", options.link + obj['@id'])
-                    filterFacets.forEach( (facet) => {
-                        if(typeof deerUtils.getValue(obj[facet]) === "string") {
-                            const val = deerUtils.getValue(obj[facet])
-                            facet = facet.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
-                            const attr = `data-${facet}`
+
+                    // Turn each property into an attribute for the <li> element
+                    filteringProps.forEach( (prop) => {
+                        if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            const val = deerUtils.getValue(obj[prop])
+                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`
                             li.setAttribute(attr, val)
+                            if(filterPresent){
+                                if(filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
+                                    li.classList.remove("is-hidden")
+                                }
+                                else{ 
+                                    li.classList.add("is-hidden") 
+                                }
+                            }
                         }
                     })
-
+                    
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
-                    if(filterPresent){
-                        li.classList.add("is-hidden")
-                        // Check if this object should be hidden or not
-                        for(const prop in filterObj){
-                            if(li.hasAttribute(`data-${prop}`)){
-                                if(li.getAttribute(`data-${prop}`).includes(filterObj[prop])){
-                                    li.classList.remove("is-hidden")
-                                }
-                                break
-                            }
-                        }
-                    }
-                    else{
-                        // Not sure if we need this
-                        li.classList.remove("is-hidden")
-                    }
-
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.replaceWith(li)
+
+                    // Pagination for the progress indicator element
                     const numloaded = parseInt(containingListElem.querySelector(".totalsProgress").getAttribute("count")) + 1
                     const total = parseInt(containingListElem.querySelector(".totalsProgress").getAttribute("total"))
                     containingListElem.querySelector(".totalsProgress").setAttribute("count", numloaded)
@@ -301,7 +359,7 @@ export default {
                         containingListElem.querySelector(".cachedNotice").classList.remove("is-hidden")
                         containingListElem.querySelector(".progressArea").classList.add("is-hidden")
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
-                            // The filters that are used now need to be selected or take on the string or whatevs
+                            // The filters that are used now need to be visiable and selected / take on the string / etc.
                             i.classList.remove("is-hidden")
                             if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
                                 i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
