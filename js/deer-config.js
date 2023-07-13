@@ -185,9 +185,9 @@ export default {
                         let li = `<li class="${hide}" deer-id="${val["@id"]}" data-expanded="true" `
                         // Add all Named Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
-                            // Only processing numbers and strings. FIXME do we need to process anything more complext into an attribute, such as an Array of strings?
+                            // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                             if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
-                                const value = deerUtils.getValue(cachedObj[prop])
+                                const value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
                                 li += `${attr}="${value}" `
@@ -326,8 +326,9 @@ export default {
 
                     // Turn each property into an attribute for the <li> element
                     filteringProps.forEach( (prop) => {
+                        // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                         if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
-                            const val = deerUtils.getValue(obj[prop])
+                            const val = deerUtils.getValue(obj[prop])+"" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
                             li.setAttribute(attr, val)
