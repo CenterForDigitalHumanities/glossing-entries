@@ -84,35 +84,77 @@ export default {
                 <div class="totalsProgress" count="0"> {loaded} out of {total} (0%) </div>
             </div>`
             // The entire Glossing-Matthew-Named-Glosses collection, URIs only.
+            const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+            let numloaded = 0
+            const total = obj[options.list].length           
             if (options.list) {
                 html += `<ul>`
+                const c = deerUtils.getURLParameter("gog-filter") ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
-                    const c = deerUtils.getURLParameter("gog-filter") ? "is-hidden" : ""
-                    html += `<li class="${c}" deer-id="${val["@id"]}">
-                    <a href="${options.link}${val['@id']}">
-                    <span>Loading Named Gloss #${index + 1}...</span>
-                    </a>
-                    </li>`
-                })
+                    if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
+                        const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))
+                        let filterFacets = Object.keys(cachedObj)
+                        let li = `<li class="${c}" deer-id="${val["@id"]}" data-expanded="true" `
+                        filterFacets.forEach( (facet) => {
+                            if(typeof deerUtils.getValue(cachedObj[facet]) === "string") {
+                                const value = deerUtils.getValue(cachedObj[facet])
+                                facet = facet.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                                const attr = `data-${facet}`
+                                li += `${attr}="${value}" `
+                            }
+                        })
+                        li += `>
+                            <a href="${options.link}${val["@id"]}">
+                            <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
+                            </a>
+                        </li>`
+                        html += li
+                        numloaded++
+                    }
+                    else{
+                        html += `<li class="${c}" deer-id="${val["@id"]}">
+                            <a href="${options.link}${val["@id"]}">
+                            <span>Loading Named Gloss #${index + 1}...</span>
+                            </a>
+                        </li>`
+                    }
+                })    
                 html += `</ul>`
             }
             const then = async (elem) => {
                 if(deerUtils.getURLParameter("gog-filter")){
                     elem.querySelector(".filterNotice").classList.remove("is-hidden")
                 }
-                elem.querySelector(".totalsProgress").innerText = `0 of ${obj[options.list].length} loaded (0%)`
-                elem.querySelector(".totalsProgress").setAttribute("total", obj[options.list].length)
-                const newView = new Set()
+                elem.querySelector(".totalsProgress").innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)`
+                elem.querySelector(".totalsProgress").setAttribute("total", total)
+                elem.querySelector(".totalsProgress").setAttribute("count", numloaded)
                 elem.querySelectorAll("li").forEach((item,index) => {
-                    item.classList.add("deer-view")
                     item.setAttribute("deer-template","filterableListItem")
-                    newView.add(item)
+                    if(!item.getAttribute("data-expanded")){
+                        item.classList.add("deer-view")
+                    }
                 })
                 const filter = elem.querySelector('input')
                 filter.addEventListener('input',ev=>{
                     const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
                     debounce(filterGlosses(filterQuery))
                 })
+
+                if(numloaded === total){
+                    const providedFilters = deerUtils.getURLParameter("gog-filter") ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
+                    elem.querySelector(".progressArea").classList.add("is-hidden")
+                    elem.querySelectorAll("input[filter]").forEach(i => {
+                        // The filters that are used now need to be selected or take on the string or whatevs
+                        i.classList.remove("is-hidden")
+                        if(providedFilters.hasOwnProperty(i.getAttribute("filter"))){
+                            i.value = deerUtils.getValue(providedFilters[i.getAttribute("filter")])
+                        }
+
+                    })
+                    if(deerUtils.getURLParameter("gog-filter")){
+                        debounce(filterGlosses(deerUtils.getURLParameter("gog-filter")))
+                    }
+                }
 
                 function debounce(func,timeout = 500) {
                     let timeRemains
@@ -146,17 +188,6 @@ export default {
                     })
                     // TODO now manipulate the gog-filter value based on the new selection of filters.
                 }
-
-                // Note that this caused each <li> to be expanded a second time.  Not good, things seem to work without it.
-                // deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
-
-                // The following can be used to filter on the items that were quick loaded (only by title).  I think it's better w/o it.
-                // if(deerUtils.getURLParameter("gog-filter")){
-                //     let filters = decodeContentState(deerUtils.getURLParameter("gog-filter").trim())
-                //     if(deerUtils.getLabel(filters)){
-                //         filterGlosses(encodeContentState(JSON.stringify({"title" : deerUtils.getLabel(filters)})))  
-                //     }
-                // }
             }
             return { html, then }
         },
@@ -175,15 +206,16 @@ export default {
             return{
                 html: ``,
                 then: (elem) => {
+                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view[deer-template='ngList']")
                     let filterFacets = Object.keys(obj)
+                    //if(!elem.getAttribute("data-expanded")){
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
+                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     li.setAttribute("deer-id", obj["@id"])
                     a.setAttribute("href", options.link + obj['@id'])
-                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
-                    
                     filterFacets.forEach( (facet) => {
                         if(typeof deerUtils.getValue(obj[facet]) === "string") {
                             const val = deerUtils.getValue(obj[facet])
@@ -194,7 +226,8 @@ export default {
                     })
 
                     li.setAttribute("data-expanded", "true")
-                    // TODO Cache it / MEM map it ???
+                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     if(deerUtils.getURLParameter("gog-filter")){
                         li.classList.add("is-hidden")
@@ -217,6 +250,7 @@ export default {
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.replaceWith(li)
+                    //}
                     const numloaded = parseInt(containingListElem.querySelector(".totalsProgress").getAttribute("count")) + 1
                     const total = parseInt(containingListElem.querySelector(".totalsProgress").getAttribute("total"))
                     containingListElem.querySelector(".totalsProgress").setAttribute("count", numloaded)
