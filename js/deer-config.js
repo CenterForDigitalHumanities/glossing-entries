@@ -77,11 +77,12 @@ export default {
         },
         ngList: function (obj, options = {}) {
             // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
-            let html = `<h2>Named Glosses</h2>
+            let html = `<h2>Named Glosses </h2>
+            <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
             <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
             <div class="progressArea">
-                <p class="filterNotice is-hidden"> I see you brought a filter into the page.  Please note that Named Glosses will not appear until they are fully loaded. </p>
-                <div class="totalsProgress" count="0"> {loaded} out of {total} (0%) </div>
+                <p class="filterNotice is-hidden"> Named Gloss filter detected.  Please note that Named Glosses will appear as they are fully loaded. </p>
+                <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.</div>
             </div>`
             // The entire Glossing-Matthew-Named-Glosses collection, URIs only.
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
@@ -89,11 +90,13 @@ export default {
             const total = obj[options.list].length           
             if (options.list) {
                 html += `<ul>`
-                const c = deerUtils.getURLParameter("gog-filter") ? "is-hidden" : ""
+                let c = deerUtils.getURLParameter("gog-filter") ? "is-hidden" : ""
+                const query = deerUtils.getURLParameter("gog-filter") ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                 obj[options.list].forEach((val, index) => {
                     if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
                         const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))
                         let filterFacets = Object.keys(cachedObj)
+                        
                         let li = `<li class="${c}" deer-id="${val["@id"]}" data-expanded="true" `
                         filterFacets.forEach( (facet) => {
                             if(typeof deerUtils.getValue(cachedObj[facet]) === "string") {
@@ -101,6 +104,9 @@ export default {
                                 facet = facet.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${facet}`
                                 li += `${attr}="${value}" `
+                                if(value.includes(query[facet])){
+                                    li = li.replace(`class="${c}"`, "")
+                                }
                             }
                         })
                         li += `>
@@ -125,22 +131,28 @@ export default {
                 if(deerUtils.getURLParameter("gog-filter")){
                     elem.querySelector(".filterNotice").classList.remove("is-hidden")
                 }
-                elem.querySelector(".totalsProgress").innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)`
+                elem.querySelector(".totalsProgress").innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.`
                 elem.querySelector(".totalsProgress").setAttribute("total", total)
                 elem.querySelector(".totalsProgress").setAttribute("count", numloaded)
                 elem.querySelectorAll("li").forEach((item,index) => {
                     item.setAttribute("deer-template","filterableListItem")
-                    if(!item.getAttribute("data-expanded")){
+                    if(!item.hasAttribute("data-expanded")){
                         item.classList.add("deer-view")
                     }
                 })
+                elem.querySelector(".newcache").addEventListener("click", ev => {
+                    localStorage.clear()
+                    location.reload()
+                    return
+                })
                 const filter = elem.querySelector('input')
-                filter.addEventListener('input',ev=>{
+                filter.addEventListener('input', ev =>{
                     const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
                     debounce(filterGlosses(filterQuery))
                 })
 
                 if(numloaded === total){
+                    elem.querySelector(".cachedNotice").classList.remove("is-hidden")
                     const providedFilters = deerUtils.getURLParameter("gog-filter") ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     elem.querySelector(".progressArea").classList.add("is-hidden")
                     elem.querySelectorAll("input[filter]").forEach(i => {
@@ -209,7 +221,6 @@ export default {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view[deer-template='ngList']")
                     let filterFacets = Object.keys(obj)
-                    //if(!elem.getAttribute("data-expanded")){
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
@@ -250,12 +261,12 @@ export default {
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.replaceWith(li)
-                    //}
                     const numloaded = parseInt(containingListElem.querySelector(".totalsProgress").getAttribute("count")) + 1
                     const total = parseInt(containingListElem.querySelector(".totalsProgress").getAttribute("total"))
                     containingListElem.querySelector(".totalsProgress").setAttribute("count", numloaded)
-                    containingListElem.querySelector(".totalsProgress").innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)`
+                    containingListElem.querySelector(".totalsProgress").innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.`
                     if(numloaded === total){
+                        containingListElem.querySelector(".cachedNotice").classList.remove("is-hidden")
                         const providedFilters = deerUtils.getURLParameter("gog-filter") ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                         containingListElem.querySelector(".progressArea").classList.add("is-hidden")
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {

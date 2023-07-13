@@ -105,6 +105,28 @@ img.thumbnail {
   position: relative;
 }
 
+.cachedNotice{
+  top: -2em;
+  position: relative;
+  font-family: "Eczar","Volkhov",serif;
+  font-size: 11pt;
+}
+
+.progressArea{
+  font-family: "Eczar","Volkhov",serif;
+}
+
+.cachedNotice a{
+  cursor: pointer;
+}
+
+.totalsProgress{
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.1);
+  padding-top: 4px;
+  font-size: 13pt;
+}
+
 #collectionList li.is-hidden.unadd-item, #collectionList li.is-hidden.unremove-item {
   display: block !important;
 }
