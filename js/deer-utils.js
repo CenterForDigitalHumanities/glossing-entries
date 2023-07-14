@@ -546,5 +546,27 @@ export default {
             console.error("This method expects a 'string' parameter, not "+typeof contextStringValue)
             return ""
         }
+    },
+    getURLParameter: function(variable) {
+        const query = window.location.search.substring(1)
+        const vars = query.split("&")
+        for (let i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=")
+            if (pair[0] == variable) { return pair[1] }
+        }
+        return (false)
+    },
+    filtersFromURL: function(filters=[]) {
+        filters = {
+            "incipit":{
+                "value" : "An incipit example",
+                "chainLogic" : "$or"
+            },
+            "chapter":{
+                "value" : 1,
+                "chainLogic" : "$and"
+            }
+        }
+        return filters
     }
 }

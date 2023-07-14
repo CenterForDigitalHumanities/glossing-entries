@@ -8,6 +8,7 @@
     <link href="favicon.ico" rel="icon" type="image/x-icon">
     <script src="/js/auth.js" type="module"></script>
     <script src="/js/layout.js"></script>
+    <script src="js/shared.js"></script>
     <title>Browse Themes</title>
 </head>
 <body>
@@ -30,28 +31,45 @@
     <gog-footer class="container"></gog-footer>
     
     <script>
-        const queryObj = {
+        const tagsQuery = {
             "body.tags.items" : {$exists:true, $type: 'array', $ne: [""] },
-            '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] }
+            '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
+            "__rerum.generatedBy" : httpsIdArray("http://store.rerum.io/v1/id/61043ad4ffce846a83e700dd")
         }
-        fetch("https://tinymatt.rerum.io/gloss/query?limit=100&skip=0", {
-            method: 'POST',
-            mode: 'cors',
-            headers:{
-                "Content-Type" : "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(queryObj)
-        }).then(res => {
-            if (!res.ok) {
-                throw Error(res.statusText)
-            }
-            return res.json()
-        }).then(annotations => {
+        const themesQuery = {
+            "body.themes.items" : {$exists:true, $type: 'array', $ne: [""] },
+            '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
+            "__rerum.generatedBy" : httpsIdArray("http://store.rerum.io/v1/id/61043ad4ffce846a83e700dd")
+        }
+
+        getPagedQuery(100, 0, tagsQuery)
+        .then(annotations => {
             return new Set(annotations.map(a=>a.body.tags.items).flat().sort())
-        }).then(tags=>{
+        })
+        .then(tags=>{
             const ul = document.createElement('ul')
             ul.innerHTML = [...tags].map(tag=>`<li>${tag}</li>`).join('\n')
             document.querySelector('tags').replaceWith(ul)
+        })
+        .catch(err => {
+            alert("Could not gather all tags")
+            console.log(err)
+            return null
+        })
+
+        getPagedQuery(100, 0, themesQuery)
+        .then(annotations => {
+            return new Set(annotations.map(a=>a.body.themes.items).flat().sort())
+        })
+        .then(themes=>{
+            const ul = document.createElement('ul')
+            ul.innerHTML = [...themes].map(theme=>`<li>${theme}</li>`).join('\n')
+            document.querySelector('themes').replaceWith(ul)
+        })
+        .catch(err => {
+            alert("Could not gather all themes")
+            console.log(err)
+            return null
         })
 
         function filterTags(elem) {

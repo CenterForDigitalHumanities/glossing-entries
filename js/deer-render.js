@@ -1077,6 +1077,9 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
 DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses managers.</h4>` }
     try {
+        // NOT USED
+        return
+
         // If the collection doesn't have a name, something has gone wrong.
         if(!obj.name) return
 

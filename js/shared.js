@@ -215,6 +215,56 @@ function globalFeedbackBlip(event, message, success) {
     }, 3000)
 }
 
+/**
+ * These filters will be provided to HTML pages via the URL parameter ?gog-filter.
+ * The value will be a Base64 Encoded JSON object.
+ * The object is decoded here and returned as JSON.  
+ */ 
+function filtersFromURL() {
+    const encoded = getURLParameter("gog-filter")
+    let decodedJSON = decodeContentState(encoded)
+    return decodedJSON
+}
+
+function encodeContentState(contentStateJSON) {
+    let uriEncoded = encodeURIComponent(contentStateJSON)
+    let base64 = btoa(uriEncoded)
+    let base64url = base64.replace(/\+/g, "-").replace(/\//g, "_")
+    let base64urlNoPadding = base64url.replace(/=/g, "")
+    return base64urlNoPadding
+}
+
+function decodeContentState(encodedContentState) {
+    let base64url = restorePadding(encodedContentState)
+    let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
+    let base64Decoded = atob(base64)
+    let uriDecoded = decodeURIComponent(base64Decoded)
+    return JSON.parse(uriDecoded)
+}
+
+function restorePadding(s) {
+    // The length of the restored string must be a multiple of 4
+    let pad = s.length % 4
+    let padding = ""
+    if (pad) {
+        if (pad === 1) {
+            throw new Error('InvalidLengthError: Input base64url string is the wrong length to determine padding')
+        }
+        s += '===='.slice(0, 4 - pad)
+    }
+    return s + padding
+}
+
+function getURLParameter(variable) {
+    const query = window.location.search.substring(1)
+    const vars = query.split("&")
+    for (const i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=")
+        if (pair[0] == variable) { return pair[1] }
+    }
+    return (false)
+}
+
 /** Auth */
 /*
 
