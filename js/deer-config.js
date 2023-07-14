@@ -219,27 +219,35 @@ export default {
             const then = async (elem) => {
                 if(filterPresent){
                     elem.querySelector(".filterNotice").classList.remove("is-hidden")
+                    elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                 }
+                const totalsProgress = elem.querySelector(".totalsProgress")
+                const newcache = elem.querySelector(".newcache")
+                // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
+                const filter = elem.querySelector('input')
+                const cachedNotice = elem.querySelector(".cachedNotice")
+                const progressArea = elem.querySelector(".progressArea")
                 // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
-                elem.querySelector(".totalsProgress").innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.`
-                elem.querySelector(".totalsProgress").setAttribute("total", total)
-                elem.querySelector(".totalsProgress").setAttribute("count", numloaded)
-                elem.querySelector(".newcache").addEventListener("click", ev => {
+                totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.`
+                totalsProgress.setAttribute("total", total)
+                totalsProgress.setAttribute("count", numloaded)
+
+                // FIXME this can be improved.  We need to update localStorage, not completely refresh it.
+                newcache.addEventListener("click", ev => {
                     localStorage.clear()
                     location.reload()
                     return
                 })
 
                 // Filter the list of named glosses as users type their query against 'title'
-                const filter = elem.querySelector('input')
                 filter.addEventListener('input', ev =>{
                     const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
                     debounce(filterGlosses(filterQuery))
                 })
 
                 if(numloaded === total){
-                    elem.querySelector(".cachedNotice").classList.remove("is-hidden")
-                    elem.querySelector(".progressArea").classList.add("is-hidden")
+                    cachedNotice.classList.remove("is-hidden")
+                    progressArea.classList.add("is-hidden")
                     elem.querySelectorAll("input[filter]").forEach(i => {
                         // The filters that are used now need to be selected or take on the string or whatevs
                         i.classList.remove("is-hidden")
@@ -249,7 +257,7 @@ export default {
 
                     })
                     if(filterPresent){
-                        debounce(filterGlosses(deerUtils.getURLParameter("gog-filter")))
+                        debounce(filterGlosses(elem.$contentState))
                     }
                 }
 
@@ -266,14 +274,14 @@ export default {
                  * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
                  */ 
                 function filterGlosses(queryString=''){
-                    const numloaded = parseInt(elem.querySelector(".totalsProgress").getAttribute("count"))
-                    const total = parseInt(elem.querySelector(".totalsProgress").getAttribute("total"))
+                    const numloaded = parseInt(totalsProgress.getAttribute("count"))
+                    const total = parseInt(totalsProgress.getAttribute("total"))
                     if(numloaded !== total){
                         alert("All data must be loaded to use this filter.  Please wait.")
                         return
                     }
                     queryString = queryString.trim()
-                    const query = decodeContentState(queryString.trim())
+                    const query = decodeContentState(queryString)
                     const items = elem.querySelectorAll('li')
                     items.forEach(el=>{
                         if(!el.classList.contains("is-hidden")){
@@ -318,13 +326,14 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
-                    const filterPresent = deerUtils.getURLParameter("gog-filter") ? true : false
-                    const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
+                    const filterPresent = containingListElem.$contentState ? true : false
+                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     li.setAttribute("deer-id", obj["@id"])
                     a.setAttribute("href", options.link + obj['@id'])
 
                     // Turn each property into an attribute for the <li> element
+                    let action = "add"
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                         if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
@@ -334,15 +343,13 @@ export default {
                             li.setAttribute(attr, val)
                             if(filterPresent){
                                 if(filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
-                                    li.classList.remove("is-hidden")
-                                }
-                                else{ 
-                                    li.classList.add("is-hidden") 
+                                    action = "remove"
                                 }
                             }
                         }
                     })
-                    
+
+                    li.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
@@ -352,13 +359,16 @@ export default {
                     elem.replaceWith(li)
 
                     // Pagination for the progress indicator element
-                    const numloaded = parseInt(containingListElem.querySelector(".totalsProgress").getAttribute("count")) + 1
-                    const total = parseInt(containingListElem.querySelector(".totalsProgress").getAttribute("total"))
-                    containingListElem.querySelector(".totalsProgress").setAttribute("count", numloaded)
-                    containingListElem.querySelector(".totalsProgress").innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.`
+                    const totalsProgress = containingListElem.querySelector(".totalsProgress")
+                    const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
+                    const total = parseInt(totalsProgress.getAttribute("total"))
+                    const cachedNotice = containingListElem.querySelector(".cachedNotice")
+                    const progressArea = containingListElem.querySelector(".progressArea")
+                    totalsProgress.setAttribute("count", numloaded)
+                    totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.`
                     if(numloaded === total){
-                        containingListElem.querySelector(".cachedNotice").classList.remove("is-hidden")
-                        containingListElem.querySelector(".progressArea").classList.add("is-hidden")
+                        cachedNotice.classList.remove("is-hidden")
+                        progressArea.classList.add("is-hidden")
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be visiable and selected / take on the string / etc.
                             i.classList.remove("is-hidden")
