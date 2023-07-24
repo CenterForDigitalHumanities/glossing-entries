@@ -265,6 +265,25 @@ function getURLParameter(variable) {
     return (false)
 }
 
+self.onhashchange = loadHashId
+
+function loadHashId(){
+    let hash = location.hash?.substring(1)
+    if(!hash){ return }
+    const rerumPrefix = "https://store.rerum.io/v1/id/"
+    if(hash.length===24){ hash = `${rerumPrefix}${hash}`}
+    if(!hash.startsWith('http')) { return }
+    document.addEventListener('DOMContentLoaded',ev=>{
+        document.querySelectorAll('.add-update').forEach(el=>{
+            if(el.value) { el.value = el.value.replace("Create","Update") }
+            if(el.textContent) { el.textContent = "Update" }
+        })
+        document.querySelectorAll('[hash-id]').forEach(el=>el.setAttribute('deer-id',hash))
+    })
+}
+if (document.readyState === 'interactive' || 'loaded') loadHashId()
+
+
 /** Auth */
 /*
 

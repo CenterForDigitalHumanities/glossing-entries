@@ -13,12 +13,12 @@
 
 <body class="container">
     <gog-header class="container"></gog-header>
-    <h2> Add Named Gloss </h2>
+    <h2> <span class="add-update">Add</span> Named Gloss </h2>
     <p>
         Note that you will add lines from paritcular gloss transcriptions in a different interface.
         This mints the object with the desired basic metadata.
     </p>
-    <form id="named-gloss" deer-type="NamedGloss" deer-context="http://purl.org/dc/terms">
+    <form id="named-gloss" deer-type="NamedGloss" deer-context="http://purl.org/dc/terms" hash-id>
         <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
@@ -44,7 +44,7 @@
         <gog-tag-widget class="row"> </gog-tag-widget>
         <gog-theme-widget class="row"> </gog-theme-widget>
 
-        <input type="submit" value="Create" class="col">
+        <input type="submit" value="Create" class="col add-update">
         <a href="./named-glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')" class="text-error">Drop from collection</a>
     </form>
     <!-- 
@@ -75,19 +75,6 @@
                 default:
             }
         })
-        window.onhashchange = onload = () => {
-            let ngID = window.location.hash.substr(1)
-            document.getElementById("named-gloss").setAttribute("deer-id", ngID)
-            if (ngID) {
-                document.querySelector("input[type='submit']").value = "Update"
-            }
-            else {
-                addEventListener('globalFeedbackFinished', event => {
-                    window.location.href = "./named-glosses.html"
-                })
-            }
-            //broadcast(undefined, "deer-view", document, {})
-        }
 
         function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
             if (tagData === undefined) {
