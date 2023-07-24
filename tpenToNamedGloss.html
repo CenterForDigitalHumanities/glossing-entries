@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Gallery of Glosses</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="/js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/app.js" type="module"></script>
+    <script src="js/shared.js"></script>
+    <script src="js/lineSelector.js"></script>
+</head>
+
+<body class="container">
+    <gog-header class="container"></gog-header>
+    <h2> Named Gloss Project </h2>
+    <p>
+        Note that you will add lines from paritcular gloss transcriptions in a different interface.
+        This mints the object with the desired basic metadata.
+    </p>
+    <tpen-line-selector id="lineSelector"> </tpen-line-selector>
+
+    <gog-footer class="row">
+
+    </gog-footer>
+
+    <div id="globalFeedback" class="card is-center"></div>
+    <script>
+
+        window.onhashchange = onload = () => {
+            let tpenID = window.location.hash.substr(1)
+            document.getElementById("lineSelector").setAttribute("tpen-project", tpenID)
+        }
+
+    </script>
+</body>
+
+</html>
