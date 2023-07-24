@@ -14,18 +14,20 @@
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2> <span class="add-update">Add</span> Named Gloss </h2>
-    <p>
-        Note that you will add lines from paritcular gloss transcriptions in a different interface.
-        This mints the object with the desired basic metadata.
+    <p class="bg-light">
+        NB: A Named Gloss is an important thing. Please describe it as well as possible and 
+        avoid creating a new one unless it does not already exist.
     </p>
     <form id="named-gloss" deer-type="NamedGloss" deer-context="http://purl.org/dc/terms" hash-id>
-        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
+        <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
-            <label class="col-3 col-2-md text-right">Label:</label>
-            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Text:</label>
+            <input type="text" deer-key="text" placeholder="text content" class="col-9 col-10-md">
             <label class="col-3 col-2-md text-right">Description:</label>
             <input type="text" deer-key="description" placeholder="notes" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Label:</label>
+            <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
 
             <label class="col-3 col-2-md text-right">Chapter</label>
             <input type="number" deer-key="targetChapter" placeholder="0" class="col-9 col-4-md">
@@ -41,6 +43,7 @@
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-10-md">
         </div>
 
+
         <gog-tag-widget class="row"> </gog-tag-widget>
         <gog-theme-widget class="row"> </gog-theme-widget>
 
@@ -48,9 +51,9 @@
         <a href="./named-glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')" class="text-error">Drop from collection</a>
     </form>
     <!-- 
-    <pre class="card bg-light is-hidden">
-        <deer-view deer-template="entity" deer-listening="named-gloss">current state</deer-view>
-    </pre> -->
+        <pre class="card bg-light is-hidden">
+            <deer-view deer-template="entity" deer-listening="named-gloss">current state</deer-view>
+        </pre> -->
 
     <gog-footer class="row">
 
@@ -58,6 +61,23 @@
 
     <div id="globalFeedback" class="card is-center"></div>
     <script>
+            const labelElem = document.querySelector('input[deer-key="title"]')
+            const textElem = document.querySelector('input[deer-key="text"]')
+            const textListener = textElem.addEventListener('input',ev=>{
+                if (textElem.value?.length > 5) {
+                    const words = textElem.value.split(' ')
+                    let label = ''
+                    while (label.length<20 && words.length > 0) {
+                        label += words.shift() + " "
+                    }
+                    labelElem.value = label.trim()
+                }
+            })
+            labelElem.addEventListener('input',ev=>{
+                if(!textElem.value.startsWith(labelElem.value)) {
+                    textElem.removeEventListener('input',textListener)
+                }
+            })
         /**
          * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
          * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
