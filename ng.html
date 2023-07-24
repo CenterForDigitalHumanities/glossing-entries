@@ -89,6 +89,7 @@
             let annotationData = event.detail
             switch (whatRecordForm) {
                 case "named-gloss":
+                    // supporting forms populated
                     prefillTagsArea(annotationData["tags"], event.target)
                     prefillThemesArea(annotationData["themes"], event.target)
                     break
