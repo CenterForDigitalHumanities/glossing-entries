@@ -22,30 +22,36 @@
         <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
-            <label class="col-3 col-2-md text-right">Text:</label>
-            <input type="text" deer-key="text" placeholder="text content" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Gloss Text:</label>
+            <textarea deer-key="transcribedGloss" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
             <label class="col-3 col-2-md text-right">Description:</label>
             <input type="text" deer-key="description" placeholder="notes" class="col-9 col-10-md">
-            <label class="col-3 col-2-md text-right">Label:</label>
+            <label class="col-3 col-2-md text-right">Target Text:</label>
+            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text"></textarea>
+            <label class="col-3 col-2-md text-right">Label for display:</label>
             <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
 
-            <label class="col-3 col-2-md text-right">Chapter</label>
+            <!-- <label class="col-3 col-2-md text-right">Chapter</label>
             <input type="number" deer-key="targetChapter" placeholder="0" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Verse</label>
-            <input type="text" deer-key="targetVerse" placeholder="0-1" class="col-9 col-4-md">
-
-            <label class="col-3 col-2-md text-right">Target Text:</label>
-            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md"></textarea>
-            <label class="col-3 col-2-md text-right">Gloss Text:</label>
-            <textarea deer-key="transcribedGloss" rows="2" class="col-9 col-10-md"></textarea>
+            <input type="text" deer-key="targetVerse" placeholder="0-1" class="col-9 col-4-md"> -->
+            <label class="col-3 col-2-md text-right">Canonical Reference Locator</label>
+            <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Major Section</label>
+            <input type="text" deer-key="section" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">First subsection</label>
+            <input type="text" deer-key="subsection1" placeholder="chapter" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Second subsection</label>
+            <input type="text" deer-key="subsection2" placeholder="verse" class="col-9 col-4-md">
 
             <label class="col-3 col-2-md text-right">Notes</label>
             <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-10-md">
         </div>
 
-
-        <gog-tag-widget class="row"> </gog-tag-widget>
-        <gog-theme-widget class="row"> </gog-theme-widget>
+<div class="row">
+    <gog-tag-widget class="col"> </gog-tag-widget>
+    <gog-theme-widget class="col"> </gog-theme-widget>
+</div>
 
         <input type="submit" value="Create" class="col add-update">
         <a href="./named-glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')" class="text-error">Drop from collection</a>
