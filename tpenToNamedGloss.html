@@ -44,20 +44,31 @@
             <!-- references is an array of Named Glosses -->
             <input type="hidden" deer-key="references" />
         </div>
-        
+
+        <!-- When lines are selected, a #char Fragment URI is generated.  The 'Text' needs to know those line URIs. -->
+        <tpen-line-selector class="lineSelector row"> </tpen-line-selector>
+
+        <!-- A single? NamedGloss is selected.  The 'Text' needs to know that Named Gloss URI. -->
+        <deer-view class="row" id="ngCollectionList" deer-listing="" public-collection="https://store.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+        Loading&hellip;
+        </deer-view>  
+
+        <!-- If the user does not find a Named Gloss for the text selection, they can create a new one instead -->
+        <form id="ngForm" deer-type="named-gloss" deer-context="http://www.loc.gov/mods" class="row is-hidden">
+            <input type="text" deer-key="title" placeholder="Display Label" class="col">
+            <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
+            <input is="auth-creator" type="hidden" deer-key="creator" />
+            <input type="submit" value="Add NG : Title Only" class="col">
+        </form>     
+
         <input type="submit" value="Create Textual Witness"/>
     </deer-form>
 
-    <!-- When lines are selected, a #char Fragment URI is generated.  The 'Text' needs to know those line URIs. -->
-    <tpen-line-selector class="lineSelector row"> </tpen-line-selector>
+    
+    <!-- <tpen-line-selector class="lineSelector row"> </tpen-line-selector> -->
 
-    <!-- A single? NamedGloss is selected.  The 'Text' needs to know that Named Gloss URI. -->
+    
     <!-- <named-glosses-selector class="ngSelector row"> </named-glosses-selector> -->
-    
-    <deer-view class="col-8" id="ngCollectionList" deer-listing="" public-collection="https://store.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
-        Loading&hellip;
-    </deer-view>
-    
     <gog-footer class="row"></gog-footer>
 
     <div id="globalFeedback" class="card is-center"></div>
