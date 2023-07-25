@@ -14,23 +14,63 @@
 
 <body class="container">
     <gog-header class="container"></gog-header>
-    <h2> Named Gloss Project </h2>
+    <h2> Named Gloss Textual Witness </h2>
     <p>
         Note that you will add lines from paritcular gloss transcriptions in a different interface.
         This mints the object with the desired basic metadata.
     </p>
-    <tpen-line-selector id="lineSelector"> </tpen-line-selector>
 
-    <gog-footer class="row">
+    <deer-form deer-type="Text" deer-context="http://purl.org/dc/terms"> 
+        <input is="auth-creator" type="hidden" deer-key="creator" />
+        <div class="row">
+            <label class="col-3 col-2-md text-right">Shelfmark:</label>
+            <input type="text" deer-key-todo="shelfmark" placeholder="Label" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Digital Locations:</label>
+            <input type="text" deer-key-todo="uri" class="col-9 col-10-md">
 
-    </gog-footer>
+            <label class="col-3 col-2-md text-right">Depictions:</label>
+            <input type="number" deer-key-todo="depiction" placeholder="0" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Language</label>
+            <input type="text" deer-key="language" placeholder="0-1" class="col-9 col-4-md">
+
+            <!-- This is the text selected from each line combined together, as plain text -->
+            <label class="col-3 col-2-md text-right">Text:</label>
+            <textarea deer-key="text" rows="2" class="col-9 col-10-md"></textarea>
+
+            <label class="col-3 col-2-md text-right">Other Metadata:</label>
+            <textarea deer-key-todo="metadata" rows="2" class="col-9 col-10-md"></textarea>
+            <!-- selections is an array of TPEN Line URIs with #char fragmet selectors -->
+            <input type="hidden" deer-key="selections" />
+            <!-- references is an array of Named Glosses -->
+            <input type="hidden" deer-key="references" />
+        </div>
+        
+        <input type="submit" value="Create Textual Witness"/>
+    </deer-form>
+
+    <!-- When lines are selected, a #char Fragment URI is generated.  The 'Text' needs to know those line URIs. -->
+    <tpen-line-selector class="lineSelector row"> </tpen-line-selector>
+
+    <!-- A single? NamedGloss is selected.  The 'Text' needs to know that Named Gloss URI. -->
+    <!-- <named-glosses-selector class="ngSelector row"> </named-glosses-selector> -->
+    
+    <deer-view class="col-8" id="ngCollectionList" deer-listing="" public-collection="https://store.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+        Loading&hellip;
+    </deer-view>
+    
+    <gog-footer class="row"></gog-footer>
 
     <div id="globalFeedback" class="card is-center"></div>
     <script>
 
+        // We will know the TPEN project for the page.  There should be only one.
+        // We may know a Named Gloss ID for the page.  However, it is more likely the user is hoping to match on one per gloss of text, perhaps over multiple lines and/or pages.
+
         window.onhashchange = onload = () => {
-            let tpenID = window.location.hash.substr(1)
-            document.getElementById("lineSelector").setAttribute("tpen-project", tpenID)
+            const tpenID = window.location.hash.substr(1)
+            const namedGlossID = getURLParameter("ng")
+            document.querySelector(".lineSelector").setAttribute("tpen-project", tpenID)
+            //document.querySelector(".ngSelector").setAttribute("named-gloss", namedGlossID)
         }
 
     </script>
