@@ -26,7 +26,7 @@
         </p>
     </div>
 
-    <deer-form class="needed is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
+    <form class="needed is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
             <label class="col-3 col-2-md text-right">Shelfmark:</label>
@@ -68,7 +68,7 @@
         </form>     
 
         <input type="submit" value="Create Textual Witness"/>
-    </deer-form>
+    </form>
 
     
     <!-- <tpen-line-selector class="lineSelector row"> </tpen-line-selector> -->
@@ -92,7 +92,7 @@
             // It is possible we could also let them hand in a Named Gloss URI as well.
             const textWitnessID = window.location.hash.substr(1)
             document.querySelector(".lineSelector").setAttribute("tpen-project", tpenID)
-            document.querySelector("deer-form").setAttribute("deer-id", textWitnessID)
+            document.querySelector("form").setAttribute("deer-id", textWitnessID)
         }
 
         function loadURI(){

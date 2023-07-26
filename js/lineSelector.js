@@ -48,43 +48,33 @@ class TpenLineSelector extends HTMLElement {
                             filter.setAttribute("value", firstword)
                             filter.dispatchEvent(new Event('input', { bubbles: true }))
                             if(selectedText){
-                                let witness = {
-                                    "@context" : "http://purl.org/dc/terms",
-                                    "@type" : "Text",
-                                    "additionalType" : "NamedGlossTextualWitness",
-                                    "text" : "",
-                                    "shelfmark" : "",
-                                    "uri" : "",
-                                    "depiction" : "",
-                                    "language" : "",
-                                    "metadata" : [],
-                                    "selections" : []
-                                }
+                                let selections = []
                                 const stopID = document.getSelection().extentNode.parentElement.getAttribute("tpen-line-id")
                                 let el = document.getSelection().baseNode.parentElement
                                 if(stopID === el.getAttribute("tpen-line-id")){
                                     // The entire selection happened in just this line.  It will not be empty.
-                                    witness.selections.push(`${el.getAttribute("tpen-line-id")}#char=${document.getSelection().baseOffset},${document.getSelection().extentOffset}`)
+                                    selections.push(`${el.getAttribute("tpen-line-id")}#char=${document.getSelection().baseOffset},${document.getSelection().extentOffset}`)
                                 }
                                 else{
                                     // The selection happened over multiple lines.  We need to make a target out of each line.  There may be empty lines in-between.
-                                    if(!el.classList.contains("emptyLine")) witness.selections.push(`${el.getAttribute("tpen-line-id")}#char=${document.getSelection().baseOffset},${el.innerText.length-1}`)
+                                    if(!el.classList.contains("emptyLine")) selections.push(`${el.getAttribute("tpen-line-id")}#char=${document.getSelection().baseOffset},${el.innerText.length-1}`)
                                     el = el.nextElementSibling
                                     while(el.getAttribute("tpen-line-id") !== stopID){
                                         if(!el.classList.contains("emptyLine")){
-                                            witness.selections.push(`${el.getAttribute("tpen-line-id")}#char=0,${el.innerText.length-1}`)
+                                            selections.push(`${el.getAttribute("tpen-line-id")}#char=0,${el.innerText.length-1}`)
                                         }
                                         el = el.nextElementSibling
                                     }  
                                     if(!el.classList.contains("emptyLine")){
-                                        witness.selections.push(`${el.getAttribute("tpen-line-id")}#char=0,${document.getSelection().extentOffset}`)
+                                        selections.push(`${el.getAttribute("tpen-line-id")}#char=0,${document.getSelection().extentOffset}`)
                                     }
                                 }
-                                if(deerKey.value !== witness.selections.join(",")){
-                                    deerKey.value = witness.selections.join(",") 
+                                if(deerKey.value !== selections.join(",")){
+                                    deerKey.value = selections.join(",") 
                                     deerKey.dispatchEvent(new Event('input', { bubbles: true }))
                                 }    
-                                console.log(witness)
+                                console.log("You made the following line selections")
+                                console.log(selections)
                             }
                         }
                         $this.querySelector(".tpenProjectLines").appendChild(lineElem)
