@@ -334,14 +334,15 @@ export default {
                     margin: 0;
                 }
             </style>
-            <h2 class="nomargin">Named Glosses</h2>
-            <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
-            <p class="filterInstructions is-hidden"> Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to, or create a new Named Gloss. </p>
-            <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
-            <div class="progressArea">
-                <p class="filterNotice is-hidden"> Named Gloss filter detected.  Please note that Named Glosses will appear as they are fully loaded. </p>
-                <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.</div>
-            </div>`
+            <div class="col">
+                <h2 class="nomargin">Named Glosses</h2>
+                <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
+                <p class="filterInstructions is-hidden"> Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to, or create a new Named Gloss. </p>
+                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
+                <div class="progressArea">
+                    <p class="filterNotice is-hidden"> Named Gloss filter detected.  Please note that Named Glosses will appear as they are fully loaded. </p>
+                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.</div>
+                </div>`
             
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
@@ -396,6 +397,7 @@ export default {
                     }
                 })    
                 html += `</ul>`
+                html += `</div>`
             }
             const then = async (elem) => {
                 elem.listCache = new Set()
@@ -438,7 +440,7 @@ export default {
                         filter.value = ""
                         filter.setAttribute("value", "")
                     }
-                    filter.dispatchEvent(new Event('input', { bubbles: true }));
+                    filter.dispatchEvent(new Event('input', { bubbles: true }))
                 }))
 
                 // Filter the list of named glosses as users type their query against 'title'

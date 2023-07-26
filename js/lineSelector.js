@@ -5,8 +5,7 @@ class TpenLineSelector extends HTMLElement {
                 background-color: orange;
            }
         </style>
-        <div class="tpenProjectLines col-10"></div>
-        <div class="selectedLines col-2"></div>
+        <div class="tpenProjectLines col"></div>
     `
     constructor() {
         super()
@@ -79,11 +78,7 @@ class TpenLineSelector extends HTMLElement {
                                         witness.selections.push(`${el.getAttribute("tpen-line-id")}#char=0,${document.getSelection().extentOffset}`)
                                     }
                                 }
-                                $this.querySelector(".selectedLines").innerHTML = `<pre>${JSON.stringify(witness)}</pre>`
                                 console.log(witness)
-                            }
-                            else{
-                                $this.querySelector(".selectedLines").innerHTML = ""
                             }
                         }
                         $this.querySelector(".tpenProjectLines").appendChild(lineElem)
