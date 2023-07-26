@@ -128,9 +128,17 @@ class TagWidget extends HTMLElement {
         super()
     }
     connectedCallback() {
-        this.innerHTML = this.template
         const $this = this
-        this.querySelector("button").addEventListener("click", addTag)
+        this.innerHTML = this.template
+        const addBtn = this.querySelector("button")
+        this.querySelector(".tagInput").addEventListener("beforeinput",event=>{
+            if([' ',',',null].includes(event.data)) {
+                event.preventDefault()
+                addBtn.click()
+                return false
+            }
+        })
+        addBtn.addEventListener("click", addTag)
         
         /**
          * Click event handler for Add Tag.  Takes the user input and adds the string to the Set if it isn't already included.
@@ -247,9 +255,17 @@ class ThemeWidget extends HTMLElement {
         super()
     }
     connectedCallback() {
-        this.innerHTML = this.template
         const $this = this
-        this.querySelector("button").addEventListener("click", addTheme)
+        this.innerHTML = this.template
+        const addBtn = this.querySelector("button")
+        this.querySelector(".themeInput").addEventListener("beforeinput",event=>{
+            if([' ',',',null].includes(event.data)) {
+                event.preventDefault()
+                addBtn.click()
+                return false
+            }
+        })
+        addBtn.addEventListener("click", addTheme)
         /**
          * Click event handler for Add Theme.  Takes the user input and adds the string to the Set if it isn't already included.
          * Includes pagination.
