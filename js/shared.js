@@ -304,14 +304,15 @@ async function findMatchingIncipits(incipit, titleStart) {
         body: JSON.stringify(queryObj)
     }).then(response => response.json())
         .then(matches => {
-            const uniqueGlosses = new Set()
+            const uniqueGlosses = new Map()
             matches.forEach(each => {
-                uniqueGlosses.add(each.target, {
+                const match = {
                     id: each.target['@id'] ?? each.target.id ?? each.target,
-                    title: each.title?.value ?? each.title ?? each.transcribedGloss?.value ?? each.transcribedGloss
-                })
+                    title: each.body.title?.value ?? each.body.title ?? each.body.transcribedGloss?.value ?? each.body.transcribedGloss
+                }
+                uniqueGlosses.set(match.id, match)
             })
-            return uniqueGlosses.values()
+            return [...uniqueGlosses.values()]
         })
         .catch(err => {
             console.error(err)
