@@ -15,12 +15,18 @@
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2> Named Gloss Textual Witness </h2>
-    <p>
-        Note that you will add lines from paritcular gloss transcriptions in a different interface.
-        This mints the object with the desired basic metadata.
-    </p>
 
-    <deer-form deer-type="Text" deer-context="http://purl.org/dc/terms"> 
+    <p> Connect Named Glosses with text in T-PEN Transcriptions. </p>
+
+    <div id="needs" class="row">
+        <p class="howTo"> 
+            It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  
+            <input id="resourceURI" type="text"/>
+            <input id="loadInput" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
+        </p>
+    </div>
+
+    <deer-form class="needed is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
             <label class="col-3 col-2-md text-right">Shelfmark:</label>
@@ -46,14 +52,14 @@
         </div>
 
         <!-- When lines are selected, a #char Fragment URI is generated.  The 'Text' needs to know those line URIs. -->
-        <tpen-line-selector class="lineSelector row"> </tpen-line-selector>
+        <tpen-line-selector class="lineSelector needed is-hidden row"> </tpen-line-selector>
 
-        <!-- A single? NamedGloss is selected.  The 'Text' needs to know that Named Gloss URI. -->
-        <deer-view class="row" id="ngCollectionList" deer-listing="" public-collection="https://store.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+        <!-- A single NamedGloss is selected.  The 'Text' needs to know that Named Gloss URI. -->
+        <deer-view class="needed is-hidden" id="ngCollectionList" deer-listing="" public-collection="https://store.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
         Loading&hellip;
         </deer-view>  
 
-        <!-- If the user does not find a Named Gloss for the text selection, they can create a new one instead -->
+        <!-- If the user does not find a Named Gloss for the text selection, they can create a new one instead.  The 'Text' needs to know the resulting Named Gloss URI. -->
         <form id="ngForm" deer-type="named-gloss" deer-context="http://www.loc.gov/mods" class="row is-hidden">
             <input type="text" deer-key="title" placeholder="Display Label" class="col">
             <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
@@ -78,10 +84,27 @@
         // We may know a Named Gloss ID for the page.  However, it is more likely the user is hoping to match on one per gloss of text, perhaps over multiple lines and/or pages.
 
         window.onhashchange = onload = () => {
-            const tpenID = window.location.hash.substr(1)
-            const namedGlossID = getURLParameter("ng")
+            const tpenID = getURLParameter("tpen-project")
+            if(tpenID) {
+                needs.classList.add("is-hidden")
+                document.querySelectorAll(".needed").forEach(el => el.classList.remove("is-hidden"))
+            }
+            // It is possible we could also let them hand in a Named Gloss URI as well.
+            const textWitnessID = window.location.hash.substr(1)
             document.querySelector(".lineSelector").setAttribute("tpen-project", tpenID)
-            //document.querySelector(".ngSelector").setAttribute("named-gloss", namedGlossID)
+            document.querySelector("deer-form").setAttribute("deer-id", textWitnessID)
+        }
+
+        function loadURI(){
+            let url = resourceURI.value ? resourceURI.value : getURLParameter("tpen-project")
+            if(url){
+                let tpen = "?tpen-project="+url
+                url = window.location.href.split('?')[0] + tpen
+                window.location = url
+            }
+            else{
+                alert("You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.")
+            }
         }
 
     </script>

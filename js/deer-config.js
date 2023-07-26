@@ -329,9 +329,14 @@ export default {
                   padding-top: 4px;
                   font-size: 13pt;
                 }
+
+                h2.nomargin{
+                    margin: 0;
+                }
             </style>
-            <h2>Named Glosses </h2>
+            <h2 class="nomargin">Named Glosses</h2>
             <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
+            <p class="filterInstructions is-hidden"> Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to, or create a new Named Gloss. </p>
             <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
             <div class="progressArea">
                 <p class="filterNotice is-hidden"> Named Gloss filter detected.  Please note that Named Glosses will appear as they are fully loaded. </p>
@@ -404,6 +409,7 @@ export default {
                 const filter = elem.querySelector('input[filter]')
                 const cachedNotice = elem.querySelector(".cachedNotice")
                 const progressArea = elem.querySelector(".progressArea")
+                const filterInstructions = elem.querySelector(".filterInstructions")
                 // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                 totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.`
                 totalsProgress.setAttribute("total", total)
@@ -416,6 +422,7 @@ export default {
                     return
                 })
 
+                // Note the capability to select multiple that we are limiting to one.
                 elem.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
                     ev.preventDefault()
                     ev.stopPropagation()
@@ -423,6 +430,15 @@ export default {
                     const included = elem.listCache.has(uri)
                     a.classList[included ? "remove" : "add"]("is-included")
                     elem.listCache[included ? "delete" : "add"](uri)
+                    if(a.classList.contains("is-included")) {
+                        filter.value = ev.target.closest("li").getAttribute("data-title")
+                        filter.setAttribute("value", ev.target.closest("li").getAttribute("data-title"))
+                    }
+                    else{
+                        filter.value = ""
+                        filter.setAttribute("value", "")
+                    }
+                    filter.dispatchEvent(new Event('input', { bubbles: true }));
                 }))
 
                 // Filter the list of named glosses as users type their query against 'title'
@@ -433,6 +449,7 @@ export default {
 
                 if(numloaded === total){
                     cachedNotice.classList.remove("is-hidden")
+                    filterInstructions.classList.remove("is-hidden")
                     progressArea.classList.add("is-hidden")
                     elem.querySelectorAll("input[filter]").forEach(i => {
                         // The filters that are used now need to be selected or take on the string or whatevs
@@ -482,11 +499,6 @@ export default {
                             }
                         }
                     })
-
-                    // This query was applied.  Make this the encoded query in the URL, but don't cause a page reload.
-                    const url = new URL(window.location.href)
-                    url.searchParams.set("gog-filter", queryString)
-                    window.history.replaceState(null, null, url);
                 }
             }
             return { html, then }

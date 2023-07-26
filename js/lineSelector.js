@@ -40,7 +40,12 @@ class TpenLineSelector extends HTMLElement {
                         if(!txt) lineElem.classList.add("emptyLine")
                         lineElem.onmouseup = function(e) {
                             const s = document.getSelection()
+                            const filter = document.querySelector('input[filter]')
                             const selectedText = document.getSelection() ? document.getSelection().toString() : ""
+                            const firstword = selectedText.split(" ")[0]
+                            filter.value = firstword
+                            filter.setAttribute("value", firstword)
+                            filter.dispatchEvent(new Event('input', { bubbles: true }))
                             if(selectedText){
                                 let witness = {
                                     "@context" : "http://purl.org/dc/terms",
