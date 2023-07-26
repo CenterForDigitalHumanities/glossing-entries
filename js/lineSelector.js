@@ -5,6 +5,7 @@ class TpenLineSelector extends HTMLElement {
                 background-color: orange;
            }
         </style>
+        <input type="hidden" deer-key="selections" />
         <div class="tpenProjectLines col"></div>
     `
     constructor() {
@@ -39,6 +40,7 @@ class TpenLineSelector extends HTMLElement {
                         if(!txt) lineElem.classList.add("emptyLine")
                         lineElem.onmouseup = function(e) {
                             const s = document.getSelection()
+                            const deerKey = $this.querySelector("input[deer-key]")
                             const filter = document.querySelector('input[filter]')
                             const selectedText = document.getSelection() ? document.getSelection().toString() : ""
                             const firstword = selectedText.split(" ")[0]
@@ -78,6 +80,10 @@ class TpenLineSelector extends HTMLElement {
                                         witness.selections.push(`${el.getAttribute("tpen-line-id")}#char=0,${document.getSelection().extentOffset}`)
                                     }
                                 }
+                                if(deerKey.value !== witness.selections.join(",")){
+                                    deerKey.value = witness.selections.join(",") 
+                                    deerKey.dispatchEvent(new Event('input', { bubbles: true }))
+                                }    
                                 console.log(witness)
                             }
                         }

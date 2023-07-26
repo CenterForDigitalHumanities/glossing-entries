@@ -334,6 +334,7 @@ export default {
                     margin: 0;
                 }
             </style>
+            <input type="hidden" deer-key="references" />
             <div class="col">
                 <h2 class="nomargin">Named Glosses</h2>
                 <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
@@ -428,6 +429,7 @@ export default {
                 elem.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
                     ev.preventDefault()
                     ev.stopPropagation()
+                    const deerKey = elem.querySelector("input[deer-key]")
                     const uri = a.getAttribute("href")
                     const included = elem.listCache.has(uri)
                     a.classList[included ? "remove" : "add"]("is-included")
@@ -441,6 +443,10 @@ export default {
                         filter.setAttribute("value", "")
                     }
                     filter.dispatchEvent(new Event('input', { bubbles: true }))
+                    if(deerKey.value !== uri){
+                        deerKey.value = uri 
+                        deerKey.dispatchEvent(new Event('input', { bubbles: true }))
+                    }
                 }))
 
                 // Filter the list of named glosses as users type their query against 'title'
