@@ -283,10 +283,10 @@ function loadHashId() {
 }
 if (document.readyState === 'interactive' || 'loaded') loadHashId()
 
-async function findMatchingIncipits(incipit) {
-    if(incipit?.length < 5) { throw Error(`Incipit "${incipit}" is too short to consider.`)}
+async function findMatchingIncipits(incipit, titleStart) {
+    if (incipit?.length < 5) { throw Error(`Incipit "${incipit}" is too short to consider.`) }
     const historyWildcard = { "$exists": true, "$size": 0 }
-    const titleStart = /\s/.test(incipit) ? incipit.split(' ')[0] : incipit
+    titleStart ??= /\s/.test(incipit) ? incipit.split(' ')[0] : incipit
     const queryObj = {
         $or: [{
             "body.title.value": titleStart
@@ -295,18 +295,28 @@ async function findMatchingIncipits(incipit) {
         }],
         "__rerum.history.next": historyWildcard
     }
-    return fetch("https://tinymatt.rerum.io/gloss/query?limit=100&skip=0",{
+    return fetch("https://tinymatt.rerum.io/gloss/query?limit=100&skip=0", {
         method: "POST",
         mode: 'cors',
-        headers:{
-            "Content-Type" : "application/json;charset=utf-8"
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
         },
         body: JSON.stringify(queryObj)
     }).then(response => response.json())
-    .catch(err=>{
-        console.error(err)
-        return new Promise.resolve([])
-    })
+        .then(matches => {
+            const uniqueGlosses = new Set()
+            matches.forEach(each => {
+                uniqueGlosses.add(each.target, {
+                    id: each.target['@id'] ?? each.target.id ?? each.target,
+                    title: each.title?.value ?? each.title ?? each.transcribedGloss?.value ?? each.transcribedGloss
+                })
+            })
+            return uniqueGlosses.values()
+        })
+        .catch(err => {
+            console.error(err)
+            return new Promise.resolve([])
+        })
 }
 
 
