@@ -283,7 +283,7 @@ function loadHashId() {
 }
 if (document.readyState === 'interactive' || 'loaded') loadHashId()
 
-function findMatchingIncipits(incipit) {
+async function findMatchingIncipits(incipit) {
     if(incipit?.length < 5) { throw Error(`Incipit "${incipit}" is too short to consider.`)}
     const historyWildcard = { "$exists": true, "$size": 0 }
     const titleStart = /\s/.test(incipit) ? incipit.split(' ')[0] : incipit
@@ -295,7 +295,18 @@ function findMatchingIncipits(incipit) {
         }],
         "__rerum.history.next": historyWildcard
     }
-    return []
+    return fetch("https://tinymatt.rerum.io/gloss/query?limit=100&skip=0",{
+        method: "POST",
+        mode: 'cors',
+        headers:{
+            "Content-Type" : "application/json;charset=utf-8"
+        },
+        body: JSON.stringify(queryObj)
+    }).then(response => response.json())
+    .catch(err=>{
+        console.error(err)
+        return new Promise.resolve([])
+    })
 }
 
 
