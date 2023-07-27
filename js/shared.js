@@ -287,11 +287,15 @@ async function findMatchingIncipits(incipit, titleStart) {
     if (incipit?.length < 5) { throw Error(`Incipit "${incipit}" is too short to consider.`) }
     const historyWildcard = { "$exists": true, "$size": 0 }
     titleStart ??= /\s/.test(incipit) ? incipit.split(' ')[0] : incipit
+    const titlePattern = new RegExp(`^${titleStart}`,"i")
+    const incipitPattern = new RegExp(`^${incipit}`,"i")
     const queryObj = {
         $or: [{
-            "body.title.value": titleStart
+            "body.title.value": { $regex: titlePattern }
         }, {
-            "body.transcribedGloss": incipit
+            "body.transcribedGloss.value": { $regex: incipitPattern }
+        }, {
+            "body.transcribedGloss": { $regex: incipitPattern }
         }],
         "__rerum.history.next": historyWildcard
     }
