@@ -23,7 +23,7 @@
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
             <label class="col-3 col-2-md text-right">Gloss Text:</label>
-            <input type="hidden" deer-key="transcribedGloss" id="textObject">
+            <input type="hidden" deer-key="text" id="textObject">
             <textarea id="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
 
             <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
@@ -134,6 +134,13 @@
                     // supporting forms populated
                     prefillTagsArea(annotationData["tags"], event.target)
                     prefillThemesArea(annotationData["themes"], event.target)
+                    const text = event.detail.text ?? event.detail.transcribedGloss
+                    if(text.language) { textLang.value = text.language }
+                    if(text.value) { glossText.value = text.value }
+                    if(event.detail.targetChapter && !event.detail.section) {
+                        document.querySelector('[deer-key="canonicalReference"]').value = `Matthew ${event.detail.targetChapter.value}:${event.detail.targetVerse.value}`
+                        parseSections()
+                    }
                     break
                 default:
             }
