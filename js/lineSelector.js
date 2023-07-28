@@ -109,26 +109,3 @@ class TpenLineSelector extends HTMLElement {
 }
 
 customElements.define('tpen-line-selector', TpenLineSelector)
-// let witness = 
-// {
-//     "@context" : "http://purl.org/dc/terms",
-//     "@type" : "Text",
-//     "additionalType" : "NamedGlossTextualWitness",
-//     // TPEN transcription lines will always be plain text
-//     "text" : {
-//         "language" : "",
-//         "format" : "",      
-//         "value" : "Value from two different lines"
-//     },
-//     "shelfmark" : "",
-//     "uri" : "",
-//     "line_selections" : [
-//         "tpen/line/12345#char=0,11",
-//         "tpen/line/67890#char=0,5"
-//     ],
-//     // If it splits a column, you have two depictions
-//     "depiction_boundings": ["canvasImage#xywh=minX, minY,(maxX-minX),(maxY-minY)"],
-//     // Depiction is supposed to resolve to an Image Resource.  You can use the IIIF Image API pattern, or xywh= in cases of non-IIIF images
-//     "metadata" : [],
-//     "references": []
-// }
