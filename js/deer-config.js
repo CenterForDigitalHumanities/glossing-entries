@@ -28,11 +28,11 @@ export default {
 
     URLS: {
         BASE_ID: "https://store.rerum.io/v1",
-        CREATE: "https://tinymatt.rerum.io/gloss/create",
-        UPDATE: "https://tinymatt.rerum.io/gloss/update",
-        QUERY: "https://tinymatt.rerum.io/gloss/query?limit=100&skip=0",
-        OVERWRITE: "https://tinymatt.rerum.io/gloss/overwrite",
-        DELETE: "https://tinymatt.rerum.io/gloss/delete",
+        CREATE: "https://tinydev.rerum.io/app/create",
+        UPDATE: "https://tinydev.rerum.io/app/update",
+        QUERY: "https://tinydev.rerum.io/app/query?limit=100&skip=0",
+        OVERWRITE: "https://tinydev.rerum.io/app/overwrite",
+        DELETE: "https://tinydev.rerum.io/app/delete",
         SINCE: "https://store.rerum.io/v1/since"
     },
 
@@ -217,6 +217,7 @@ export default {
                 html += `</ul>`
             }
             const then = async (elem) => {
+                elem.$contentState = ""
                 if(filterPresent){
                     elem.querySelector(".filterNotice").classList.remove("is-hidden")
                     elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
@@ -334,7 +335,7 @@ export default {
                     margin: 0;
                 }
             </style>
-            <input type="hidden" deer-key="references" />
+            <input type="hidden" custom-key="references" />
             <div class="col">
                 <h2 class="nomargin">Named Glosses</h2>
                 <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
@@ -402,6 +403,7 @@ export default {
             }
             const then = async (elem) => {
                 elem.listCache = new Set()
+                elem.$contentState = ""
                 if(filterPresent){
                     elem.querySelector(".filterNotice").classList.remove("is-hidden")
                     elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
@@ -429,23 +431,27 @@ export default {
                 elem.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
                     ev.preventDefault()
                     ev.stopPropagation()
-                    const deerKey = elem.querySelector("input[deer-key]")
+                    const customKey = elem.querySelector("input[custom-key]")
                     const uri = a.getAttribute("href")
                     const included = elem.listCache.has(uri)
                     a.classList[included ? "remove" : "add"]("is-included")
                     elem.listCache[included ? "delete" : "add"](uri)
                     if(a.classList.contains("is-included")) {
-                        filter.value = ev.target.closest("li").getAttribute("data-title")
-                        filter.setAttribute("value", ev.target.closest("li").getAttribute("data-title"))
+                        const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
+                        filter.value = namedGlossIncipit
+                        filter.setAttribute("value", namedGlossIncipit)
+                        document.querySelector(".chosenNamedGloss").value = namedGlossIncipit
                     }
                     else{
                         filter.value = ""
                         filter.setAttribute("value", "")
+                        document.querySelector(".chosenNamedGloss").value = ""
                     }
                     filter.dispatchEvent(new Event('input', { bubbles: true }))
-                    if(deerKey.value !== uri){
-                        deerKey.value = uri 
-                        deerKey.dispatchEvent(new Event('input', { bubbles: true }))
+                    if(customKey.value !== uri){
+                        customKey.value = uri 
+                        customKey.$isDirty = true
+                        elem.closest("form").$isDirty = true
                     }
                 }))
 
@@ -527,7 +533,7 @@ export default {
                 html: ``,
                 then: (elem) => {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
-                    const containingListElem = elem.closest("deer-view[deer-template='ngListFilterable']")
+                    const containingListElem = elem.closest("deer-view")
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("li")
                     let a = document.createElement("a")
