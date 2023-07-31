@@ -8,7 +8,7 @@
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
-    <script src="js/shared.js"></script>
+    <script src="js/shared.js" defer></script>
     <style>
         .tagWidget {
             margin-bottom: 15px;
@@ -251,7 +251,7 @@
             globalFeedbackBlip(ev, `Named Gloss collection was deleted.`, true)
             event.target.parentElement.classList.add("is-hidden")
 
-            // fetch("https://tinydev.rerum.io/app/delete", {
+            // fetch("https://tiny.rerum.io/app/delete", {
             //     method: "DELETE",
             //     body: JSON.stringify({"@id":id.replace(/^https?:/,'https:')}),
             //     headers: {

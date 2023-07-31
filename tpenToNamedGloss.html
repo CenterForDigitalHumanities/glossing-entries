@@ -8,7 +8,7 @@
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
-    <script src="js/shared.js"></script>
+    <script src="js/shared.js" defer></script>
     <script src="js/lineSelector.js"></script>
 </head>
 
@@ -84,14 +84,15 @@
             -->
         </div>
         <input type="submit" value="Create Textual Witness"/>
+<div class="row">
+    <!-- When lines are selected, a #char Fragment URI is generated.  The 'Text' needs to know those line URIs. -->
+    <tpen-line-selector class="lineSelector tpen-needed is-hidden col"> </tpen-line-selector>
 
-        <!-- When lines are selected, a #char Fragment URI is generated.  The 'Text' needs to know those line URIs. -->
-        <tpen-line-selector class="lineSelector tpen-needed is-hidden row"> </tpen-line-selector>
-
-        <!-- A single NamedGloss is selected.  The 'Text' needs to know that Named Gloss URI. -->
-        <deer-view class="tpen-needed is-hidden row" id="ngCollectionList" deer-listing="" public-collection="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
-        Loading&hellip;
-        </deer-view>  
+    <!-- A single NamedGloss is selected.  The 'Text' needs to know that Named Gloss URI. -->
+    <deer-view class="tpen-needed is-hidden col" id="ngCollectionList" deer-listing="" public-collection="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+    Loading&hellip;
+    </deer-view>  
+</div>
     </form>
     <!-- If the user does not find a Named Gloss for the text selection, they can create a new one instead.  The 'Text' needs to know the resulting Named Gloss URI. -->
     <form id="ngForm" deer-type="named-gloss" deer-context="http://www.loc.gov/mods" class="row is-hidden" deer-creator="HabesDev">
@@ -308,7 +309,7 @@
                     }
                     anno.body[key] = { "value": el.value.split("__") }
                     if(el.hasAttribute("deer-source")) anno["@id"] = el.getAttribute("deer-source")
-                    return fetch(`https://tinydev.rerum.io/app/${el.hasAttribute("deer-source")?"update":"create"}`, {
+                    return fetch(`https://tiny.rerum.io/app/${el.hasAttribute("deer-source")?"update":"create"}`, {
                         method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
                         mode: "cors",
                         headers: {
@@ -355,7 +356,7 @@
                 const el = customTextElems[2]
                 if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
                 annotation_promises.push(
-                    fetch(`https://tinydev.rerum.io/app/${el.hasAttribute("deer-source")?"update":"create"}`, {
+                    fetch(`https://tiny.rerum.io/app/${el.hasAttribute("deer-source")?"update":"create"}`, {
                         method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
                         mode: 'cors',
                         headers: {

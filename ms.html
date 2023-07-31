@@ -8,7 +8,7 @@
     <script src="/js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
-    <script src="js/shared.js"></script>
+    <script src="js/shared.js" defer></script>
 </head>
 
 <body class="container">
@@ -75,7 +75,7 @@
             manuscript.setAttribute("deer-id", msid)
             thumbroll.setAttribute("deer-id", msid)
             newGloss.setAttribute("href", "gloss.html?partOf=" + msid + "#")
-            fetch("https://tinydev.rerum.io/app/query?limit=100&skip=0", {
+            fetch("https://tiny.rerum.io/app/query?limit=100&skip=0", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json; charset=utf-8"

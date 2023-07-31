@@ -60,7 +60,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
         if (allGlossIds === null) { return }
 
         const allGlosses = allGlossIds.map(glossUri => {
-            return fetch("https://tinydev.rerum.io/app/delete", {
+            return fetch("https://tiny.rerum.io/app/delete", {
                 method: "DELETE",
                 body: JSON.stringify({ "@id": glossUri.replace(/^https?:/, 'https:') }),
                 headers: {
@@ -101,7 +101,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
     if (allAnnotationIds === null) return
 
     const allAnnotations = allAnnotationIds.map(annoUri => {
-        return fetch("https://tinydev.rerum.io/app/delete", {
+        return fetch("https://tiny.rerum.io/app/delete", {
             method: "DELETE",
             body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
             headers: {
@@ -127,7 +127,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
         })
 
     // Now the entity itself
-    fetch("https://tinydev.rerum.io/app/delete", {
+    fetch("https://tiny.rerum.io/app/delete", {
         method: "DELETE",
         body: JSON.stringify({ "@id": id }),
         headers: {
@@ -177,7 +177,7 @@ function alertReturn(noid) {
 }
 
 function getPagedQuery(lim, it = 0, queryObj, allResults = []) {
-    return fetch(`https://tinydev.rerum.io/app/query?limit=${lim}&skip=${it}`, {
+    return fetch(`https://tiny.rerum.io/app/query?limit=${lim}&skip=${it}`, {
         method: "POST",
         mode: "cors",
         headers: {
@@ -318,30 +318,6 @@ async function findMatchingIncipits(incipit, titleStart) {
         })
         .catch(err => {
             console.error(err)
-            return new Promise.resolve([])
+            return Promise.resolve([])
         })
-}
-
-
-/** Auth */
-
-const GLOSSING_USER_ROLES_CLAIM = "http://rerum.io/user_roles"
-const GOG_ADMIN = "glossing_user_admin"
-const GOG_CONTRIBUTOR = "glossing_user_contributor"
-
-const auth = document.querySelector('[is="auth-button"]')
-
-auth.addEventListener("gog-authenticated", ev => {
-    if (document.querySelector("[data-user='admin']")) {
-        if( !tokenHasRole(ev.detail.authorization,GOG_ADMIN)){ document.querySelectorAll("[data-user='admin']").forEach(elem=>elem.replaceWith(`Restricted`)) }
-    }
-
-    if (document.querySelector("[data-user='contributor']")) {
-        if( !tokenHasRole(ev.detail.authorization,GOG_CONTRIBUTOR)){ document.querySelectorAll("[data-user='contributor']").forEach(elem=>elem.replaceWith(`Restricted`)) }
-    }
-})
-import jwt_decode from "./jwt.js"
-function tokenHasRole(token,role) {
-    const user = jwt_decode(token)
-    return userHasRole(user, role)
 }

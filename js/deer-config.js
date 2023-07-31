@@ -28,11 +28,11 @@ export default {
 
     URLS: {
         BASE_ID: "https://store.rerum.io/v1",
-        CREATE: "https://tinydev.rerum.io/app/create",
-        UPDATE: "https://tinydev.rerum.io/app/update",
-        QUERY: "https://tinydev.rerum.io/app/query?limit=100&skip=0",
-        OVERWRITE: "https://tinydev.rerum.io/app/overwrite",
-        DELETE: "https://tinydev.rerum.io/app/delete",
+        CREATE: "https://tiny.rerum.io/app/create",
+        UPDATE: "https://tiny.rerum.io/app/update",
+        QUERY: "https://tiny.rerum.io/app/query?limit=100&skip=0",
+        OVERWRITE: "https://tiny.rerum.io/app/overwrite",
+        DELETE: "https://tiny.rerum.io/app/delete",
         SINCE: "https://store.rerum.io/v1/since"
     },
 
