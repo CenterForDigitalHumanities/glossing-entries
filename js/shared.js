@@ -324,11 +324,10 @@ async function findMatchingIncipits(incipit, titleStart) {
 
 
 /** Auth */
-/*
 
 const GLOSSING_USER_ROLES_CLAIM = "http://rerum.io/user_roles"
 const GOG_ADMIN = "glossing_user_admin"
-const GOG_CONTRIBUTOR = "glossing_user_contribustor"
+const GOG_CONTRIBUTOR = "glossing_user_contributor"
 
 const auth = document.querySelector('[is="auth-button"]')
 
@@ -346,4 +345,3 @@ function tokenHasRole(token,role) {
     const user = jwt_decode(token)
     return userHasRole(user, role)
 }
-*/
