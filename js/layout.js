@@ -29,7 +29,7 @@ class GlossHeader extends HTMLElement {
     #template = new DOMParser().parseFromString(`<template id="headerTemplate">
     <header>
     <link rel="stylesheet" href="css/gloss.css">
-    <button is="auth-button" disabled="true">login</button>
+    <button is="auth-button">login</button>
     <img src="media/gog-logo.jpg" alt="banner">
     <a href="/"><h1 class="title">
         Gallery of Glosses

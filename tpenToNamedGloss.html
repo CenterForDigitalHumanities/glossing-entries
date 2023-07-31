@@ -116,12 +116,6 @@
                 document.querySelector("input[type='submit']").value = "Update Textual Witness"
                 document.querySelector("form").setAttribute("deer-id", textWitnessID)
             }
-
-            //For hacking the login and user
-            setTimeout(function(){
-                document.querySelectorAll('[is="auth-creator"]').forEach(el=>el.value = "HabesDev")
-                window.GOG_USER["http://store.rerum.io/agent"] = "HabesDev"
-            }, 5000)
         }
 
         /**
