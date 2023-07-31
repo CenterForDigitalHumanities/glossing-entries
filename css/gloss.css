@@ -373,3 +373,13 @@ line.selected.just {
     right: 0.5em;
     z-index: 1;
 }
+
+#loading {
+    background-image: url(../images/load-blocks.gif);
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 35em;
+    filter: invert(100%);
+    -webkit-filter: invert(100%);
+    background-color: black;
+}

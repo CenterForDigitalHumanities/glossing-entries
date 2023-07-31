@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Gallery of Glosses</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="/js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/app.js" type="module"></script>
+    <script src="js/shared.js"></script>
+    <script src="js/lineSelector.js"></script>
+</head>
+
+<body class="container">
+    <gog-header class="container"></gog-header>
+    <h2> Named Gloss Textual Witness </h2>
+
+    <p> Connect Named Glosses with text in T-PEN Transcriptions. </p>
+
+    <div id="needs" class="row">
+        <p class="howTo"> 
+            It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  
+            <input id="resourceURI" type="text"/>
+            <input id="loadInput" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
+        </p>
+    </div>
+
+    <!-- Since the pieces require each other, only show the interface when all components have loaded enough -->
+    <!-- Our limiter here is the Named Glosses Collection.  We need to wait on the paged query. -->
+    <div id="loading" class="tpen-needed is-hidden">
+        <p style="color: white;"> 
+            Please be patient while we get things together...  
+        </p>
+    </div>
+
+    <form id="witnessForm" class="is-hidden" deer-type="WitnessIsText" deer-context="http://purl.org/dc/terms" deer-creator="HabesDev"> 
+        <input is="auth-creator" type="hidden" deer-key="creator" value="HabesDev" />
+        <div class="row">
+            <label class="col-3 col-2-md text-right">Label:</label>
+            <input type="text" deer-key="label" placeholder="Label" class="col-9 col-10-md">
+
+            <label class="col-3 col-2-md text-right">Shelfmark:</label>
+            <input type="text" deer-key-todo="shelfmark" placeholder="Shelfmark" class="col-9 col-10-md">
+            
+            <label class="col-3 col-2-md text-right">Digital Locations:</label>
+            <input type="text" deer-key-todo="uri" placeholder="Digital Locations" class="col-9 col-10-md">
+            <!--             
+            <label class="col-3 col-2-md text-right">Depictions:</label>
+            <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
+            -->
+
+            <!-- This is the text selected from each line combined together, as plain text -->
+            <label class="col-3 col-2-md text-right" >Text:</label>
+            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md" placeholder="Highlight transcription text..."></textarea>
+
+            <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
+            <select custom-text-key="language" class="col-9 col-4-md">
+                <option value="la" selected>Latin</option>
+                <option value="de">German</option>
+                <option value="fr">French</option>
+                <option value="en">English</option>
+            </select>
+
+            <!-- Hard set to plain/text for now -->           
+            <label for="textLang" class="col-3 col-2-md text-right">Format:</label>
+            <select title="This is fixed to 'Plain Text' for now." disabled custom-text-key="format" class="col-9 col-4-md">
+                <option value="plain/text" selected>Plain Text</option>
+                <option value="tei/xml">TEI XML</option>
+                <option value="xml">Plain XML</option>
+                <option value="etc">Etc.</option>
+            </select> 
+            
+
+            <!-- TODO Can we show areas of TPEN Images that the text comes from? -->
+            <div class="tpenLineImageFragments is-hidden"> </div>
+
+            <label class="col-3 col-2-md text-right" placeholder="Chosen Named Gloss Incipit">Chosen Named Gloss</label>
+            <textarea disabled title="Choose a Named Gloss to see the incipit here" placeholder="Choose a Named Gloss below..." class="chosenNamedGloss col-9 col-10-md"></textarea>
+
+            <!-- 
+            <label class="col-3 col-2-md text-right">Other Metadata:</label>
+            <textarea deer-key-todo="metadata" rows="2" class="col-9 col-10-md"></textarea> 
+            -->
+        </div>
+        <input type="submit" value="Create Textual Witness"/>
+
+        <!-- When lines are selected, a #char Fragment URI is generated.  The 'Text' needs to know those line URIs. -->
+        <tpen-line-selector class="lineSelector tpen-needed is-hidden row"> </tpen-line-selector>
+
+        <!-- A single NamedGloss is selected.  The 'Text' needs to know that Named Gloss URI. -->
+        <deer-view class="tpen-needed is-hidden row" id="ngCollectionList" deer-listing="" public-collection="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+        Loading&hellip;
+        </deer-view>  
+    </form>
+    <!-- If the user does not find a Named Gloss for the text selection, they can create a new one instead.  The 'Text' needs to know the resulting Named Gloss URI. -->
+    <form id="ngForm" deer-type="named-gloss" deer-context="http://www.loc.gov/mods" class="row is-hidden" deer-creator="HabesDev">
+        <input type="text" deer-key="title" placeholder="Display Label" class="col">
+        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
+        <input is="auth-creator" type="hidden" deer-key="creator" />
+        <input type="submit" value="Add NG : Title Only" class="col">
+    </form>   
+    <gog-footer class="row"></gog-footer>
+    <div id="globalFeedback" class="card is-center"></div>
+    <script>
+        window.onload = () => {
+            const tpenID = getURLParameter("tpen-project")
+            if(tpenID) {
+                needs.classList.add("is-hidden")
+                document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
+                document.querySelector(".lineSelector").setAttribute("tpen-project", tpenID)
+            }
+            // It is possible we could also let them hand in a Named Gloss URI as well.
+            const textWitnessID = window.location.hash.substr(1)
+            if(textWitnessID){
+                document.querySelector("input[type='submit']").value = "Update Textual Witness"
+                document.querySelector("form").setAttribute("deer-id", textWitnessID)
+            }
+
+            //For hacking the login and user
+            setTimeout(function(){
+                document.querySelectorAll('[is="auth-creator"]').forEach(el=>el.value = "HabesDev")
+                window.GOG_USER["http://store.rerum.io/agent"] = "HabesDev"
+            }, 5000)
+        }
+
+        /**
+         * When the Named Gloss Collection List deer view loads its records we can show the witness form.
+         * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
+         */ 
+        addEventListener('deer-view-rendered', event => {
+            if(event.target.id = "ngCollectionList"){
+                loading.classList.add("is-hidden")
+                witnessForm.classList.remove("is-hidden")
+            }
+        })
+
+        /**
+         * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
+         * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
+         * This event will come after all deer-view-rendered events have finished.
+         * @see deer-record.js DeerReport.constructor()  
+         */
+        addEventListener('deer-form-rendered', event => {
+            let whatRecordForm = event.target.id
+            let annotationData = event.detail
+            const $elem = event.target
+            switch (whatRecordForm) {
+                case "witnessForm":
+                    // mimic isDirty detection for these custom inputs
+                    const langElem = $elem.querySelector("select[custom-text-key='language']")
+                    const formatElem = $elem.querySelector("select[custom-text-key='format']")
+                    langElem.addEventListener("change", ev => {
+                        ev.target.$isDirty = true
+                        ev.target.closest("form").$isDirty = true
+                    })
+                    formatElem.addEventListener("change", ev => {
+                        ev.target.$isDirty = true
+                        ev.target.closest("form").$isDirty = true
+                    })
+                    // These are preset and should be captured on form submit
+                    langElem.$isDirty = true 
+                    formatElem.$isDirty = true
+
+                    if(ngCollectionList.hasAttribute("ng-list-loaded")){
+                        prefillReferences(annotationData["references"], ngCollectionList)
+                    }
+                    else{
+                        addEventListener('deer-view-rendered', ev => {
+                            if(ev.target.id === "ngCollectionList"){
+                                prefillReferences(annotationData["references"], ngCollectionList)
+                            }
+                        })
+                    }
+                    if(document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
+                        preselectLines(annotationData["selections"], $elem)    
+                    }
+                    else{
+                        addEventListener('tpen-lines-loaded', ev => {
+                            preselectLines(annotationData["selections"], $elem)
+                        })
+                    }
+                    prefillText(annotationData["text"], $elem)
+                    break
+                default:
+            }
+        })
+
+        /**
+         * Helper function for the specialized text key, which is an Object.
+         * Note that format is hard coded to plain/text for now.
+         * */
+        function prefillText(textObj, form) {
+            const source = textObj.source ?? null
+            if(source && source?.citationSource){
+                form.querySelector("select[custom-text-key='language'").setAttribute("deer-source", source.citationSource ?? "") 
+                form.querySelector("select[custom-text-key='format'").setAttribute("deer-source", source.citationSource ?? "") 
+                form.querySelector("textarea[custom-text-key='text'").setAttribute("deer-source", source.citationSource ?? "") 
+            }
+            textObj = textObj.value ? textObj.value : textObj
+            if (textObj === undefined) {
+                console.warn("Cannot set value for text and build UI.  There is no data.")
+                return false
+            }
+            const language = textObj.language
+            form.querySelector("select[custom-text-key='language'").value = language
+            
+            //const format = textObj.format
+            //form.querySelector("select[custom-text-key='format'").value = format
+            if (textObj.textValue.length === 0) {
+                console.warn("There is no text recorded for this witness")
+                return false
+            }
+            form.querySelector("textarea[custom-text-key='text'").value = textObj.textValue
+        }
+
+        /**
+         * Helper function for the specialized references key, which is an Array of URIs.
+         * It needs to apply the filter with this Named Gloss's Label..
+         * */
+        function prefillReferences(referencesArr, form) {
+            const source = referencesArr.source ?? null
+            if(source && source?.citationSource){
+                form.querySelector("input[custom-key='references']").setAttribute("deer-source", source.citationSource ?? "")
+            }
+            referencesArr = referencesArr.value ? referencesArr.value : referencesArr
+            if (referencesArr === undefined) {
+                console.warn("Cannot set value for references and build UI.  There is no data.")
+                return false
+            }
+            if (referencesArr.length === 0) {
+                console.warn("There are no references recorded for this witness")
+                return false
+            }
+            form.querySelector("input[custom-key='references']").value = referencesArr[0]
+            //Now apply the references value to the filter
+            const ngID = referencesArr[0]
+            const ngLabel = form.querySelector(`li[deer-id="${ngID}"]`).getAttribute("data-title")
+            const filter = document.querySelector("input[filter]")
+            filter.value = ngLabel
+            filter.dispatchEvent(new Event('input', { bubbles: true }))
+            document.querySelector(".chosenNamedGloss").value = ngLabel
+        }
+
+        /**
+         * Helper function for the specialized references key, which is an Array of URIs.
+         * It needs to apply the filter with this Named Gloss's Label.
+         * */
+        function preselectLines(linesArr, form) {
+            const source = linesArr.source ?? null
+            if(source && source?.citationSource){
+                form.querySelector("input[custom-key='selections']").setAttribute("deer-source", source.citationSource ?? "")
+            }
+            linesArr = linesArr.value ? linesArr.value : linesArr
+            if (linesArr === undefined) {
+                console.warn("Cannot highlight lines in UI.  There is no data.")
+                return false
+            }
+            if (linesArr.length === 0) {
+                console.warn("There are no lines recorded for this witness")
+                return false
+            }
+            form.querySelector("input[custom-key='selections']").value = linesArr.join("__")
+            //Now highlight the lines
+            let range = document.createRange()
+            let sel = window.getSelection()
+            let line = linesArr[0]
+            let lineid = line.split("#")[0]
+            const lineStartElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
+            let selection = line.split("#")[1].replace("char=", "").split(",")           
+            range.setStart(lineStartElem.firstChild, parseInt(selection[0]))
+            if(linesArr.length > 1){
+                line = linesArr.pop()
+                lineid = line.split("#")[0]
+                const lineEndElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
+                selection = line.split("#")[1].replace("char=", "").split(",")           
+                range.setEnd(lineEndElem.firstChild, parseInt(selection[1]))
+            }
+            else{
+                range.setEnd(lineStartElem.firstChild, parseInt(selection[1]))
+            }
+            sel.removeAllRanges()
+            sel.addRange(range)
+        }
+
+        function loadURI(){
+            let url = resourceURI.value ? resourceURI.value : getURLParameter("tpen-project")
+            if(url){
+                let tpen = "?tpen-project="+url
+                url = window.location.href.split('?')[0] + tpen
+                window.location = url
+            }
+            else{
+                alert("You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.")
+            }
+        }
+
+        addEventListener('deer-updated', event => {
+            const $elem = event.target
+            //Only care about witness form
+            if($elem?.id  !== "witnessForm") return
+            const entityID = event.detail["@id"]  
+            // These promise are for all the simple array values ('references' and 'selections')
+            let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
+                .filter(el => el.$isDirty)
+                .map(el => {
+                    const key = el.getAttribute("custom-key")
+                    let anno = {
+                        "@context": "http://www.w3.org/ns/anno.jsonld",
+                        "@type": "Annotation",
+                        "body": {},
+                        "target": entityID,
+                        "creator" : "HabesDev"
+                    }
+                    anno.body[key] = { "value": el.value.split("__") }
+                    if(el.hasAttribute("deer-source")) anno["@id"] = el.getAttribute("deer-source")
+                    return fetch(`https://tinydev.rerum.io/app/${el.hasAttribute("deer-source")?"update":"create"}`, {
+                        method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
+                        mode: "cors",
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                            "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                        },
+                        body: JSON.stringify(anno)
+                    })
+                    .then(res => res.json())
+                    .then(a => {
+                        el.setAttribute("deer-source", a["@id"])
+                    })
+                    .catch(err => {
+                        console.error(`Could not generate Annotation for key '${key}'`)
+                        console.error(err)
+                    })
+                })
+
+            // This gets the custom keys for the annotation.body.text which is an object
+            // If any of the elements that build the object are dirty, then it is dirty.
+            const customTextElems = [
+                $elem.querySelector("select[custom-text-key='format']"),
+                $elem.querySelector("select[custom-text-key='language']"),
+                $elem.querySelector("textarea[custom-text-key='text']")
+            ]
+            if(customTextElems.filter(el => el.$isDirty).length > 0){
+                // One of the text properties has changed so we need the text object
+                const format = customTextElems[0].value
+                const language = customTextElems[1].value
+                const text = customTextElems[2].value
+                let textanno = {
+                    "@context": "http://www.w3.org/ns/anno.jsonld",
+                    "@type": "Annotation",
+                    "body": {
+                        "text":{
+                            "format" : format,
+                            "language" : language,
+                            "textValue" : text
+                        }
+                    },
+                    "target": entityID,
+                    "creator" : "HabesDev"
+                }
+                const el = customTextElems[2]
+                if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
+                annotation_promises.push(
+                    fetch(`https://tinydev.rerum.io/app/${el.hasAttribute("deer-source")?"update":"create"}`, {
+                        method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
+                        mode: 'cors',
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                            "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                        },
+                        body: JSON.stringify(textanno)
+                    })
+                    .then(res => res.json())
+                    .then(a => {
+                        $elem.setAttribute("deer-source", a["@id"])
+                    })
+                    .catch(err => {
+                        console.error(`Could not generate 'text' property Annotation`)
+                        console.error(err)
+                    })
+                )
+            }
+            Promise.all(annotation_promises)
+            .then(success => {
+                console.log("Successfully connected custom key Annotations")
+                const ev = new CustomEvent("Named Gloss Textual Witness Updated")
+                globalFeedbackBlip(ev, `Named Gloss Textual Witness Updated!`, true)
+                window.location.hash = entityID
+                setTimeout(function(){
+                    // Forcing the reload just to make sure they end up on a page with everything set.
+                    // Maybe we can just stay right here and let them continue?
+                    window.location.reload()
+                }, 1000)
+            })
+            .catch(err => {
+                console.error("Did not connect all custom key Annotations!!")
+                console.error(err)
+            })
+        })
+    </script>
+</body>
+
+</html>
