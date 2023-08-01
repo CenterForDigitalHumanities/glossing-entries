@@ -56,7 +56,7 @@
             <input type="text" deer-key="label" placeholder="Label" class="col-9 col-10-md is-hidden">
 
             <label class="col-3 col-2-md text-right is-hidden">Shelfmark:</label>
-            <input type="text" deer-key="shelfmark" placeholder="Shelfmark" class="col-9 col-10-md is-hidden">
+            <input type="text" deer-key="identifier" placeholder="Shelfmark" class="col-9 col-10-md is-hidden">
                         
 
             <!--             
@@ -76,7 +76,7 @@
             </select>
 
             <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
-                The text contains <code>< tags ></code><input type="checkbox" custom-text-key="format" value="plain/text" />
+                The text contains <code>< tags ></code><input type="checkbox" custom-text-key="format" value="text/plain" />
             </label>
 
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Named Gloss Incipit">Chosen Named Gloss</label>
@@ -97,7 +97,7 @@
                 ev.target.value = "text/html"
             }
             else{
-                ev.target.value = "plain/text"
+                ev.target.value = "text/plain"
             }
         })
 
@@ -195,7 +195,7 @@
 
         /**
          * Helper function for the specialized text key, which is an Object.
-         * Note that format is hard coded to plain/text for now.
+         * Note that format is hard coded to text/plain for now.
          * */
         function prefillText(textObj, form) {
             const source = textObj.source ?? null
