@@ -331,6 +331,12 @@ export default {
                   font-size: 13pt;
                 }
 
+                .toggleInclusion{
+                    padding: 5px;
+                    font-size: 10pt;
+                    margin-right: 0.5em;
+                }
+
                 h2.nomargin{
                     margin: 0;
                 }
@@ -339,7 +345,8 @@ export default {
             <div class="col">
                 <h2 class="nomargin">Named Glosses</h2>
                 <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
-                <p class="filterInstructions is-hidden"> Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to, or create a new Named Gloss. </p>
+                <p class="filterInstructions is-hidden"> 
+                Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to. </p>
                 <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Named Gloss filter detected.  Please note that Named Glosses will appear as they are fully loaded. </p>
@@ -358,7 +365,7 @@ export default {
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
                     // TODO to know whether or not this Named Gloss is already included, we need to get the references Annotation of the witness and match on uris.
-                    const inclusionBtn = `<a class="toggleInclusion" href="${val['@id']}" title="Toggle Named Gloss Inclusion"> 👁 </a>`
+                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" href="${val['@id']}" title="Attach this Named Gloss and Save" value="Attach Named Gloss"/>`
                     if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
                         // We cached it in the past and are going to trust it right now.
                         const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))
@@ -380,7 +387,7 @@ export default {
                         })
                         li += `>
                             ${inclusionBtn}
-                            <a href="${options.link}${val["@id"]}">
+                            <a target="_blank" href="${options.link}${val["@id"]}">
                             <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                         </li>`
@@ -392,7 +399,7 @@ export default {
                         // Make this a deer-view so this Named Gloss is expanded and we can make attributes from its properties.
                         html += `<li deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
                             ${inclusionBtn}
-                            <a href="${options.link}${val["@id"]}">
+                            <a target="_blank" href="${options.link}${val["@id"]}">
                             <span>Loading Named Gloss #${index + 1}...</span>
                             </a>
                         </li>`
@@ -431,28 +438,41 @@ export default {
                 elem.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
                     ev.preventDefault()
                     ev.stopPropagation()
-                    const customKey = elem.querySelector("input[custom-key]")
-                    const uri = a.getAttribute("href")
-                    const included = elem.listCache.has(uri)
-                    a.classList[included ? "remove" : "add"]("is-included")
-                    elem.listCache[included ? "delete" : "add"](uri)
-                    if(a.classList.contains("is-included")) {
-                        const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
-                        filter.value = namedGlossIncipit
-                        filter.setAttribute("value", namedGlossIncipit)
-                        document.querySelector(".chosenNamedGloss").value = namedGlossIncipit
+                    const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
+                    if(confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
+                        const customKey = elem.querySelector("input[custom-key]")
+                        const uri = a.getAttribute("href")
+                        if(customKey.value !== uri){
+                            customKey.value = uri 
+                            customKey.$isDirty = true
+                            elem.closest("form").$isDirty = true
+                            // TODO generate a unique programmatic label value (if one is not already there) before submitting
+                            document.querySelector("input[type='submit']").click()
+                        }
+                        else{
+                            alert(`This textual witness is already attached to Named Gloss '${namedGlossIncipit}'`)
+                        }
                     }
-                    else{
-                        filter.value = ""
-                        filter.setAttribute("value", "")
-                        document.querySelector(".chosenNamedGloss").value = ""
-                    }
-                    filter.dispatchEvent(new Event('input', { bubbles: true }))
-                    if(customKey.value !== uri){
-                        customKey.value = uri 
-                        customKey.$isDirty = true
-                        elem.closest("form").$isDirty = true
-                    }
+
+
+                    // const customKey = elem.querySelector("input[custom-key]")
+                    // const uri = a.getAttribute("href")
+                    // const included = elem.listCache.has(uri)
+                    // a.classList[included ? "remove" : "add"]("is-included")
+                    // elem.listCache[included ? "delete" : "add"](uri)
+                    // if(a.classList.contains("is-included")) {
+                    //     const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
+                    //     filter.value = namedGlossIncipit
+                    //     filter.setAttribute("value", namedGlossIncipit)
+                    //     document.querySelector(".chosenNamedGloss").value = namedGlossIncipit
+                    // }
+                    // else{
+                    //     filter.value = ""
+                    //     filter.setAttribute("value", "")
+                    //     document.querySelector(".chosenNamedGloss").value = ""
+                    // }
+                    //filter.dispatchEvent(new Event('input', { bubbles: true }))
+                    
                 }))
 
                 // Filter the list of named glosses as users type their query against 'title'
@@ -506,7 +526,7 @@ export default {
                         }
                         for(const prop in query){
                             if(el.hasAttribute(`data-${prop}`)){
-                                const action = el.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
+                                const action = el.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
                                 el.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>el.classList.remove(`un${action}-item`),500)
                                 break

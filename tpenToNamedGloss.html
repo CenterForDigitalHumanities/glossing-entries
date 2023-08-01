@@ -10,22 +10,37 @@
     <script src="js/app.js" type="module"></script>
     <script src="js/shared.js"></script>
     <script src="js/lineSelector.js"></script>
+    <style>
+       .toggle{
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            right: 0;
+            font-weight: bold;
+       }
+       .toggle::before{
+            content: "toggle all text ";
+            font-family: "Eczar","Volkhov",serif;
+            font-size: 8pt;
+       }
+       .tpenProjectLines.is-toggled, .pageContainer.is-toggled{
+            visibility: hidden;
+            height: 0px;
+       }
+    </style>
 </head>
 
 <body class="container">
     <gog-header class="container"></gog-header>
-    <h2> Named Gloss Textual Witness </h2>
-
-    <p> Connect Named Glosses with text in T-PEN Transcriptions. </p>
-
-    <div id="needs" class="row">
+    <h2 class="bg-basic"> Named Gloss Textual Witness </h2>
+    <p class="bg-basic"> Connect Named Glosses with text in T-PEN Transcriptions. </p>
+    <div id="needs" class="row bg-basic">
         <p class="howTo"> 
             It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  
             <input id="resourceURI" type="text"/>
             <input id="loadInput" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
         </p>
     </div>
-
     <!-- Since the pieces require each other, only show the interface when all components have loaded enough -->
     <!-- Our limiter here is the Named Glosses Collection.  We need to wait on the paged query. -->
     <div id="loading" class="tpen-needed is-hidden">
@@ -33,28 +48,26 @@
             Please be patient while we get things together...  
         </p>
     </div>
-
     <form id="witnessForm" class="is-hidden" deer-type="WitnessIsText" deer-context="http://purl.org/dc/terms" deer-creator="HabesDev"> 
         <input is="auth-creator" type="hidden" deer-key="creator" value="HabesDev" />
+        <input type="hidden" custom-key="uri">
         <div class="row">
-            <label class="col-3 col-2-md text-right">Label:</label>
-            <input type="text" deer-key="label" placeholder="Label" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right is-hidden">Label:</label>
+            <input type="text" deer-key="label" placeholder="Label" class="col-9 col-10-md is-hidden">
 
-            <label class="col-3 col-2-md text-right">Shelfmark:</label>
-            <input type="text" deer-key-todo="shelfmark" placeholder="Shelfmark" class="col-9 col-10-md">
-            
-            <label class="col-3 col-2-md text-right">Digital Locations:</label>
-            <input type="text" deer-key-todo="uri" placeholder="Digital Locations" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right is-hidden">Shelfmark:</label>
+            <input type="text" deer-key="shelfmark" placeholder="Shelfmark" class="col-9 col-10-md is-hidden">
+                        
+
             <!--             
-            <label class="col-3 col-2-md text-right">Depictions:</label>
-            <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
+                <label class="col-3 col-2-md text-right">Depictions:</label>
+                <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
             -->
 
-            <!-- This is the text selected from each line combined together, as plain text -->
             <label class="col-3 col-2-md text-right" >Text:</label>
             <textarea custom-text-key="text" rows="2" class="col-9 col-10-md" placeholder="Highlight transcription text..."></textarea>
 
-            <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
+            <label class="col-3 col-2-md text-right">Language:</label>
             <select custom-text-key="language" class="col-9 col-4-md">
                 <option value="la" selected>Latin</option>
                 <option value="de">German</option>
@@ -62,53 +75,41 @@
                 <option value="en">English</option>
             </select>
 
-            <!-- Hard set to plain/text for now -->           
-            <label for="textLang" class="col-3 col-2-md text-right">Format:</label>
-            <select title="This is fixed to 'Plain Text' for now." disabled custom-text-key="format" class="col-9 col-4-md">
-                <option value="plain/text" selected>Plain Text</option>
-                <option value="tei/xml">TEI XML</option>
-                <option value="xml">Plain XML</option>
-                <option value="etc">Etc.</option>
-            </select> 
-            
+            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
+                The text contains <code>< tags ></code><input type="checkbox" custom-text-key="format" value="plain/text" />
+            </label>
 
-            <!-- TODO Can we show areas of TPEN Images that the text comes from? -->
-            <div class="tpenLineImageFragments is-hidden"> </div>
-
-            <label class="col-3 col-2-md text-right" placeholder="Chosen Named Gloss Incipit">Chosen Named Gloss</label>
-            <textarea disabled title="Choose a Named Gloss to see the incipit here" placeholder="Choose a Named Gloss below..." class="chosenNamedGloss col-9 col-10-md"></textarea>
-
-            <!-- 
-            <label class="col-3 col-2-md text-right">Other Metadata:</label>
-            <textarea deer-key-todo="metadata" rows="2" class="col-9 col-10-md"></textarea> 
-            -->
+            <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Named Gloss Incipit">Chosen Named Gloss</label>
+            <textarea disabled title="Choose a Named Gloss to see the incipit here" placeholder="Choose a Named Gloss below..." class="chosenNamedGloss col-9 col-10-md is-hidden"></textarea>
         </div>
-        <input type="submit" value="Create Textual Witness"/>
-
-        <!-- When lines are selected, a #char Fragment URI is generated.  The 'Text' needs to know those line URIs. -->
-        <tpen-line-selector class="lineSelector tpen-needed is-hidden row"> </tpen-line-selector>
-
-        <!-- A single NamedGloss is selected.  The 'Text' needs to know that Named Gloss URI. -->
+        <tpen-line-selector class="lineSelector tpen-needed is-hidden"> </tpen-line-selector>
         <deer-view class="tpen-needed is-hidden row" id="ngCollectionList" deer-listing="" public-collection="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
         Loading&hellip;
         </deer-view>  
+        <input class="is-hidden" type="submit" value="Create Textual Witness"/>
     </form>
-    <!-- If the user does not find a Named Gloss for the text selection, they can create a new one instead.  The 'Text' needs to know the resulting Named Gloss URI. -->
-    <form id="ngForm" deer-type="named-gloss" deer-context="http://www.loc.gov/mods" class="row is-hidden" deer-creator="HabesDev">
-        <input type="text" deer-key="title" placeholder="Display Label" class="col">
-        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
-        <input is="auth-creator" type="hidden" deer-key="creator" />
-        <input type="submit" value="Add NG : Title Only" class="col">
-    </form>   
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
+
+        document.querySelector("input[type='checkbox']").addEventListener("click", ev => {
+            if(ev.target.checked){
+                ev.target.value = "text/html"
+            }
+            else{
+                ev.target.value = "plain/text"
+            }
+        })
+
         window.onload = () => {
             const tpenID = getURLParameter("tpen-project")
+            const dig_location = document.querySelector("input[custom-key='uri']")
             if(tpenID) {
                 needs.classList.add("is-hidden")
                 document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
                 document.querySelector(".lineSelector").setAttribute("tpen-project", tpenID)
+                dig_location.value = tpenID
+                dig_location.setAttribute("value", tpenID)
             }
             // It is possible we could also let them hand in a Named Gloss URI as well.
             const textWitnessID = window.location.hash.substr(1)
@@ -116,12 +117,17 @@
                 document.querySelector("input[type='submit']").value = "Update Textual Witness"
                 document.querySelector("form").setAttribute("deer-id", textWitnessID)
             }
+            else{
+                // These items have default values that are dirty on fresh forms.
+                dig_location.$isDirty = true
+                document.querySelector("input[type='checkbox']").$isDirty = true
+            }
 
             //For hacking the login and user
             setTimeout(function(){
                 document.querySelectorAll('[is="auth-creator"]').forEach(el=>el.value = "HabesDev")
                 window.GOG_USER["http://store.rerum.io/agent"] = "HabesDev"
-            }, 5000)
+            }, 3000)
         }
 
         /**
@@ -149,7 +155,7 @@
                 case "witnessForm":
                     // mimic isDirty detection for these custom inputs
                     const langElem = $elem.querySelector("select[custom-text-key='language']")
-                    const formatElem = $elem.querySelector("select[custom-text-key='format']")
+                    const formatElem = $elem.querySelector("input[custom-text-key='format']")
                     langElem.addEventListener("change", ev => {
                         ev.target.$isDirty = true
                         ev.target.closest("form").$isDirty = true
@@ -181,6 +187,7 @@
                         })
                     }
                     prefillText(annotationData["text"], $elem)
+                    prefillDigitalLocations(annotationData["uri"], $elem)
                     break
                 default:
             }
@@ -194,7 +201,7 @@
             const source = textObj.source ?? null
             if(source && source?.citationSource){
                 form.querySelector("select[custom-text-key='language'").setAttribute("deer-source", source.citationSource ?? "") 
-                form.querySelector("select[custom-text-key='format'").setAttribute("deer-source", source.citationSource ?? "") 
+                form.querySelector("input[custom-text-key='format'").setAttribute("deer-source", source.citationSource ?? "") 
                 form.querySelector("textarea[custom-text-key='text'").setAttribute("deer-source", source.citationSource ?? "") 
             }
             textObj = textObj.value ? textObj.value : textObj
@@ -205,13 +212,38 @@
             const language = textObj.language
             form.querySelector("select[custom-text-key='language'").value = language
             
-            //const format = textObj.format
-            //form.querySelector("select[custom-text-key='format'").value = format
+            const format = textObj.format
+            form.querySelector("input[custom-text-key='format'").value = format
+            if(format === "text/html"){
+                form.querySelector("input[custom-text-key='format'").checked = true
+            }
             if (textObj.textValue.length === 0) {
                 console.warn("There is no text recorded for this witness")
                 return false
             }
             form.querySelector("textarea[custom-text-key='text'").value = textObj.textValue
+        }
+
+         /**
+         * Helper function for the specialized references key, which is an Array of URIs.
+         * It needs to apply the filter with this Named Gloss's Label..
+         * */
+        function prefillDigitalLocations(locationsArr, form) {
+            const source = locationsArr.source ?? null
+            if(source && source?.citationSource){
+                form.querySelector("input[custom-key='uri']").setAttribute("deer-source", source.citationSource ?? "")
+            }
+            locationsArr = locationsArr.value ? locationsArr.value : locationsArr
+            if (locationsArr === undefined) {
+                console.warn("Cannot set value for digital locations and build UI.  There is no data.")
+                return false
+            }
+            if (locationsArr.length === 0) {
+                console.warn("There are no digital locations recorded for this witness")
+                return false
+            }
+            form.querySelector("input[custom-key='uri']").value = locationsArr[0]
+            // Note that we should check the tpen-project provided lines up with this
         }
 
         /**
@@ -233,13 +265,22 @@
                 return false
             }
             form.querySelector("input[custom-key='references']").value = referencesArr[0]
-            //Now apply the references value to the filter
+            
+            // Now apply the references value to the filter
             const ngID = referencesArr[0]
-            const ngLabel = form.querySelector(`li[deer-id="${ngID}"]`).getAttribute("data-title")
+            const elem = form.querySelector(`li[deer-id="${ngID}"]`)
+            const button = elem.querySelector(".toggleInclusion")
+            button.setAttribute("disabled", "")
+            button.setAttribute("value", "✓ attached")
+            button.setAttribute("title", "This Named Gloss is already attached!")
+            button.classList.remove("primary")
+            button.classList.add("success")
+            const ngLabel = elem.getAttribute("data-title")
             const filter = document.querySelector("input[filter]")
-            filter.value = ngLabel
+            filter.value = ngLabel.trim()
             filter.dispatchEvent(new Event('input', { bubbles: true }))
-            document.querySelector(".chosenNamedGloss").value = ngLabel
+            // document.querySelector(".chosenNamedGloss").value = ngLabel
+
         }
 
         /**
@@ -261,18 +302,21 @@
                 return false
             }
             form.querySelector("input[custom-key='selections']").value = linesArr.join("__")
+
             //Now highlight the lines
             let range = document.createRange()
             let sel = window.getSelection()
             let line = linesArr[0]
             let lineid = line.split("#")[0]
             const lineStartElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
+            lineStartElem.parentElement.previousElementSibling.classList.add("has-selection")
             let selection = line.split("#")[1].replace("char=", "").split(",")           
             range.setStart(lineStartElem.firstChild, parseInt(selection[0]))
             if(linesArr.length > 1){
                 line = linesArr.pop()
                 lineid = line.split("#")[0]
                 const lineEndElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
+                lineEndElement.parentElement.previousElementSibling.classList.add("has-selection")
                 selection = line.split("#")[1].replace("char=", "").split(",")           
                 range.setEnd(lineEndElem.firstChild, parseInt(selection[1]))
             }
@@ -281,6 +325,11 @@
             }
             sel.removeAllRanges()
             sel.addRange(range)
+            document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
+                if(!tog.classList.contains("is-toggled")){
+                    tog.click()
+                }
+            })  
         }
 
         function loadURI(){
@@ -336,7 +385,7 @@
             // This gets the custom keys for the annotation.body.text which is an object
             // If any of the elements that build the object are dirty, then it is dirty.
             const customTextElems = [
-                $elem.querySelector("select[custom-text-key='format']"),
+                $elem.querySelector("input[custom-text-key='format']"),
                 $elem.querySelector("select[custom-text-key='language']"),
                 $elem.querySelector("textarea[custom-text-key='text']")
             ]

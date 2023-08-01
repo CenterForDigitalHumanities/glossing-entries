@@ -382,4 +382,5 @@ line.selected.just {
     filter: invert(100%);
     -webkit-filter: invert(100%);
     background-color: black;
+    text-align: center;
 }
