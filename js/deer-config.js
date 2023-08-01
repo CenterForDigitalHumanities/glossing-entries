@@ -526,7 +526,7 @@ export default {
                         }
                         for(const prop in query){
                             if(el.hasAttribute(`data-${prop}`)){
-                                const action = el.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
+                                const action = el.getAttribute(`data-${prop}`).toLowerCase().trim().includes(query[prop].toLowerCase().trim()) ? "remove" : "add"
                                 el.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>el.classList.remove(`un${action}-item`),500)
                                 break
