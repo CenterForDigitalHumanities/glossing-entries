@@ -111,15 +111,17 @@ class TpenLineSelector extends HTMLElement {
                             const selectedText = document.getSelection() ? document.getSelection().toString().trim() : ""
                             const firstword = selectedText.split(" ")[0]
                             if(selectedText){
-                                //The filter may not be in the DOM when the user is selecting text.
-                                if(filter){
+                                // The filter may not be in the DOM when the user is selecting text.
+                                // Only use the filter if it is !.is-hidden
+                                if(filter && !filter.classList.contains("is-hidden")){
                                     filter.value = firstword
                                     filter.setAttribute("value", firstword)
                                     filter.dispatchEvent(new Event('input', { bubbles: true }))
                                 }
                                 const textInput = document.querySelector("textarea[custom-text-key='text']")
+                                textInput.setAttribute("value", selectedText)
                                 textInput.value = selectedText
-                                textInput.$isDirty = true  
+                                textInput.dispatchEvent(new Event('input', { bubbles: true }))
 
                                 let witnessLabel = selectedText.slice(0, 16)
                                 const labelElem = document.querySelector("input[deer-key='label']")
@@ -135,12 +137,13 @@ class TpenLineSelector extends HTMLElement {
                                     if(labelElem.value !== witnessLabel){
                                         labelElem.value = witnessLabel
                                         labelElem.setAttribute("value", witnessLabel)
-                                        labelElem.$isDirty = true
+                                        labelElem.dispatchEvent(new Event('input', { bubbles: true }))
                                     }
                                 }
                                 else{
                                    // A side effect of this is that a label cannot be unset by a typical DEER form update.
                                    labelElem.value = "" 
+                                   labelElem.setAttribute("value", "")
                                    labelElem.$isDirty = false
                                 }
                                 let selections = []

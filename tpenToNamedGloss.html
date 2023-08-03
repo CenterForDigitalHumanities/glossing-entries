@@ -27,6 +27,9 @@
             visibility: hidden;
             height: 0px;
        }
+       input.required{
+            border: 1px solid black;
+       }
     </style>
 </head>
 
@@ -55,8 +58,8 @@
             <label class="col-3 col-2-md text-right is-hidden">Label:</label>
             <input type="text" deer-key="label" placeholder="Label" class="col-9 col-10-md is-hidden">
 
-            <label class="col-3 col-2-md text-right">Shelfmark:</label>
-            <input type="text" deer-key="identifier" placeholder="Shelfmark" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
+            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required">
                         
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
@@ -149,28 +152,19 @@
 
             const selectionsElem = form.querySelector("input[custom-key='selections']")
             selectionsElem.value = ""
-            .setAttribute("value", "")
+            selectionsElem.setAttribute("value", "")
             selectionsElem.$isDirty = false
 
             const referencesElem = form.querySelector("input[custom-key='references']")
             referencesElem.value = ""
-            .setAttribute("value", "")
+            referencesElem.setAttribute("value", "")
             referencesElem.$isDirty = false
 
             const filter = form.querySelector('input[filter]')
             filter.value = ""
-            .setAttribute("value", "")
+            filter.setAttribute("value", "")
             filter.dispatchEvent(new Event('input', { bubbles: true }))
         }
-
-        document.querySelector("input[type='checkbox']").addEventListener("click", ev => {
-            if(ev.target.checked){
-                ev.target.value = "text/html"
-            }
-            else{
-                ev.target.value = "text/plain"
-            }
-        })
 
         window.onload = () => {
             const tpenID = getURLParameter("tpen-project")
@@ -191,7 +185,8 @@
             else{
                 // These items have default values that are dirty on fresh forms.
                 dig_location.$isDirty = true
-                document.querySelector("input[type='checkbox']").$isDirty = true
+                document.querySelector("select[custom-text-key='language']").$isDirty = true
+                document.querySelector("input[custom-text-key='format']").$isDirty = true
             }
 
             //For hacking the login and user
@@ -225,20 +220,27 @@
             switch (whatRecordForm) {
                 case "witnessForm":
                     // mimic isDirty detection for these custom inputs
-                    const langElem = $elem.querySelector("select[custom-text-key='language']")
-                    const formatElem = $elem.querySelector("input[custom-text-key='format']")
-                    langElem.addEventListener("change", ev => {
+                    $elem.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
                         ev.target.$isDirty = true
                         ev.target.closest("form").$isDirty = true
                     })
-                    formatElem.addEventListener("change", ev => {
+                    $elem.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
                         ev.target.$isDirty = true
                         ev.target.closest("form").$isDirty = true
                     })
-                    // These are preset and should be captured on form submit
-                    langElem.$isDirty = true 
-                    formatElem.$isDirty = true
-
+                    // Note that this HTML element is a checkbox
+                    $elem.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+                        if(ev.target.checked){
+                            ev.target.value = "text/html"
+                            ev.target.setAttribute("value", "text/html")
+                        }
+                        else{
+                            ev.target.value = "text/plain"
+                            ev.target.setAttribute("value", "text/plain")
+                        }
+                        ev.target.$isDirty = true
+                        ev.target.closest("form").$isDirty = true
+                    })
                     if(ngCollectionList.hasAttribute("ng-list-loaded")){
                         prefillReferences(annotationData["references"], ngCollectionList)
                     }

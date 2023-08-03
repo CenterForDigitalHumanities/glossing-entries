@@ -350,7 +350,7 @@ export default {
                 <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Named Gloss filter detected.  Please note that Named Glosses will appear as they are fully loaded. </p>
-                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.</div>
+                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%)<br>You may click to select any Named Gloss loaded already.</div>
                 </div>`
             
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
@@ -422,7 +422,7 @@ export default {
                 const progressArea = elem.querySelector(".progressArea")
                 const filterInstructions = elem.querySelector(".filterInstructions")
                 // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
-                totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.`
+                totalsProgress.innerHTML = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>You may click to select any Named Gloss loaded already.`
                 totalsProgress.setAttribute("total", total)
                 totalsProgress.setAttribute("count", numloaded)
 
@@ -439,14 +439,21 @@ export default {
                     ev.stopPropagation()
                     const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
                     if(confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
+                        const form = ev.target.closest("form")
                         const customKey = elem.querySelector("input[custom-key]")
                         const uri = a.getAttribute("href")
                         if(customKey.value !== uri){
                             customKey.value = uri 
+                            customKey.setAttribute("value", uri) 
                             customKey.$isDirty = true
-                            elem.closest("form").$isDirty = true
-                            // TODO generate a unique programmatic label value (if one is not already there) before submitting
-                            document.querySelector("input[type='submit']").click()
+                            form.closest("form").$isDirty = true
+                            // There must be a shelfmark.
+                            if(form.querySelector("input[deer-key='identifier']").value){
+                                form.querySelector("input[type='submit']").click()    
+                            }
+                            else{
+                                alert("You must provide a Shelfmark value.")
+                            }
                         }
                         else{
                             alert(`This textual witness is already attached to Named Gloss '${namedGlossIncipit}'`)
@@ -469,11 +476,18 @@ export default {
                         i.classList.remove("is-hidden")
                         if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
                             i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
+                            i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
                         }
-
+                        else{
+                            i.value = ""
+                            i.setAttribute("value", "")
+                        }
                     })
                     if(filterPresent){
                         debounce(filterGlosses(elem.$contentState))
+                    }
+                    else{
+                        i.dispatchEvent(new Event('input', { bubbles: true }))
                     }
                 }
 
@@ -559,8 +573,7 @@ export default {
                             }
                         }
                     })
-
-                    li.classList[action]("is-hidden")
+                    if(filterPresent) li.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
@@ -576,7 +589,7 @@ export default {
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
                     totalsProgress.setAttribute("count", numloaded)
-                    totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.`
+                    totalsProgress.innerHTML = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  You may click to select any Named Gloss loaded already.`
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
