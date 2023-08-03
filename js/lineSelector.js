@@ -31,9 +31,9 @@ class TpenLineSelector extends HTMLElement {
            }
         </style>
 
-        <h2> T-PEN Transcription Text </h2>
+        <h2> Select T-PEN Transcription Text </h2>
         <input type="hidden" custom-key="selections" />
-        <div title="Collapse Transcription Area" class="toggle">&#9660;</div>
+        <div title="Collapse Transcription Area" class="toggle is-hidden">&#9660;</div>
         <div class="tpenProjectLines col"></div>
     `
     constructor() {
@@ -119,7 +119,30 @@ class TpenLineSelector extends HTMLElement {
                                 }
                                 const textInput = document.querySelector("textarea[custom-text-key='text']")
                                 textInput.value = selectedText
-                                textInput.$isDirty = true                             
+                                textInput.$isDirty = true  
+
+                                let witnessLabel = selectedText.slice(0, 16)
+                                const labelElem = document.querySelector("input[deer-key='label']")
+                                const shelfmark = document.querySelector("input[deer-key='identifier']").value
+                                // Generate a programmatic label
+                                if(witnessLabel){
+                                    if(shelfmark){
+                                        witnessLabel += `...(${shelfmark})`
+                                    }
+                                    else{
+                                        witnessLabel += `...(${Date.now()})`
+                                    }    
+                                    if(labelElem.value !== witnessLabel){
+                                        labelElem.value = witnessLabel
+                                        labelElem.setAttribute("value", witnessLabel)
+                                        labelElem.$isDirty = true
+                                    }
+                                }
+                                else{
+                                   // A side effect of this is that a label cannot be unset by a typical DEER form update.
+                                   labelElem.value = "" 
+                                   labelElem.$isDirty = false
+                                }
                                 let selections = []
                                 let linePreviews = []
                                 const stopID = document.getSelection().extentNode.parentElement.getAttribute("tpen-line-id")

@@ -332,9 +332,9 @@ export default {
                 }
 
                 .toggleInclusion{
-                    padding: 5px;
+                    padding: 3px;
                     font-size: 10pt;
-                    margin-right: 0.5em;
+                    margin-right: 0.25em;
                 }
 
                 h2.nomargin{
@@ -343,7 +343,7 @@ export default {
             </style>
             <input type="hidden" custom-key="references" />
             <div class="col">
-                <h2 class="nomargin">Named Glosses</h2>
+                <h2>Attach Named Gloss</h2>
                 <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
                 <p class="filterInstructions is-hidden"> 
                 Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to. </p>
@@ -365,7 +365,7 @@ export default {
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
                     // TODO to know whether or not this Named Gloss is already included, we need to get the references Annotation of the witness and match on uris.
-                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" href="${val['@id']}" title="Attach this Named Gloss and Save" value="Attach Named Gloss"/>`
+                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" href="${val['@id']}" title="Attach this Named Gloss and Save" value="&#10149; attach"/>`
                     if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
                         // We cached it in the past and are going to trust it right now.
                         const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))

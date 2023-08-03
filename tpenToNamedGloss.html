@@ -50,15 +50,14 @@
     </div>
     <form id="witnessForm" class="is-hidden" deer-type="WitnessIsText" deer-context="http://purl.org/dc/terms" deer-creator="HabesDev"> 
         <input is="auth-creator" type="hidden" deer-key="creator" value="HabesDev" />
-        <input type="hidden" custom-key="uri">
+        <input type="hidden" custom-key="source">
         <div class="row">
             <label class="col-3 col-2-md text-right is-hidden">Label:</label>
             <input type="text" deer-key="label" placeholder="Label" class="col-9 col-10-md is-hidden">
 
-            <label class="col-3 col-2-md text-right is-hidden">Shelfmark:</label>
-            <input type="text" deer-key="identifier" placeholder="Shelfmark" class="col-9 col-10-md is-hidden">
+            <label class="col-3 col-2-md text-right">Shelfmark:</label>
+            <input type="text" deer-key="identifier" placeholder="Shelfmark" class="col-9 col-10-md">
                         
-
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
                 <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
@@ -82,15 +81,87 @@
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Named Gloss Incipit">Chosen Named Gloss</label>
             <textarea disabled title="Choose a Named Gloss to see the incipit here" placeholder="Choose a Named Gloss below..." class="chosenNamedGloss col-9 col-10-md is-hidden"></textarea>
         </div>
-        <tpen-line-selector class="lineSelector tpen-needed is-hidden"> </tpen-line-selector>
-        <deer-view class="tpen-needed is-hidden row" id="ngCollectionList" deer-listing="" public-collection="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
-        Loading&hellip;
-        </deer-view>  
+        <div class="row">
+            <tpen-line-selector class="lineSelector tpen-needed is-hidden col-7-md col-6-sm"> </tpen-line-selector>
+            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-listing="" public-collection="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            Loading&hellip;
+            </deer-view>  
+        </div>
+        
         <input class="is-hidden" type="submit" value="Create Textual Witness"/>
     </form>
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
+
+        /**
+         * Reset all the form elements so the form is ready to generate a new witness.
+         * This occurs after the user submits a new witness.
+         * If they provided a witness and are updating it, do not perform the reset.
+         */ 
+        function setFormDefaults(){
+            const form = document.querySelector("form")
+            const textWitnessID = window.location.hash.substr(1)
+
+            // Continue the session like normal if they had loaded up an existing witness and updated it.
+            if(textWitnessID) return
+                
+            form.setAttribute("deer-id", "")    
+            form.$isDirty = true
+            
+            const labelElem = form.querySelector("input[deer-key='label']")
+            labelElem.value = ""
+            labelElem.setAttribute("value", "")
+            labelElem.$isDirty = false
+
+            const shelfmarkElem = form.querySelector("input[type='identifier']")
+            shelfmarkElem.value = ""
+            shelfmarkElem.setAttribute("value", "")
+            shelfmarkElem.$isDirty = false
+
+            const formatElem = form.querySelector("input[type='checkbox']")
+            formatElem.removeAttribute("checked")
+            formatElem.value = "text/plain"
+            formatElem.setAttribute("value", "text/plain")
+            formatElem.$isDirty = true
+
+            const textElem = form.querySelector("input[custom-text-key='text']")
+            textElem.value = ""
+            textElem.setAttribute("value", "")
+            textElem.$isDirty = false
+
+            const languageElem = form.document.querySelector("select[custom-text-key='language']").querySelector("option")
+            languageElem.querySelector("option[selected").removeAttribute("selected")
+            languageElem.querySelector("option").setAttribute("selected")
+            languageElem.value = ""
+            languageElem.setAttribute("value", "")
+            languageElem.$isDirty = true
+
+            //remove text selection
+            let sel = window.getSelection ? window.getSelection() : document.selection
+            if (sel) {
+                if (sel.removeAllRanges) {
+                    sel.removeAllRanges()
+                } else if (sel.empty) {
+                    sel.empty()
+                }
+            }
+
+            const selectionsElem = form.querySelector("input[custom-key='selections']")
+            selectionsElem.value = ""
+            .setAttribute("value", "")
+            selectionsElem.$isDirty = false
+
+            const referencesElem = form.querySelector("input[custom-key='references']")
+            referencesElem.value = ""
+            .setAttribute("value", "")
+            referencesElem.$isDirty = false
+
+            const filter = form.querySelector('input[filter]')
+            filter.value = ""
+            .setAttribute("value", "")
+            filter.dispatchEvent(new Event('input', { bubbles: true }))
+        }
 
         document.querySelector("input[type='checkbox']").addEventListener("click", ev => {
             if(ev.target.checked){
@@ -103,7 +174,7 @@
 
         window.onload = () => {
             const tpenID = getURLParameter("tpen-project")
-            const dig_location = document.querySelector("input[custom-key='uri']")
+            const dig_location = document.querySelector("input[custom-key='source']")
             if(tpenID) {
                 needs.classList.add("is-hidden")
                 document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
@@ -127,7 +198,7 @@
             setTimeout(function(){
                 document.querySelectorAll('[is="auth-creator"]').forEach(el=>el.value = "HabesDev")
                 window.GOG_USER["http://store.rerum.io/agent"] = "HabesDev"
-            }, 3000)
+            }, 2000)
         }
 
         /**
@@ -187,7 +258,7 @@
                         })
                     }
                     prefillText(annotationData["text"], $elem)
-                    prefillDigitalLocations(annotationData["uri"], $elem)
+                    prefillDigitalLocations(annotationData["source"], $elem)
                     break
                 default:
             }
@@ -231,7 +302,7 @@
         function prefillDigitalLocations(locationsArr, form) {
             const source = locationsArr.source ?? null
             if(source && source?.citationSource){
-                form.querySelector("input[custom-key='uri']").setAttribute("deer-source", source.citationSource ?? "")
+                form.querySelector("input[custom-key='source']").setAttribute("deer-source", source.citationSource ?? "")
             }
             locationsArr = locationsArr.value ? locationsArr.value : locationsArr
             if (locationsArr === undefined) {
@@ -242,7 +313,7 @@
                 console.warn("There are no digital locations recorded for this witness")
                 return false
             }
-            form.querySelector("input[custom-key='uri']").value = locationsArr[0]
+            form.querySelector("input[custom-key='source']").value = locationsArr[0]
             // Note that we should check the tpen-project provided lines up with this
         }
 
@@ -432,13 +503,14 @@
             Promise.all(annotation_promises)
             .then(success => {
                 console.log("Successfully connected custom key Annotations")
-                const ev = new CustomEvent("Named Gloss Textual Witness Updated")
-                globalFeedbackBlip(ev, `Named Gloss Textual Witness Updated!`, true)
-                window.location.hash = entityID
+                const ev = new CustomEvent("Named Gloss Textual Witness Submitted")
+                globalFeedbackBlip(ev, `Named Gloss Textual Witness Submitted!`, true)
+                setFormDefaults()
+                //window.location.hash = entityID
                 setTimeout(function(){
-                    // Forcing the reload just to make sure they end up on a page with everything set.
-                    // Maybe we can just stay right here and let them continue?
-                    window.location.reload()
+                    //Forcing the reload just to make sure they end up on a page with everything set.
+                    //Maybe we can just stay right here and let them continue?
+                    setFormDefaults()
                 }, 1000)
             })
             .catch(err => {
