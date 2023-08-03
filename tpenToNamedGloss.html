@@ -109,36 +109,53 @@
             // Continue the session like normal if they had loaded up an existing witness and updated it.
             if(textWitnessID) return
                 
-            form.setAttribute("deer-id", "")    
+            form.removeAttribute("deer-id")
+            form.removeAttribute("deer-source")    
             form.$isDirty = true
             
             const labelElem = form.querySelector("input[deer-key='label']")
             labelElem.value = ""
             labelElem.setAttribute("value", "")
+            labelElem.removeAttribute("deer-source")
             labelElem.$isDirty = false
 
-            const shelfmarkElem = form.querySelector("input[type='identifier']")
+            const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
             shelfmarkElem.value = ""
             shelfmarkElem.setAttribute("value", "")
+            shelfmarkElem.removeAttribute("deer-source")
             shelfmarkElem.$isDirty = false
 
-            const formatElem = form.querySelector("input[type='checkbox']")
-            formatElem.removeAttribute("checked")
-            formatElem.value = "text/plain"
-            formatElem.setAttribute("value", "text/plain")
+            const formatElem = form.querySelector("input[custom-text-key='format']")
+            formatElem.removeAttribute("deer-source")
             formatElem.$isDirty = true
 
-            const textElem = form.querySelector("input[custom-text-key='text']")
+            const textElem = form.querySelector("textarea[custom-text-key='text']")
             textElem.value = ""
             textElem.setAttribute("value", "")
+            textElem.removeAttribute("deer-source")
             textElem.$isDirty = false
 
-            const languageElem = form.document.querySelector("select[custom-text-key='language']").querySelector("option")
-            languageElem.querySelector("option[selected").removeAttribute("selected")
-            languageElem.querySelector("option").setAttribute("selected")
-            languageElem.value = ""
-            languageElem.setAttribute("value", "")
+            const languageElem = form.querySelector("select[custom-text-key='language']")
+            languageElem.removeAttribute("deer-source")
             languageElem.$isDirty = true
+
+            const selectionsElem = form.querySelector("input[custom-key='selections']")
+            selectionsElem.value = ""
+            selectionsElem.setAttribute("value", "")
+            selectionsElem.removeAttribute("deer-source")
+            selectionsElem.$isDirty = false
+
+            const referencesElem = form.querySelector("input[custom-key='references']")
+            referencesElem.value = ""
+            referencesElem.setAttribute("value", "")
+            referencesElem.removeAttribute("deer-source")
+            referencesElem.$isDirty = false
+
+            // reset the named glosses filter
+            const filter = form.querySelector('input[filter]')
+            filter.value = ""
+            filter.setAttribute("value", "")
+            filter.dispatchEvent(new Event('input', { bubbles: true }))
 
             //remove text selection
             let sel = window.getSelection ? window.getSelection() : document.selection
@@ -149,21 +166,6 @@
                     sel.empty()
                 }
             }
-
-            const selectionsElem = form.querySelector("input[custom-key='selections']")
-            selectionsElem.value = ""
-            selectionsElem.setAttribute("value", "")
-            selectionsElem.$isDirty = false
-
-            const referencesElem = form.querySelector("input[custom-key='references']")
-            referencesElem.value = ""
-            referencesElem.setAttribute("value", "")
-            referencesElem.$isDirty = false
-
-            const filter = form.querySelector('input[filter]')
-            filter.value = ""
-            filter.setAttribute("value", "")
-            filter.dispatchEvent(new Event('input', { bubbles: true }))
         }
 
         window.onload = () => {
@@ -187,6 +189,8 @@
                 dig_location.$isDirty = true
                 document.querySelector("select[custom-text-key='language']").$isDirty = true
                 document.querySelector("input[custom-text-key='format']").$isDirty = true
+                // remove this to support the specialized form reset
+                removeEventListener("deer-form-rendered", init)
             }
 
             //For hacking the login and user
@@ -207,13 +211,7 @@
             }
         })
 
-        /**
-         * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
-         * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
-         * This event will come after all deer-view-rendered events have finished.
-         * @see deer-record.js DeerReport.constructor()  
-         */
-        addEventListener('deer-form-rendered', event => {
+        function init(event){
             let whatRecordForm = event.target.id
             let annotationData = event.detail
             const $elem = event.target
@@ -264,7 +262,15 @@
                     break
                 default:
             }
-        })
+        }
+
+        /**
+         * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
+         * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
+         * This event will come after all deer-view-rendered events have finished.
+         * @see deer-record.js DeerReport.constructor()  
+         */
+        addEventListener('deer-form-rendered', init)
 
         /**
          * Helper function for the specialized text key, which is an Object.
@@ -283,18 +289,26 @@
                 return false
             }
             const language = textObj.language
-            form.querySelector("select[custom-text-key='language'").value = language
+            const languageElem = form.querySelector("select[custom-text-key='language'")
+            languageElem.value = language
+            languageElem.setAttribute("value", language)
             
             const format = textObj.format
-            form.querySelector("input[custom-text-key='format'").value = format
+            const formatElem = form.querySelector("input[custom-text-key='format'")
+            formatElem.value = format
+            formatElem.setAttribute("value", "format")
             if(format === "text/html"){
-                form.querySelector("input[custom-text-key='format'").checked = true
+                formatElem.checked = true
             }
             if (textObj.textValue.length === 0) {
                 console.warn("There is no text recorded for this witness")
                 return false
             }
-            form.querySelector("textarea[custom-text-key='text'").value = textObj.textValue
+
+            const textVal = textObj.textValue
+            const textElem = form.querySelector("textarea[custom-text-key='text'")
+            textElem.value = textObj.textValue
+            textElem.setAttribute("value", textObj.textValue)
         }
 
          /**
@@ -507,7 +521,7 @@
                 console.log("Successfully connected custom key Annotations")
                 const ev = new CustomEvent("Named Gloss Textual Witness Submitted")
                 globalFeedbackBlip(ev, `Named Gloss Textual Witness Submitted!`, true)
-                setFormDefaults()
+                
                 //window.location.hash = entityID
                 setTimeout(function(){
                     //Forcing the reload just to make sure they end up on a page with everything set.

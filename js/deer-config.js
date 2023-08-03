@@ -311,39 +311,46 @@ export default {
             let html = `
             <style>
                 .cachedNotice{
-                  position: relative;
-                  font-family: "Eczar","Volkhov",serif;
-                  font-size: 11pt;
+                    position: relative;
+                    font-family: "Eczar","Volkhov",serif;
+                    font-size: 11pt;
+                    top: -11px;
                 }
 
                 .progressArea{
-                  font-family: "Eczar","Volkhov",serif;
+                    font-family: "Eczar","Volkhov",serif;
                 }
 
                 .cachedNotice a{
-                  cursor: pointer;
+                    cursor: pointer;
                 }
 
                 .totalsProgress{
-                  text-align: center;
-                  background-color: rgba(0, 0, 0, 0.1);
-                  padding-top: 4px;
-                  font-size: 13pt;
+                    text-align: center;
+                    background-color: rgba(0, 0, 0, 0.1);
+                    padding-top: 4px;
+                    font-size: 13pt;
                 }
 
                 .toggleInclusion{
                     padding: 3px;
                     font-size: 10pt;
-                    margin-right: 0.25em;
+                    margin-right: 0.5em;
                 }
 
                 h2.nomargin{
                     margin: 0;
                 }
+
+                .filterInstructions{
+                    font-family: "Eczar","Volkhov",serif;
+                    margin: 0;
+                }
+
             </style>
             <input type="hidden" custom-key="references" />
             <div class="col">
-                <h2>Attach Named Gloss</h2>
+                <h2 class="nomargin">Attach Named Gloss</h2>
                 <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
                 <p class="filterInstructions is-hidden"> 
                 Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to. </p>
@@ -482,13 +489,8 @@ export default {
                             i.value = ""
                             i.setAttribute("value", "")
                         }
-                    })
-                    if(filterPresent){
-                        debounce(filterGlosses(elem.$contentState))
-                    }
-                    else{
                         i.dispatchEvent(new Event('input', { bubbles: true }))
-                    }
+                    })
                 }
 
                 function debounce(func,timeout = 500) {
@@ -551,6 +553,39 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
+                    let inclusionBtn = document.createElement("input")
+                    inclusionBtn.setAttribute("type", "button")
+                    inclusionBtn.setAttribute("href", obj["@id"])
+                    inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
+                    inclusionBtn.setAttribute("value", `➥ attach`)
+                    inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+                    inclusionBtn.addEventListener('click', ev => {
+                        ev.preventDefault()
+                        ev.stopPropagation()
+                        const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
+                        if(confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
+                            const form = ev.target.closest("form")
+                            const customKey = form.querySelector("input[custom-key]")
+                            const uri = a.getAttribute("href")
+                            if(customKey.value !== uri){
+                                customKey.value = uri 
+                                customKey.setAttribute("value", uri) 
+                                customKey.$isDirty = true
+                                form.closest("form").$isDirty = true
+                                // There must be a shelfmark.
+                                if(form.querySelector("input[deer-key='identifier']").value){
+                                    form.querySelector("input[type='submit']").click()    
+                                }
+                                else{
+                                    alert("You must provide a Shelfmark value.")
+                                }
+                            }
+                            else{
+                                alert(`This textual witness is already attached to Named Gloss '${namedGlossIncipit}'`)
+                            }
+                        }                    
+                    })
+
                     const filterPresent = containingListElem.$contentState ? true : false
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
@@ -579,6 +614,8 @@ export default {
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     a.appendChild(span)
+                    // maybe a bit hacky and we need to split out filterable from filterable+selectable collection list items.
+                    if(window.location.pathname.includes("tpenToNamedGloss")) li.appendChild(inclusionBtn)
                     li.appendChild(a)
                     elem.replaceWith(li)
 
@@ -598,7 +635,13 @@ export default {
                             i.classList.remove("is-hidden")
                             if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
                                 i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
+                                i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
                             }
+                            else{
+                                i.value = ""
+                                i.setAttribute("value", "")
+                            }
+                            i.dispatchEvent(new Event('input', { bubbles: true }))
                         })
                     }
                 }
