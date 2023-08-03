@@ -364,7 +364,6 @@ export default {
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
-                    // TODO to know whether or not this Named Gloss is already included, we need to get the references Annotation of the witness and match on uris.
                     const inclusionBtn = `<input type="button" class="toggleInclusion button primary" href="${val['@id']}" title="Attach this Named Gloss and Save" value="&#10149; attach"/>`
                     if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
                         // We cached it in the past and are going to trust it right now.
@@ -452,27 +451,7 @@ export default {
                         else{
                             alert(`This textual witness is already attached to Named Gloss '${namedGlossIncipit}'`)
                         }
-                    }
-
-
-                    // const customKey = elem.querySelector("input[custom-key]")
-                    // const uri = a.getAttribute("href")
-                    // const included = elem.listCache.has(uri)
-                    // a.classList[included ? "remove" : "add"]("is-included")
-                    // elem.listCache[included ? "delete" : "add"](uri)
-                    // if(a.classList.contains("is-included")) {
-                    //     const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
-                    //     filter.value = namedGlossIncipit
-                    //     filter.setAttribute("value", namedGlossIncipit)
-                    //     document.querySelector(".chosenNamedGloss").value = namedGlossIncipit
-                    // }
-                    // else{
-                    //     filter.value = ""
-                    //     filter.setAttribute("value", "")
-                    //     document.querySelector(".chosenNamedGloss").value = ""
-                    // }
-                    //filter.dispatchEvent(new Event('input', { bubbles: true }))
-                    
+                    }                    
                 }))
 
                 // Filter the list of named glosses as users type their query against 'title'
