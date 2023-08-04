@@ -84,14 +84,13 @@
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Named Gloss Incipit">Chosen Named Gloss</label>
             <textarea disabled title="Choose a Named Gloss to see the incipit here" placeholder="Choose a Named Gloss below..." class="chosenNamedGloss col-9 col-10-md is-hidden"></textarea>
         </div>
+        <input class="is-hidden" type="submit" value="Create Textual Witness"/>
         <div class="row">
             <tpen-line-selector class="lineSelector tpen-needed is-hidden col-7-md col-6-sm"> </tpen-line-selector>
             <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-listing="" public-collection="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
             Loading&hellip;
             </deer-view>  
         </div>
-        
-        <input class="is-hidden" type="submit" value="Create Textual Witness"/>
     </form>
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
@@ -181,7 +180,9 @@
             // It is possible we could also let them hand in a Named Gloss URI as well.
             const textWitnessID = window.location.hash.substr(1)
             if(textWitnessID){
-                document.querySelector("input[type='submit']").value = "Update Textual Witness"
+                const submitBtn = document.querySelector("input[type='submit']")
+                submitBtn.value = "Update Textual Witness"
+                submitBtn.classList.remove("is-hidden")
                 document.querySelector("form").setAttribute("deer-id", textWitnessID)
             }
             else{
@@ -192,6 +193,29 @@
                 // remove this to support the specialized form reset
                 removeEventListener("deer-form-rendered", init)
             }
+
+            // mimic isDirty detection for these custom inputs
+            document.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
+                ev.target.$isDirty = true
+                ev.target.closest("form").$isDirty = true
+            })
+            document.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
+                ev.target.$isDirty = true
+                ev.target.closest("form").$isDirty = true
+            })
+            // Note that this HTML element is a checkbox
+            document.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+                if(ev.target.checked){
+                    ev.target.value = "text/html"
+                    ev.target.setAttribute("value", "text/html")
+                }
+                else{
+                    ev.target.value = "text/plain"
+                    ev.target.setAttribute("value", "text/plain")
+                }
+                ev.target.$isDirty = true
+                ev.target.closest("form").$isDirty = true
+            })
 
             //For hacking the login and user
             setTimeout(function(){
@@ -217,28 +241,6 @@
             const $elem = event.target
             switch (whatRecordForm) {
                 case "witnessForm":
-                    // mimic isDirty detection for these custom inputs
-                    $elem.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
-                        ev.target.$isDirty = true
-                        ev.target.closest("form").$isDirty = true
-                    })
-                    $elem.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
-                        ev.target.$isDirty = true
-                        ev.target.closest("form").$isDirty = true
-                    })
-                    // Note that this HTML element is a checkbox
-                    $elem.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
-                        if(ev.target.checked){
-                            ev.target.value = "text/html"
-                            ev.target.setAttribute("value", "text/html")
-                        }
-                        else{
-                            ev.target.value = "text/plain"
-                            ev.target.setAttribute("value", "text/plain")
-                        }
-                        ev.target.$isDirty = true
-                        ev.target.closest("form").$isDirty = true
-                    })
                     if(ngCollectionList.hasAttribute("ng-list-loaded")){
                         prefillReferences(annotationData["references"], ngCollectionList)
                     }
@@ -521,13 +523,11 @@
                 console.log("Successfully connected custom key Annotations")
                 const ev = new CustomEvent("Named Gloss Textual Witness Submitted")
                 globalFeedbackBlip(ev, `Named Gloss Textual Witness Submitted!`, true)
-                
-                //window.location.hash = entityID
-                setTimeout(function(){
-                    //Forcing the reload just to make sure they end up on a page with everything set.
-                    //Maybe we can just stay right here and let them continue?
-                    setFormDefaults()
-                }, 1000)
+                const textWitnessID = window.location.hash.substr(1)
+                // If we are updating a witness keep the interface.  If we just sumbitted a new one, refresh the form to be ready for another new one.
+                if(!textWitnessID){
+                    setFormDefaults()  
+                }
             })
             .catch(err => {
                 console.error("Did not connect all custom key Annotations!!")
