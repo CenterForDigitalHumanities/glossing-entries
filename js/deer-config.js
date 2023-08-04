@@ -329,7 +329,7 @@ export default {
                     text-align: center;
                     background-color: rgba(0, 0, 0, 0.1);
                     padding-top: 4px;
-                    font-size: 13pt;
+                    font-size: 11pt;
                 }
 
                 .toggleInclusion{
@@ -357,7 +357,11 @@ export default {
                 <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Named Gloss filter detected.  Please note that Named Glosses will appear as they are fully loaded. </p>
-                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%)<br>You may click to select any Named Gloss loaded already.</div>
+                    <div class="totalsProgress" count="0"> 
+                        {loaded} out of {total} loaded (0%)<br>
+                        You may click to select any Named Gloss loaded already.<br>
+                        A filter will become available when all items are loaded.
+                    </div>
                 </div>`
             
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
@@ -429,7 +433,10 @@ export default {
                 const progressArea = elem.querySelector(".progressArea")
                 const filterInstructions = elem.querySelector(".filterInstructions")
                 // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
-                totalsProgress.innerHTML = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>You may click to select any Named Gloss loaded already.`
+                totalsProgress.innerHTML = `
+                    ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>
+                    You may click to select any Named Gloss loaded already.<br>
+                    A filter will become available when all items are loaded.`
                 totalsProgress.setAttribute("total", total)
                 totalsProgress.setAttribute("count", numloaded)
 
@@ -634,7 +641,10 @@ export default {
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
                     totalsProgress.setAttribute("count", numloaded)
-                    totalsProgress.innerHTML = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  You may click to select any Named Gloss loaded already.`
+                    totalsProgress.innerHTML = `
+                        ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  
+                        You may click to select any Named Gloss loaded already.<br>
+                        A filter will become available when all items are loaded.`
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
