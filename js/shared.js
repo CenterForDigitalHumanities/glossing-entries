@@ -1,8 +1,10 @@
 /**
+ * Shared front end functionality across the HTML pages.
+ */ 
+
+
+/**
  * An archetype entity is being deleted.  Delete it and some choice Annotations connected to it.
- * 
- * Might want to update the name of this to be delete from collection instead of delete this
- * 
  * 
  * @param event {Event} A button/link click event
  * @param type {String} The archtype object's type or @type.
@@ -253,16 +255,6 @@ function restorePadding(s) {
         s += '===='.slice(0, 4 - pad)
     }
     return s + padding
-}
-
-function getURLParameter(variable) {
-    const query = window.location.search.substring(1)
-    const vars = query.split("&")
-    for (const i = 0; i < vars.length; i++) {
-        var pair = vars[i].split("=")
-        if (pair[0] == variable) { return pair[1] }
-    }
-    return (false)
 }
 
 /** Auth */

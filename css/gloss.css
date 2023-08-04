@@ -105,6 +105,26 @@ img.thumbnail {
   position: relative;
 }
 
+#ngCollectionList li.is-hidden.unadd-item, #ngCollectionList li.is-hidden.unremove-item {
+  display: block !important;
+}
+
+#ngCollectionList li.is-hidden {
+  height: 0em;
+  opacity: 0;
+}
+
+#ngCollectionList li {
+  transition: all 500ms;
+  opacity: 1;
+  height:1.6em;
+}
+
+#ngCollectionList li.unadd-item {
+  opacity: 0;
+  height: 0em;
+}
+
 #collectionList li.is-hidden.unadd-item, #collectionList li.is-hidden.unremove-item {
   display: block !important;
 }
@@ -372,4 +392,15 @@ line.selected.just {
     top: 0.5em; 
     right: 0.5em;
     z-index: 1;
+}
+
+#loading {
+    background-image: url(../images/load-blocks.gif);
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 35em;
+    filter: invert(100%);
+    -webkit-filter: invert(100%);
+    background-color: black;
+    text-align: center;
 }
