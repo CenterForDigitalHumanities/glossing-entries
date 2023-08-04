@@ -1,3 +1,8 @@
+/**
+  * Process a T-PEN Manifest URI (Presentation API 2.1 only) for its transcription text.
+  * Generate the UI around canvases (pages) and text (lines) so that a user can select text.
+  * Store that text selection as a URI Fragment using #char.  It may be an array that spans multiple lines.
+*/
 class TpenLineSelector extends HTMLElement {
     template = `
         <style>

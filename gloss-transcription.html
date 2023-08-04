@@ -35,7 +35,7 @@
 
 <body class="container">
     <gog-header class="container"></gog-header>
-    <h2 class="bg-basic"> Named Gloss Textual Witness </h2>
+    <h2 class="bg-basic"> Named Gloss Transcription Witness </h2>
     <p class="bg-basic"> Connect Named Glosses with text in T-PEN Transcriptions. </p>
     <div id="needs" class="row bg-basic">
         <p class="howTo"> 
@@ -51,7 +51,7 @@
             Please be patient while we get things together...  
         </p>
     </div>
-    <form id="witnessForm" class="is-hidden" deer-type="WitnessIsText" deer-context="http://purl.org/dc/terms" deer-creator="HabesDev"> 
+    <form id="witnessForm" class="is-hidden" deer-type="Text_test" deer-context="http://purl.org/dc/terms" deer-creator="HabesDev"> 
         <input is="auth-creator" type="hidden" deer-key="creator" value="HabesDev" />
         <input type="hidden" custom-key="source">
         <div class="row">
@@ -59,7 +59,7 @@
             <input type="text" deer-key="label" placeholder="Label" class="col-9 col-10-md is-hidden">
 
             <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
-            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required">
+            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
                         
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
@@ -81,13 +81,14 @@
                 The text contains <code>< tags ></code><input type="checkbox" custom-text-key="format" value="text/plain" />
             </label>
 
+            <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Named Gloss Incipit">Chosen Named Gloss</label>
             <textarea disabled title="Choose a Named Gloss to see the incipit here" placeholder="Choose a Named Gloss below..." class="chosenNamedGloss col-9 col-10-md is-hidden"></textarea>
         </div>
         <input class="is-hidden" type="submit" value="Create Textual Witness"/>
         <div class="row">
             <tpen-line-selector class="lineSelector tpen-needed is-hidden col-7-md col-6-sm"> </tpen-line-selector>
-            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-listing="" public-collection="https://devstore.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-listing="" public-collection="https://store.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
             Loading&hellip;
             </deer-view>  
         </div>
@@ -167,6 +168,11 @@
             }
         }
 
+        /**
+         * Attach all the vent handlers to the custom key areas.
+         * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
+         * Set fixed value fields and make those inputs dirty.
+         */ 
         window.onload = () => {
             const tpenID = getURLParameter("tpen-project")
             const dig_location = document.querySelector("input[custom-key='source']")
@@ -177,7 +183,6 @@
                 dig_location.value = tpenID
                 dig_location.setAttribute("value", tpenID)
             }
-            // It is possible we could also let them hand in a Named Gloss URI as well.
             const textWitnessID = window.location.hash.substr(1)
             if(textWitnessID){
                 const submitBtn = document.querySelector("input[type='submit']")
@@ -235,6 +240,10 @@
             }
         })
 
+        /**
+         * Paginate the custom data fields in this witness form.
+         * Note that it is only fired when the page recieve a witness URI in the url hash.
+         */ 
         function init(event){
             let whatRecordForm = event.target.id
             let annotationData = event.detail
@@ -268,6 +277,7 @@
 
         /**
          * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
+         * Note that it is only required when a witness URI was provided by the url hash.
          * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
          * This event will come after all deer-view-rendered events have finished.
          * @see deer-record.js DeerReport.constructor()  
@@ -332,7 +342,6 @@
                 return false
             }
             form.querySelector("input[custom-key='source']").value = locationsArr[0]
-            // Note that we should check the tpen-project provided lines up with this
         }
 
         /**
@@ -368,8 +377,7 @@
             const filter = document.querySelector("input[filter]")
             filter.value = ngLabel.trim()
             filter.dispatchEvent(new Event('input', { bubbles: true }))
-            // document.querySelector(".chosenNamedGloss").value = ngLabel
-
+            document.querySelector(".chosenNamedGloss").value = ngLabel
         }
 
         /**
@@ -452,7 +460,7 @@
                     }
                     anno.body[key] = { "value": el.value.split("__") }
                     if(el.hasAttribute("deer-source")) anno["@id"] = el.getAttribute("deer-source")
-                    return fetch(`https://tinydev.rerum.io/app/${el.hasAttribute("deer-source")?"update":"create"}`, {
+                    return fetch(`https://tinymatt.rerum.io/gloss/${el.hasAttribute("deer-source")?"update":"create"}`, {
                         method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
                         mode: "cors",
                         headers: {
@@ -499,7 +507,7 @@
                 const el = customTextElems[2]
                 if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
                 annotation_promises.push(
-                    fetch(`https://tinydev.rerum.io/app/${el.hasAttribute("deer-source")?"update":"create"}`, {
+                    fetch(`https://tinymatt.rerum.io/gloss/${el.hasAttribute("deer-source")?"update":"create"}`, {
                         method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
                         mode: 'cors',
                         headers: {
@@ -525,9 +533,7 @@
                 globalFeedbackBlip(ev, `Named Gloss Textual Witness Submitted!`, true)
                 const textWitnessID = window.location.hash.substr(1)
                 // If we are updating a witness keep the interface.  If we just sumbitted a new one, refresh the form to be ready for another new one.
-                if(!textWitnessID){
-                    setFormDefaults()  
-                }
+                if(!textWitnessID) setFormDefaults()  
             })
             .catch(err => {
                 console.error("Did not connect all custom key Annotations!!")

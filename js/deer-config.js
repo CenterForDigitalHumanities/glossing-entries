@@ -28,11 +28,11 @@ export default {
 
     URLS: {
         BASE_ID: "https://store.rerum.io/v1",
-        CREATE: "https://tinydev.rerum.io/app/create",
-        UPDATE: "https://tinydev.rerum.io/app/update",
-        QUERY: "https://tinydev.rerum.io/app/query?limit=100&skip=0",
-        OVERWRITE: "https://tinydev.rerum.io/app/overwrite",
-        DELETE: "https://tinydev.rerum.io/app/delete",
+        CREATE: "https://tinymatt.rerum.io/gloss/create",
+        UPDATE: "https://tinymatt.rerum.io/gloss/update",
+        QUERY: "https://tinymatt.rerum.io/gloss/query?limit=100&skip=0",
+        OVERWRITE: "https://tinymatt.rerum.io/gloss/overwrite",
+        DELETE: "https://tinymatt.rerum.io/gloss/delete",
         SINCE: "https://store.rerum.io/v1/since"
     },
 
@@ -529,6 +529,11 @@ export default {
                         }
                     })
                 }
+
+                // Could write content state url for the filter if desired.
+                //const url = new URL(window.location.href)
+                //url.searchParams.set("gog-filter", queryString)
+                //window.history.replaceState(null, null, url);
             }
             return { html, then }
         },
@@ -553,6 +558,8 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
+
+                    // Note the inclusion button is only for the glossesSelectorForTextualWitness template.
                     let inclusionBtn = document.createElement("input")
                     inclusionBtn.setAttribute("type", "button")
                     inclusionBtn.setAttribute("href", obj["@id"])
@@ -608,6 +615,7 @@ export default {
                             }
                         }
                     })
+
                     if(filterPresent) li.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
@@ -615,7 +623,7 @@ export default {
 
                     a.appendChild(span)
                     // maybe a bit hacky and we need to split out filterable from filterable+selectable collection list items.
-                    if(window.location.pathname.includes("tpenToNamedGloss")) li.appendChild(inclusionBtn)
+                    if(window.location.pathname.includes("gloss-transcription")) li.appendChild(inclusionBtn)
                     li.appendChild(a)
                     elem.replaceWith(li)
 
