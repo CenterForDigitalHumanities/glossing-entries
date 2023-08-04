@@ -51,8 +51,8 @@
             Please be patient while we get things together...  
         </p>
     </div>
-    <form id="witnessForm" class="is-hidden" deer-type="Text_test" deer-context="http://purl.org/dc/terms" deer-creator="HabesDev"> 
-        <input is="auth-creator" type="hidden" deer-key="creator" value="HabesDev" />
+    <form id="witnessForm" class="is-hidden" deer-type="Text_test" deer-context="http://purl.org/dc/terms"> 
+        <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">
         <div class="row">
             <label class="col-3 col-2-md text-right is-hidden">Label:</label>
@@ -221,12 +221,6 @@
                 ev.target.$isDirty = true
                 ev.target.closest("form").$isDirty = true
             })
-
-            //For hacking the login and user
-            setTimeout(function(){
-                document.querySelectorAll('[is="auth-creator"]').forEach(el=>el.value = "HabesDev")
-                window.GOG_USER["http://store.rerum.io/agent"] = "HabesDev"
-            }, 2000)
         }
 
         /**
@@ -456,7 +450,7 @@
                         "@type": "Annotation",
                         "body": {},
                         "target": entityID,
-                        "creator" : "HabesDev"
+                        "creator" : window.GOG_USER["http://store.rerum.io/agent"]
                     }
                     anno.body[key] = { "value": el.value.split("__") }
                     if(el.hasAttribute("deer-source")) anno["@id"] = el.getAttribute("deer-source")
@@ -502,7 +496,7 @@
                         }
                     },
                     "target": entityID,
-                    "creator" : "HabesDev"
+                    "creator" : window.GOG_USER["http://store.rerum.io/agent"]
                 }
                 const el = customTextElems[2]
                 if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
