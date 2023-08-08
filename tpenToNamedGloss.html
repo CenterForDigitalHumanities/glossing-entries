@@ -188,9 +188,9 @@
         function prefillText(textObj, form) {
             const source = textObj.source ?? null
             if(source?.citationSource){
-                form.querySelector("select[custom-text-key='language'").setAttribute("deer-source", source.citationSource ?? "") 
-                form.querySelector("select[custom-text-key='format'").setAttribute("deer-source", source.citationSource ?? "") 
-                form.querySelector("textarea[custom-text-key='text'").setAttribute("deer-source", source.citationSource ?? "") 
+                form.querySelector("select[custom-text-key='language'")?.setAttribute("deer-source", source.citationSource ?? "") 
+                form.querySelector("select[custom-text-key='format'")?.setAttribute("deer-source", source.citationSource ?? "") 
+                form.querySelector("textarea[custom-text-key='text'")?.setAttribute("deer-source", source.citationSource ?? "") 
             }
             textObj = textObj.value ? textObj.value : textObj
             if (textObj === undefined) {
@@ -198,7 +198,7 @@
                 return false
             }
             const language = textObj.language
-            form.querySelector("select[custom-text-key='language'").value = language
+            form.querySelector("select[custom-text-key='language'")?.value = language
             
             //const format = textObj.format
             //form.querySelector("select[custom-text-key='format'").value = format
@@ -206,7 +206,7 @@
                 console.warn("There is no text recorded for this witness")
                 return false
             }
-            form.querySelector("textarea[custom-text-key='text'").value = textObj.textValue
+            form.querySelector("textarea[custom-text-key='text'")?.value = textObj.textValue
         }
 
         /**
@@ -216,7 +216,7 @@
         function prefillReferences(referencesArr = {}, form = document) {
             const source = referencesArr.source ?? null
             if(source?.citationSource){
-                form.querySelector("input[custom-key='references']").setAttribute("deer-source", source.citationSource ?? "")
+                form.querySelector("input[custom-key='references']")?.setAttribute("deer-source", source.citationSource ?? "")
             }
             referencesArr = referencesArr.value ? referencesArr.value : referencesArr
             if (referencesArr === undefined) {
@@ -227,14 +227,14 @@
                 console.warn("There are no references recorded for this witness")
                 return false
             }
-            form.querySelector("input[custom-key='references']").value = referencesArr[0]
+            form.querySelector("input[custom-key='references']")?.value = referencesArr[0]
             //Now apply the references value to the filter
             const ngID = referencesArr[0]
-            const ngLabel = form.querySelector(`li[deer-id="${ngID}"]`).getAttribute("data-title")
+            const ngLabel = form.querySelector(`li[deer-id="${ngID}"]`)?.getAttribute("data-title")
             const filter = document.querySelector("input[filter]")
             filter.value = ngLabel
             filter.dispatchEvent(new Event('input', { bubbles: true }))
-            document.querySelector(".chosenNamedGloss").value = ngLabel
+            document.querySelector(".chosenNamedGloss")?.value = ngLabel
         }
 
         /**
@@ -244,7 +244,7 @@
         function preselectLines(linesArr = {}, form = document) {
             const source = linesArr.source ?? null
             if(source?.citationSource){
-                form.querySelector("input[custom-key='selections']").setAttribute("deer-source", source.citationSource ?? "")
+                form.querySelector("input[custom-key='selections']")?.setAttribute("deer-source", source.citationSource ?? "")
             }
             linesArr = linesArr.value ? linesArr.value : linesArr
             if (linesArr === undefined) {
@@ -255,7 +255,7 @@
                 console.warn("There are no lines recorded for this witness")
                 return false
             }
-            form.querySelector("input[custom-key='selections']").value = linesArr.join("__")
+            form.querySelector("input[custom-key='selections']")?.value = linesArr.join("__")
             //Now highlight the lines
             let range = document.createRange()
             let sel = window.getSelection()
@@ -263,16 +263,16 @@
             let lineid = line.split("#")[0]
             const lineStartElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
             let selection = line.split("#")[1].replace("char=", "").split(",")           
-            range.setStart(lineStartElem.firstChild, parseInt(selection[0]))
+            range.setStart(lineStartElem?.firstChild, parseInt(selection[0]))
             if(linesArr.length > 1){
                 line = linesArr.pop()
                 lineid = line.split("#")[0]
                 const lineEndElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
                 selection = line.split("#")[1].replace("char=", "").split(",")           
-                range.setEnd(lineEndElem.firstChild, parseInt(selection[1]))
+                range.setEnd(lineEndElem?.firstChild, parseInt(selection[1]))
             }
             else{
-                range.setEnd(lineStartElem.firstChild, parseInt(selection[1]))
+                range.setEnd(lineStartElem?.firstChild, parseInt(selection[1]))
             }
             sel.removeAllRanges()
             sel.addRange(range)
