@@ -187,7 +187,7 @@
          * */
         function prefillText(textObj, form) {
             const source = textObj.source ?? null
-            if(source && source?.citationSource){
+            if(source?.citationSource){
                 form.querySelector("select[custom-text-key='language'").setAttribute("deer-source", source.citationSource ?? "") 
                 form.querySelector("select[custom-text-key='format'").setAttribute("deer-source", source.citationSource ?? "") 
                 form.querySelector("textarea[custom-text-key='text'").setAttribute("deer-source", source.citationSource ?? "") 
@@ -213,9 +213,9 @@
          * Helper function for the specialized references key, which is an Array of URIs.
          * It needs to apply the filter with this Named Gloss's Label..
          * */
-        function prefillReferences(referencesArr, form) {
+        function prefillReferences(referencesArr = {}, form = document) {
             const source = referencesArr.source ?? null
-            if(source && source?.citationSource){
+            if(source?.citationSource){
                 form.querySelector("input[custom-key='references']").setAttribute("deer-source", source.citationSource ?? "")
             }
             referencesArr = referencesArr.value ? referencesArr.value : referencesArr
@@ -241,9 +241,9 @@
          * Helper function for the specialized references key, which is an Array of URIs.
          * It needs to apply the filter with this Named Gloss's Label.
          * */
-        function preselectLines(linesArr, form) {
+        function preselectLines(linesArr = {}, form = document) {
             const source = linesArr.source ?? null
-            if(source && source?.citationSource){
+            if(source?.citationSource){
                 form.querySelector("input[custom-key='selections']").setAttribute("deer-source", source.citationSource ?? "")
             }
             linesArr = linesArr.value ? linesArr.value : linesArr
