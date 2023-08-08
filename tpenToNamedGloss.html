@@ -185,7 +185,7 @@
          * Helper function for the specialized text key, which is an Object.
          * Note that format is hard coded to plain/text for now.
          * */
-        function prefillText(textObj, form) {
+        function prefillText(textObj = {}, form = document) {
             const source = textObj.source ?? null
             if(source?.citationSource){
                 form.querySelector("select[custom-text-key='language'")?.setAttribute("deer-source", source.citationSource ?? "") 
@@ -198,15 +198,15 @@
                 return false
             }
             const language = textObj.language
-            form.querySelector("select[custom-text-key='language'")?.value = language
+            form.querySelector("select[custom-text-key='language'")?.setAttribute('value', language)
             
             //const format = textObj.format
             //form.querySelector("select[custom-text-key='format'").value = format
-            if (textObj.textValue.length === 0) {
+            if (textObj.textValue?.length === 0) {
                 console.warn("There is no text recorded for this witness")
                 return false
             }
-            form.querySelector("textarea[custom-text-key='text'")?.value = textObj.textValue
+            form.querySelector("textarea[custom-text-key='text'")?.setAttribute('value', textObj.textValue)
         }
 
         /**
@@ -227,14 +227,14 @@
                 console.warn("There are no references recorded for this witness")
                 return false
             }
-            form.querySelector("input[custom-key='references']")?.value = referencesArr[0]
+            form.querySelector("input[custom-key='references']")?.setAttribute('value',referencesArr[0])
             //Now apply the references value to the filter
             const ngID = referencesArr[0]
             const ngLabel = form.querySelector(`li[deer-id="${ngID}"]`)?.getAttribute("data-title")
             const filter = document.querySelector("input[filter]")
             filter.value = ngLabel
             filter.dispatchEvent(new Event('input', { bubbles: true }))
-            document.querySelector(".chosenNamedGloss")?.value = ngLabel
+            document.querySelector(".chosenNamedGloss")?.setAttribute('value',ngLabel)
         }
 
         /**
@@ -255,7 +255,7 @@
                 console.warn("There are no lines recorded for this witness")
                 return false
             }
-            form.querySelector("input[custom-key='selections']")?.value = linesArr.join("__")
+            form.querySelector("input[custom-key='selections']")?.setAttribute('value',linesArr.join("__"))
             //Now highlight the lines
             let range = document.createRange()
             let sel = window.getSelection()
@@ -279,7 +279,7 @@
         }
 
         function loadURI(){
-            let url = resourceURI.value ? resourceURI.value : getURLParameter("tpen-project")
+            let url = resourceURI.value ?? getURLParameter("tpen-project")
             if(url){
                 let tpen = "?tpen-project="+url
                 url = window.location.href.split('?')[0] + tpen
