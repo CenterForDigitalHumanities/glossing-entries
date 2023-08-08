@@ -104,7 +104,7 @@
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
-        window.onload = () => {
+        addEventListener('DOMContentLoaded', () => {
             const tpenID = getURLParameter("tpen-project")
             if(tpenID) {
                 needs.classList.add("is-hidden")
@@ -117,7 +117,7 @@
                 document.querySelector("input[type='submit']").value = "Update Textual Witness"
                 document.querySelector("form").setAttribute("deer-id", textWitnessID)
             }
-        }
+        })
 
         /**
          * When the Named Gloss Collection List deer view loads its records we can show the witness form.
