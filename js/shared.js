@@ -260,7 +260,6 @@ function restorePadding(s) {
 self.onhashchange = loadHashId
 
 /** Auth */
-/*
 
 function loadHashId() {
     let hash = location.hash?.substring(1)
@@ -315,4 +314,4 @@ async function findMatchingIncipits(incipit, titleStart) {
             console.error(err)
             return Promise.resolve([])
         })
-}*/
+}

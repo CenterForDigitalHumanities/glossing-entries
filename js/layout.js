@@ -2,7 +2,6 @@ class GlossFooter extends HTMLElement {
     template = `
     <footer>
     <a href="./index.html">🏠</a>
-        <a href="./manuscripts.html">📚</a>
         <a href="./named-glosses.html">📑</a>
         <a rel="noopener noreferrer" title="View on GitHub"
             href="https://github.com/CenterForDigitalHumanities/glossing-entries" target="_blank">
@@ -73,8 +72,7 @@ class GlossHeader extends HTMLElement {
             opacity: 1;
         }
     </style>
-        <a href="./named-glosses.html">✏️ Named Glosses</a>
-        <a href="./manuscripts.html">📚 View Manuscripts</a>
+        <a href="./named-glosses.html">✏️ Glosses</a>
     </div>
     </header></template>
         `,'text/html').head.firstChild
