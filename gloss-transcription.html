@@ -40,7 +40,7 @@
     <div id="needs" class="row bg-basic">
         <p class="howTo"> 
             It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  
-            <input id="resourceURI" type="text"/>
+            <input id="resourceURI" type="text" placeholder="TPEN Manifest URI/>
             <input id="loadInput" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
         </p>
     </div>
@@ -70,7 +70,7 @@
             <textarea custom-text-key="text" rows="2" class="col-9 col-10-md" placeholder="Highlight transcription text..."></textarea>
 
             <label class="col-3 col-2-md text-right">Language:</label>
-            <select custom-text-key="language" class="col-9 col-4-md">
+            <select custom-text-key="language" title="select language" class="col-9 col-4-md">
                 <option value="la" selected>Latin</option>
                 <option value="de">German</option>
                 <option value="fr">French</option>
@@ -78,7 +78,7 @@
             </select>
 
             <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
-                The text contains <code>< tags ></code><input type="checkbox" custom-text-key="format" value="text/plain" />
+                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
             </label>
 
             <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
@@ -228,7 +228,7 @@
          * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
          */ 
         addEventListener('deer-view-rendered', event => {
-            if(event.target.id = "ngCollectionList"){
+            if(event.target.id == "ngCollectionList"){
                 loading.classList.add("is-hidden")
                 witnessForm.classList.remove("is-hidden")
             }
@@ -283,38 +283,47 @@
          * Note that format is hard coded to text/plain for now.
          * */
         function prefillText(textObj, form) {
-            const source = textObj.source ?? null
-            if(source && source?.citationSource){
-                form.querySelector("select[custom-text-key='language'").setAttribute("deer-source", source.citationSource ?? "") 
-                form.querySelector("input[custom-text-key='format'").setAttribute("deer-source", source.citationSource ?? "") 
-                form.querySelector("textarea[custom-text-key='text'").setAttribute("deer-source", source.citationSource ?? "") 
-            }
-            textObj = textObj.value ? textObj.value : textObj
+            const languageElem = form.querySelector("select[custom-text-key='language'")
+            const formatElem = form.querySelector("input[custom-text-key='format'")
+            const textElem = form.querySelector("textarea[custom-text-key='text'")
             if (textObj === undefined) {
                 console.warn("Cannot set value for text and build UI.  There is no data.")
                 return false
             }
+            if(![languageElem,formatElem,textElem].some(e=>e)) {
+                console.warn("Nothing to fill.")
+                return false
+            }
+            const source = textObj?.source
+            if(source?.citationSource){
+                form.querySelector("select[custom-text-key='language'")?.setAttribute("deer-source", source.citationSource ?? "") 
+                form.querySelector("input[custom-text-key='format'")?.setAttribute("deer-source", source.citationSource ?? "") 
+                form.querySelector("textarea[custom-text-key='text'")?.setAttribute("deer-source", source.citationSource ?? "") 
+            }
+            textObj = textObj.value ?? textObj
             const language = textObj.language
-            const languageElem = form.querySelector("select[custom-text-key='language'")
-            languageElem.value = language
-            languageElem.setAttribute("value", language)
+            if(languageElem) {
+                languageElem.value = language
+                languageElem.setAttribute("value", language)
+            }
             
             const format = textObj.format
-            const formatElem = form.querySelector("input[custom-text-key='format'")
-            formatElem.value = format
-            formatElem.setAttribute("value", "format")
             if(format === "text/html"){
                 formatElem.checked = true
             }
-            if (textObj.textValue.length === 0) {
+            if(formatElem) {
+                formatElem.value = format
+                formatElem.setAttribute("value", "format")
+            }
+            const textVal = textObj.textValue
+            if (textVal?.length) {
                 console.warn("There is no text recorded for this witness")
                 return false
             }
-
-            const textVal = textObj.textValue
-            const textElem = form.querySelector("textarea[custom-text-key='text'")
-            textElem.value = textObj.textValue
-            textElem.setAttribute("value", textObj.textValue)
+            if(textElem){
+                textElem.value = textVal
+                textElem.setAttribute("value", textVal)
+            }
         }
 
          /**
@@ -322,20 +331,25 @@
          * It needs to apply the filter with this Named Gloss's Label..
          * */
         function prefillDigitalLocations(locationsArr, form) {
-            const source = locationsArr.source ?? null
-            if(source && source?.citationSource){
-                form.querySelector("input[custom-key='source']").setAttribute("deer-source", source.citationSource ?? "")
+            const locationElem = form.querySelector("input[custom-key='source']")
+            if(!locationElem) {
+                console.warn("Nothing to fill")
+                return false
             }
-            locationsArr = locationsArr.value ? locationsArr.value : locationsArr
             if (locationsArr === undefined) {
                 console.warn("Cannot set value for digital locations and build UI.  There is no data.")
                 return false
             }
-            if (locationsArr.length === 0) {
+            if (locationsArr.length) {
                 console.warn("There are no digital locations recorded for this witness")
                 return false
             }
-            form.querySelector("input[custom-key='source']").value = locationsArr[0]
+            const source = locationsArr?.source
+            if(source?.citationSource){
+                form.querySelector("input[custom-key='source']").setAttribute("deer-source", source.citationSource ?? "")
+            }
+            locationsArr = locationsArr?.value ?? locationsArr
+            locationElem.value = locationsArr[0]
         }
 
         /**
