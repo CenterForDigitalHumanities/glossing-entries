@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<<head>
+<head>
     <title>Gallery of Glosses</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
@@ -9,6 +9,20 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
     <script src="js/shared.js"></script>
+    <style> 
+        a.button{
+            margin: 1em 3px auto;
+            width: 25em;
+        }
+
+        .button+.button {
+            margin-left: 0rem;
+        }
+
+        .options{
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body class="container">
@@ -17,14 +31,15 @@
         <p>
             Welcome to the Gallery of Glosses data entry & management portal.  Here you can study gloss transcriptions from T-PEN, generate and connect common glosses called Named Glosses and decorate glosses with descriptive metadata.  See the ways to get started below.
         </p>
-        <a href="./biblical-glosses.html" class="button primary">Browse Biblical Collections</a>
-        <a href="./named-glosses.html" class="button primary">Browse Common Named Gloss Collection</a>
-        <a href="./manage-glosses.html" class="button primary">Manage Common Named Gloss Collection</a>
-        <a href="./themes.html" class="button primary">Browse Themes</a>
-
-        <a href="./ng.html" class="button primary">Create a New Common Named Gloss</a>
-        <a href="./gloss.html" class="button primary">Create a New Gloss</a>
-        <a href="./gloss-transcription.html" class="button primary">Detect Glosses in T-PEN Transcriptions</a>
+        <div class="options">
+            <a href="./biblical-glosses.html" class="button primary">Browse Biblical Collections</a>
+            <a href="./named-glosses.html" class="button primary">Browse Common Named Gloss Collection</a>
+            <a href="./themes.html" class="button primary">Browse Themes</a>
+            <a href="./manage-glosses.html" class="button primary">Manage Common Named Gloss Collection</a>
+            <a href="./ng.html" class="button primary">Create a New Common Named Gloss</a>
+            <a href="./gloss.html" class="button primary">Create a New Gloss</a>
+            <a href="./gloss-transcription.html" class="button primary">Detect Glosses in T-PEN Transcriptions</a>
+        </div>
     </div>
     <gog-footer class="container"></gog-footer>
 </body>
