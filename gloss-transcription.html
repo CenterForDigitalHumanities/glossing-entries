@@ -316,7 +316,7 @@
                 formatElem.setAttribute("value", "format")
             }
             const textVal = textObj.textValue
-            if (textVal?.length) {
+            if (!textVal) {
                 console.warn("There is no text recorded for this witness")
                 return false
             }
@@ -340,7 +340,7 @@
                 console.warn("Cannot set value for digital locations and build UI.  There is no data.")
                 return false
             }
-            if (locationsArr.length) {
+            if (!locationsArr.length) {
                 console.warn("There are no digital locations recorded for this witness")
                 return false
             }
@@ -357,32 +357,42 @@
          * It needs to apply the filter with this Named Gloss's Label..
          * */
         function prefillReferences(referencesArr, form) {
-            const source = referencesArr.source ?? null
-            if(source && source?.citationSource){
-                form.querySelector("input[custom-key='references']").setAttribute("deer-source", source.citationSource ?? "")
-            }
-            referencesArr = referencesArr.value ? referencesArr.value : referencesArr
             if (referencesArr === undefined) {
                 console.warn("Cannot set value for references and build UI.  There is no data.")
                 return false
-            }
+            }            
+
+            
+            const source = referencesArr?.source
+            referencesArr = referencesArr?.value ?? referencesArr
             if (referencesArr.length === 0) {
                 console.warn("There are no references recorded for this witness")
                 return false
             }
-            form.querySelector("input[custom-key='references']").value = referencesArr[0]
-            
-            // Now apply the references value to the filter
+
             const ngID = referencesArr[0]
+
             const elem = form.querySelector(`li[deer-id="${ngID}"]`)
-            const button = elem.querySelector(".toggleInclusion")
-            button.setAttribute("disabled", "")
-            button.setAttribute("value", "✓ attached")
-            button.setAttribute("title", "This Named Gloss is already attached!")
-            button.classList.remove("primary")
-            button.classList.add("success")
             const ngLabel = elem.getAttribute("data-title")
             const filter = document.querySelector("input[filter]")
+            const refElem = form.querySelector("input[custom-key='references']")
+            if(![elem,ngLabel,filter,refElem].some(e=>e)) {
+                console.warn("Nothing to fill.")
+                return false
+            }
+
+            if(source?.citationSource){
+                refElem.setAttribute("deer-source", source.citationSource ?? "")
+            }
+            refElem.value = referencesArr[0]
+            
+            // Now apply the references value to the filter
+            const button = elem.querySelector(".toggleInclusion")
+            button?.setAttribute("disabled", "")
+            button?.setAttribute("value", "✓ attached")
+            button?.setAttribute("title", "This Named Gloss is already attached!")
+            button?.classList.remove("primary")
+            button?.classList.add("success")
             filter.value = ngLabel.trim()
             filter.dispatchEvent(new Event('input', { bubbles: true }))
             document.querySelector(".chosenNamedGloss").value = ngLabel
