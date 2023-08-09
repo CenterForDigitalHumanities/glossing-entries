@@ -19,17 +19,67 @@
             margin-left: 0rem;
         }
 
+        p{
+            position: relative;
+            z-index: 2;
+        }
+
         .options{
             text-align: center;
+            position: relative;
         }
+
+        /* Gallery of Glosses heading above */
+        /*.options{
+            top: 9em;
+            z-index: 2;
+        }
+
+        #gog_wrapper{
+            position: relative;
+            top: -14em;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        iframe{
+            width: 100%;
+            height: 50em;
+            position: relative;
+            top: -16em;
+        }*/
+
+
+        /* No Gallery of Glosses Heading */
+/*        .options{
+            top: 3em;
+            z-index: 2;
+        }
+
+        #gog_wrapper{
+            position: relative;
+            top: -20em;
+            overflow: hidden;
+            z-index: 1;
+            height: 29em;
+        }
+
+        iframe{
+            width: 100%;
+            height: 57em;
+            position: relative;
+            top: -22em;
+        }*/
     </style>
 </head>
 
 <body class="container">
     <gog-header class="container"></gog-header>
     <div class="content container">
-        <p>
-            Welcome to the Gallery of Glosses data entry & management portal.  Here you can study gloss transcriptions from T-PEN, generate and connect common glosses called Named Glosses and decorate glosses with descriptive metadata.  See the ways to get started below.
+        <p class="bg-basic">
+            Welcome to the Gallery of Glosses data entry & management portal.  Here you can study gloss transcriptions from T-PEN, generate and connect common glosses called Named Glosses and decorate glosses with descriptive metadata.  See the ways to get started below.<br><br>
+
+            Note if you are not here for data entry or management, you may be looking for the public site.  <a href="https://gallery-of-glosses.vercel.app/">Go there now!</a>
         </p>
         <div class="options">
             <a href="./biblical-glosses.html" class="button primary">Browse Biblical Collections</a>
@@ -39,9 +89,18 @@
             <a href="./ng.html" class="button primary">Create a New Common Named Gloss</a>
             <a href="./gloss.html" class="button primary">Create a New Gloss</a>
             <a href="./gloss-transcription.html" class="button primary">Detect Glosses in T-PEN Transcriptions</a>
+            <a href="./align-glosses.html" class="button primary">Position Glosses</a>
         </div>
-    </div>
+        <!-- <div id="gog_wrapper">
+            <iframe id="gog" src="https://gallery-of-glosses.vercel.app/" description="Gallery of Glosses"> </iframe>
+        </div> -->
     <gog-footer class="container"></gog-footer>
+    <os-notice></os-notice>
+    <script>
+        gog.onload = () =>{
+            gog.contentWindow.document.querySelector(".z-40").style.display = "none"
+        }
+    </script>
 </body>
 
 </html>

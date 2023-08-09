@@ -87,6 +87,33 @@ class GlossHeader extends HTMLElement {
 
 customElements.define('gog-header', GlossHeader)
 
+class OSNotice extends HTMLElement {
+    template  = `
+    <div class="osNotice bg-basic"> 
+        <style>
+            .osNotice{
+                position: fixed;
+                bottom: 1em;
+                right: 1em;
+                font-family: monospace;
+                font-size: 10pt;
+                font-weight: bold;
+            }
+        </style>
+        This site is open source.  <a target="_blank" href="https://github.com/CenterForDigitalHumanities/glossing-entries">Improve this page</a>
+    </div>`
+    
+    constructor() {
+        super()
+    }
+
+    connectedCallback() {
+        this.innerHTML = this.template
+    }
+}
+
+customElements.define('os-notice', OSNotice)
+
 class TagWidget extends HTMLElement {
     template = `
         <style>
