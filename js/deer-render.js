@@ -1420,7 +1420,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         if(allGlossIds === null) {return}
 
                         const allGlosses = allGlossIds.map(glossUri => {
-                            return fetch("https://tinymatt.rerum.io/gloss/delete", {
+                            return fetch(config.URLS.DELETE, {
                                 method: "DELETE",
                                 body: JSON.stringify({"@id":glossUri.replace(/^https?:/,'https:')}),
                                 headers: {
@@ -1461,7 +1461,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     if(allAnnotationIds === null) return
 
                     const allAnnotations = allAnnotationIds.map(annoUri => {
-                        return fetch("https://tinymatt.rerum.io/gloss/delete", {
+                        return fetch(config.URLS.DELETE, {
                             method: "DELETE",
                             body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
                             headers: {
@@ -1487,7 +1487,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     })
 
                     // Now the entity itself
-                    fetch("https://tinymatt.rerum.io/gloss/delete", {
+                    fetch(config.URLS.DELETE, {
                         method: "DELETE",
                         body: JSON.stringify({"@id":id}),
                         headers: {

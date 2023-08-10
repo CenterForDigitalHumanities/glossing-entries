@@ -1,3 +1,4 @@
+import { default as config } from './deer-config.js'
 class GlossFooter extends HTMLElement {
     template = `
     <footer>
@@ -373,7 +374,7 @@ class ngCollections extends HTMLElement {
                 "creator" : "https://store.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
             }
             let tmpl = ``
-            const collections = fetch("https://tinymatt.rerum.io/gloss/query", {
+            const collections = fetch(config.URLS.QUERY, {
                 method: "POST",
                 mode: "cors",
                 headers:{

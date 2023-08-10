@@ -1,6 +1,10 @@
 import deerUtils from "./deer-utils.js"
 import AuthButton from './auth.js'
 
+const DEV = false // false or comment to turn off
+const baseV1 = DEV ? "https://devstore.rerum.io/":"https://store.rerum.io/"
+const tiny = DEV ? "https://tinydev.rerum.io/app/":"https://tinymatt.rerum.io/gloss/"
+
 export default {
     ID: "deer-id", // attribute, URI for resource to render
     TYPE: "deer-type", // attribute, JSON-LD @type
@@ -27,13 +31,13 @@ export default {
     PRIMITIVES: [],
 
     URLS: {
-        BASE_ID: "https://store.rerum.io/v1",
-        CREATE: "https://tinymatt.rerum.io/gloss/create",
-        UPDATE: "https://tinymatt.rerum.io/gloss/update",
-        QUERY: "https://tinymatt.rerum.io/gloss/query?limit=100&skip=0",
-        OVERWRITE: "https://tinymatt.rerum.io/gloss/overwrite",
-        DELETE: "https://tinymatt.rerum.io/gloss/delete",
-        SINCE: "https://store.rerum.io/v1/since"
+        BASE_ID: baseV1,
+        CREATE: tiny+"create",
+        UPDATE: tiny+"update",
+        OVERWRITE: tiny+"overwrite",
+        QUERY: tiny+"query",
+        DELETE: tiny+"delete",
+        SINCE: baseV1+"since"
     },
 
     EVENTS: {

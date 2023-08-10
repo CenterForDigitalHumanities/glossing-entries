@@ -88,7 +88,7 @@
         <input class="is-hidden" type="submit" value="Create Textual Witness"/>
         <div class="row">
             <tpen-line-selector class="lineSelector tpen-needed is-hidden col-7-md col-6-sm"> </tpen-line-selector>
-            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-listing="" public-collection="https://store.rerum.io/v1/id/610c54deffce846a83e70625" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" public-collection="" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
             Loading&hellip;
             </deer-view>  
         </div>
@@ -454,7 +454,7 @@
                     }
                     anno.body[key] = { "value": el.value.split("__") }
                     if(el.hasAttribute("deer-source")) anno["@id"] = el.getAttribute("deer-source")
-                    return fetch(`https://tinymatt.rerum.io/gloss/${el.hasAttribute("deer-source")?"update":"create"}`, {
+                    return fetch(`${constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
                         method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
                         mode: "cors",
                         headers: {
@@ -501,7 +501,7 @@
                 const el = customTextElems[2]
                 if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
                 annotation_promises.push(
-                    fetch(`https://tinymatt.rerum.io/gloss/${el.hasAttribute("deer-source")?"update":"create"}`, {
+                    fetch(`${constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
                         method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
                         mode: 'cors',
                         headers: {
