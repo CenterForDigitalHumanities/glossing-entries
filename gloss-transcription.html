@@ -40,7 +40,7 @@
     <div id="needs" class="row bg-basic">
         <p class="howTo"> 
             It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  
-            <input id="resourceURI" type="text" placeholder="TPEN Manifest URI/>
+            <input id="resourceURI" type="text" placeholder="TPEN Manifest URI"/>
             <input id="loadInput" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
         </p>
     </div>
@@ -395,7 +395,8 @@
             button?.classList.add("success")
             filter.value = ngLabel.trim()
             filter.dispatchEvent(new Event('input', { bubbles: true }))
-            document.querySelector(".chosenNamedGloss").value = ngLabel
+            const chosenGloss = document.querySelector(".chosenNamedGloss")
+            if(chosenGloss) chosenGloss.value = ngLabel
         }
 
         /**
@@ -404,19 +405,20 @@
          * */
         function preselectLines(linesArr, form) {
             const source = linesArr.source ?? null
-            if(source && source?.citationSource){
-                form.querySelector("input[custom-key='selections']").setAttribute("deer-source", source.citationSource ?? "")
-            }
-            linesArr = linesArr.value ? linesArr.value : linesArr
             if (linesArr === undefined) {
                 console.warn("Cannot highlight lines in UI.  There is no data.")
                 return false
             }
+            linesArr = linesArr.value ?? linesArr
             if (linesArr.length === 0) {
                 console.warn("There are no lines recorded for this witness")
                 return false
             }
-            form.querySelector("input[custom-key='selections']").value = linesArr.join("__")
+            const selectionsElem = form.querySelector("input[custom-key='selections']")
+            if(source?.citationSource){
+                selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
+            }
+            selectionsElem.value = linesArr.join("__")
 
             //Now highlight the lines
             let range = document.createRange()
