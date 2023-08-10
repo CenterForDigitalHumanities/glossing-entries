@@ -1,6 +1,11 @@
 class GlossFooter extends HTMLElement {
     template = `
     <footer>
+    <style>
+        footer {
+            margin-top: 1.5em
+        }
+    </style>
     <a href="./index.html">🏠</a>
         <a href="./manuscripts.html">📚</a>
         <a href="./named-glosses.html">📑</a>
