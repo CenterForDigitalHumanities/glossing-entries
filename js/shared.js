@@ -2,7 +2,7 @@
  * Shared front end functionality across the HTML pages.
  */
 
-const DEV = false
+const DEV = true
 const constants =
     DEV ?
     {

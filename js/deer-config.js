@@ -1,7 +1,7 @@
 import deerUtils from "./deer-utils.js"
 import AuthButton from './auth.js'
 
-const DEV = false // false or comment to turn off
+const DEV = true // false or comment to turn off
 const baseV1 = DEV ? "https://devstore.rerum.io/":"https://store.rerum.io/"
 const tiny = DEV ? "https://tinydev.rerum.io/app/":"https://tinymatt.rerum.io/gloss/"
 
@@ -30,7 +30,7 @@ export default {
     CONTAINERS: ["ItemList", "ItemListElement", "List", "Set", "list", "set", "@list", "@set"], // array of supported list and set types the app will dig into for array values
     PRIMITIVES: [],
 
-    GENERATOR : DEV ? "http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90" : "http://store.rerum.io/v1/id/61043ad4ffce846a83e700dd"
+    GENERATOR : DEV ? "http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90" : "http://store.rerum.io/v1/id/61043ad4ffce846a83e700dd",
 
     URLS: {
         BASE_ID: baseV1,
