@@ -32,7 +32,7 @@
         </ul>
     </section>
 
-    <deer-view id="collectionList" public-collection="Glossing-Matthew-Named-Glosses" deer-list="itemListElement"
+    <deer-view id="collectionList" deer-collection="Glossing-Matthew-Named-Glosses" deer-listing
         deer-link="ng.html#" deer-template="ngListFilterable" class="bg-basic">
         Loading&hellip;
     </deer-view>
@@ -43,7 +43,10 @@
     <div id="globalFeedback" class="card is-center"></div>
     <script>
 
-        window.onload = () => { setPublicCollections() }
+        window.onload = () => { 
+            setPublicCollections() 
+            setListings()
+        }
 
         document.addEventListener('deer-created', event => {
             let e = new CustomEvent("deer-view", { detail: { set: [collectionList] }, bubbles: true })

@@ -398,35 +398,20 @@ DEER.TEMPLATES.glossLines = function (obj, options = {}) {
                             document.querySelector(`[deer-id='${gloss.new_obj_state.target}']`).setAttribute('data-gloss-pages', gloss.new_obj_state['@id'])
                         })
                         const ev = new CustomEvent("Gloss assignment Update")
-                        globalFeedbackBlip(ev, `Gloss assignment updated successfully.`, true)
+                        UTILS.globalFeedbackBlip(ev, `Gloss assignment updated successfully.`, true)
                         saveBtn.style.visibility = "hidden"
                     })
                     .catch(err => {
                         const event = new CustomEvent("Gloss assignment Update")
-                        globalFeedbackBlip(event, `Gloss assignment failed.`, false)
+                        UTILS.globalFeedbackBlip(event, `Gloss assignment failed.`, false)
                     })
 
-            }
-            function globalFeedbackBlip(event, message, success) {
-                globalFeedback.innerText = message
-                globalFeedback.classList.add("show")
-                if (success) {
-                    globalFeedback.classList.add("bg-success")
-                } else {
-                    globalFeedback.classList.add("bg-error")
-                }
-                setTimeout(function () {
-                    globalFeedback.classList.remove("show")
-                    globalFeedback.classList.remove("bg-error")
-                    // backup to page before the form
-                    UTILS.broadcast(event, "globalFeedbackFinished", globalFeedback, { message: message })
-                }, 3000)
             }
             function renderGlossDesignations() {
                 const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
                 const query = {
                     motivation: "linking",
-                    'partOf.id': httpsIdArray(location.hash.substr(1)),
+                    'partOf.id': UTILS.httpsIdArray(location.hash.substr(1)),
                     '__rerum.history.next': historyWildcard
                 }
 
@@ -467,7 +452,7 @@ DEER.TEMPLATES.glossLines = function (obj, options = {}) {
                 })
                     .catch(err => {
                         const ev = new CustomEvent("Location annotation query")
-                        globalFeedbackBlip(ev, `Please reload. This crashed. ${err}`, false)
+                        UTILS.globalFeedbackBlip(ev, `Please reload. This crashed. ${err}`, false)
                     })
             }
             renderGlossDesignations()
@@ -684,34 +669,19 @@ DEER.TEMPLATES.lines_new = function (obj, options = {}) {
                 const ev = new CustomEvent("Locations Update")
                 Promise.all(allMarginPromises)
                 .then(results => {
-                    globalFeedbackBlip(ev, `Locations updated successfully.`, true)
+                    UTILS.globalFeedbackBlip(ev, `Locations updated successfully.`, true)
                     saveBtn.style.visibility = "hidden"
                 })
                 .catch(err => {
-                    globalFeedbackBlip(ev, `Locations update failed.`, false)
+                    UTILS.globalFeedbackBlip(ev, `Locations update failed.`, false)
                 })
-            }
-            function globalFeedbackBlip(event, message, success) {
-                globalFeedback.innerText = message
-                globalFeedback.classList.add("show")
-                if (success) {
-                    globalFeedback.classList.add("bg-success")
-                } else {
-                    globalFeedback.classList.add("bg-error")
-                }
-                setTimeout(function () {
-                    globalFeedback.classList.remove("show")
-                    globalFeedback.classList.remove("bg-error")
-                    // backup to page before the form
-                    UTILS.broadcast(event, "globalFeedbackFinished", globalFeedback, { message: message })
-                }, 3000)
             }
             function highlightLocations() {
                 const pageElement = document.querySelector("div.page")
                 const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
 
                 const query = {
-                    forCanvas: httpsIdArray(c['@id']),
+                    forCanvas: UTILS.httpsIdArray(c['@id']),
                     motivation: "classifying",
                     'body.location': { $exists: true },
                     '__rerum.history.next': historyWildcard
@@ -775,7 +745,7 @@ DEER.TEMPLATES.lines_new = function (obj, options = {}) {
                                 return res.json()
                             }).then(loc => {
                                 const ev = new CustomEvent("Marginalia locations loaded")
-                                globalFeedbackBlip(ev, `Marginalia locations loaded`, true)
+                                UTILS.globalFeedbackBlip(ev, `Marginalia locations loaded`, true)
                                 pageElement.setAttribute(`data-${margin}`, loc.new_obj_state['@id'])
                             })
                             .catch(err => console.error(err))    
@@ -784,7 +754,7 @@ DEER.TEMPLATES.lines_new = function (obj, options = {}) {
                 })
                 .catch(err => {
                     const ev = new CustomEvent("Location annotation query")
-                    globalFeedbackBlip(ev, `Please reload. This crashed. ${err}`, false)
+                    UTILS.globalFeedbackBlip(ev, `Please reload. This crashed. ${err}`, false)
                 })
 
                 //This now accepts a margin anno
@@ -967,35 +937,20 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
                         throw Error(res.statusText)
                     }
                     const ev = new CustomEvent("Locations Update")
-                    globalFeedbackBlip(ev, `Locations updated successfully.`, true)
+                    UTILS.globalFeedbackBlip(ev, `Locations updated successfully.`, true)
                     saveBtn.style.visibility = "hidden"
                     return res.json()
                 }).catch(err => {
                     const ev = new CustomEvent("Locations Update")
-                    globalFeedbackBlip(ev, `Locations update failed.`, false)
+                    UTILS.globalFeedbackBlip(ev, `Locations update failed.`, false)
                 })
-            }
-            function globalFeedbackBlip(event, message, success) {
-                globalFeedback.innerText = message
-                globalFeedback.classList.add("show")
-                if (success) {
-                    globalFeedback.classList.add("bg-success")
-                } else {
-                    globalFeedback.classList.add("bg-error")
-                }
-                setTimeout(function () {
-                    globalFeedback.classList.remove("show")
-                    globalFeedback.classList.remove("bg-error")
-                    // backup to page before the form
-                    UTILS.broadcast(event, "globalFeedbackFinished", globalFeedback, { message: message })
-                }, 3000)
             }
             function highlightLocations() {
                 const pageElement = document.querySelector("div.page")
                 const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
 
                 const query = {
-                    target: httpsIdArray(['@id']),
+                    target: UTILS.httpsIdArray(['@id']),
                     motivation: "classifying",
                     'body.locations': { $exists: true },
                     '__rerum.history.next': historyWildcard
@@ -1040,7 +995,7 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
                             return res.json()
                         }).then(loc => {
                             const ev = new CustomEvent("Marginalia locations loaded")
-                            globalFeedbackBlip(ev, `Marginalia locations loaded`, true)
+                            UTILS.globalFeedbackBlip(ev, `Marginalia locations loaded`, true)
                             pageElement.setAttribute("data-marginalia", loc.new_obj_state['@id'])
                         })
                             .catch(err => console.error(err))
@@ -1052,7 +1007,7 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
                 })
                     .catch(err => {
                         const ev = new CustomEvent("Location annotation query")
-                        globalFeedbackBlip(ev, `Please reload. This crashed. ${err}`, false)
+                        UTILS.globalFeedbackBlip(ev, `Please reload. This crashed. ${err}`, false)
                     })
 
                 function drawAssignment(glossLines) {
@@ -1212,7 +1167,7 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                     console.log(`Going to ${listing ? DEER.URLS.OVERWRITE : DEER.URLS.CREATE} the following UserNamedGlossCollection`)
                     console.log(userNamedGlossCollection)
                     const ev = new CustomEvent("Named Gloss collection saved")
-                    globalFeedbackBlip(ev, `Named Gloss collection saved successfully.`, true)
+                    UTILS.globalFeedbackBlip(ev, `Named Gloss collection saved successfully.`, true)
 
                     // fetch(listing ? DEER.URLS.OVERWRITE : DEER.URLS.CREATE, {
                     //     method: listing ? "PUT" : "POST",
@@ -1226,7 +1181,7 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                     // .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
                     // .then(json => {
                     //     const ev = new CustomEvent("Named Gloss collection saved")
-                    //     globalFeedbackBlip(ev, `Named Gloss collection saved successfully.`, true)
+                    //     UTILS.globalFeedbackBlip(ev, `Named Gloss collection saved successfully.`, true)
                     // })
                     // .catch(err => throw new Error(err.getMessage())`))
 
@@ -1247,21 +1202,6 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                         el.classList[action](`is-hidden`,`un${action}-item`)
                         setTimeout(()=>el.classList.remove(`un${action}-item`),500)
                     })
-                }
-                function globalFeedbackBlip(event, message, success) {
-                    globalFeedback.innerText = message
-                    globalFeedback.classList.add("show")
-                    if (success) {
-                        globalFeedback.classList.add("bg-success")
-                    } else {
-                        globalFeedback.classList.add("bg-error")
-                    }
-                    setTimeout(function () {
-                        globalFeedback.classList.remove("show")
-                        globalFeedback.classList.remove("bg-error")
-                        // backup to page before the form
-                        UTILS.broadcast(event, "globalFeedbackFinished", globalFeedback, { message: message })
-                    }, 3000)
                 }
             }
         }
@@ -1405,11 +1345,11 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         // Such as ' [ Pn ] Paris, BnF, lat. 17233 ''
 
                         const allGlossesOfManuscriptQueryObj = {
-                            "body.partOf.value": httpsIdArray(id),
-                            "__rerum.generatedBy" : httpsIdArray(config.generator),
+                            "body.partOf.value": UTILS.httpsIdArray(id),
+                            "__rerum.generatedBy" : UTILS.httpsIdArray(config.generator),
                             "__rerum.history.next" : historyWildcard
                         }
-                        const allGlossIds = await getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
+                        const allGlossIds = await UTILS.getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
                         .then(annos => annos.map(anno => anno.target))
                         .catch(err => {
                             alert("Could not gather Glosses to delete.")
@@ -1447,10 +1387,10 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
 
                     // Get all Annotations throughout history targeting this object that were generated by this application.
                     const allAnnotationsTargetingEntityQueryObj = {
-                        target: httpsIdArray(id),
-                        "__rerum.generatedBy" : httpsIdArray(config.generator)
+                        target: UTILS.httpsIdArray(id),
+                        "__rerum.generatedBy" : UTILS.httpsIdArray(config.generator)
                     }
-                    const allAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
+                    const allAnnotationIds = await UTILS.getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
                     .then(annos => annos.map(anno => anno["@id"]))
                     .catch(err => {
                         alert("Could not gather Annotations to delete.")
@@ -1610,7 +1550,7 @@ DEER.TEMPLATES.pageRanges = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     return {
         then: (elem) => {
-            let queryObj = { "body.isPartOf.value": httpsIdArray(obj['@id']) }
+            let queryObj = { "body.isPartOf.value": UTILS.httpsIdArray(obj['@id']) }
             fetch(DEER.URLS.QUERY, {
                 method: "POST",
                 mode: "cors",
@@ -1727,14 +1667,14 @@ export default class DeerRender {
                         itemListElement: []
                     }
 
-                    getPagedQuery.bind(this)(100)
+                    getListPagedQuery.bind(this)(100)
                         .then(() => RENDER.element(this.elem, listObj))
                         .catch(err => {
                             console.error("Broke with listObj at ", listObj)
                             RENDER.element(this.elem, listObj)
                         })
 
-                    function getPagedQuery(lim, it = 0) {
+                    function getListPagedQuery(lim, it = 0) {
                         const q = DEER.URLS.QUERY.replace("?limit=100&skip=0", "")
                         return fetch(`${q}?limit=${lim}&skip=${it}`, {
                             method: "POST",
@@ -1751,7 +1691,7 @@ export default class DeerRender {
                                     listObj["@type"] = list[0]["@type"] ?? list[0].type ?? "ItemList"
                                 } catch (err) { }
                                 if (list.length ?? (list.length % lim === 0)) {
-                                    return getPagedQuery.bind(this)(lim, it + list.length)
+                                    return getListPagedQuery.bind(this)(lim, it + list.length)
                                 }
                             })
                     }
@@ -1816,34 +1756,4 @@ export function initializeDeerViews(config) {
 function userHasRole(roles){
     if (!Array.isArray(roles)) { roles = [roles] }
     return Boolean(window.GOG_USER?.["http://rerum.io/user_roles"]?.roles.filter(r=>roles.includes(r)).length)
-}
-
-function httpsIdArray(id,justArray) {
-    if (!id.startsWith("http")) return justArray ? [ id ] : id
-    if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
-    return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
-}
-
-function pagedQuery(lim, it = 0, queryObj, allResults = []) {
-    const q = DEER.URLS.QUERY.replace("?limit=100&skip=0", "")
-    return fetch(`${q}?limit=${lim}&skip=${it}`, {
-        method: "POST",
-        mode: "cors",
-        headers: {
-            "Content-Type": "application/json; charset=utf-8"
-        },
-        body: JSON.stringify(queryObj)
-    })
-    .then(response => response.json())
-    .then(results => {
-        if (results.length) {
-            allResults = allResults.concat(results)
-            return pagedQuery(lim, it + results.length, queryObj, allResults)
-        }
-        return allResults
-    })
-    .catch(err => {
-        console.warn("Could not process a result in paged query")
-        throw err
-    })
 }

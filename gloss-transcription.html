@@ -175,6 +175,7 @@
          */ 
         window.onload = () => {
             setPublicCollections()
+            setListings()
             const tpenID = getURLParameter("tpen-project")
             const dig_location = document.querySelector("input[custom-key='source']")
             if(tpenID) {

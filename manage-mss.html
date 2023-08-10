@@ -19,7 +19,7 @@
     <button id="saveList" style="visibility: hidden;" class="button primary" role="button">Save List</button>
     <div class="row">
         <deer-view id="collectionList" 
-            deer-collection="Glossing-Matthew" deer-link="ms.html#" deer-template="managedlist">
+            deer-collection="Glossing-Matthew" deer-listing deer-link="ms.html#" deer-template="managedlist">
             Loading&hellip;
         </deer-view>
     </div>
@@ -27,6 +27,12 @@
 
     </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
+    <script>
+        window.onload = () => { 
+            setPublicCollections() 
+            setListings()
+        }
+    </script>
 </body>
 
 </html>

@@ -32,6 +32,17 @@ function setPublicCollections() {
     })
 }
 
+function setListings(){
+    document.querySelectorAll("deer-view[deer-listing]").forEach(elem => {
+        if(elem.getAttribute("deer-collection") === "Glossing-Matthew-Named-Glosses"){
+            elem.setAttribute("deer-listing", constants.ngCollection)    
+        }
+        else if(elem.getAttribute("deer-collection") === "Glossing-Matthew"){
+            elem.setAttribute("deer-listing", constants.msCollection)
+        }
+    })    
+}
+
 /**
  * An archetype entity is being deleted.  Delete it and some choice Annotations connected to it.
  * 
@@ -191,9 +202,9 @@ function getURLParameter(variable) {
 }
 
 function httpsIdArray(id, justArray) {
-    if (!id.startsWith("http")) return justArray ? [id] : id
-    if (id.startsWith("https://")) return justArray ? [id, id.replace('https', 'http')] : { $in: [id, id.replace('https', 'http')] }
-    return justArray ? [id, id.replace('http', 'https')] : { $in: [id, id.replace('http', 'https')] }
+    if (!id.startsWith("http")) return justArray ? [ id ] : id
+    if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
+    return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
 }
 
 function broadcast(event = {}, type, element, obj = {}) {
@@ -234,8 +245,10 @@ function globalFeedbackBlip(event, message, success) {
     globalFeedback.innerText = message
     globalFeedback.classList.add("show")
     if (success) {
+        globalFeedback.classList.remove("bg-error")
         globalFeedback.classList.add("bg-success")
     } else {
+        globalFeedback.classList.remove("bg-success")
         globalFeedback.classList.add("bg-error")
     }
     setTimeout(function () {
