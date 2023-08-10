@@ -6,11 +6,11 @@ const DEV = false
 const constants =
     DEV ?
     {
-    "ngCollection" : "https://devstore.rerum.io/v1/id/610c54deffce846a83e70625",
-    "msCollection" : "https://devstore.rerum.io/v1/id/610ad6f1ffce846a83e70613",
-    "generator" : "http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90",
-    "tiny" : "https://tinydev.rerum.io/app",
-    "rerum" : "https://devstore.rerum.io/v1"
+        "ngCollection" : "https://devstore.rerum.io/v1/id/610c54deffce846a83e70625",
+        "msCollection" : "https://devstore.rerum.io/v1/id/610ad6f1ffce846a83e70613",
+        "generator" : "http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90",
+        "tiny" : "https://tinydev.rerum.io/app",
+        "rerum" : "https://devstore.rerum.io/v1"
     }
     : 
     {
@@ -21,22 +21,13 @@ const constants =
         "rerum" : "https://store.rerum.io/v1"
     }
 
-function setCollections(devswitch) {
-    const constants = devswitch ? constants_dev : constants_prod
+function setPublicCollections() {
     document.querySelectorAll("deer-view[public-collection]").forEach(elem => {
-        if(elem.getAttribute("deer-collection") === "Glossing-Matthew-Named-Glosses"){
-            elem.setAttribute("public-collection", constants.ngCollection)    
+        if(elem.getAttribute("public-collection") === "Glossing-Matthew-Named-Glosses"){
+            elem.setAttribute("deer-id", constants.ngCollection)    
         }
-        else if(elem.getAttribute("deer-collection") === "Glossing-Matthew"){
-            elem.setAttribute("public-collection", constants.msCollection)
-        }
-    })
-    document.querySelectorAll("deer-view[deer-listing]").forEach(elem => {
-        if(elem.getAttribute("deer-collection") === "Glossing-Matthew-Named-Glosses"){
-            elem.setAttribute("deer-listing", constants.ngCollection)    
-        }
-        else if(elem.getAttribute("deer-collection") === "Glossing-Matthew"){
-            elem.setAttribute("deer-listing", constants.msCollection)
+        else if(elem.getAttribute("public-collection") === "Glossing-Matthew"){
+            elem.setAttribute("deer-id", constants.msCollection)
         }
     })
 }

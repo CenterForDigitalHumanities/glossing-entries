@@ -32,6 +32,7 @@
     <script>
         checkAll.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.classList.has("is-included") ?? a.click()))
         checkInvert.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.click()))
+        window.onload = () => { setPublicCollections() }
     </script>
 </body>
 

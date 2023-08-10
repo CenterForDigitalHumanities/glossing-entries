@@ -88,7 +88,7 @@
         <input class="is-hidden" type="submit" value="Create Textual Witness"/>
         <div class="row">
             <tpen-line-selector class="lineSelector tpen-needed is-hidden col-7-md col-6-sm"> </tpen-line-selector>
-            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" public-collection="" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-listing="" deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
             Loading&hellip;
             </deer-view>  
         </div>
@@ -174,6 +174,7 @@
          * Set fixed value fields and make those inputs dirty.
          */ 
         window.onload = () => {
+            setPublicCollections()
             const tpenID = getURLParameter("tpen-project")
             const dig_location = document.querySelector("input[custom-key='source']")
             if(tpenID) {

@@ -32,8 +32,8 @@
         </ul>
     </section>
 
-    <deer-view id="collectionList" public-collection=""
-        deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="ngListFilterable" class="bg-basic">
+    <deer-view id="collectionList" public-collection="Glossing-Matthew-Named-Glosses" deer-list="itemListElement"
+        deer-link="ng.html#" deer-template="ngListFilterable" class="bg-basic">
         Loading&hellip;
     </deer-view>
     
@@ -42,6 +42,8 @@
     </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
+
+        window.onload = () => { setPublicCollections() }
 
         document.addEventListener('deer-created', event => {
             let e = new CustomEvent("deer-view", { detail: { set: [collectionList] }, bubbles: true })
