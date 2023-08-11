@@ -2,6 +2,7 @@
  * Shared front end functionality across the HTML pages.
  */
 
+// Dev Switch
 const DEV = true
 const constants =
     DEV ?
@@ -21,6 +22,9 @@ const constants =
         "rerum" : "https://store.rerum.io/v1"
     }
 
+/**
+ * Use this on page load to find all the deer-views that should be showing a public collection.
+ */ 
 function setPublicCollections() {
     document.querySelectorAll("deer-view[public-collection]").forEach(elem => {
         if(elem.getAttribute("public-collection") === "Glossing-Matthew-Named-Glosses"){
@@ -32,6 +36,9 @@ function setPublicCollections() {
     })
 }
 
+/**
+ * Use this on page load to find all the deer-views that should be showing a managed collection.
+ */
 function setListings(){
     document.querySelectorAll("deer-view[deer-listing]").forEach(elem => {
         if(elem.getAttribute("deer-collection") === "Glossing-Matthew-Named-Glosses"){
