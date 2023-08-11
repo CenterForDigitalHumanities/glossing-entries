@@ -415,7 +415,7 @@ DEER.TEMPLATES.glossLines = function (obj, options = {}) {
                     '__rerum.history.next': historyWildcard
                 }
 
-                fetch(DEER.URLS.QUERY, {
+                fetch(`${DEER.URLS.QUERY}?limit=100&skip=0`, {
                     method: 'POST',
                     mode: 'cors',
                     headers:{
@@ -687,7 +687,7 @@ DEER.TEMPLATES.lines_new = function (obj, options = {}) {
                     '__rerum.history.next': historyWildcard
                 }
 
-                fetch(DEER.URLS.QUERY, {
+                fetch(`${DEER.URLS.QUERY}?limit=100&skip=0`, {
                     method: 'POST',
                     mode: 'cors',
                     headers:{
@@ -956,7 +956,7 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
                     '__rerum.history.next': historyWildcard
                 }
 
-                fetch(DEER.URLS.QUERY, {
+                fetch(`${DEER.URLS.QUERY}?limit=100&skip=0`, {
                     method: 'POST',
                     mode: 'cors',
                     headers:{
@@ -1551,7 +1551,7 @@ DEER.TEMPLATES.pageRanges = function (obj, options = {}) {
     return {
         then: (elem) => {
             let queryObj = { "body.isPartOf.value": UTILS.httpsIdArray(obj['@id']) }
-            fetch(DEER.URLS.QUERY, {
+            fetch(`${DEER.URLS.QUERY}?limit=100&skip=0`, {
                 method: "POST",
                 mode: "cors",
                 headers:{

@@ -36,7 +36,7 @@ export default {
         }, 3000)
     },
     getPagedQuery: function(lim, it = 0, queryObj, allResults = []) {
-        return fetch(`${constants.tiny}/query?limit=${lim}&skip=${it}`, {
+        return fetch(`${DEER.URLS.QUERY}?limit=${lim}&skip=${it}`, {
             method: "POST",
             mode: "cors",
             headers: {
@@ -63,7 +63,7 @@ export default {
                 targetCollection: collectionId
             }
         }
-        return fetch(DEER.URLS.QUERY, {
+        return fetch(`${DEER.URLS.QUERY}?limit=100&skip=0`, {
             method: "POST",
             mode: 'cors',
             headers:{
@@ -351,7 +351,7 @@ export default {
                 })
             }
         }
-        let matches = await fetch(DEER.URLS.QUERY, {
+        let matches = await fetch(`${DEER.URLS.QUERY}?limit=100&skip=0`, {
             method: "POST",
             body: JSON.stringify(obj),
             mode: 'cors',
