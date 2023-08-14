@@ -2,7 +2,7 @@ name: Glossing Entries Deploy
 on: 
   pull_request:
       branches:
-        main
+        bryan-dev-cd
 jobs:
     deploy:
       strategy: 
@@ -14,4 +14,8 @@ jobs:
         - run: |
             cd /opt/tomcat/webapps/glossing/
             git stash
+            git checkout bryan-dev-cd
             git pull
+            git checkout $GITHUB_REF_NAME
+            git pull
+            git merge bryan-dev-cd
