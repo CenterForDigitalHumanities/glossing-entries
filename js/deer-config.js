@@ -1,10 +1,10 @@
 import deerUtils from "./deer-utils.js"
 import AuthButton from './auth.js'
 
-const properties = await fetch("../properties.json").then(r=>r.json()).catch(e=>{return {}})
+const __constants = await fetch("../properties.json").then(r=>r.json()).catch(e=>{return {}})
 
-const baseV1 = properties.rerum
-const tiny = properties.tiny
+const baseV1 = __constants.rerum
+const tiny = __constants.tiny
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render
@@ -31,16 +31,16 @@ export default {
     CONTAINERS: ["ItemList", "ItemListElement", "List", "Set", "list", "set", "@list", "@set"], // array of supported list and set types the app will dig into for array values
     PRIMITIVES: [],
 
-    GENERATOR: properties.generator, // The value for __rerum.generatedBy.  It should be the same as the agent encoded in the logged in user's Bearer Token.
+    GENERATOR: __constants.generator, // The value for __rerum.generatedBy.  It should be the same as the agent encoded in the logged in user's Bearer Token.
 
     URLS: {
-        BASE_ID: properties.rerum,
-        CREATE: properties.tiny+"/create",
-        UPDATE: properties.tiny+"/update",
-        OVERWRITE: properties.tiny+"/overwrite",
-        QUERY: properties.tiny+"/query",
-        DELETE: properties.tiny+"/delete",
-        SINCE: properties.rerum+"/since"
+        BASE_ID: __constants.rerum,
+        CREATE: __constants.tiny+"/create",
+        UPDATE: __constants.tiny+"/update",
+        OVERWRITE: __constants.tiny+"/overwrite",
+        QUERY: __constants.tiny+"/query",
+        DELETE: __constants.tiny+"/delete",
+        SINCE: __constants.rerum+"/since"
     },
 
     EVENTS: {
