@@ -2,10 +2,10 @@ name: Glossing Entries Deploy
 on: 
   push:
     branches:
-      18-constant-properties
+      18-constant-props
   pull-request:
     branches:
-      18-constant-properties
+      18-constant-props
 jobs:
     deploy:
       strategy: 
