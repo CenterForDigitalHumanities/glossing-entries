@@ -34,13 +34,13 @@ export default {
     GENERATOR: properties.generator, // The value for __rerum.generatedBy.  It should be the same as the agent encoded in the logged in user's Bearer Token.
 
     URLS: {
-        BASE_ID: properties.base,
+        BASE_ID: properties.rerum,
         CREATE: properties.tiny+"/create",
         UPDATE: properties.tiny+"/update",
         OVERWRITE: properties.tiny+"/overwrite",
         QUERY: properties.tiny+"/query",
         DELETE: properties.tiny+"/delete",
-        SINCE: properties.base+"since"
+        SINCE: properties.rerum+"/since"
     },
 
     EVENTS: {

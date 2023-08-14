@@ -2,7 +2,7 @@ name: Glossing Entries Deploy
 on: 
   push:
     branches:
-      18-constant-props
+      main
   pull_request:
     branches:
       main
