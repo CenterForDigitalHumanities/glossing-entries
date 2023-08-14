@@ -75,7 +75,7 @@
             manuscript.setAttribute("deer-id", msid)
             thumbroll.setAttribute("deer-id", msid)
             newGloss.setAttribute("href", "gloss.html?partOf=" + msid + "#")
-            fetch(`${constants.tiny}/query?limit=100&skip=0`, {
+            fetch(`${__contants.tiny}/query?limit=100&skip=0`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json; charset=utf-8"

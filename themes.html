@@ -34,12 +34,12 @@
         const tagsQuery = {
             "body.tags.items" : {$exists:true, $type: 'array', $ne: [""] },
             '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
-            "__rerum.generatedBy" : httpsIdArray(constants.generator)
+            "__rerum.generatedBy" : httpsIdArray(__contants.generator)
         }
         const themesQuery = {
             "body.themes.items" : {$exists:true, $type: 'array', $ne: [""] },
             '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
-            "__rerum.generatedBy" : httpsIdArray(constants.generator)
+            "__rerum.generatedBy" : httpsIdArray(__contants.generator)
         }
 
         getPagedQuery(100, 0, tagsQuery)

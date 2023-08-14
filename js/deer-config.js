@@ -3,10 +3,6 @@ import AuthButton from './auth.js'
 
 const properties = await fetch("../properties.json").then(r=>r.json()).catch(e=>{return {}})
 
-// const DEV = true // false or comment to turn off
-// const baseV1 = DEV ? "https://devstore.rerum.io/":"https://store.rerum.io/"
-// const tiny = DEV ? "https://tinydev.rerum.io/app/":"https://tinymatt.rerum.io/gloss/"
-
 const baseV1 = properties.rerum
 const tiny = properties.tiny
 
@@ -40,13 +36,13 @@ export default {
     GENERATOR: properties.generator,
 
     URLS: {
-        BASE_ID: baseV1,
-        CREATE: tiny+"create",
-        UPDATE: tiny+"update",
-        OVERWRITE: tiny+"overwrite",
-        QUERY: tiny+"query",
-        DELETE: tiny+"delete",
-        SINCE: baseV1+"since"
+        BASE_ID: properties.base,
+        CREATE: properties.tiny+"/create",
+        UPDATE: properties.tiny+"/update",
+        OVERWRITE: properties.tiny+"/overwrite",
+        QUERY: properties.tiny+"/query",
+        DELETE: properties.tiny+"/delete",
+        SINCE: properties.base+"since"
     },
 
     EVENTS: {
