@@ -31,9 +31,7 @@ export default {
     CONTAINERS: ["ItemList", "ItemListElement", "List", "Set", "list", "set", "@list", "@set"], // array of supported list and set types the app will dig into for array values
     PRIMITIVES: [],
 
-    // The value for __rerum.generatedBy.  It should be the same as the agent encoded in the logged in user's Bearer Token.
-    //GENERATOR : DEV ? "http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90" : "http://store.rerum.io/v1/id/61043ad4ffce846a83e700dd",
-    GENERATOR: properties.generator,
+    GENERATOR: properties.generator, // The value for __rerum.generatedBy.  It should be the same as the agent encoded in the logged in user's Bearer Token.
 
     URLS: {
         BASE_ID: properties.base,
