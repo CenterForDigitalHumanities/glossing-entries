@@ -6,10 +6,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/gloss.css">
-    <script src="/js/auth.js" type="module"></script>
+    <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
-    <script src="js/app.js" type="module"></script>
-    <script src="js/shared.js" defer></script>
+    <script src="js/layout.js" type="module"></script>
+    <script src="js/shared.js"></script>
 </head>
 
 <body class="container">
@@ -20,8 +20,8 @@
     <button id="checkInvert" class="button" role="button">Invert Selection</button>
     <button id="saveList" style="visibility: hidden;" class="button primary" role="button">Save List</button>
     <div class="row">
-        <deer-view id="collectionList" deer-listing="https://store.rerum.io/v1/id/610c54deffce846a83e70625"
-            deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ms.html#" deer-template="managedlist">
+        <deer-view id="collectionList"
+            deer-collection="Glossing-Matthew-Named-Glosses" deer-listing deer-link="ms.html#" deer-template="managedlist">
             Loading&hellip;
         </deer-view>
     </div>
@@ -32,6 +32,10 @@
     <script>
         checkAll.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.classList.has("is-included") ?? a.click()))
         checkInvert.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.click()))
+        window.onload = () => { 
+            setPublicCollections() 
+            setListings()
+        }
     </script>
 </body>
 

@@ -5,10 +5,10 @@
     <title>Gallery of Glosses</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
-    <script src="/js/auth.js" type="module"></script>
+    <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
-    <script src="js/app.js" type="module"></script>
-    <script src="js/shared.js" defer></script>
+    <script src="js/layout.js" type="module"></script>
+    <script src="js/shared.js"></script>
 </head>
 
 <body class="container">
@@ -32,8 +32,8 @@
         </ul>
     </section>
 
-    <deer-view id="collectionList" deer-listing="https://store.rerum.io/v1/id/610c54deffce846a83e70625"
-        deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="ngListFilterable" class="bg-basic">
+    <deer-view id="collectionList" deer-collection="Glossing-Matthew-Named-Glosses" deer-listing
+        deer-link="ng.html#" deer-template="ngListFilterable" class="bg-basic">
         Loading&hellip;
     </deer-view>
     
@@ -42,6 +42,11 @@
     </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
+
+        window.onload = () => { 
+            setPublicCollections() 
+            setListings()
+        }
 
         document.addEventListener('deer-created', event => {
             let e = new CustomEvent("deer-view", { detail: { set: [collectionList] }, bubbles: true })
