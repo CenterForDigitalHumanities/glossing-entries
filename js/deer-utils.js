@@ -12,20 +12,58 @@
 
 import { default as DEER } from './deer-config.js'
 
-function httpsIdArray(id,justArray) {
-    if (!id.startsWith("http")) return justArray ? [ id ] : id
-    if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
-    return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
-}
-
 export default {
+    httpsIdArray: function(id,justArray) {
+        if (!id.startsWith("http")) return justArray ? [ id ] : id
+        if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
+        return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
+    },
+    globalFeedbackBlip: function(event, message, success) {
+        globalFeedback.innerText = message
+        globalFeedback.classList.add("show")
+        if (success) {
+            globalFeedback.classList.remove("bg-error")
+            globalFeedback.classList.add("bg-success")
+        } else {
+            globalFeedback.classList.remove("bg-success")
+            globalFeedback.classList.add("bg-error")
+        }
+        setTimeout(function () {
+            globalFeedback.classList.remove("show")
+            globalFeedback.classList.remove("bg-error")
+            // backup to page before the form
+            broadcast(event, "globalFeedbackFinished", globalFeedback, { message: message })
+        }, 3000)
+    },
+    getPagedQuery: function(lim, it = 0, queryObj, allResults = []) {
+        return fetch(`${DEER.URLS.QUERY}?limit=${lim}&skip=${it}`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8"
+            },
+            body: JSON.stringify(queryObj)
+        })
+        .then(response => response.json())
+        .then(results => {
+            if (results.length) {
+                allResults = allResults.concat(results)
+                return this.getPagedQuery(lim, it + results.length, queryObj, allResults)
+            }
+            return allResults
+        })
+        .catch(err => {
+            console.warn("Could not process a result in paged query")
+            throw err
+        })
+    },
     listFromCollection: function (collectionId) {
         let queryObj = {
             body: {
                 targetCollection: collectionId
             }
         }
-        return fetch(DEER.URLS.QUERY, {
+        return fetch(`${DEER.URLS.QUERY}?limit=100&skip=0`, {
             method: "POST",
             mode: 'cors',
             headers:{
@@ -301,7 +339,7 @@ export default {
         targetStyle = targetStyle.concat(["target", "target.@id", "target.id"]) //target.source?
         let historyWildcard = { "$exists": true, "$size": 0 }
         let obj = { "$or": [], "__rerum.history.next": historyWildcard }
-        const uris = httpsIdArray(id,true)
+        const uris = this.httpsIdArray(id,true)
         for (let target of targetStyle) {
             //Entries that are not strings are not supported.  Ignore those entries.  
             //TODO: should we we let the user know we had to ignore something here?
@@ -313,7 +351,7 @@ export default {
                 })
             }
         }
-        let matches = await fetch(DEER.URLS.QUERY, {
+        let matches = await fetch(`${DEER.URLS.QUERY}?limit=100&skip=0`, {
             method: "POST",
             body: JSON.stringify(obj),
             mode: 'cors',

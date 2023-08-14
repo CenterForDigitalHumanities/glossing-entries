@@ -6,9 +6,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/gloss.css">
-    <script src="/js/auth.js" type="module"></script>
+    <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
-    <script src="js/app.js" type="module"></script>
+    <script src="js/layout.js" type="module"></script>
     <script src="js/shared.js"></script>
 </head>
 
@@ -18,8 +18,8 @@
     <input is="auth-creator" type="hidden" deer-key="creator" />
     <button id="saveList" style="visibility: hidden;" class="button primary" role="button">Save List</button>
     <div class="row">
-        <deer-view id="collectionList" deer-listing="https://store.rerum.io/v1/id/610ad6f1ffce846a83e70613"
-            deer-collection="Glossing-Matthew" deer-link="ms.html#" deer-template="managedlist">
+        <deer-view id="collectionList" 
+            deer-collection="Glossing-Matthew" deer-listing deer-link="ms.html#" deer-template="managedlist">
             Loading&hellip;
         </deer-view>
     </div>
@@ -27,6 +27,12 @@
 
     </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
+    <script>
+        window.onload = () => { 
+            setPublicCollections() 
+            setListings()
+        }
+    </script>
 </body>
 
 </html>

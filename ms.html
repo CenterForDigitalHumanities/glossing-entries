@@ -5,9 +5,9 @@
     <title>Gallery of Glosses</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
-    <script src="/js/auth.js" type="module"></script>
+    <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
-    <script src="js/app.js" type="module"></script>
+    <script src="js/layout.js" type="module"></script>
     <script src="js/shared.js"></script>
 </head>
 
@@ -75,7 +75,7 @@
             manuscript.setAttribute("deer-id", msid)
             thumbroll.setAttribute("deer-id", msid)
             newGloss.setAttribute("href", "gloss.html?partOf=" + msid + "#")
-            fetch("https://tinymatt.rerum.io/gloss/query?limit=100&skip=0", {
+            fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json; charset=utf-8"
