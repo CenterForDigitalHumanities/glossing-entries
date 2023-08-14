@@ -13,6 +13,5 @@ jobs:
         - uses: actions/checkout@v3
         - run: |
             cd /opt/tomcat/webapps/glossing/
-            git checkout {branch_n}
             git stash
             git pull
