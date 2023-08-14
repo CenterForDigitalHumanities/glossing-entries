@@ -1,0 +1,24 @@
+name: Glossing Entries Deploy
+on: 
+  push:
+    branches:
+      main
+  pull-request:
+    branches:
+      main
+jobs:
+    deploy:
+      strategy: 
+        matrix:
+            machines: [vlcdhp02]
+      runs-on: ${{ matrix.machines }}
+      steps:
+        - uses: actions/checkout@v3
+        - run: |
+            if [[ ! -e /opt/tomcat/logs/glossing_entries.txt ]]; then
+                mkdir -p /opt/tomcat/logs
+                touch /opt/tomcat/logs/glossing_entries.txt
+            fi
+            cd /opt/tomcat/webapps/glossing/
+            git stash
+            git pull

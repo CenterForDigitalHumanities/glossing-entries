@@ -1,9 +1,14 @@
 import deerUtils from "./deer-utils.js"
 import AuthButton from './auth.js'
 
-const DEV = true // false or comment to turn off
-const baseV1 = DEV ? "https://devstore.rerum.io/":"https://store.rerum.io/"
-const tiny = DEV ? "https://tinydev.rerum.io/app/":"https://tinymatt.rerum.io/gloss/"
+const properties = await fetch("../properties.json").then(r=>r.json()).catch(e=>{return {}})
+
+// const DEV = true // false or comment to turn off
+// const baseV1 = DEV ? "https://devstore.rerum.io/":"https://store.rerum.io/"
+// const tiny = DEV ? "https://tinydev.rerum.io/app/":"https://tinymatt.rerum.io/gloss/"
+
+const baseV1 = properties.rerum
+const tiny = properties.tiny
 
 export default {
     ID: "deer-id", // attribute, URI for resource to render
@@ -31,7 +36,8 @@ export default {
     PRIMITIVES: [],
 
     // The value for __rerum.generatedBy.  It should be the same as the agent encoded in the logged in user's Bearer Token.
-    GENERATOR : DEV ? "http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90" : "http://store.rerum.io/v1/id/61043ad4ffce846a83e700dd",
+    //GENERATOR : DEV ? "http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90" : "http://store.rerum.io/v1/id/61043ad4ffce846a83e700dd",
+    GENERATOR: properties.generator,
 
     URLS: {
         BASE_ID: baseV1,
