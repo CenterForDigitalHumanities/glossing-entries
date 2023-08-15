@@ -13,6 +13,7 @@ jobs:
         with:
           type: now
           target_branch: bryan-dev-cd
+          github_token: ${{ secrets.BRY_PAT }}
           message: Merge main into this branch to deploy to dev for testing.
   deploy:
     needs: merge-branch
