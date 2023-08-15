@@ -23,7 +23,7 @@ jobs:
         machines: [vlcdhp02]
     runs-on: ${{ matrix.machines }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@master
       - run: |
           cd /opt/tomcat/webapps/glossing/
           git stash
