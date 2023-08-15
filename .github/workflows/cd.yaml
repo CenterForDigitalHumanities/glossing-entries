@@ -4,15 +4,18 @@ on:
       branches:
         bryan-dev-cd
 jobs:
-  deploy:
-    strategy: 
-      matrix:
-          machines: [vlcdhp02]
-    runs-on: ${{ matrix.machines }}
-    steps:
-      - uses: actions/master
-      - run: |
-          cd /opt/tomcat/webapps/glossing/
-          git stash
-          git checkout $GITHUB_HEAD_REF
-          git pull
+    deploy:
+      strategy: 
+        matrix:
+            machines: [vlcdhp02]
+      runs-on: ${{ matrix.machines }}
+      steps:
+        - uses: actions/checkout@v3
+        - run: |
+            cd /opt/tomcat/webapps/glossing/
+            git stash
+            git checkout bryan-dev-cd
+            git pull
+            git checkout $GITHUB_HEAD_REF
+            git pull
+            git merge bryan-dev-cd
