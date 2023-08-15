@@ -4,6 +4,18 @@ on:
       branches:
         main
 jobs:
+  merge-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Merge with main
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          from_branch: main
+          target_branch: ${{ github.head_ref }}
+          github_token: ${{ secrets.BRY_PAT }}
+          message: Merge main into this branch to deploy to dev for testing.
   deploy:
     needs: merge-branch
     strategy: 
