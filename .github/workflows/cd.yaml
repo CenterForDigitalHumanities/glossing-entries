@@ -18,7 +18,6 @@ jobs:
     strategy: 
       matrix:
         machines: [vlcdhp02]
-      maxParallel: 1
     runs-on: ${{ matrix.machines }}
     steps:
       - uses: actions/checkout@v3
