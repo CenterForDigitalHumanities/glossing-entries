@@ -4,16 +4,6 @@ on:
       branches:
         bryan-dev-cd
 jobs:
-  merge-branch:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Merge with main to deploy to dev
-        uses: devmasx/merge-branch@master
-        with:
-          type: now
-          target_branch: bryan-dev-cd
-          message: Merge candidate branch with main to deploy it.
   deploy:
     strategy: 
       matrix:
