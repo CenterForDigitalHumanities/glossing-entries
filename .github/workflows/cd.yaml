@@ -4,8 +4,6 @@ on:
       branches:
         bryan-dev-cd
 jobs:
-  strategy:
-    parallel: 1
   merge-branch:
     runs-on: ubuntu-latest
     steps:
