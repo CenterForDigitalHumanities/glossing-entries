@@ -5,7 +5,7 @@ on:
         bryan-dev-cd
 jobs:
   strategy:
-    max-parallel: 1
+    maxParallel: 1
   merge-branch:
     runs-on: ubuntu-latest
     steps:
