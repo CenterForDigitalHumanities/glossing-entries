@@ -12,7 +12,7 @@ jobs:
         uses: devmasx/merge-branch@master
         with:
           type: now
-          target_branch: $GITHUB_HEAD_REF
+          target_branch: ${{ github.head_ref }}
           github_token: ${{ secrets.BRY_PAT }}
           message: Merge main into this branch to deploy to dev for testing.
   deploy:
