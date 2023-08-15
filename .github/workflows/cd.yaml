@@ -4,8 +4,6 @@ on:
       branches:
         bryan-dev-cd
 jobs:
-  strategy:
-    maxParallel: 1
   merge-branch:
     runs-on: ubuntu-latest
     steps:
@@ -19,7 +17,8 @@ jobs:
   deploy:
     strategy: 
       matrix:
-          machines: [vlcdhp02]
+        machines: [vlcdhp02]
+      maxParallel: 1
     runs-on: ${{ matrix.machines }}
     steps:
       - uses: actions/checkout@v3
