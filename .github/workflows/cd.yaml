@@ -4,18 +4,25 @@ on:
       branches:
         bryan-dev-cd
 jobs:
-    deploy:
-      strategy: 
-        matrix:
-            machines: [vlcdhp02]
-      runs-on: ${{ matrix.machines }}
-      steps:
-        - uses: actions/checkout@v3
-        - run: |
-            cd /opt/tomcat/webapps/glossing/
-            git stash
-            git checkout bryan-dev-cd
-            git pull
-            git checkout $GITHUB_HEAD_REF
-            git pull
-            git merge bryan-dev-cd
+  merge-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Merge with main to deploy to dev
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          target_branch: bryan-dev-cd
+          message: Merge candidate branch with main to deploy it.
+  deploy:
+    strategy: 
+      matrix:
+          machines: [vlcdhp02]
+    runs-on: ${{ matrix.machines }}
+    steps:
+      - uses: actions/master
+      - run: |
+          cd /opt/tomcat/webapps/glossing/
+          git stash
+          git checkout $GITHUB_HEAD_REF
+          git pull
