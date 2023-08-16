@@ -44,7 +44,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
     if (!id) id = location.hash ? location.hash.substr(1) : null
     const thing =
         (type === "manuscript") ? "Manuscript" :
-            (type === "named-gloss") ? "Named Gloss" :
+            (type === "named-gloss") ? "Gloss" :
                 (type === "Range") ? "Gloss" : null
     const redirect =
         (type === "manuscript") ? "./manuscripts.html" :

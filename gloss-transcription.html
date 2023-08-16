@@ -35,8 +35,8 @@
 
 <body class="container">
     <gog-header class="container"></gog-header>
-    <h2 class="bg-basic"> Named Gloss Transcription Witness </h2>
-    <p class="bg-basic"> Connect Named Glosses with text in T-PEN Transcriptions. </p>
+    <h2 class="bg-basic"> Gloss Transcription Witness </h2>
+    <p class="bg-basic"> Connect Glosses with text in T-PEN Transcriptions. </p>
     <div id="needs" class="row bg-basic">
         <p class="howTo"> 
             It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  
@@ -45,7 +45,7 @@
         </p>
     </div>
     <!-- Since the pieces require each other, only show the interface when all components have loaded enough -->
-    <!-- Our limiter here is the Named Glosses Collection.  We need to wait on the paged query. -->
+    <!-- Our limiter here is the Glosses Collection.  We need to wait on the paged query. -->
     <div id="loading" class="tpen-needed is-hidden">
         <p style="color: white;"> 
             Please be patient while we get things together...  
@@ -82,8 +82,8 @@
             </label>
 
             <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
-            <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Named Gloss Incipit">Chosen Named Gloss</label>
-            <textarea disabled title="Choose a Named Gloss to see the incipit here" placeholder="Choose a Named Gloss below..." class="chosenNamedGloss col-9 col-10-md is-hidden"></textarea>
+            <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
+            <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenNamedGloss col-9 col-10-md is-hidden"></textarea>
         </div>
         <input class="is-hidden" type="submit" value="Create Textual Witness"/>
         <div class="row">
@@ -151,7 +151,7 @@
             referencesElem.removeAttribute("deer-source")
             referencesElem.$isDirty = false
 
-            // reset the named glosses filter
+            // reset the glosses filter
             const filter = form.querySelector('input[filter]')
             filter.value = ""
             filter.setAttribute("value", "")
@@ -226,7 +226,7 @@
         }
 
         /**
-         * When the Named Gloss Collection List deer view loads its records we can show the witness form.
+         * When the Gloss Collection List deer view loads its records we can show the witness form.
          * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
          */ 
         addEventListener('deer-view-rendered', event => {
@@ -330,7 +330,7 @@
 
          /**
          * Helper function for the specialized references key, which is an Array of URIs.
-         * It needs to apply the filter with this Named Gloss's Label..
+         * It needs to apply the filter with this Gloss's Label..
          * */
         function prefillDigitalLocations(locationsArr, form) {
             const locationElem = form.querySelector("input[custom-key='source']")
@@ -356,7 +356,7 @@
 
         /**
          * Helper function for the specialized references key, which is an Array of URIs.
-         * It needs to apply the filter with this Named Gloss's Label..
+         * It needs to apply the filter with this Gloss's Label..
          * */
         function prefillReferences(referencesArr, form) {
             if (referencesArr === undefined) {
@@ -392,7 +392,7 @@
             const button = elem.querySelector(".toggleInclusion")
             button?.setAttribute("disabled", "")
             button?.setAttribute("value", "✓ attached")
-            button?.setAttribute("title", "This Named Gloss is already attached!")
+            button?.setAttribute("title", "This Gloss is already attached!")
             button?.classList.remove("primary")
             button?.classList.add("success")
             filter.value = ngLabel.trim()
@@ -403,7 +403,7 @@
 
         /**
          * Helper function for the specialized references key, which is an Array of URIs.
-         * It needs to apply the filter with this Named Gloss's Label.
+         * It needs to apply the filter with this Gloss's Label.
          * */
         function preselectLines(linesArr, form) {
             const source = linesArr.source ?? null
@@ -551,8 +551,8 @@
             Promise.all(annotation_promises)
             .then(success => {
                 console.log("Successfully connected custom key Annotations")
-                const ev = new CustomEvent("Named Gloss Textual Witness Submitted")
-                globalFeedbackBlip(ev, `Named Gloss Textual Witness Submitted!`, true)
+                const ev = new CustomEvent("Gloss Textual Witness Submitted")
+                globalFeedbackBlip(ev, `Gloss Textual Witness Submitted!`, true)
                 const textWitnessID = window.location.hash.substr(1)
                 // If we are updating a witness keep the interface.  If we just sumbitted a new one, refresh the form to be ready for another new one.
                 if(!textWitnessID) setFormDefaults()  

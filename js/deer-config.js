@@ -84,7 +84,7 @@ export default {
         },
         ngList: function (obj, options = {}) {
             // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
-            let html = `<a href="./manage-glosses.html" class="button">Manage Named Glosses</a> <h2>Named Glosses</h2>
+            let html = `<a href="./manage-glosses.html" class="button">Manage Glosses</a> <h2>Glosses</h2>
             <input type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">`
             if (options.list) {
                 html += `<ul>`
@@ -165,12 +165,12 @@ export default {
                   font-size: 13pt;
                 }
             </style>
-            <h2>Named Glosses </h2>
-            <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
+            <h2> Glosses </h2>
+            <div class="cachedNotice is-hidden"> These Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
             <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
             <div class="progressArea">
-                <p class="filterNotice is-hidden"> Named Gloss filter detected.  Please note that Named Glosses will appear as they are fully loaded. </p>
-                <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.</div>
+                <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
+                <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
             </div>`
             
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
@@ -190,7 +190,7 @@ export default {
                         let filteringProps = Object.keys(cachedObj)
                         // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
                         let li = `<li class="${hide}" deer-id="${val["@id"]}" data-expanded="true" `
-                        // Add all Named Gloss object properties to the <li> element as attributes to match on later
+                        // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                             if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
@@ -213,10 +213,10 @@ export default {
                     }
                     else{
                         // This object was not cached so we do not have its properties.
-                        // Make this a deer-view so this Named Gloss is expanded and we can make attributes from its properties.
+                        // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
                         html += `<li deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
                             <a href="${options.link}${val["@id"]}">
-                            <span>Loading Named Gloss #${index + 1}...</span>
+                            <span>Loading Gloss #${index + 1}...</span>
                             </a>
                         </li>`
                     }
@@ -236,7 +236,7 @@ export default {
                 const cachedNotice = elem.querySelector(".cachedNotice")
                 const progressArea = elem.querySelector(".progressArea")
                 // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
-                totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Named Gloss loaded already.`
+                totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
                 totalsProgress.setAttribute("total", total)
                 totalsProgress.setAttribute("count", numloaded)
 
@@ -247,7 +247,7 @@ export default {
                     return
                 })
 
-                // Filter the list of named glosses as users type their query against 'title'
+                // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
                     const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
                     debounce(filterGlosses(filterQuery))
@@ -278,7 +278,7 @@ export default {
                 }
 
                 /** 
-                 * This presumes things are already loaded.  Do not use this function unless all named glosses are loaded.
+                 * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
                  * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
                  */ 
                 function filterGlosses(queryString=''){
@@ -357,16 +357,16 @@ export default {
             </style>
             <input type="hidden" custom-key="references" />
             <div class="col">
-                <h2 class="nomargin">Attach Named Gloss</h2>
-                <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
+                <h2 class="nomargin">Attach Gloss</h2>
+                <div class="cachedNotice is-hidden"> These Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
                 <p class="filterInstructions is-hidden"> 
-                Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to. </p>
+                Use the filter to narrow down your options.  Select a single Gloss from the list to attach this witness to. </p>
                 <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
                 <div class="progressArea">
-                    <p class="filterNotice is-hidden"> Named Gloss filter detected.  Please note that Named Glosses will appear as they are fully loaded. </p>
+                    <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                     <div class="totalsProgress" count="0"> 
                         {loaded} out of {total} loaded (0%)<br>
-                        You may click to select any Named Gloss loaded already.<br>
+                        You may click to select any Gloss loaded already.<br>
                         A filter will become available when all items are loaded.
                     </div>
                 </div>`
@@ -382,14 +382,14 @@ export default {
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
-                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" href="${val['@id']}" title="Attach this Named Gloss and Save" value="&#10149; attach"/>`
+                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" href="${val['@id']}" title="Attach this Gloss and Save" value="&#10149; attach"/>`
                     if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
                         // We cached it in the past and are going to trust it right now.
                         const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))
                         let filteringProps = Object.keys(cachedObj)
                         // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
                         let li = `<li class="${hide}" deer-id="${val["@id"]}" data-expanded="true" `
-                        // Add all Named Gloss object properties to the <li> element as attributes to match on later
+                        // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                             if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
@@ -413,11 +413,11 @@ export default {
                     }
                     else{
                         // This object was not cached so we do not have its properties.
-                        // Make this a deer-view so this Named Gloss is expanded and we can make attributes from its properties.
+                        // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
                         html += `<li deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
                             ${inclusionBtn}
                             <a target="_blank" href="${options.link}${val["@id"]}">
-                            <span>Loading Named Gloss #${index + 1}...</span>
+                            <span>Loading Gloss #${index + 1}...</span>
                             </a>
                         </li>`
                     }
@@ -442,7 +442,7 @@ export default {
                 // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                 totalsProgress.innerHTML = `
                     ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>
-                    You may click to select any Named Gloss loaded already.<br>
+                    You may click to select any Gloss loaded already.<br>
                     A filter will become available when all items are loaded.`
                 totalsProgress.setAttribute("total", total)
                 totalsProgress.setAttribute("count", numloaded)
@@ -458,8 +458,8 @@ export default {
                 elem.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
                     ev.preventDefault()
                     ev.stopPropagation()
-                    const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
-                    if(confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
+                    const glossIncipit = ev.target.closest("li").getAttribute("data-title")
+                    if(confirm(`Save this textual witness for Gloss '${glossIncipit}'?`)){
                         const form = ev.target.closest("form")
                         const customKey = elem.querySelector("input[custom-key]")
                         const uri = a.getAttribute("href")
@@ -477,12 +477,12 @@ export default {
                             }
                         }
                         else{
-                            alert(`This textual witness is already attached to Named Gloss '${namedGlossIncipit}'`)
+                            alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
                         }
                     }                    
                 }))
 
-                // Filter the list of named glosses as users type their query against 'title'
+                // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
                     const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
                     debounce(filterGlosses(filterQuery))
@@ -516,7 +516,7 @@ export default {
                 }
 
                 /** 
-                 * This presumes things are already loaded.  Do not use this function unless all named glosses are loaded.
+                 * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
                  * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
                  */ 
                 function filterGlosses(queryString=''){
@@ -554,7 +554,7 @@ export default {
 
         /**
          * This corresponds to an existing <li> element with a deer-id property.  These <li> elements need to be filterable.
-         * As such, they require information about the Named Gloss they represent, whose URI is the deer-id.
+         * As such, they require information about the Gloss they represent, whose URI is the deer-id.
          * That element is expand()ed in order to get the information for this element to be filterable.
          * 
          * Since the object is expanded, if reasonable, it should be cached with its information (how would we know if it is out of date?)
@@ -577,14 +577,14 @@ export default {
                     let inclusionBtn = document.createElement("input")
                     inclusionBtn.setAttribute("type", "button")
                     inclusionBtn.setAttribute("href", obj["@id"])
-                    inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
+                    inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
                     inclusionBtn.setAttribute("value", `➥ attach`)
                     inclusionBtn.setAttribute("class", "toggleInclusion button primary")
                     inclusionBtn.addEventListener('click', ev => {
                         ev.preventDefault()
                         ev.stopPropagation()
-                        const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
-                        if(confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
+                        const glossIncipit = ev.target.closest("li").getAttribute("data-title")
+                        if(confirm(`Save this textual witness for Gloss '${glossIncipit}'?`)){
                             const form = ev.target.closest("form")
                             const customKey = form.querySelector("input[custom-key]")
                             const uri = a.getAttribute("href")
@@ -602,7 +602,7 @@ export default {
                                 }
                             }
                             else{
-                                alert(`This textual witness is already attached to Named Gloss '${namedGlossIncipit}'`)
+                                alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
                             }
                         }                    
                     })
@@ -650,7 +650,7 @@ export default {
                     totalsProgress.setAttribute("count", numloaded)
                     totalsProgress.innerHTML = `
                         ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  
-                        You may click to select any Named Gloss loaded already.<br>
+                        You may click to select any Gloss loaded already.<br>
                         A filter will become available when all items are loaded.`
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
