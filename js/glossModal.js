@@ -12,16 +12,16 @@ class GlossModal extends HTMLElement {
             .window-shadow{
 
             }
-            .modal-card{
+            .modal{
 
             }
-            .modal-card form{
+            .modal form{
 
             }
         </style>
         <div class="window-shadow"> 
-            <div class="container">
-                <div class="card modal-card is-center">
+            <div class="modal container">
+                <div class="card">
                     <header>
                       <h4>Create New Gloss</h4>
                     </header>
@@ -63,12 +63,12 @@ class GlossModal extends HTMLElement {
                         <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
                         <div id="glossResult"></div>
 
-                        <input type="submit" value="Create" class="col add-update is-hidden">
+                        <input type="submit" value="Create" class="col is-hidden">
                     </form>
 
-                    <footer class="is-right">
-                      <input type="button" class="button primary">Submit</a>
-                      <input type="button" class="button secondary">Cancel</a>
+                    <footer class="is-left">
+                      <input type="button" value="Create Gloss" class="button primary"/>
+                      <input type="button" value="Cancel" class="button secondary"/>
                     </footer>
                 </div>
             </div>
@@ -97,14 +97,13 @@ class GlossModal extends HTMLElement {
         this.querySelector(".button.primary").addEventListener("click", event => {
               $this.querySelector("input[type='submit']").click()
               // If DEER announces success, then the modal goes away because the Gloss was created.
+              // If DEER announces failure, then...?
         })
 
         // 'Cancel' click event handler
-        this.querySelector(".button.primary").addEventListener("click", event => {
-                
+        this.querySelector(".button.secondary").addEventListener("click", event => {
+           $this.classList.add("is-hidden")     
         })
-
-
         
         const labelElem = this.querySelector('input[deer-key="title"]')
         const textElem = glossText
