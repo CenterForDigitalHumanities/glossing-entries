@@ -8,9 +8,9 @@
     <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
+    <script src="js/lineSelector.js" type="module"></script>
+    <script src="js/glossModal.js" type="module"></script>
     <script src="js/shared.js"></script>
-    <script src="js/lineSelector.js"></script>
-    <script src="js/glossModal.js"></script>
     <style>
        .toggle{
             position: absolute;
@@ -563,6 +563,73 @@
                 console.error("Did not connect all custom key Annotations!!")
                 console.error(err)
             })
+        })
+
+        
+
+        /**
+         * Detects that the modal saved a new Gloss and contains that new Gloss's details.
+         */
+        addEventListener('gloss-modal-saved', event => {
+            if($elem?.id  !== "named-gloss-modal") return
+            const gloss = event.detail
+            const form = witnessForm
+            const view = form.querySelector("deer-view[deer-template='glossesSelectorForTextualWitness']")
+            const list = view.querySelector("ul")
+            const modal = event.target
+            modal.classList.add("is-hidden")
+
+            // Now that Gloss needs to paginate into ngCollectionList.  It should appear in the currently filtered list.
+            // It needs to be selectable, and its select button should fire the submit just like any other entry in the list.
+            // The [➥ attach] button should fire its 'click', thus submitting the witness and triggering the form reset.
+
+            // This object was not cached so we do not have its properties.
+            // Make this a deer-view so this Named Gloss is expanded and we can make attributes from its properties.
+            const inclusionBtn = document.createElement("input")
+            inclusionBtn.setAttribute("type", "button")
+            inclusionBtn.setAttribute("href", obj["@id"])
+            inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
+            inclusionBtn.setAttribute("value", `➥ attach`)
+            inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+            inclusionBtn.addEventListener('click', ev => {
+                ev.preventDefault()
+                ev.stopPropagation()
+                const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
+                const customKey = form.querySelector("input[custom-key]")
+                const filter = form.querySelector('input[filter]')
+                filter.value = ""
+                filter.setAttribute("value", namedGlossIncipit)
+                filter.dispatchEvent(new Event('input', { bubbles: true }))
+                const uri = a.getAttribute("href")
+                if(customKey.value !== uri){
+                    customKey.value = uri 
+                    customKey.setAttribute("value", uri) 
+                    customKey.$isDirty = true
+                    form.closest("form").$isDirty = true
+                    // There must be a shelfmark.
+                    if(form.querySelector("input[deer-key='identifier']").value){
+                        form.querySelector("input[type='submit']").click()    
+                    }
+                    else{
+                        alert("You must provide a Shelfmark value.")
+                    }
+                }
+                else{
+                    alert(`This textual witness is already attached to Named Gloss '${namedGlossIncipit}'`)
+                }
+            })
+      
+            list.innerHTML +=
+            `<li deer-template="filterableListItem" deer-link="ng.html#${gloss["@id"]}" class="deer-view" data-title="${gloss.title}" deer-id="${gloss["@id"]}">
+                ${inclusionBtn}
+                <a target="_blank" href="ng.html#${gloss["@id"]}">
+                    <span>Loading New Named Gloss...</span>
+                </a>
+            </li>`
+
+            inclusionBtn.click()
+            //inclusionBtn.dispatchEvent(new Event('click', { bubbles: true }))
+
         })
     </script>
 </body>

@@ -1,8 +1,42 @@
+
+
+import { default as utils } from './deer-utils.js'
+
 /**
-  * BRYAN
+  * A button for activating the module.  We might want to have some kind of consistent button.
+  * Offers a custom event for when the module is hidden or shown.
+*/
+class GlossModalActivationButton extends HTMLElement {
+    template = `
+        <input type="button" class="button" value="+" /> 
+    `
+
+    constructor() {
+        super()
+    }
+    connectedCallback() {
+        this.innerHTML = this.template
+        let $this = this
+        this.querySelector("input[type='button']").addEventListener("click", toggleModal)
+        function toggleModal(event){
+            const $button = event.target
+            const action = $this.classList.contains("is-hidden") ? "remove" : "add"
+            $this.classList[action]("is-hidden")
+            const ev = (action === "add") ? "hidden" : "visible"
+            utils.broadcast(undefined,`gloss-modal-${ev}`, $this, {})
+        }
+    }
+}
+
+customElements.define('gloss-modal-button', GlossModalActivationButton)
+
+
+/**
+  * A focused pop up containing the Gloss deer-form, similar to the form on ng.html.
+  * It can be included on any HTML page.
+  *
   * 
 */
-
 class GlossModal extends HTMLElement {
     template = `
         <style>
@@ -29,7 +63,7 @@ class GlossModal extends HTMLElement {
                         Create a new Gloss for Gallery of Glosses.  It will be added to the collection of Glosses and made available for selection.
                     </p>
 
-                    <form id="named-gloss-modal" deer-type="Gloss" deer-context="http://purl.org/dc/terms">
+                    <form id="named-gloss-modal" deer-type="Gloss_TEST" deer-context="http://purl.org/dc/terms">
                         <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
                         <input is="auth-creator" type="hidden" deer-key="creator" />
                         <div class="row">
@@ -91,13 +125,13 @@ class GlossModal extends HTMLElement {
             //Only care about the named-gloss-modal form
             if($elem?.id  !== "named-gloss-modal") return
 
+            // Announce a modal specific event with the details from the DEER announcement
+            utils.broadcast(event, `gloss-modal-saved`, $this, event.detail ?? {})
         })
 
         // 'Submit' click event handler
         this.querySelector(".button.primary").addEventListener("click", event => {
               $this.querySelector("input[type='submit']").click()
-              // If DEER announces success, then the modal goes away because the Gloss was created.
-              // If DEER announces failure, then...?
         })
 
         // 'Cancel' click event handler

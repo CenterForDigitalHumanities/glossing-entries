@@ -1,7 +1,12 @@
 /**
  * Shared front end functionality across the HTML pages.
  */
-const __constants = fetch("../properties.json").then(r=>r.json()).catch(e=>{return {}})
+let __constants = {}
+setConstants()
+
+async function setConstants(){
+    __constants = await fetch("../properties.json").then(r=>r.json()).catch(e=>{return {}})
+}
 
 /**
  * Use this on page load to find all the deer-views that should be showing a public collection.
@@ -330,7 +335,7 @@ async function findMatchingIncipits(incipit, titleStart) {
         }],
         "__rerum.history.next": historyWildcard
     }
-    return fetch("https://tinymatt.rerum.io/gloss/query?limit=100&skip=0", {
+    return fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
         method: "POST",
         mode: 'cors',
         headers: {
