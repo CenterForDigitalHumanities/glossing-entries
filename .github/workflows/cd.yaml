@@ -12,7 +12,8 @@ jobs:
         uses: devmasx/merge-branch@master
         with:
           type: now
-          target_branch: main
+          from_branch: main
+          target_branch: ${{ github.head_ref }}
           github_token: ${{ secrets.BRY_PAT }}
           message: Merge main into this branch to deploy to dev for testing.
   deploy:
@@ -22,9 +23,11 @@ jobs:
         machines: [vlcdhp02]
     runs-on: ${{ matrix.machines }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@master
       - run: |
           cd /opt/tomcat/webapps/glossing/
           git stash
+          git checkout main
+          git pull
           git checkout $GITHUB_HEAD_REF
           git pull
