@@ -3,8 +3,6 @@
   * 
 */
 
-import { default as utils } from './deer-utils.js'
-
 class GlossModal extends HTMLElement {
     template = `
         <style>
@@ -93,7 +91,7 @@ class GlossModal extends HTMLElement {
             //Only care about the named-gloss-modal form
             if($elem?.id  !== "named-gloss-modal") return
 
-        }
+        })
 
         // 'Submit' click event handler
         this.querySelector(".button.primary").addEventListener("click", event => {
