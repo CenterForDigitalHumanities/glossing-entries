@@ -5,7 +5,7 @@
     <title>Gallery of Glosses</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
-    <script disabled src="js/auth.js" type="module"></script>
+    <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/lineSelector.js" type="module"></script>
@@ -243,7 +243,7 @@
         addEventListener('deer-view-rendered', event => {
             if(event.target.id == "ngCollectionList"){
                 loading.classList.add("is-hidden")
-                //witnessForm.classList.remove("is-hidden")
+                witnessForm.classList.remove("is-hidden")
             }
         })
 
@@ -580,33 +580,28 @@
          * Detects that the modal saved a new Gloss and contains that new Gloss's details.
          */
         addEventListener('gloss-modal-saved', event => {
-            if($elem?.id  !== "named-gloss-modal") return
+            if(event.target.tagName !== "GLOSS-MODAL") return
             const gloss = event.detail
             const form = witnessForm
             const view = form.querySelector("deer-view[deer-template='glossesSelectorForTextualWitness']")
             const list = view.querySelector("ul")
             const modal = event.target
+            const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
             modal.classList.add("is-hidden")
-
-            // Now that Gloss needs to paginate into ngCollectionList.  It should appear in the currently filtered list.
-            // It needs to be selectable, and its select button should fire the submit just like any other entry in the list.
-            // The [➥ attach] button should fire its 'click', thus submitting the witness and triggering the form reset.
-
-            // This object was not cached so we do not have its properties.
-            // Make this a deer-view so this Named Gloss is expanded and we can make attributes from its properties.
             const inclusionBtn = document.createElement("input")
             inclusionBtn.setAttribute("type", "button")
-            inclusionBtn.setAttribute("href", obj["@id"])
+            inclusionBtn.setAttribute("href", gloss["@id"])
             inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
             inclusionBtn.setAttribute("value", `➥ attach`)
             inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+            inclusionBtn.setAttribute("data-title", title)
             inclusionBtn.addEventListener('click', ev => {
                 ev.preventDefault()
                 ev.stopPropagation()
-                const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
+                const namedGlossIncipit = ev.target.getAttribute("data-title")
                 const customKey = form.querySelector("input[custom-key]")
                 const filter = form.querySelector('input[filter]')
-                filter.value = ""
+                filter.value = namedGlossIncipit
                 filter.setAttribute("value", namedGlossIncipit)
                 filter.dispatchEvent(new Event('input', { bubbles: true }))
                 const uri = a.getAttribute("href")
@@ -614,7 +609,7 @@
                     customKey.value = uri 
                     customKey.setAttribute("value", uri) 
                     customKey.$isDirty = true
-                    form.closest("form").$isDirty = true
+                    form.$isDirty = true
                     // There must be a shelfmark.
                     if(form.querySelector("input[deer-key='identifier']").value){
                         form.querySelector("input[type='submit']").click()    
@@ -627,18 +622,33 @@
                     alert(`This textual witness is already attached to Named Gloss '${namedGlossIncipit}'`)
                 }
             })
-      
-            list.innerHTML +=
-            `<li deer-template="filterableListItem" deer-link="ng.html#${gloss["@id"]}" class="deer-view" data-title="${gloss.title}" deer-id="${gloss["@id"]}">
-                ${inclusionBtn}
-                <a target="_blank" href="ng.html#${gloss["@id"]}">
-                    <span>Loading New Named Gloss...</span>
-                </a>
-            </li>`
+            const li = document.createElement("li")
+            const a = document.createElement("a")
+            const span = document.createElement("span")
+
+            // This Gloss was just created and is not cached.
+            // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
+            li.classList.add("deer-view")
+            li.setAttribute("deer-template", "filterableListItem")
+            li.setAttribute("deer-id", `ng.html#${gloss["@id"]}`)
+            li.setAttribute("deer-link", `ng.html#${gloss["@id"]}`)
+            li.setAttribute("data-title", title)
+            li.setAttribute("deer-template", "filterableListItem")
+
+            a.setAttribute("target", "_blank")
+            a.setAttribute("href", `ng.html#${gloss["@id"]}`)
+
+            span.innerText = title
+
+            a.appendChild(span)
+            li.appendChild(inclusionBtn)
+            li.appendChild(a)
+            list.appendChild(li)
+
+            // FIXME this doesn't seem to make this li element expand() and get the properties.  We already have the title though, so...
+            broadcast(undefined, "deer-view", li, { set: [li] })
 
             inclusionBtn.click()
-            //inclusionBtn.dispatchEvent(new Event('click', { bubbles: true }))
-
         })
     </script>
 </body>
