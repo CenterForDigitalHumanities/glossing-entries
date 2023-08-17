@@ -176,7 +176,7 @@ class GlossModal extends HTMLElement {
             }
         }))
 
-        utils.broadcast(undefined, "deer-form", this, { set: this.querySelector("form") })
+        utils.broadcast(undefined, "deer-form", this, { set: [this.querySelector("form")] })
     }
 }
 

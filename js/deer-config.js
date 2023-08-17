@@ -1,5 +1,5 @@
 import deerUtils from "./deer-utils.js"
-import AuthButton from './auth.js'
+// import AuthButton from './auth.js'
 
 const __constants = await fetch("../properties.json").then(r=>r.json()).catch(e=>{return {}})
 
