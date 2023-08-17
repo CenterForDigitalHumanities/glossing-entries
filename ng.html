@@ -41,12 +41,12 @@
             <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
             <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
             <button class="col-6" type="button" role="button" onclick="parseSections()">parse sections</button>
-            <label class="col-3 col-2-md text-right">Major Section:</label>
-            <input type="text" deer-key="section" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">First subsection:</label>
-            <input type="text" deer-key="subsection1" placeholder="chapter" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Second subsection:</label>
-            <input type="text" deer-key="subsection2" placeholder="verse" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Document:</label>
+            <input type="text" deer-key="_document" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Section:</label>
+            <input type="text" deer-key="_section" placeholder="chapter" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Subsection(s):</label>
+            <input type="text" deer-key="_subsection" placeholder="verse" class="col-9 col-4-md">
         </div>
         <div class="row">
             <label class="col-3 col-2-md text-right">Target Text:</label>
@@ -148,10 +148,10 @@
 
         function parseSections() {
             const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value
-            const section = document.querySelector('input[deer-key="section"]')
-            const subsection1 = document.querySelector('input[deer-key="subsection1"]')
-            const subsection2 = document.querySelector('input[deer-key="subsection2"]')
-            const elemSet = [section, subsection1, subsection2]
+            const _document = document.querySelector('input[deer-key="_document"]')
+            const _section = document.querySelector('input[deer-key="_section"]')
+            const _subsection = document.querySelector('input[deer-key="_subsection"]')
+            const elemSet = [_document, _section, _subsection]
             if (elemSet.includes(null) || !canonValue?.length) { throw new Error(`Missing elements in ${elemSet.join(', ')}`) }
 
             const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/)
