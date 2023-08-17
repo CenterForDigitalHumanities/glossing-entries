@@ -41,7 +41,7 @@ class GlossModal extends HTMLElement {
     template = `
         <style>
             gloss-modal{
-                display: none;
+                
             }
             .window-shadow{
 
@@ -97,10 +97,10 @@ class GlossModal extends HTMLElement {
                         <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
                         <div id="glossResult"></div>
 
-                        <input type="submit" value="Create" class="col is-hidden">
+                        <input type="submit" value="Create" class="col">
                     </form>
 
-                    <footer class="is-left">
+                    <footer class="is-left is-hidden">
                       <input type="button" value="Create Gloss" class="button primary"/>
                       <input type="button" value="Cancel" class="button secondary"/>
                     </footer>
@@ -175,6 +175,8 @@ class GlossModal extends HTMLElement {
                 language: textLang
             }
         }))
+
+        utils.broadcast(undefined, "deer-form", this, { set: this.querySelector("form") })
     }
 }
 
