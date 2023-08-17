@@ -123,6 +123,13 @@ class TpenLineSelector extends HTMLElement {
                                     filter.setAttribute("value", firstword)
                                     filter.dispatchEvent(new Event('input', { bubbles: true }))
                                 }
+
+                                // So that the Gloss modal on gloss-transcription.html also gets the selected text.
+                                const modalTextInput = document.getElementById("glossText")
+                                modalTextInput.setAttribute("value", selectedText)
+                                modalTextInput.value = selectedText
+                                modalTextInput.dispatchEvent(new Event('input', { bubbles: true }))
+
                                 const textInput = document.querySelector("textarea[custom-text-key='text']")
                                 textInput.setAttribute("value", selectedText)
                                 textInput.value = selectedText

@@ -8,8 +8,9 @@
     <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
+    <script src="js/lineSelector.js" type="module"></script>
+    <script src="js/glossModal.js" type="module"></script>
     <script src="js/shared.js"></script>
-    <script src="js/lineSelector.js"></script>
     <style>
        .toggle{
             position: absolute;
@@ -59,7 +60,7 @@
             <input type="text" deer-key="label" placeholder="Label" class="col-9 col-10-md is-hidden">
 
             <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
-            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
+            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required value="shelfy:marky">
                         
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
@@ -95,6 +96,7 @@
     </form>
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
+    <gloss-modal></gloss-modal>
     <script>
 
         /**
@@ -223,6 +225,15 @@
                 ev.target.$isDirty = true
                 ev.target.closest("form").$isDirty = true
             })
+            setTimeout(() => {
+                document.querySelectorAll("input[deer-key='creator']").forEach(el => {
+                    el.value="HabesTest"
+                    el.setAttribute("value", "HabesTest")
+                })
+                witnessForm.setAttribute("deer-creator", "HabesTest")
+                document.getElementById("named-gloss-modal").setAttribute("deer-creator", "HabesTest")
+                window.GOG_USER["http://store.rerum.io/agent"] = "HabesTest"
+            }, 4000)
         }
 
         /**
@@ -561,6 +572,83 @@
                 console.error("Did not connect all custom key Annotations!!")
                 console.error(err)
             })
+        })
+
+        
+
+        /**
+         * Detects that the modal saved a new Gloss and contains that new Gloss's details.
+         */
+        addEventListener('gloss-modal-saved', event => {
+            if(event.target.tagName !== "GLOSS-MODAL") return
+            const gloss = event.detail
+            const form = witnessForm
+            const view = form.querySelector("deer-view[deer-template='glossesSelectorForTextualWitness']")
+            const list = view.querySelector("ul")
+            const modal = event.target
+            const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
+            modal.classList.add("is-hidden")
+            const inclusionBtn = document.createElement("input")
+            inclusionBtn.setAttribute("type", "button")
+            inclusionBtn.setAttribute("href", gloss["@id"])
+            inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
+            inclusionBtn.setAttribute("value", `➥ attach`)
+            inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+            inclusionBtn.setAttribute("data-title", title)
+            inclusionBtn.addEventListener('click', ev => {
+                ev.preventDefault()
+                ev.stopPropagation()
+                const namedGlossIncipit = ev.target.getAttribute("data-title")
+                const customKey = form.querySelector("input[custom-key]")
+                const filter = form.querySelector('input[filter]')
+                filter.value = namedGlossIncipit
+                filter.setAttribute("value", namedGlossIncipit)
+                filter.dispatchEvent(new Event('input', { bubbles: true }))
+                const uri = a.getAttribute("href")
+                if(customKey.value !== uri){
+                    customKey.value = uri 
+                    customKey.setAttribute("value", uri) 
+                    customKey.$isDirty = true
+                    form.$isDirty = true
+                    // There must be a shelfmark.
+                    if(form.querySelector("input[deer-key='identifier']").value){
+                        form.querySelector("input[type='submit']").click()    
+                    }
+                    else{
+                        alert("You must provide a Shelfmark value.")
+                    }
+                }
+                else{
+                    alert(`This textual witness is already attached to Named Gloss '${namedGlossIncipit}'`)
+                }
+            })
+            const li = document.createElement("li")
+            const a = document.createElement("a")
+            const span = document.createElement("span")
+
+            // This Gloss was just created and is not cached.
+            // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
+            li.classList.add("deer-view")
+            li.setAttribute("deer-template", "filterableListItem")
+            li.setAttribute("deer-id", `ng.html#${gloss["@id"]}`)
+            li.setAttribute("deer-link", `ng.html#${gloss["@id"]}`)
+            li.setAttribute("data-title", title)
+            li.setAttribute("deer-template", "filterableListItem")
+
+            a.setAttribute("target", "_blank")
+            a.setAttribute("href", `ng.html#${gloss["@id"]}`)
+
+            span.innerText = title
+
+            a.appendChild(span)
+            li.appendChild(inclusionBtn)
+            li.appendChild(a)
+            list.appendChild(li)
+
+            // FIXME this doesn't seem to make this li element expand() and get the properties.  We already have the title though, so...
+            broadcast(undefined, "deer-view", li, { set: [li] })
+
+            inclusionBtn.click()
         })
     </script>
 </body>
