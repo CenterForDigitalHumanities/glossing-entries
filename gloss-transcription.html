@@ -60,7 +60,7 @@
             <input type="text" deer-key="label" placeholder="Label" class="col-9 col-10-md is-hidden">
 
             <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
-            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required value="shelfy:marky">
+            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
                         
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
@@ -590,7 +590,7 @@
             inclusionBtn.setAttribute("type", "button")
             inclusionBtn.setAttribute("href", gloss["@id"])
             inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
-            inclusionBtn.setAttribute("value", `➥ attach`)
+            inclusionBtn.setAttribute("value", "➥ attach")
             inclusionBtn.setAttribute("class", "toggleInclusion button primary")
             inclusionBtn.setAttribute("data-title", title)
             inclusionBtn.addEventListener('click', ev => {
@@ -628,8 +628,7 @@
             // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
             li.classList.add("deer-view")
             li.setAttribute("deer-template", "filterableListItem")
-            li.setAttribute("deer-id", `ng.html#${gloss["@id"]}`)
-            li.setAttribute("deer-link", `ng.html#${gloss["@id"]}`)
+            li.setAttribute("deer-id", gloss["@id"])
             li.setAttribute("data-title", title)
             li.setAttribute("deer-template", "filterableListItem")
 
@@ -643,7 +642,9 @@
             li.appendChild(a)
             list.appendChild(li)
 
-            // FIXME this doesn't seem to make this li element expand() and get the properties.  We already have the title though, so...
+            // FIXME this doesn't seem to make this li element expand() and get the properties.
+            // This means it is not cached and does not appear on page refresh.  You have to clear and re-initialize the cache to see it.
+            // WE NEED THIS or else we need to expand the entity here and add it to cache.
             broadcast(undefined, "deer-view", li, { set: [li] })
 
             inclusionBtn.click()

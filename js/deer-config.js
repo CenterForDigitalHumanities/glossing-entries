@@ -381,13 +381,10 @@ export default {
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire Glossing-Matthew-Named-Glosses collection, URIs only.
-                html += `
-                    
-                `
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
-                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" href="${val['@id']}" title="Attach this Named Gloss and Save" value="&#10149; attach"/>`
+                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" href="${val['@id']}" title="Attach this Named Gloss and Save" value="➥ attach"/>`
                     if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
                         // We cached it in the past and are going to trust it right now.
                         const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))
@@ -585,7 +582,7 @@ export default {
                     inclusionBtn.setAttribute("type", "button")
                     inclusionBtn.setAttribute("href", obj["@id"])
                     inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
-                    inclusionBtn.setAttribute("value", `➥ attach`)
+                    inclusionBtn.setAttribute("value", "➥ attach")
                     inclusionBtn.setAttribute("class", "toggleInclusion button primary")
                     inclusionBtn.addEventListener('click', ev => {
                         ev.preventDefault()
@@ -651,10 +648,11 @@ export default {
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
-                    const total = parseInt(totalsProgress.getAttribute("total"))
+                    const total = parseInt(totalsProgress.getAttribute("total")) + 1
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
                     totalsProgress.setAttribute("count", numloaded)
+                    totalsProgress.setAttribute("total", total)
                     totalsProgress.innerHTML = `
                         ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  
                         You may click to select any Named Gloss loaded already.<br>

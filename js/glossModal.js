@@ -151,6 +151,35 @@ class GlossModal extends HTMLElement {
 
             // Announce a modal specific event with the details from the DEER announcement
             utils.broadcast(event, `gloss-modal-saved`, $this, event.detail ?? {})
+
+            // Reset the Gloss form
+            const form = $this.querySelector("form")
+            form.removeAttribute("deer-source")
+            form.removeAttribute("deer-id")
+            form.$isDirty = false
+
+            form.querySelectorAll("input[deer-key]").forEach(el => {
+                if(el.getAttribute("type") !== "hidden"){
+                    el.removeAttribute("deer-source")
+                    el.removeAttribute("value")
+                    el.value = ""
+                    el.$isDirty = false    
+                }
+                // This one is hidden but needs to change
+                if(el.getAttribute("deer-key") === "text"){
+                    el.removeAttribute("deer-source")
+                    el.removeAttribute("value")
+                    el.value = ""
+                    el.$isDirty = false
+                }
+            })
+
+            form.querySelectorAll("textarea").forEach(el => {
+                el.removeAttribute("deer-source")
+                el.removeAttribute("value")
+                el.value = ""
+                el.$isDirty = false
+            })
         })
 
         // 'Submit' click event handler
