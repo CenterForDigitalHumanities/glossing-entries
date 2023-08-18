@@ -8,7 +8,19 @@ import { default as utils } from './deer-utils.js'
 */
 class GlossModalActivationButton extends HTMLElement {
     template = `
-        <input type="button" class="button" value="+" /> 
+    <style>
+        gloss-modal-button span{
+            margin-right: 1em;
+            margin-top: 0.5em;
+            font-size: 11pt;
+            font-family: "Eczar","Volkhov",serif;
+        }
+        gloss-modal-button input{
+            padding: 3px !important;
+            font-size: 10pt !important;
+        }
+    </style>
+    <span class="">Don't see a matching Gloss?</span>  <input title="Create a new Gloss!" type="button" class="button primary" value="&plus; Add a New Gloss to Attach" /> 
     `
 
     constructor() {
@@ -18,12 +30,14 @@ class GlossModalActivationButton extends HTMLElement {
         this.innerHTML = this.template
         let $this = this
         this.querySelector("input[type='button']").addEventListener("click", toggleModal)
+
         function toggleModal(event){
             const $button = event.target
-            const action = $this.classList.contains("is-hidden") ? "remove" : "add"
-            $this.classList[action]("is-hidden")
+            const modal = document.querySelector("gloss-modal")
+            const action = modal.classList.contains("is-hidden") ? "remove" : "add"
+            modal.classList[action]("is-hidden")
             const ev = (action === "add") ? "hidden" : "visible"
-            utils.broadcast(undefined,`gloss-modal-${ev}`, $this, {})
+            utils.broadcast(undefined,`gloss-modal-${ev}`, modal, {})
         }
     }
 }
@@ -41,13 +55,22 @@ class GlossModal extends HTMLElement {
     template = `
         <style>
             gloss-modal{
-                
+                position: absolute;
+                display: block;
+                top: 1em;
+                z-index: 2;
             }
             .window-shadow{
-
+                position: fixed;
+                background-color: rgba(0,0,0,0.5);
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
             }
             .modal{
-
+                position: relative;
+                top: 3em;
             }
             .modal form{
 
@@ -60,7 +83,8 @@ class GlossModal extends HTMLElement {
                       <h4>Create New Gloss</h4>
                     </header>
                     <p>
-                        Create a new Gloss for Gallery of Glosses.  It will be added to the collection of Glosses and made available for selection.
+                        Create a new Gloss for Gallery of Glosses.  
+                        When you create this Gloss it will be attached to the T-PEN Transcription text selection and appear in the Gallery of Glosses Gloss Collection.
                     </p>
 
                     <form id="named-gloss-modal" deer-type="Gloss_TEST" deer-context="http://purl.org/dc/terms">
@@ -97,10 +121,10 @@ class GlossModal extends HTMLElement {
                         <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
                         <div id="glossResult"></div>
 
-                        <input type="submit" value="Create" class="col">
+                        <input type="submit" value="Create" class="col is-hidden">
                     </form>
 
-                    <footer class="is-left is-hidden">
+                    <footer class="is-right">
                       <input type="button" value="Create Gloss" class="button primary"/>
                       <input type="button" value="Cancel" class="button secondary"/>
                     </footer>

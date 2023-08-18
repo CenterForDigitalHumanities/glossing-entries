@@ -38,7 +38,7 @@ export default {
         CREATE: __constants.tiny+"/create",
         UPDATE: __constants.tiny+"/update",
         OVERWRITE: __constants.tiny+"/overwrite",
-        QUERY: __constants.tiny+"/query?limit=100&skip=0",
+        QUERY: __constants.tiny+"/query",
         DELETE: __constants.tiny+"/delete",
         SINCE: __constants.rerum+"/since"
     },
@@ -360,8 +360,10 @@ export default {
                 <h2 class="nomargin">Attach Named Gloss</h2>
                 <div class="cachedNotice is-hidden"> These Named Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
                 <p class="filterInstructions is-hidden"> 
-                Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to. </p>
+                    Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to. 
+                </p>
                 <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
+                <gloss-modal-button class="is-right is-hidden"></gloss-modal-button>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Named Gloss filter detected.  Please note that Named Glosses will appear as they are fully loaded. </p>
                     <div class="totalsProgress" count="0"> 
@@ -379,6 +381,9 @@ export default {
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire Glossing-Matthew-Named-Glosses collection, URIs only.
+                html += `
+                    
+                `
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
@@ -439,6 +444,7 @@ export default {
                 const cachedNotice = elem.querySelector(".cachedNotice")
                 const progressArea = elem.querySelector(".progressArea")
                 const filterInstructions = elem.querySelector(".filterInstructions")
+                const modalBtn = elem.querySelector("gloss-modal-button")
                 // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                 totalsProgress.innerHTML = `
                     ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>
@@ -491,6 +497,7 @@ export default {
                 if(numloaded === total){
                     cachedNotice.classList.remove("is-hidden")
                     filterInstructions.classList.remove("is-hidden")
+                    modalBtn.classList.remove("is-hidden")
                     progressArea.classList.add("is-hidden")
                     elem.querySelectorAll("input[filter]").forEach(i => {
                         // The filters that are used now need to be selected or take on the string or whatevs
