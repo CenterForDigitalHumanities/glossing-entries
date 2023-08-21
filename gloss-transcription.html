@@ -249,6 +249,8 @@
         /**
          * Paginate the custom data fields in this witness form.
          * Note that it is only fired when the page recieve a witness URI in the url hash.
+         * Note when there is no hash URL, we need to reset the witness form for creation scenarios instead of leaving it in an update scenario.
+         * In all situations, we need to reset the gloss-modal form
          */ 
         function init(event){
             let whatRecordForm = event.target?.id
@@ -259,7 +261,7 @@
                     const textWitnessID = window.location.hash.substr(1)
                     if(!textWitnessID) {
                         setFormDefaults()
-                        // reset the modal Gloss form
+                        // reset the Gloss modal form, they just saved a new witness
                         document.querySelector("gloss-modal").reset()
                         return
                     }
@@ -283,7 +285,8 @@
                     }
                     prefillText(annotationData["text"], $elem)
                     prefillDigitalLocations(annotationData["source"], $elem)
-                    document.querySelector("gloss-modal").reset()
+                    // Reset the Gloss modal form, they just updated a witness
+                    //document.querySelector("gloss-modal").reset()
                     break
                 default:
             }
@@ -292,9 +295,6 @@
         /**
          * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
          * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
-         * This event will come after all deer-view-rendered events have finished.
-         * Note when there is no hash URL, we need to reset the form
-         * In all situations, we need to reset the gloss-modal form
          * @see deer-record.js DeerReport.constructor()  
          */
         addEventListener('deer-form-rendered', init)
@@ -575,6 +575,11 @@
                 console.log("Successfully connected custom key Annotations")
                 const ev = new CustomEvent("Named Gloss Textual Witness Submitted")
                 globalFeedbackBlip(ev, `Named Gloss Textual Witness Submitted!`, true)
+                // reset the modal in update scenarios
+                if(textWitnessID) {
+                    document.querySelector("gloss-modal").reset()
+                }
+                
             })
             .catch(err => {
                 console.error("Did not connect all custom key Annotations!!")
