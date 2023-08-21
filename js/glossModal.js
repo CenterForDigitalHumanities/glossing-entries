@@ -42,9 +42,12 @@ class GlossModalActivationButton extends HTMLElement {
         }
 
         function toggleModal(event){
-            // A proprietary handler for this page to make sure the Shelfmark requirement is met before pulling up the Gloss modal.
+            // A proprietary handler for gloss-transcription.html to make sure the Shelfmark requirement is met before pulling up the Gloss modal.
             if(document.location.pathname.includes("gloss-transcription.html")){
-                if(!hasShelfmarkRequirement()) alert("You must provide a Shelfmark value.")
+                if(!hasShelfmarkRequirement()) {
+                    alert("You must provide a Shelfmark value.")
+                    return false
+                }
             }
 
             const $button = event.target
@@ -102,16 +105,16 @@ class GlossModal extends HTMLElement {
                         When you create this Gloss it will be attached to the T-PEN Transcription text selection and appear in the Gallery of Glosses Gloss Collection.
                     </p>
 
-                    <form id="named-gloss-modal" deer-type="Gloss_TEST" deer-context="http://purl.org/dc/terms">
+                    <form name="gloss-modal-form" deer-type="Gloss_TEST" deer-context="http://purl.org/dc/terms">
                         <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
                         <input is="auth-creator" type="hidden" deer-key="creator" />
                         <div class="row">
                             <label class="col-3 col-2-md text-right">Gloss Text:</label>
-                            <input type="hidden" deer-key="text" id="textObject">
-                            <textarea id="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
+                            <input type="hidden" deer-key="text">
+                            <textarea name="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
 
                             <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
-                            <select name="textLang" id="textLang" class="col-3 col-2-md">
+                            <select name="textLang" class="col-3 col-2-md">
                                 <option value="la" selected>Latin</option>
                                 <option value="de">German</option>
                                 <option value="fr">French</option>
@@ -133,8 +136,8 @@ class GlossModal extends HTMLElement {
                             <gog-theme-widget class="col"> </gog-theme-widget>
                         </div>
 
-                        <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
-                        <div id="glossResult"></div>
+                        <button type="button" name="checkForGlossesBtn"> Check for Existing Glosses </button>
+                        <div class="glossResult"></div>
 
                         <input type="submit" value="Create" class="col is-hidden">
                     </form>
@@ -154,15 +157,17 @@ class GlossModal extends HTMLElement {
         this.innerHTML = this.template
         const $this = this
 
-        // There are some initialization jobs, listed here
-        // -- If there is a text selection, deer-key="text" takes on that value.
-        // -- Might need to populate deer-key="creator"
+        // -- Might need to populate deer-key="creator"?
 
         // Catch the entity creation announcement from DEER
         addEventListener('deer-updated', event => {
             const $elem = event.target
-            //Only care about the named-gloss-modal form
-            if($elem?.id  !== "named-gloss-modal") return
+            //Only care about the gloss-modal form
+            if($elem.getAttribute("name")  !== "gloss-modal-form") return
+
+            // Stop this deer form from setting its info based on its new deer-id attribute
+            event.preventDefault()
+            event.stopPropagation()
 
             // Announce a modal specific event with the details from the DEER announcement
             utils.broadcast(event, `gloss-modal-saved`, $this, event.detail ?? {})
@@ -180,39 +185,52 @@ class GlossModal extends HTMLElement {
 
         // Typically called by an event listener for 'gloss-modal-saved'.  Resets the modal so it is ready to create a new Gloss.
         this.reset = () => {
-            const form = $this.querySelector("form")
-            form.removeAttribute("deer-source")
-            form.removeAttribute("deer-id")
-            form.$isDirty = false
+            setTimeout(function(){
+                const form = $this.querySelector("form")
+                form.removeAttribute("deer-source")
+                form.removeAttribute("deer-id")
+                form.$isDirty = false
 
-            form.querySelectorAll("input[deer-key]").forEach(el => {
-                if(el.getAttribute("type") !== "hidden"){
+                form.querySelectorAll("input[deer-key]").forEach(el => {
                     el.removeAttribute("deer-source")
-                    el.removeAttribute("value")
-                    el.value = ""
-                    el.$isDirty = false    
-                }
-                // This one is hidden but needs to change
-                if(el.getAttribute("deer-key") === "text"){
+                    if(el.getAttribute("type") !== "hidden"){
+                        el.removeAttribute("value")
+                        el.value = ""
+                        el.$isDirty = false    
+                    }
+                    // This one is hidden but needs to change
+                    if(el.getAttribute("deer-key") === "text"){
+                        el.removeAttribute("deer-source")
+                        el.removeAttribute("value")
+                        el.value = ""
+                        el.$isDirty = false
+                    }
+                })
+
+                form.querySelectorAll("textarea").forEach(el => {
                     el.removeAttribute("deer-source")
                     el.removeAttribute("value")
                     el.value = ""
                     el.$isDirty = false
-                }
-            })
+                })
 
-            form.querySelectorAll("textarea").forEach(el => {
-                el.removeAttribute("deer-source")
-                el.removeAttribute("value")
-                el.value = ""
-                el.$isDirty = false
-            })
+                const textLangElem = form.querySelector("select[name='textLang']")
+                textLangElem.setAttribute("value","la")
+                textLangElem.value = "la"
 
-            form.querySelector("select[name='textLang']").querySelector("option").click()
+                form.querySelectorAll(".selectedEntities").forEach(el => {
+                    el.innerHTML = ""
+                })
+
+                form.querySelector(".glossResult").innerHTML = ""
+            }, 4000)
         }
         
         const labelElem = this.querySelector('input[deer-key="title"]')
-        const textElem = glossText
+        const textElem = this.querySelector('textarea[name="glossText"]')
+        const textLang = this.querySelector('select[name="textLang"]')
+        const checkForGlossesBtn = this.querySelector('button[name="checkForGlossesBtn"]')
+        const glossResult = this.querySelector('.glossResult')
         const textListener = textElem.addEventListener('input', ev => {
             if (textElem.value?.length > 5) {
                 const words = textElem.value.split(' ')
@@ -239,13 +257,15 @@ class GlossModal extends HTMLElement {
             })
         })
 
-        ;[glossText, textLang].forEach(elem => addEventListener('input', event => {
+        ;[textElem, textLang].forEach(elem => addEventListener('input', event => {
+            const textObject = $this.querySelector("input[deer-key='text']")
             textObject.value = {
                 '@type': "Text",
-                value: glossText.value,
+                value: textElem.value,
                 format: "text/plain",
-                language: textLang
+                language: textLang.value
             }
+            textObject.$isDirty = true
         }))
 
         utils.broadcast(undefined, "deer-form", this, { set: [this.querySelector("form")] })

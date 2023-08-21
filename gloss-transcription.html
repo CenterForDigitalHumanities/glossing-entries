@@ -127,6 +127,7 @@
 
             const formatElem = form.querySelector("input[custom-text-key='format']")
             formatElem.removeAttribute("deer-source")
+            formatElem.checked = false
             formatElem.$isDirty = true
 
             const textElem = form.querySelector("textarea[custom-text-key='text']")
@@ -137,6 +138,8 @@
 
             const languageElem = form.querySelector("select[custom-text-key='language']")
             languageElem.removeAttribute("deer-source")
+            languageElem.setAttribute("value", "la")
+            languageElem.value = "la"
             languageElem.$isDirty = true
 
             const selectionsElem = form.querySelector("input[custom-key='selections']")
@@ -229,7 +232,7 @@
                     el.setAttribute("value", "HabesTest")
                 })
                 witnessForm.setAttribute("deer-creator", "HabesTest")
-                document.getElementById("named-gloss-modal").setAttribute("deer-creator", "HabesTest")
+                document.querySelector("form[name='gloss-modal-form']").setAttribute("deer-creator", "HabesTest")
                 window.GOG_USER["http://store.rerum.io/agent"] = "HabesTest"
             }, 4000)
         }
