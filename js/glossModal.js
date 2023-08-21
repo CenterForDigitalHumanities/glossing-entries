@@ -185,45 +185,43 @@ class GlossModal extends HTMLElement {
 
         // Typically called by an event listener for 'gloss-modal-saved'.  Resets the modal so it is ready to create a new Gloss.
         this.reset = () => {
-            setTimeout(function(){
-                const form = $this.querySelector("form")
-                form.removeAttribute("deer-source")
-                form.removeAttribute("deer-id")
-                form.$isDirty = false
+            const form = $this.querySelector("form")
+            form.removeAttribute("deer-source")
+            form.removeAttribute("deer-id")
+            form.$isDirty = false
 
-                form.querySelectorAll("input[deer-key]").forEach(el => {
-                    el.removeAttribute("deer-source")
-                    if(el.getAttribute("type") !== "hidden"){
-                        el.removeAttribute("value")
-                        el.value = ""
-                        el.$isDirty = false    
-                    }
-                    // This one is hidden but needs to change
-                    if(el.getAttribute("deer-key") === "text"){
-                        el.removeAttribute("deer-source")
-                        el.removeAttribute("value")
-                        el.value = ""
-                        el.$isDirty = false
-                    }
-                })
-
-                form.querySelectorAll("textarea").forEach(el => {
+            form.querySelectorAll("input[deer-key]").forEach(el => {
+                el.removeAttribute("deer-source")
+                if(el.getAttribute("type") !== "hidden"){
+                    el.removeAttribute("value")
+                    el.value = ""
+                    el.$isDirty = false    
+                }
+                // This one is hidden but needs to change
+                if(el.getAttribute("deer-key") === "text"){
                     el.removeAttribute("deer-source")
                     el.removeAttribute("value")
                     el.value = ""
                     el.$isDirty = false
-                })
+                }
+            })
 
-                const textLangElem = form.querySelector("select[name='textLang']")
-                textLangElem.setAttribute("value","la")
-                textLangElem.value = "la"
+            form.querySelectorAll("textarea").forEach(el => {
+                el.removeAttribute("deer-source")
+                el.removeAttribute("value")
+                el.value = ""
+                el.$isDirty = false
+            })
 
-                form.querySelectorAll(".selectedEntities").forEach(el => {
-                    el.innerHTML = ""
-                })
+            const textLangElem = form.querySelector("select[name='textLang']")
+            textLangElem.setAttribute("value","la")
+            textLangElem.value = "la"
 
-                form.querySelector(".glossResult").innerHTML = ""
-            }, 4000)
+            form.querySelectorAll(".selectedEntities").forEach(el => {
+                el.innerHTML = ""
+            })
+
+            form.querySelector(".glossResult").innerHTML = ""
         }
         
         const labelElem = this.querySelector('input[deer-key="title"]')

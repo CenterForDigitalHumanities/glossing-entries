@@ -200,8 +200,6 @@
                 dig_location.$isDirty = true
                 document.querySelector("select[custom-text-key='language']").$isDirty = true
                 document.querySelector("input[custom-text-key='format']").$isDirty = true
-                // remove this to support the specialized form reset
-                removeEventListener("deer-form-rendered", init)
             }
 
             // mimic isDirty detection for these custom inputs
@@ -253,11 +251,18 @@
          * Note that it is only fired when the page recieve a witness URI in the url hash.
          */ 
         function init(event){
-            let whatRecordForm = event.target.id
-            let annotationData = event.detail
+            let whatRecordForm = event.target?.id
+            let annotationData = event.detail ?? {}
             const $elem = event.target
             switch (whatRecordForm) {
                 case "witnessForm":
+                    const textWitnessID = window.location.hash.substr(1)
+                    if(!textWitnessID) {
+                        setFormDefaults()
+                        // reset the modal Gloss form
+                        document.querySelector("gloss-modal").reset()
+                        return
+                    }
                     if(ngCollectionList.hasAttribute("ng-list-loaded")){
                         prefillReferences(annotationData["references"], ngCollectionList)
                     }
@@ -278,6 +283,7 @@
                     }
                     prefillText(annotationData["text"], $elem)
                     prefillDigitalLocations(annotationData["source"], $elem)
+                    document.querySelector("gloss-modal").reset()
                     break
                 default:
             }
@@ -285,9 +291,10 @@
 
         /**
          * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
-         * Note that it is only required when a witness URI was provided by the url hash.
          * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
          * This event will come after all deer-view-rendered events have finished.
+         * Note when there is no hash URL, we need to reset the form
+         * In all situations, we need to reset the gloss-modal form
          * @see deer-record.js DeerReport.constructor()  
          */
         addEventListener('deer-form-rendered', init)
@@ -479,6 +486,9 @@
             const $elem = event.target
             //Only care about witness form
             if($elem?.id  !== "witnessForm") return
+            event.preventDefault()
+            event.stopPropagation()
+
             const entityID = event.detail["@id"]  
             // These promise are for all the simple array values ('references' and 'selections')
             let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
@@ -565,11 +575,6 @@
                 console.log("Successfully connected custom key Annotations")
                 const ev = new CustomEvent("Named Gloss Textual Witness Submitted")
                 globalFeedbackBlip(ev, `Named Gloss Textual Witness Submitted!`, true)
-                const textWitnessID = window.location.hash.substr(1)
-                // If we are updating a witness keep the interface.  If we just sumbitted a new one, refresh the form to be ready for another new one.
-                if(!textWitnessID) setFormDefaults()
-                // reset the modal Gloss form
-                document.querySelector("gloss-modal").reset()
             })
             .catch(err => {
                 console.error("Did not connect all custom key Annotations!!")
