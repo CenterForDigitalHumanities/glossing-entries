@@ -296,7 +296,7 @@ export default class DeerReport {
                     let evidence = input.getAttribute(DEER.EVIDENCE) ?? this.evidence
                     let action = (inputId) ? "UPDATE" : "CREATE"
                     let annotation = {
-                        type: "Annotation",
+                        "@type": "Annotation",
                         target: entity["@id"],
                         body: {}
                     }

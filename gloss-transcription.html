@@ -446,7 +446,7 @@
                 line = linesArr.pop()
                 lineid = line.split("#")[0]
                 const lineEndElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
-                lineEndElement.parentElement.previousElementSibling.classList.add("has-selection")
+                lineEndElem.parentElement.previousElementSibling.classList.add("has-selection")
                 selection = line.split("#")[1].replace("char=", "").split(",")           
                 range.setEnd(lineEndElem.firstChild, parseInt(selection[1]))
             }
