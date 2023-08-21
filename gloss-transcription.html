@@ -259,9 +259,9 @@
             switch (whatRecordForm) {
                 case "witnessForm":
                     const textWitnessID = window.location.hash.substr(1)
+                    // reset the witness form and Gloss modal form in save scenarios
                     if(!textWitnessID) {
                         setFormDefaults()
-                        // reset the Gloss modal form, they just saved a new witness
                         document.querySelector("gloss-modal").reset()
                         return
                     }
@@ -285,8 +285,6 @@
                     }
                     prefillText(annotationData["text"], $elem)
                     prefillDigitalLocations(annotationData["source"], $elem)
-                    // Reset the Gloss modal form, they just updated a witness
-                    //document.querySelector("gloss-modal").reset()
                     break
                 default:
             }
@@ -575,11 +573,11 @@
                 console.log("Successfully connected custom key Annotations")
                 const ev = new CustomEvent("Named Gloss Textual Witness Submitted")
                 globalFeedbackBlip(ev, `Named Gloss Textual Witness Submitted!`, true)
-                // reset the modal in update scenarios
+                // reset only the modal form in update scenarios
+                const textWitnessID = window.location.hash.substr(1)
                 if(textWitnessID) {
                     document.querySelector("gloss-modal").reset()
                 }
-                
             })
             .catch(err => {
                 console.error("Did not connect all custom key Annotations!!")
