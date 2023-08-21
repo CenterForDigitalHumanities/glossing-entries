@@ -31,7 +31,22 @@ class GlossModalActivationButton extends HTMLElement {
         let $this = this
         this.querySelector("input[type='button']").addEventListener("click", toggleModal)
 
+        function hasShelfmarkRequirement(){
+            if(witnessForm !== undefined){
+                const s = witnessForm.querySelector("input[deer-key='identifier']")?.value
+                if(s){
+                    return true
+                }  
+            }
+            return false
+        }
+
         function toggleModal(event){
+            // A proprietary handler for this page to make sure the Shelfmark requirement is met before pulling up the Gloss modal.
+            if(document.location.pathname.includes("gloss-transcription.html")){
+                if(!hasShelfmarkRequirement()) alert("You must provide a Shelfmark value.")
+            }
+
             const $button = event.target
             const modal = document.querySelector("gloss-modal")
             const action = modal.classList.contains("is-hidden") ? "remove" : "add"
@@ -151,8 +166,20 @@ class GlossModal extends HTMLElement {
 
             // Announce a modal specific event with the details from the DEER announcement
             utils.broadcast(event, `gloss-modal-saved`, $this, event.detail ?? {})
+        })
 
-            // Reset the Gloss form
+        // 'Submit' click event handler
+        this.querySelector(".button.primary").addEventListener("click", event => {
+              $this.querySelector("input[type='submit']").click()
+        })
+
+        // 'Cancel' click event handler
+        this.querySelector(".button.secondary").addEventListener("click", event => {
+           $this.classList.add("is-hidden")     
+        })
+
+        // Typically called by an event listener for 'gloss-modal-saved'.  Resets the modal so it is ready to create a new Gloss.
+        this.reset = () => {
             const form = $this.querySelector("form")
             form.removeAttribute("deer-source")
             form.removeAttribute("deer-id")
@@ -180,17 +207,9 @@ class GlossModal extends HTMLElement {
                 el.value = ""
                 el.$isDirty = false
             })
-        })
 
-        // 'Submit' click event handler
-        this.querySelector(".button.primary").addEventListener("click", event => {
-              $this.querySelector("input[type='submit']").click()
-        })
-
-        // 'Cancel' click event handler
-        this.querySelector(".button.secondary").addEventListener("click", event => {
-           $this.classList.add("is-hidden")     
-        })
+            form.querySelector("select[name='textLang']").querySelector("option").click()
+        }
         
         const labelElem = this.querySelector('input[deer-key="title"]')
         const textElem = glossText

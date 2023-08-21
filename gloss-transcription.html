@@ -45,8 +45,6 @@
             <input id="loadInput" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
         </p>
     </div>
-    <!-- Since the pieces require each other, only show the interface when all components have loaded enough -->
-    <!-- Our limiter here is the Named Glosses Collection.  We need to wait on the paged query. -->
     <div id="loading" class="tpen-needed is-hidden">
         <p style="color: white;"> 
             Please be patient while we get things together...  
@@ -566,7 +564,9 @@
                 globalFeedbackBlip(ev, `Named Gloss Textual Witness Submitted!`, true)
                 const textWitnessID = window.location.hash.substr(1)
                 // If we are updating a witness keep the interface.  If we just sumbitted a new one, refresh the form to be ready for another new one.
-                if(!textWitnessID) setFormDefaults()  
+                if(!textWitnessID) setFormDefaults()
+                // reset the modal Gloss form
+                document.querySelector("gloss-modal").reset()
             })
             .catch(err => {
                 console.error("Did not connect all custom key Annotations!!")
