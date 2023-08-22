@@ -34,6 +34,22 @@ class TpenLineSelector extends HTMLElement {
                 font-family: "Eczar","Volkhov",serif;
                 user-select: none;
            }
+          .toggle{
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                right: 0;
+                font-weight: bold;
+           }
+           .toggle::before{
+                content: "toggle all text ";
+                font-family: "Eczar","Volkhov",serif;
+                font-size: 8pt;
+           }
+           .tpenProjectLines.is-toggled{
+                visibility: hidden;
+                height: 0px;
+           }
         </style>
 
         <h2> Select T-PEN Transcription Text </h2>

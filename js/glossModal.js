@@ -3,8 +3,8 @@
 import { default as utils } from './deer-utils.js'
 
 /**
-  * A button for activating the module.  We might want to have some kind of consistent button.
-  * Offers a custom event for when the module is hidden or shown.
+  * A button for activating the module.
+  * Offers an event for when the module is hidden or shown.
 */
 class GlossModalActivationButton extends HTMLElement {
     template = `
@@ -20,7 +20,8 @@ class GlossModalActivationButton extends HTMLElement {
             font-size: 10pt !important;
         }
     </style>
-    <span class="">Don't see a matching Gloss?</span>  <input title="Create a new Gloss!" type="button" class="button primary" value="&plus; Add a New Gloss to Attach" /> 
+    <span class="">Don't see a matching Gloss?</span>  
+    <input title="Create a new Gloss!" type="button" class="button primary" value="&plus; Add a New Gloss to Attach" /> 
     `
 
     constructor() {
@@ -31,6 +32,9 @@ class GlossModalActivationButton extends HTMLElement {
         let $this = this
         this.querySelector("input[type='button']").addEventListener("click", toggleModal)
 
+        /**
+         * Check if the Witness form has a shelfmark value.
+         */ 
         function hasShelfmarkRequirement(){
             if(witnessForm !== undefined){
                 const s = witnessForm.querySelector("input[deer-key='identifier']")?.value
@@ -41,6 +45,10 @@ class GlossModalActivationButton extends HTMLElement {
             return false
         }
 
+        /**
+         * Hide or show the modal (no animation).
+         * Fire an event for whether the modal is hidden or visiable.
+         */ 
         function toggleModal(event){
             // A proprietary handler for gloss-transcription.html to make sure the Shelfmark requirement is met before pulling up the Gloss modal.
             if(document.location.pathname.includes("gloss-transcription.html")){
@@ -65,9 +73,7 @@ customElements.define('gloss-modal-button', GlossModalActivationButton)
 
 /**
   * A focused pop up containing the Gloss deer-form, similar to the form on ng.html.
-  * It can be included on any HTML page.
-  *
-  * 
+  * It can be included on any HTML page.  It fires events for when the DEER form contained within has been saved.
 */
 class GlossModal extends HTMLElement {
     template = `
@@ -165,7 +171,7 @@ class GlossModal extends HTMLElement {
             //Only care about the gloss-modal form
             if($elem.getAttribute("name")  !== "gloss-modal-form") return
 
-            // Stop this deer form from setting its info based on its new deer-id attribute
+            // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
             event.preventDefault()
             event.stopPropagation()
 
@@ -222,7 +228,6 @@ class GlossModal extends HTMLElement {
             })
 
             form.querySelector(".glossResult").innerHTML = ""
-
             console.log("GLOSS FORM RESET")
         }
         

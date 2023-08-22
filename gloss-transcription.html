@@ -12,24 +12,12 @@
     <script src="js/glossModal.js" type="module"></script>
     <script src="js/shared.js"></script>
     <style>
-       .toggle{
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            right: 0;
-            font-weight: bold;
-       }
-       .toggle::before{
-            content: "toggle all text ";
-            font-family: "Eczar","Volkhov",serif;
-            font-size: 8pt;
-       }
-       .tpenProjectLines.is-toggled, .pageContainer.is-toggled{
-            visibility: hidden;
-            height: 0px;
-       }
        input.required{
             border: 1px solid black;
+       }
+       .pageContainer.is-toggled{
+            visibility: hidden;
+            height: 0px;
        }
     </style>
 </head>
@@ -98,11 +86,11 @@
     <script>
 
         /**
-         * Reset all the form elements so the form is ready to generate a new witness.
+         * Reset all the Witness form elements so the form is ready to generate a new Witness.
          * This occurs after the user submits a new witness.
-         * If they provided a witness and are updating it, do not perform the reset.
+         * If they provided a witness URI in the hash, then this is an 'update scenario'. Do not perform the reset.
          */ 
-        function setFormDefaults(){
+        function setWitnessFormDefaults(){
             const form = witnessForm
             const textWitnessID = window.location.hash.substr(1)
 
@@ -184,7 +172,7 @@
         }
 
         /**
-         * Attach all the vent handlers to the custom key areas.
+         * Attach all the event handlers to the custom key areas.
          * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
          * Set fixed value fields and make those inputs dirty.
          */ 
@@ -236,6 +224,7 @@
                 ev.target.$isDirty = true
                 ev.target.closest("form").$isDirty = true
             })
+            // Hack the login and attributed creator
             setTimeout(() => {
                 document.querySelectorAll("input[deer-key='creator']").forEach(el => {
                     el.value="HabesTest"
@@ -248,7 +237,7 @@
         }
 
         /**
-         * When the Named Gloss Collection List deer view loads its records we can show the witness form.
+         * When the Named Gloss Collection List deer view loads its records (by finishing the paged query) we can show the witness form.
          * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
          */ 
         addEventListener('deer-view-rendered', event => {
@@ -259,9 +248,9 @@
         })
 
         /**
-         * Paginate the custom data fields in this witness form.
-         * Note that it is only fired when the page recieve a witness URI in the url hash.
-         * Note when there is no hash URL, we need to reset the witness form for creation scenarios instead of leaving it in an update scenario.
+         * Paginate the custom data fields in the Witness form.
+         * Note this occurs on page load and after a user submits the form and it re-renders with its deer-id.
+         * See the noted difference in behavior for 'update scenarios' and 'save scenarios'
          */ 
         function init(event){
             let whatRecordForm = event.target?.id
@@ -270,10 +259,11 @@
             switch (whatRecordForm) {
                 case "witnessForm":
                     const textWitnessID = window.location.hash.substr(1)
-                    // reset the witness form and Gloss modal form in save scenarios
                     if(!textWitnessID) {
                         setTimeout(function(){
-                            setFormDefaults()
+                            // This is a 'save scenario' because the user had provided an existing Witness via the URL hash.
+                            // The Witness form and Gloss form need to be reset so the user can immediately make new entities without a page refresh.
+                            setWitnessFormDefaults()
                             document.querySelector("gloss-modal").reset()
                         }, 50)
                         return
@@ -493,10 +483,16 @@
             }
         }
 
+        /**
+         * The DEER announcement for when all form fields have been saved or updated.
+         * Additionally, we need to create/update Annotations from the custom fields.  The form isn't fully captured until those are done as well.
+         * 
+         */ 
         addEventListener('deer-updated', event => {
             const $elem = event.target
             //Only care about witness form
             if($elem?.id  !== "witnessForm") return
+            // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
             event.preventDefault()
             event.stopPropagation()
 
@@ -515,6 +511,7 @@
                     }
                     anno.body[key] = { "value": el.value.split("__") }
                     if(el.hasAttribute("deer-source")) anno["@id"] = el.getAttribute("deer-source")
+                    // If the form field has a deer-source, we need to update.  Otherwise, we create.
                     return fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
                         method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
                         mode: "cors",
@@ -583,28 +580,31 @@
             }
             Promise.all(annotation_promises)
             .then(success => {
-                console.log("Successfully connected custom key Annotations")
+                console.log("FORM FULLY SAVED")
                 const ev = new CustomEvent("Gloss Textual Witness Submitted")
                 globalFeedbackBlip(ev, `Gloss Textual Witness Submitted!`, true)
-                // reset only the modal form in update scenarios
                 const textWitnessID = window.location.hash.substr(1)
                 if(textWitnessID) {
+                    // This is an 'update scenario' so we do not reset the Witness form.
+                    // The Gloss form needs to be reset.
                     setTimeout(function(){
                         document.querySelector("gloss-modal").reset()
                     }, 50)
                 }
             })
             .catch(err => {
-                console.error("Did not connect all custom key Annotations!!")
+                console.error("ERROR PROCESSING SOME FORM FIELDS")
                 console.error(err)
             })
         })
 
         /**
          * Detects that the modal saved a new Gloss and contains that new Gloss's details.
+         * That Gloss detail needs to paginate into the Gloss picker.  It should be marked as 'selected' in update scenarios.
          */
         addEventListener('gloss-modal-saved', event => {
             if(event.target.tagName !== "GLOSS-MODAL") return
+            const textWitnessID = window.location.hash.substr(1)
             const gloss = event.detail
             const form = witnessForm
             const view = form.querySelector("deer-view[deer-template='glossesSelectorForTextualWitness']")
@@ -615,10 +615,22 @@
             const inclusionBtn = document.createElement("input")
             inclusionBtn.setAttribute("type", "button")
             inclusionBtn.setAttribute("href", gloss["@id"])
-            inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
-            inclusionBtn.setAttribute("value", "➥ attach")
-            inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+            if(textWitnessID) {
+                // This is an 'update scenario'.  The button sholuld appear as selected because the Witness information remains and this is the selected Gloss.
+                inclusionBtn.setAttribute("disabled", "")
+                inclusionBtn.setAttribute("value", "✓ attached")
+                inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+                inclusionBtn.setAttribute("class", "toggleInclusion button success")  
+            }
+            else{
+                // This is a 'create scenario'.  The button sholuld appear as selectable because the Witness is reset and so any Gloss can be chosen.
+                inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
+                inclusionBtn.setAttribute("value", "➥ attach")
+                inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
+            }
             inclusionBtn.setAttribute("data-title", title)
+
+            // This click event results in a Witness form submit
             inclusionBtn.addEventListener('click', ev => {
                 ev.preventDefault()
                 ev.stopPropagation()
@@ -656,7 +668,6 @@
             li.setAttribute("deer-template", "filterableListItem")
             li.setAttribute("deer-id", gloss["@id"])
             li.setAttribute("data-title", title)
-            li.setAttribute("deer-template", "filterableListItem")
             li.setAttribute("deer-link", "ng.html#")
 
             a.setAttribute("target", "_blank")
@@ -669,9 +680,6 @@
             li.appendChild(a)
             list.appendChild(li)
 
-            // FIXME this doesn't seem to make this li element expand() and get the properties.
-            // This means it is not cached and does not appear on page refresh.  You have to clear and re-initialize the cache to see it.
-            // WE NEED THIS or else we need to expand the entity here and add it to cache.
             broadcast(undefined, "deer-view", li, { set: [li] })
 
             inclusionBtn.click()
