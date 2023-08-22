@@ -648,7 +648,8 @@ export default {
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
-                    const total = parseInt(totalsProgress.getAttribute("total")) + 1
+                    //const total = parseInt(totalsProgress.getAttribute("total")) + 1
+                    const total = parseInt(totalsProgress.getAttribute("total"))
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
                     totalsProgress.setAttribute("count", numloaded)
