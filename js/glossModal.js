@@ -222,6 +222,8 @@ class GlossModal extends HTMLElement {
             })
 
             form.querySelector(".glossResult").innerHTML = ""
+
+            console.log("GLOSS FORM RESET")
         }
         
         const labelElem = this.querySelector('input[deer-key="title"]')

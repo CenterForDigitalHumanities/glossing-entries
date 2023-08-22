@@ -36,8 +36,8 @@
 
 <body class="container">
     <gog-header class="container"></gog-header>
-    <h2 class="bg-basic"> Named Gloss Transcription Witness </h2>
-    <p class="bg-basic"> Connect Named Glosses with text in T-PEN Transcriptions. </p>
+    <h2 class="bg-basic"> Gloss Transcription Witness </h2>
+    <p class="bg-basic"> Connect Glosses with text in T-PEN Transcriptions. </p>
     <div id="needs" class="row bg-basic">
         <p class="howTo"> 
             It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  
@@ -81,8 +81,8 @@
             </label>
 
             <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
-            <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Named Gloss Incipit">Chosen Named Gloss</label>
-            <textarea disabled title="Choose a Named Gloss to see the incipit here" placeholder="Choose a Named Gloss below..." class="chosenNamedGloss col-9 col-10-md is-hidden"></textarea>
+            <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
+            <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenNamedGloss col-9 col-10-md is-hidden"></textarea>
         </div>
         <input class="is-hidden" type="submit" value="Create Textual Witness"/>
         <div class="row">
@@ -103,7 +103,7 @@
          * If they provided a witness and are updating it, do not perform the reset.
          */ 
         function setFormDefaults(){
-            const form = document.querySelector("form")
+            const form = witnessForm
             const textWitnessID = window.location.hash.substr(1)
 
             // Continue the session like normal if they had loaded up an existing witness and updated it.
@@ -112,6 +112,10 @@
             form.removeAttribute("deer-id")
             form.removeAttribute("deer-source")    
             form.$isDirty = true
+
+            form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
+            // Note this does not need to change outside of testing scenarios
+            form.querySelector("input[deer-key='creator']").value = "HabesTest"
             
             const labelElem = form.querySelector("input[deer-key='label']")
             labelElem.value = ""
@@ -154,6 +158,12 @@
             referencesElem.removeAttribute("deer-source")
             referencesElem.$isDirty = false
 
+            const sourceElem = form.querySelector("input[custom-key='source']")
+            sourceElem.value = ""
+            sourceElem.setAttribute("value", "")
+            sourceElem.removeAttribute("deer-source")
+            sourceElem.$isDirty = false
+
             // reset the named glosses filter
             const filter = form.querySelector('input[filter]')
             filter.value = ""
@@ -169,6 +179,8 @@
                     sel.empty()
                 }
             }
+
+            console.log("WITNESS FORM RESET")
         }
 
         /**
@@ -250,7 +262,6 @@
          * Paginate the custom data fields in this witness form.
          * Note that it is only fired when the page recieve a witness URI in the url hash.
          * Note when there is no hash URL, we need to reset the witness form for creation scenarios instead of leaving it in an update scenario.
-         * In all situations, we need to reset the gloss-modal form
          */ 
         function init(event){
             let whatRecordForm = event.target?.id
@@ -261,8 +272,10 @@
                     const textWitnessID = window.location.hash.substr(1)
                     // reset the witness form and Gloss modal form in save scenarios
                     if(!textWitnessID) {
-                        setFormDefaults()
-                        document.querySelector("gloss-modal").reset()
+                        setTimeout(function(){
+                            setFormDefaults()
+                            document.querySelector("gloss-modal").reset()
+                        }, 50)
                         return
                     }
                     if(ngCollectionList.hasAttribute("ng-list-loaded")){
@@ -409,7 +422,7 @@
             const button = elem.querySelector(".toggleInclusion")
             button?.setAttribute("disabled", "")
             button?.setAttribute("value", "✓ attached")
-            button?.setAttribute("title", "This Named Gloss is already attached!")
+            button?.setAttribute("title", "This Gloss is already attached!")
             button?.classList.remove("primary")
             button?.classList.add("success")
             filter.value = ngLabel.trim()
@@ -571,12 +584,14 @@
             Promise.all(annotation_promises)
             .then(success => {
                 console.log("Successfully connected custom key Annotations")
-                const ev = new CustomEvent("Named Gloss Textual Witness Submitted")
-                globalFeedbackBlip(ev, `Named Gloss Textual Witness Submitted!`, true)
+                const ev = new CustomEvent("Gloss Textual Witness Submitted")
+                globalFeedbackBlip(ev, `Gloss Textual Witness Submitted!`, true)
                 // reset only the modal form in update scenarios
                 const textWitnessID = window.location.hash.substr(1)
                 if(textWitnessID) {
-                    document.querySelector("gloss-modal").reset()
+                    setTimeout(function(){
+                        document.querySelector("gloss-modal").reset()
+                    }, 50)
                 }
             })
             .catch(err => {
@@ -600,7 +615,7 @@
             const inclusionBtn = document.createElement("input")
             inclusionBtn.setAttribute("type", "button")
             inclusionBtn.setAttribute("href", gloss["@id"])
-            inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
+            inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
             inclusionBtn.setAttribute("value", "➥ attach")
             inclusionBtn.setAttribute("class", "toggleInclusion button primary")
             inclusionBtn.setAttribute("data-title", title)
@@ -628,7 +643,7 @@
                     }
                 }
                 else{
-                    alert(`This textual witness is already attached to Named Gloss '${namedGlossIncipit}'`)
+                    alert(`This textual witness is already attached to Gloss '${namedGlossIncipit}'`)
                 }
             })
             const li = document.createElement("li")
