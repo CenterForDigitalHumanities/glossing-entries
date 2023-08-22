@@ -240,12 +240,15 @@
          * When the Named Gloss Collection List deer view loads its records (by finishing the paged query) we can show the witness form.
          * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
          */ 
-        addEventListener('deer-view-rendered', event => {
+        addEventListener('deer-view-rendered', show)
+
+        function show(event){
             if(event.target.id == "ngCollectionList"){
                 loading.classList.add("is-hidden")
                 witnessForm.classList.remove("is-hidden")
+                //removeEventListener('deer-view-rendered', show)
             }
-        })
+        }
 
         /**
          * Paginate the custom data fields in the Witness form.
@@ -272,11 +275,14 @@
                         prefillReferences(annotationData["references"], ngCollectionList)
                     }
                     else{
-                        addEventListener('deer-view-rendered', ev => {
-                            if(ev.target.id === "ngCollectionList"){
+                        addEventListener('deer-view-rendered', references)
+
+                        function references(event){
+                            if(event.target.id === "ngCollectionList"){
                                 prefillReferences(annotationData["references"], ngCollectionList)
+                                removeEventListener('deer-view-rendered', references)
                             }
-                        })
+                        }
                     }
                     if(document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
                         preselectLines(annotationData["selections"], $elem)    
@@ -604,6 +610,10 @@
          */
         addEventListener('gloss-modal-saved', event => {
             if(event.target.tagName !== "GLOSS-MODAL") return
+
+            // When the NG turns into a filterableListItem, we want to click its button
+            
+
             const textWitnessID = window.location.hash.substr(1)
             const gloss = event.detail
             const form = witnessForm
@@ -611,6 +621,12 @@
             const list = view.querySelector("ul")
             const modal = event.target
             const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
+            const totalsProgress = list.closest("deer-view").querySelector(".totalsProgress")
+
+            // A new Gloss has been introduced but is not cached by a filterableListElement yet
+            //const total = parseInt(totalsProgress.getAttribute("total")) + 1
+            //totalsProgress.setAttribute("total", total)
+
             modal.classList.add("is-hidden")
             const inclusionBtn = document.createElement("input")
             inclusionBtn.setAttribute("type", "button")
@@ -684,10 +700,36 @@
             li.appendChild(a)
             list.appendChild(li)
 
-            broadcast(undefined, "deer-view", li, { set: [li] })
+            // We should probably just let filterableListItem do this, and listen for that here.
+            setTimeout(function() {
+                broadcast(undefined, "deer-view", li, { set: [li] })
+            }, 5000)
+            
 
-            inclusionBtn.click()
+            // Dang, we should not call this until the filterableListItem is registered and cached
+            //inclusionBtn.click()
+
         })
+        
+        addEventListener("deer-view-rendered", paginateGlossFromModal)
+
+        function paginateGlossFromModal(event) {
+            const gloss_li = event.target
+            if(gloss_li.tagName !== "LI") return
+            // A new Gloss has been introduced and is done being cached.
+            const total = parseInt(totalsProgress.getAttribute("total")) + 1
+            totalsProgress.setAttribute("total", total)
+            const textWitnessID = window.location.hash.substr(1)
+            if(textWitnessID){
+                // This is an update scenario.  Click the witness form submit because this button is disabled.
+                witnessForm.querySelector("input[type='submit']").click()
+            }
+            else{
+                // This is a create scenario.  Click the attach button in the new Gloss listing.
+                gloss_li.querySelector(".toggleInclusion").click()
+            }
+            
+        }
     </script>
 </body>
 

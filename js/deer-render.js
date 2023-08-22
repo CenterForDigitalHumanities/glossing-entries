@@ -87,7 +87,7 @@ RENDER.element = function (elem, obj) {
          */
         setTimeout(function () {
             let newViews = (elem.querySelectorAll(config.VIEW).length) ? elem.querySelectorAll(config.VIEW) : []
-            let newForms = (elem.querySelectorAll(config.FORM).length) ? elem.querySelectorAll(config.VIEW) : []
+            let newForms = (elem.querySelectorAll(config.FORM).length) ? elem.querySelectorAll(config.FORM) : []
             if (newForms.length) {
                 UTILS.broadcast(undefined, DEER.EVENTS.NEW_FORM, elem, { set: newForms })
             }

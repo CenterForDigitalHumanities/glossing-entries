@@ -244,6 +244,7 @@ class GlossModal extends HTMLElement {
                     label += words.shift() + " "
                 }
                 labelElem.value = label.trim()
+                labelElem.dispatchEvent(new Event('input', { bubbles: true }))
             }
         })
 
