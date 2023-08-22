@@ -127,7 +127,7 @@ class TpenLineSelector extends HTMLElement {
                         if(!txt) lineElem.classList.add("emptyLine")
                         lineElem.onmouseup = function(e) {
                             const s = document.getSelection()
-                            const customKey = $this.querySelector("input[custom-key]")
+                            const customKey = $this.querySelector("input[custom-key='selections']")
                             const filter = document.querySelector("input[filter]")
                             const selectedText = document.getSelection() ? document.getSelection().toString().trim() : ""
                             const firstword = selectedText.split(" ")[0]

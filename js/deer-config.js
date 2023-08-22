@@ -464,8 +464,8 @@ export default {
                     const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
                     if(confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
                         const form = ev.target.closest("form")
-                        const customKey = elem.querySelector("input[custom-key]")
-                        const uri = a.getAttribute("href")
+                        const customKey = elem.querySelector("input[custom-key='references']")
+                        const uri = a.getAttribute("href").split("#")[1]
                         if(customKey.value !== uri){
                             customKey.value = uri 
                             customKey.setAttribute("value", uri) 
@@ -590,13 +590,13 @@ export default {
                         const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
                         if(confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
                             const form = ev.target.closest("form")
-                            const customKey = form.querySelector("input[custom-key]")
-                            const uri = a.getAttribute("href")
+                            const customKey = form.querySelector("input[custom-key='references']")
+                            const uri = a.getAttribute("href").split("#")[1]
                             if(customKey.value !== uri){
                                 customKey.value = uri 
                                 customKey.setAttribute("value", uri) 
                                 customKey.$isDirty = true
-                                form.closest("form").$isDirty = true
+                                form.$isDirty = true
                                 // There must be a shelfmark.
                                 if(form.querySelector("input[deer-key='identifier']").value){
                                     form.querySelector("input[type='submit']").click()    

@@ -621,6 +621,10 @@
                 inclusionBtn.setAttribute("value", "✓ attached")
                 inclusionBtn.setAttribute("title", "This Gloss is already attached!")
                 inclusionBtn.setAttribute("class", "toggleInclusion button success")  
+                // Make sure the filter is set to show it
+                const filter = document.querySelector("input[filter]")
+                filter.value = title.trim()
+                filter.dispatchEvent(new Event('input', { bubbles: true }))
             }
             else{
                 // This is a 'create scenario'.  The button sholuld appear as selectable because the Witness is reset and so any Gloss can be chosen.
@@ -635,12 +639,12 @@
                 ev.preventDefault()
                 ev.stopPropagation()
                 const namedGlossIncipit = ev.target.getAttribute("data-title")
-                const customKey = form.querySelector("input[custom-key]")
+                const customKey = form.querySelector("input[custom-key='references']")
                 const filter = form.querySelector('input[filter]')
                 filter.value = namedGlossIncipit
                 filter.setAttribute("value", namedGlossIncipit)
                 filter.dispatchEvent(new Event('input', { bubbles: true }))
-                const uri = a.getAttribute("href")
+                const uri = a.getAttribute("href").split("#")[1]
                 if(customKey.value !== uri){
                     customKey.value = uri 
                     customKey.setAttribute("value", uri) 
