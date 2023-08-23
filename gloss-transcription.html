@@ -84,6 +84,17 @@
     <div id="globalFeedback" class="card is-center"></div>
     <gloss-modal class="is-hidden"></gloss-modal>
     <script>
+        // const textWitnessID = window.location.hash.substr(1)
+        // const scenario = textWitnessID ? "update" : "create"
+
+        // Make the text in the Gloss modal form the same as the one in the Witness form
+        document.addEventListener("gloss-modal-visible", function(event){
+            const text = witnessForm.querySelector("textarea[custom-text-key='text']").value
+            const glossTextElem = event.target.querySelector("textarea[name='glossText']")
+            glossTextElem.value = text
+            glossTextElem.setAttribute("value", text)
+            glossTextElem.dispatchEvent(new Event('input', { bubbles: true }))
+        })
 
         /**
          * Reset all the Witness form elements so the form is ready to generate a new Witness.
@@ -241,12 +252,11 @@
          * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
          */ 
         addEventListener('deer-view-rendered', show)
-
         function show(event){
             if(event.target.id == "ngCollectionList"){
                 loading.classList.add("is-hidden")
                 witnessForm.classList.remove("is-hidden")
-                //removeEventListener('deer-view-rendered', show)
+                removeEventListener('deer-view-rendered', show)
             }
         }
 
@@ -271,12 +281,14 @@
                         }, 50)
                         return
                     }
+                    else{
+                        document.querySelector("gloss-modal").reset()
+                    }
                     if(ngCollectionList.hasAttribute("ng-list-loaded")){
                         prefillReferences(annotationData["references"], ngCollectionList)
                     }
                     else{
                         addEventListener('deer-view-rendered', references)
-
                         function references(event){
                             if(event.target.id === "ngCollectionList"){
                                 prefillReferences(annotationData["references"], ngCollectionList)
@@ -610,77 +622,78 @@
          */
         addEventListener('gloss-modal-saved', event => {
             if(event.target.tagName !== "GLOSS-MODAL") return
-
-            // When the NG turns into a filterableListItem, we want to click its button
-            
-
             const textWitnessID = window.location.hash.substr(1)
             const gloss = event.detail
             const form = witnessForm
+            const filter = form.querySelector('input[filter]')
             const view = form.querySelector("deer-view[deer-template='glossesSelectorForTextualWitness']")
             const list = view.querySelector("ul")
             const modal = event.target
             const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
+            // Update total for pagination -- there is an additional Gloss now
             const totalsProgress = list.closest("deer-view").querySelector(".totalsProgress")
+            const total = parseInt(totalsProgress.getAttribute("total")) + 1
+            document.querySelector(".totalsProgress").setAttribute("total", total)
 
-            // A new Gloss has been introduced but is not cached by a filterableListElement yet
-            //const total = parseInt(totalsProgress.getAttribute("total")) + 1
-            //totalsProgress.setAttribute("total", total)
-
+            const customKey = form.querySelector("input[custom-key='references']")
+            const uri = gloss["@id"]
+            
             modal.classList.add("is-hidden")
-            const inclusionBtn = document.createElement("input")
-            inclusionBtn.setAttribute("type", "button")
-            inclusionBtn.setAttribute("href", gloss["@id"])
+            // const inclusionBtn = document.createElement("input")
+            // inclusionBtn.setAttribute("type", "button")
+            // inclusionBtn.setAttribute("href", gloss["@id"])
             if(textWitnessID) {
                 // This is an 'update scenario'.  The button sholuld appear as selected because the Witness information remains and this is the selected Gloss.
-                inclusionBtn.setAttribute("disabled", "")
-                inclusionBtn.setAttribute("value", "✓ attached")
-                inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-                inclusionBtn.setAttribute("class", "toggleInclusion button success")  
-                // Make sure the filter is set to show it
-                const filter = document.querySelector("input[filter]")
-                filter.value = title.trim()
-                filter.dispatchEvent(new Event('input', { bubbles: true }))
+
+                // The existing attached button should change into a regular 'attach' button
+                const selectedBtn = document.querySelector(".toggleInclusion[disabled]")
+                selectedBtn.setAttribute("title", "Attach this Gloss and Save")
+                selectedBtn.setAttribute("value", "➥ attach")
+                selectedBtn.setAttribute("class", "toggleInclusion button primary")
+                selectedBtn.removeAttribute("disabled")
+
+                // This button should appear as the disabled 'attached' button 
+                // inclusionBtn.setAttribute("disabled", "")
+                // inclusionBtn.setAttribute("value", "✓ attached")
+                // inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+                // inclusionBtn.setAttribute("class", "toggleInclusion button success")  
             }
             else{
                 // This is a 'create scenario'.  The button sholuld appear as selectable because the Witness is reset and so any Gloss can be chosen.
-                inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
-                inclusionBtn.setAttribute("value", "➥ attach")
-                inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
+                // inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
+                // inclusionBtn.setAttribute("value", "➥ attach")
+                // inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
             }
-            inclusionBtn.setAttribute("data-title", title)
+            //inclusionBtn.setAttribute("data-title", title)
 
             // This click event results in a Witness form submit
-            inclusionBtn.addEventListener('click', ev => {
-                ev.preventDefault()
-                ev.stopPropagation()
-                const namedGlossIncipit = ev.target.getAttribute("data-title")
-                const customKey = form.querySelector("input[custom-key='references']")
-                const filter = form.querySelector('input[filter]')
-                filter.value = namedGlossIncipit
-                filter.setAttribute("value", namedGlossIncipit)
-                filter.dispatchEvent(new Event('input', { bubbles: true }))
-                const uri = a.getAttribute("href").split("#")[1]
-                if(customKey.value !== uri){
-                    customKey.value = uri 
-                    customKey.setAttribute("value", uri) 
-                    customKey.$isDirty = true
-                    form.$isDirty = true
-                    // There must be a shelfmark.
-                    if(form.querySelector("input[deer-key='identifier']").value){
-                        form.querySelector("input[type='submit']").click()    
-                    }
-                    else{
-                        alert("You must provide a Shelfmark value.")
-                    }
-                }
-                else{
-                    alert(`This textual witness is already attached to Gloss '${namedGlossIncipit}'`)
-                }
-            })
+            // inclusionBtn.addEventListener('click', ev => {
+            //     ev.preventDefault()
+            //     ev.stopPropagation()
+            //     const namedGlossIncipit = ev.target.getAttribute("data-title")
+            //     filter.value = namedGlossIncipit
+            //     filter.setAttribute("value", namedGlossIncipit)
+            //     filter.dispatchEvent(new Event('input', { bubbles: true }))
+            //     if(customKey.value !== uri){
+            //         // There must be a shelfmark.
+            //         if(form.querySelector("input[deer-key='identifier']").value){
+            //             customKey.value = uri 
+            //             customKey.setAttribute("value", uri) 
+            //             customKey.$isDirty = true
+            //             form.$isDirty = true
+            //             form.querySelector("input[type='submit']").click()    
+            //         }
+            //         else{
+            //             alert("You must provide a Shelfmark value.")
+            //         }
+            //     }
+            //     else{
+            //         alert(`This textual witness is already attached to Gloss '${namedGlossIncipit}'`)
+            //     }
+            // })
             const li = document.createElement("li")
-            const a = document.createElement("a")
-            const span = document.createElement("span")
+            // const a = document.createElement("a")
+            // const span = document.createElement("span")
 
             // This Gloss was just created and is not cached.
             // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
@@ -690,46 +703,77 @@
             li.setAttribute("data-title", title)
             li.setAttribute("deer-link", "ng.html#")
 
-            a.setAttribute("target", "_blank")
-            a.setAttribute("href", `ng.html#${gloss["@id"]}`)
+            // FIXME hack to get around DEER
+            if(!textWitnessID) li.setAttribute("clickit", "true")
 
-            span.innerText = title
+            // a.setAttribute("target", "_blank")
+            // a.setAttribute("href", `ng.html#${gloss["@id"]}`)
 
-            a.appendChild(span)
-            li.appendChild(inclusionBtn)
-            li.appendChild(a)
+            // span.innerText = title
+
+            // a.appendChild(span)
+            // li.appendChild(inclusionBtn)
+            // li.appendChild(a)
             list.appendChild(li)
 
-            // We should probably just let filterableListItem do this, and listen for that here.
-            setTimeout(function() {
+            // Same trick as DEER render for the DOM
+            setTimeout(function(){
                 broadcast(undefined, "deer-view", li, { set: [li] })
-            }, 5000)
-            
+            }, 0)
 
-            // Dang, we should not call this until the filterableListItem is registered and cached
-            //inclusionBtn.click()
-
-        })
-        
-        addEventListener("deer-view-rendered", paginateGlossFromModal)
-
-        function paginateGlossFromModal(event) {
-            const gloss_li = event.target
-            if(gloss_li.tagName !== "LI") return
-            // A new Gloss has been introduced and is done being cached.
-            const total = parseInt(totalsProgress.getAttribute("total")) + 1
-            totalsProgress.setAttribute("total", total)
-            const textWitnessID = window.location.hash.substr(1)
             if(textWitnessID){
-                // This is an update scenario.  Click the witness form submit because this button is disabled.
+                //FIXME a hack to get around DEER
+                //FIXME the hack fails when the inclusion btn is replaced by the filterableListItem Gloss list item
+                //   ^^just like 'clickit' you would need to do a 'selected' 
+                const count = parseInt(totalsProgress.getAttribute("count")) + 1
+                document.querySelector(".totalsProgress").setAttribute("count", count)
+                // Make sure the filter is set to show the new Gloss item
+                filter.value = title.trim()
+                filter.setAttribute("value", title.trim())
+                filter.dispatchEvent(new Event('input', { bubbles: true }))
+                // This is an 'update scenario'.  Click the witness form submit instead of the disabled attach button
+                customKey.value = uri 
+                customKey.setAttribute("value", uri) 
+                customKey.$isDirty = true
+                form.$isDirty = true
                 witnessForm.querySelector("input[type='submit']").click()
             }
             else{
-                // This is a create scenario.  Click the attach button in the new Gloss listing.
-                gloss_li.querySelector(".toggleInclusion").click()
+                // This is a 'create scenario' so click the attach button
+                // FIXME a hack to get around DEER
+                // The filterableListItem template in deer-config will use the clickit attribute to know to click the attach button
             }
-            
-        }
+
+            // A new Gloss has been introduced and is not cached yet.  It is a filterableListItem so it will be in a moment.
+
+            // FIXME we should just tie into "deer-view-rendered" for when filterableListeItem actually finishes, which caches it and updates count/total.
+
+            // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            // !!!!!!!!!!!! FIXME    This is the right way, but DEER won't cooperate.    FIXME !!!!!!!!!!!!!!
+            // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            /**
+            addEventListener("deer-view-rendered", paginateGlossFromModal)
+            function paginateGlossFromModal(event) {
+                const gloss_li = event.target
+                if(gloss_li.tagName !== "LI") return
+                const totalsProgress = gloss_li.closest("deer-view").querySelector(".totalsProgress")
+                // A new Gloss has been introduced and is done being cached.
+                const total = parseInt(totalsProgress.getAttribute("total")) + 1
+                totalsProgress.setAttribute("total", total)
+                const textWitnessID = window.location.hash.substr(1)
+                if(textWitnessID){
+                    // This is an update scenario.  Click the witness form submit because this button is disabled.
+                    witnessForm.querySelector("input[type='submit']").click()
+                }
+                else{
+                    // This is a create scenario.  Click the attach button in the new Gloss listing.
+                    gloss_li.querySelector(".toggleInclusion").click()
+                }
+            }
+            */
+
+        })
+
     </script>
 </body>
 

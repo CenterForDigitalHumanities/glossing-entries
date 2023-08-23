@@ -576,19 +576,33 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
+                    const clickit = elem.hasAttribute("clickit") ? true : false
 
                     // Note the inclusion button is only for the glossesSelectorForTextualWitness template.
+                    // FIXME hack to get around DEER
                     let inclusionBtn = document.createElement("input")
+                    if(clickit){
+                        // Create scenario, button should show the 'attach'
+                        inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
+                        inclusionBtn.setAttribute("value", "➥ attach")
+                        inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+                    }
+                    else{
+                        // Update scenario, the button should be disabled and show 'attached'
+                        inclusionBtn.setAttribute("disabled", "")
+                        inclusionBtn.setAttribute("value", "✓ attached")
+                        inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+                        inclusionBtn.setAttribute("class", "toggleInclusion button success")  
+                    }
                     inclusionBtn.setAttribute("type", "button")
                     inclusionBtn.setAttribute("href", obj["@id"])
-                    inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
-                    inclusionBtn.setAttribute("value", "➥ attach")
-                    inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+                    
                     inclusionBtn.addEventListener('click', ev => {
                         ev.preventDefault()
                         ev.stopPropagation()
                         const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
-                        if(confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
+                        // FIXME hack to get around DEER
+                        if(clickit || confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
                             const form = ev.target.closest("form")
                             const customKey = form.querySelector("input[custom-key='references']")
                             const uri = a.getAttribute("href").split("#")[1]
@@ -636,6 +650,8 @@ export default {
 
                     if(filterPresent) li.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
+                    // FIXME hack to get around DEER
+                    
                     cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
@@ -648,7 +664,6 @@ export default {
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
-                    //const total = parseInt(totalsProgress.getAttribute("total")) + 1
                     const total = parseInt(totalsProgress.getAttribute("total"))
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
@@ -667,14 +682,17 @@ export default {
                             if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
                                 i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
                                 i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
+                                i.dispatchEvent(new Event('input', { bubbles: true }))
                             }
-                            else{
-                                i.value = ""
-                                i.setAttribute("value", "")
-                            }
-                            i.dispatchEvent(new Event('input', { bubbles: true }))
+                            // else{
+                            //     i.value = ""
+                            //     i.setAttribute("value", "")
+                            // }
+                            
                         })
                     }
+                    // FIXME hack to get around DEER
+                    if(clickit) inclusionBtn.click()
                 }
             }
         }
