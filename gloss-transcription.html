@@ -601,14 +601,6 @@
                 console.log("FORM FULLY SAVED")
                 const ev = new CustomEvent("Gloss Textual Witness Submitted")
                 globalFeedbackBlip(ev, `Gloss Textual Witness Submitted!`, true)
-                const textWitnessID = window.location.hash.substr(1)
-                if(textWitnessID) {
-                    // This is an 'update scenario' so we do not reset the Witness form.
-                    // The Gloss form needs to be reset.
-                    setTimeout(function(){
-                        document.querySelector("gloss-modal").reset()
-                    }, 50)
-                }
             })
             .catch(err => {
                 console.error("ERROR PROCESSING SOME FORM FIELDS")
@@ -630,6 +622,7 @@
             const list = view.querySelector("ul")
             const modal = event.target
             const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
+
             // Update total for pagination -- there is an additional Gloss now
             const totalsProgress = list.closest("deer-view").querySelector(".totalsProgress")
             const total = parseInt(totalsProgress.getAttribute("total")) + 1
@@ -639,62 +632,17 @@
             const uri = gloss["@id"]
             
             modal.classList.add("is-hidden")
-            // const inclusionBtn = document.createElement("input")
-            // inclusionBtn.setAttribute("type", "button")
-            // inclusionBtn.setAttribute("href", gloss["@id"])
+
             if(textWitnessID) {
                 // This is an 'update scenario'.  The button sholuld appear as selected because the Witness information remains and this is the selected Gloss.
-
-                // The existing attached button should change into a regular 'attach' button
                 const selectedBtn = document.querySelector(".toggleInclusion[disabled]")
                 selectedBtn.setAttribute("title", "Attach this Gloss and Save")
                 selectedBtn.setAttribute("value", "➥ attach")
                 selectedBtn.setAttribute("class", "toggleInclusion button primary")
                 selectedBtn.removeAttribute("disabled")
-
-                // This button should appear as the disabled 'attached' button 
-                // inclusionBtn.setAttribute("disabled", "")
-                // inclusionBtn.setAttribute("value", "✓ attached")
-                // inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-                // inclusionBtn.setAttribute("class", "toggleInclusion button success")  
             }
-            else{
-                // This is a 'create scenario'.  The button sholuld appear as selectable because the Witness is reset and so any Gloss can be chosen.
-                // inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
-                // inclusionBtn.setAttribute("value", "➥ attach")
-                // inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
-            }
-            //inclusionBtn.setAttribute("data-title", title)
 
-            // This click event results in a Witness form submit
-            // inclusionBtn.addEventListener('click', ev => {
-            //     ev.preventDefault()
-            //     ev.stopPropagation()
-            //     const namedGlossIncipit = ev.target.getAttribute("data-title")
-            //     filter.value = namedGlossIncipit
-            //     filter.setAttribute("value", namedGlossIncipit)
-            //     filter.dispatchEvent(new Event('input', { bubbles: true }))
-            //     if(customKey.value !== uri){
-            //         // There must be a shelfmark.
-            //         if(form.querySelector("input[deer-key='identifier']").value){
-            //             customKey.value = uri 
-            //             customKey.setAttribute("value", uri) 
-            //             customKey.$isDirty = true
-            //             form.$isDirty = true
-            //             form.querySelector("input[type='submit']").click()    
-            //         }
-            //         else{
-            //             alert("You must provide a Shelfmark value.")
-            //         }
-            //     }
-            //     else{
-            //         alert(`This textual witness is already attached to Gloss '${namedGlossIncipit}'`)
-            //     }
-            // })
             const li = document.createElement("li")
-            // const a = document.createElement("a")
-            // const span = document.createElement("span")
-
             // This Gloss was just created and is not cached.
             // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
             li.classList.add("deer-view")
@@ -705,15 +653,6 @@
 
             // FIXME hack to get around DEER
             if(!textWitnessID) li.setAttribute("clickit", "true")
-
-            // a.setAttribute("target", "_blank")
-            // a.setAttribute("href", `ng.html#${gloss["@id"]}`)
-
-            // span.innerText = title
-
-            // a.appendChild(span)
-            // li.appendChild(inclusionBtn)
-            // li.appendChild(a)
             list.appendChild(li)
 
             // Same trick as DEER render for the DOM
@@ -722,9 +661,6 @@
             }, 0)
 
             if(textWitnessID){
-                //FIXME a hack to get around DEER
-                //FIXME the hack fails when the inclusion btn is replaced by the filterableListItem Gloss list item
-                //   ^^just like 'clickit' you would need to do a 'selected' 
                 const count = parseInt(totalsProgress.getAttribute("count")) + 1
                 document.querySelector(".totalsProgress").setAttribute("count", count)
                 // Make sure the filter is set to show the new Gloss item
