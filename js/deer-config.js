@@ -584,6 +584,12 @@ export default {
                     inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
                     inclusionBtn.setAttribute("value", "➥ attach")
                     inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+                    if(elem.hasAttribute("update-scenario")){
+                        inclusionBtn.setAttribute("disabled", "")
+                        inclusionBtn.setAttribute("value", "✓ attached")
+                        inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+                        inclusionBtn.setAttribute("class", "toggleInclusion button success")  
+                    }
                     inclusionBtn.addEventListener('click', ev => {
                         ev.preventDefault()
                         ev.stopPropagation()
@@ -667,12 +673,8 @@ export default {
                             if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
                                 i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
                                 i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
+                                i.dispatchEvent(new Event('input', { bubbles: true }))
                             }
-                            else{
-                                i.value = ""
-                                i.setAttribute("value", "")
-                            }
-                            i.dispatchEvent(new Event('input', { bubbles: true }))
                         })
                     }
                 }
