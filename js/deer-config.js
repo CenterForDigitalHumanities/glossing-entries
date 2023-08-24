@@ -384,7 +384,7 @@ export default {
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
-                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" href="${val['@id']}" title="Attach this Named Gloss and Save" value="➥ attach"/>`
+                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" data-id="${val['@id']}" title="Attach this Named Gloss and Save" value="➥ attach"/>`
                     if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
                         // We cached it in the past and are going to trust it right now.
                         const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))
@@ -458,14 +458,14 @@ export default {
                 })
 
                 // Note the capability to select multiple that we are limiting to one.
-                elem.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
+                elem.querySelectorAll('.toggleInclusion').forEach(btn => btn.addEventListener('click', ev => {
                     ev.preventDefault()
                     ev.stopPropagation()
                     const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
                     if(confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
                         const form = ev.target.closest("form")
                         const customKey = elem.querySelector("input[custom-key='references']")
-                        const uri = a.getAttribute("href").split("#")[1]
+                        const uri = btn.getAttribute("data-id")
                         if(customKey.value !== uri){
                             customKey.value = uri 
                             customKey.setAttribute("value", uri) 
@@ -560,11 +560,9 @@ export default {
          * This corresponds to an existing <li> element with a deer-id property.  These <li> elements need to be filterable.
          * As such, they require information about the Named Gloss they represent, whose URI is the deer-id.
          * That element is expand()ed in order to get the information for this element to be filterable.
-         * 
          * Since the object is expanded, if reasonable, it should be cached with its information (how would we know if it is out of date?)
-         * 
          * If a filter was present via the URL on page load, if it matches on this <li> the <li> should be filtered immediately.
-         * 
+         * Note there is some specific support for the glossesSelectorForTextualWitness template.
          */ 
         filterableListItem: function (obj, options = {}) {
             return{
@@ -575,16 +573,24 @@ export default {
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("li")
                     let a = document.createElement("a")
-                    let span = document.createElement("span")
+                    let span = document.createElement("span")   
 
-                    // Note the inclusion button is only for the glossesSelectorForTextualWitness template.
+                    /**
+                     * FIXME these booleans and the inclusionBtn are just for the glossesSelectorForTextualWitness on gloss-transcription.html
+                     * We should move this button generation out to that layer and keep this template clean
+                     * */
+                    const increaseTotal = (elem.hasAttribute("create-scenario") || elem.hasAttribute("update-scenario")) ? true : false
+                    const createScenario = elem.hasAttribute("create-scenario") ? true : false
+                    const updateScenario = elem.hasAttribute("update-scenario") ? true : false
                     let inclusionBtn = document.createElement("input")
-                    inclusionBtn.setAttribute("type", "button")
-                    inclusionBtn.setAttribute("href", obj["@id"])
-                    inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
-                    inclusionBtn.setAttribute("value", "➥ attach")
-                    inclusionBtn.setAttribute("class", "toggleInclusion button primary")
-                    if(elem.hasAttribute("update-scenario")){
+                    if(createScenario){
+                        inclusionBtn.setAttribute("type", "button")
+                        inclusionBtn.setAttribute("data-id", obj["@id"])
+                        inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
+                        inclusionBtn.setAttribute("value", "➥ attach")
+                        inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
+                    }
+                    else if(updateScenario){
                         inclusionBtn.setAttribute("disabled", "")
                         inclusionBtn.setAttribute("value", "✓ attached")
                         inclusionBtn.setAttribute("title", "This Gloss is already attached!")
@@ -594,10 +600,10 @@ export default {
                         ev.preventDefault()
                         ev.stopPropagation()
                         const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
-                        if(confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
+                        if((createScenario || updateScenario) || confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
                             const form = ev.target.closest("form")
                             const customKey = form.querySelector("input[custom-key='references']")
-                            const uri = a.getAttribute("href").split("#")[1]
+                            const uri = event.target.getAttribute("data-id")
                             if(customKey.value !== uri){
                                 customKey.value = uri 
                                 customKey.setAttribute("value", uri) 
@@ -616,12 +622,14 @@ export default {
                             }
                         }                    
                     })
+                    if(createScenario || updateScenario) li.appendChild(inclusionBtn)
 
                     const filterPresent = containingListElem.$contentState ? true : false
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     li.setAttribute("deer-id", obj["@id"])
                     a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("target", "_blank")
 
                     // Turn each property into an attribute for the <li> element
                     let action = "add"
@@ -646,16 +654,17 @@ export default {
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     a.appendChild(span)
-                    // maybe a bit hacky and we need to split out filterable from filterable+selectable collection list items.
-                    if(window.location.pathname.includes("gloss-transcription")) li.appendChild(inclusionBtn)
+                    
                     li.appendChild(a)
+                    // FIXME do not do replaceWith().  It should be .innerHTML= instead to preserve upstream event listeners.  
+                    // NOTE this FIXME will need to be checked for upstream refactors, like filterGlosses().
                     elem.replaceWith(li)
 
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
-                    //const total = parseInt(totalsProgress.getAttribute("total")) + 1
-                    const total = parseInt(totalsProgress.getAttribute("total"))
+                    let total = parseInt(totalsProgress.getAttribute("total"))
+                    if(increaseTotal) total++
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
                     totalsProgress.setAttribute("count", numloaded)
@@ -668,7 +677,7 @@ export default {
                         cachedNotice.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
-                            // The filters that are used now need to be visiable and selected / take on the string / etc.
+                            // The filters that are used now need to be visible and selected / take on the string / etc.
                             i.classList.remove("is-hidden")
                             if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
                                 i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
@@ -677,6 +686,10 @@ export default {
                             }
                         })
                     }
+                    // FIXME we have to do this here instead of on gloss-transcription.html because the original elem here is replaced.
+                    // When it is replaced, it destroys any listener on the original <li> defined by HTML pages upstream.
+                    if(createScenario) { inclusionBtn.click() }
+                    else if(updateScenario) { witnessForm.querySelector("input[type='submit']").click() }
                 }
             }
         }

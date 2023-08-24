@@ -51,7 +51,7 @@ class GlossModalActivationButton extends HTMLElement {
          */ 
         function toggleModal(event){
             // A proprietary handler for gloss-transcription.html to make sure the Shelfmark requirement is met before pulling up the Gloss modal.
-            if(document.location.pathname.includes("gloss-transcription.html")){
+            if(document.location.pathname.includes("gloss-transcription")){
                 if(!hasShelfmarkRequirement()) {
                     alert("You must provide a Shelfmark value.")
                     return false
