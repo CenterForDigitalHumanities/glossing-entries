@@ -656,7 +656,7 @@
                 li.setAttribute("create-scenario", "true")
             }
             list.appendChild(li)
-
+            li.addEventListener("deer-view-rendered", paginateGlossFromModal)
             // We should probably just let filterableListItem do this, and listen for that here.
             setTimeout(function() {
                 broadcast(undefined, "deer-view", li, { set: [li] })
@@ -666,8 +666,6 @@
             //inclusionBtn.click()
         })
         
-        addEventListener("deer-view-rendered", paginateGlossFromModal)
-
         function paginateGlossFromModal(event) {
             const gloss_li = event.target
             if(gloss_li.tagName !== "LI") return
