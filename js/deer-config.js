@@ -696,7 +696,17 @@ export default {
                     // FIXME we have to do this here instead of on gloss-transcription.html because the original elem here is replaced.
                     // When it is replaced, it destroys any listener on the original <li> defined by HTML pages upstream.
                     if(createScenario) { inclusionBtn.click() }
-                    else if(updateScenario) { witnessForm.querySelector("input[type='submit']").click() }
+                    else if(updateScenario) { 
+                        // Set the references input with the new gloss URI and update the form
+                        const refKey = witnessForm.querySelector("input[custom-key='references']")
+                        if(refKey.value !== obj["@id"]){
+                            refKey.value = obj["@id"]
+                            refKey.setAttribute("value", obj["@id"]) 
+                            refKey.$isDirty = true
+                            witnessForm.$isDirty = true
+                            witnessForm.querySelector("input[type='submit']").click() 
+                        }
+                    }
                 }
             }
         }
