@@ -313,6 +313,13 @@ export default {
             }
             return { html, then }
         },
+        /**
+         * The Gloss selector for gloss-transcription.html.
+         * Users should see the Glossing-Matthew-Named-Glosses collection.  They can filter the list of titles using a text input that matches on title.
+         * The collection items have a button that, when clicked, attaches them to the T-PEN transcription text selected.
+         * When an existing witness is provided via the URL Hash, newly selected Glosses will update the Gloss reference to the text.
+         * Note this works in tandem with a tpen-line-selector element and the ?gog-filter Filter State URL parameter.
+         */ 
         glossesSelectorForTextualWitness: function (obj, options = {}) {
             // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let html = `
@@ -340,8 +347,8 @@ export default {
                 }
 
                 .toggleInclusion{
-                    padding: 3px;
-                    font-size: 10pt;
+                    padding: 3px !important;
+                    font-size: 10pt !important;
                     margin-right: 0.5em;
                 }
 
@@ -583,8 +590,8 @@ export default {
                     const createScenario = elem.hasAttribute("create-scenario") ? true : false
                     const updateScenario = elem.hasAttribute("update-scenario") ? true : false
                     let inclusionBtn = document.createElement("input")
+                    inclusionBtn.setAttribute("type", "button")
                     if(createScenario){
-                        inclusionBtn.setAttribute("type", "button")
                         inclusionBtn.setAttribute("data-id", obj["@id"])
                         inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
                         inclusionBtn.setAttribute("value", "➥ attach")

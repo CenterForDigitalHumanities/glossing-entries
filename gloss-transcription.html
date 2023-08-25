@@ -19,6 +19,10 @@
             visibility: hidden;
             height: 0px;
        }
+       .loadingMsg{
+            color: white;
+            padding-top: 4em;
+       }
     </style>
 </head>
 
@@ -33,8 +37,9 @@
             <input id="loadInput" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
         </p>
     </div>
+    <!-- Perhaps this could be a Custom Element widget of some kind -->
     <div id="loading" class="tpen-needed is-hidden">
-        <p style="color: white;"> 
+        <p class="loadingMsg"> 
             Please be patient while we get things together...  
         </p>
     </div>
