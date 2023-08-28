@@ -17,68 +17,52 @@
     <gog-header class="container"></gog-header>
     <h2> <span class="add-update">Add</span> Witness Fragment </h2>
 
-    ## TODO: add fragment to existing gloss
-    <!-- <form id="named-gloss" deer-type="Gloss" deer-context="http://purl.org/dc/terms" hash-id>
-        <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
-        <input is="auth-creator" type="hidden" deer-key="creator" />
-        <div class="row">
-            <label class="col-3 col-2-md text-right">Gloss Text:</label>
-            <input type="hidden" deer-key="text" id="textObject">
-            <textarea id="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
+    <header>
+        <h4>Create New Gloss</h4>
+      </header>
+      <p>
+          Create a new Gloss for Gallery of Glosses.  
+          When you create this Gloss it will be attached to the T-PEN Transcription text selection and appear in the Gallery of Glosses Gloss Collection.
+      </p>
 
-            <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
-            <select name="textLang" id="textLang" class="col-3 col-2-md">
-                <option value="la" selected>Latin</option>
-                <option value="de">German</option>
-                <option value="fr">French</option>
-                <option value="en">English</option>
-            </select>
-        </div>
-        <div class="row">
+      <form name="gloss-modal-form" deer-type="Gloss_TEST" deer-context="http://purl.org/dc/terms">
+          <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
+          <input is="auth-creator" type="hidden" deer-key="creator" />
+          <div class="row">
+              <label class="col-3 col-2-md text-right">Gloss Text:</label>
+              <input type="hidden" deer-key="text">
+              <textarea name="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
 
-            <label class="col-3 col-2-md text-right">Description:</label>
-            <input type="text" deer-key="description" placeholder="notes" class="col-9 col-10-md">
-            <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
-            <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
-            <button class="col-6" type="button" role="button" onclick="parseSections()">parse sections</button>
-            <label class="col-3 col-2-md text-right">Major Section:</label>
-            <input type="text" deer-key="section" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">First subsection:</label>
-            <input type="text" deer-key="subsection1" placeholder="chapter" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Second subsection:</label>
-            <input type="text" deer-key="subsection2" placeholder="verse" class="col-9 col-4-md">
-        </div>
-        <div class="row">
-            <label class="col-3 col-2-md text-right">Target Text:</label>
-            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text"></textarea>
-            <label class="col-3 col-2-md text-right">Label for display:</label>
-            <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
+              <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
+              <select title="Document language" name="textLang" class="col-3 col-2-md">
+                  <option value="la" selected>Latin</option>
+                  <option value="de">German</option>
+                  <option value="fr">French</option>
+                  <option value="en">English</option>
+              </select>
+          </div>
+          <div class="row">
+              <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
+              <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
+          </div>
+          <div class="row">
+              <label class="col-3 col-2-md text-right">Target Text:</label>
+              <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text"></textarea>
+              <label class="col-3 col-2-md text-right">Label for display:</label>
+              <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
+          </div>
+          <div class="row">
+              <gog-tag-widget class="col"> </gog-tag-widget>
+              <gog-theme-widget class="col"> </gog-theme-widget>
+          </div>
 
-            <label class="col-3 col-2-md text-right">Chapter</label>
-            <input type="number" deer-key="targetChapter" placeholder="0" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Verse</label>
-            <input type="text" deer-key="targetVerse" placeholder="0-1" class="col-9 col-4-md">
-        </div>
-        <div class="row">
-            <gog-tag-widget class="col"> </gog-tag-widget>
-            <gog-theme-widget class="col"> </gog-theme-widget>
-        </div>
-        <div class="row">
-            <label class="col-3 col-2-md text-right">Notes</label>
-            <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-10-md">
-        </div>
+          <button type="button" name="checkForGlossesBtn"> Check for Existing Glosses </button>
+          <div class="glossResult"></div>
+
+          <input type="submit" value="Create" class="col is-hidden">
+      </form>
 
 
-        <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
-        <div id="glossResult"></div>
-
-        <input type="submit" value="Create" class="col add-update">
-        <a href="./named-glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')"
-            class="text-error">Drop from collection</a>
-    </form>
-        <pre class="card bg-light is-hidden">
-            <deer-view deer-template="entity" deer-listening="named-gloss">current state</deer-view>
-        </pre> -->
 
     <gog-footer class="row">
 
