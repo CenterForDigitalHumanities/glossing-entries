@@ -13,13 +13,13 @@
 
 <body class="container">
     <gog-header class="container"></gog-header>
-    <h2> <span class="add-update">Add</span> Named Gloss </h2>
+    <h2> <span class="add-update">Add</span> Gloss </h2>
     <p class="bg-light">
-        NB: A Named Gloss is an important thing. Please describe it as well as possible and
+        NB: A Gloss is an important thing. Please describe it as well as possible and
         avoid creating a new one unless it does not already exist.
     </p>
-    <form id="named-gloss" deer-type="NamedGloss" deer-context="http://purl.org/dc/terms" hash-id>
-        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
+    <form id="named-gloss" deer-type="Gloss" deer-context="http://purl.org/dc/terms" hash-id>
+        <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
             <label class="col-3 col-2-md text-right">Gloss Text:</label>
@@ -37,16 +37,16 @@
         <div class="row">
 
             <label class="col-3 col-2-md text-right">Description:</label>
-            <input type="text" deer-key="description" placeholder="notes" class="col-9 col-10-md">
+            <input type="text" deer-key="description" placeholder="description" class="col-9 col-10-md">
             <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
             <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
             <button class="col-6" type="button" role="button" onclick="parseSections()">parse sections</button>
-            <label class="col-3 col-2-md text-right">Major Section:</label>
-            <input type="text" deer-key="section" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">First subsection:</label>
-            <input type="text" deer-key="subsection1" placeholder="chapter" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Second subsection:</label>
-            <input type="text" deer-key="subsection2" placeholder="verse" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Document:</label>
+            <input type="text" deer-key="_document" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Section:</label>
+            <input type="text" deer-key="_section" placeholder="chapter" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Subsection(s):</label>
+            <input type="text" deer-key="_subsection" placeholder="verse" class="col-9 col-4-md">
         </div>
         <div class="row">
             <label class="col-3 col-2-md text-right">Target Text:</label>
@@ -65,7 +65,7 @@
         </div>
         <div class="row">
             <label class="col-3 col-2-md text-right">Notes</label>
-            <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-10-md">
+            <input type="text" deer-key="_notes" placeholder="internal notes" class="col-9 col-10-md">
         </div>
 
 
@@ -115,7 +115,7 @@
             ;[glossText, textLang].forEach(elem => addEventListener('input', event => {
                 textObject.value = {
                     '@type': "Text",
-                    value: glossText.value,
+                    textValue: glossText.value,
                     format: "text/plain",
                     language: textLang
                 }
@@ -148,10 +148,10 @@
 
         function parseSections() {
             const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value
-            const section = document.querySelector('input[deer-key="section"]')
-            const subsection1 = document.querySelector('input[deer-key="subsection1"]')
-            const subsection2 = document.querySelector('input[deer-key="subsection2"]')
-            const elemSet = [section, subsection1, subsection2]
+            const _document = document.querySelector('input[deer-key="_document"]')
+            const _section = document.querySelector('input[deer-key="_section"]')
+            const _subsection = document.querySelector('input[deer-key="_subsection"]')
+            const elemSet = [_document, _section, _subsection]
             if (elemSet.includes(null) || !canonValue?.length) { throw new Error(`Missing elements in ${elemSet.join(', ')}`) }
 
             const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/)
@@ -167,7 +167,7 @@
                 tagData.hasOwnProperty("items") ? tagData.items :
                     [tagData]
             if (arr_names.length === 0) {
-                console.warn("There are no tags recorded for this named gloss")
+                console.warn("There are no tags recorded for this Gloss")
                 return false
             }
             form.querySelector("input[deer-key='tags']").value = arr_names.join(",")
@@ -193,7 +193,7 @@
                 themeData.hasOwnProperty("items") ? themeData.items :
                     [themeData]
             if (arr_names.length === 0) {
-                console.warn("There are no themes recorded for this named gloss")
+                console.warn("There are no themes recorded for this Gloss")
                 return false
             }
             form.querySelector("input[deer-key='themes']").value = arr_names.join(",")

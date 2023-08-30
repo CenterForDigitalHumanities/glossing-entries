@@ -200,7 +200,7 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                 <div class="page">
                     <h3>${b.label}</h3> 
                     <a href="./layout.html?partOf=${elem.getAttribute("deer-partof")}#${ms['@id']}">(edit layout)</a>
-                    <a href="./align-glosses.html#${ms['@id']}">(align named Glosses)</a>
+                    <a href="./align-glosses.html#${ms['@id']}">(align Glosses)</a>
                     <div class="pull-right col-6">
                         <img src="${b.images[0].resource['@id']}">
                     </div>
@@ -1025,8 +1025,8 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
 }
 
 /**
- * Used in the Named Glosses Collection generator form.  It shows an actionable list of Named Glosses to choose from.
- * If you only want to let users choose from the Public Named Glosses List, add the attribute public-collection to the deer view element.
+ * Used in the Glosses Collection generator form.  It shows an actionable list of Glosses to choose from.
+ * If you only want to let users choose from the Public Glosses List, add the attribute public-collection to the deer view element.
  * This template used the template 'managedlist' as a guideline for the UI.
  */ 
 DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
@@ -1048,7 +1048,7 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
     //     if (options.list) {
     //         tmpl += `<ul>`
     //         obj[options.list].forEach((val, index) => {
-    //             const inclusionBtn = `<a class="toggleInclusion" href="${val['@id']}" title="Toggle Named Gloss Inclusion"> 👁 </a>`
+    //             const inclusionBtn = `<a class="toggleInclusion" href="${val['@id']}" title="Toggle Gloss Inclusion"> 👁 </a>`
     //             tmpl += `<li itemid="${val['@id']}">
     //             ${inclusionBtn}
     //             <a href="${options.link}${val['@id']}">
@@ -1065,7 +1065,7 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
     //     return {
     //         html: tmpl,
     //         then: async (elem) => {
-    //             // This deer-listing needs to become the ID of the User Named Gloss Collection when provided.
+    //             // This deer-listing needs to become the ID of the User Gloss Collection when provided.
     //             const listing = elem.getAttribute("deer-listing")
     //             const publicOnly = elem.getAttribute("public-collection")
     //             elem.listCache = new Set()
@@ -1128,11 +1128,11 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
     //             filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
 
                 /**
-                 * Make or overwrite a User Named Glosses Collection based on the selected Named Glosses in this template.
+                 * Make or overwrite a User Glosses Collection based on the selected Glosses in this template.
                  */ 
                 function listify() {
                     if(elem.listCache.size === 0){
-                        alert("You have not made any Named Gloss selections.")
+                        alert("You have not made any Gloss selections.")
                         return
                     }
                     let ngs = []
@@ -1166,8 +1166,8 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                     Object.assign(userNamedGlossCollection, data)
                     console.log(`Going to ${listing ? DEER.URLS.OVERWRITE : DEER.URLS.CREATE} the following UserNamedGlossCollection`)
                     console.log(userNamedGlossCollection)
-                    const ev = new CustomEvent("Named Gloss collection saved")
-                    UTILS.globalFeedbackBlip(ev, `Named Gloss collection saved successfully.`, true)
+                    const ev = new CustomEvent("Gloss collection saved")
+                    UTILS.globalFeedbackBlip(ev, `Gloss collection saved successfully.`, true)
 
                     // fetch(listing ? DEER.URLS.OVERWRITE : DEER.URLS.CREATE, {
                     //     method: listing ? "PUT" : "POST",
@@ -1180,8 +1180,8 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                     // })
                     // .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
                     // .then(json => {
-                    //     const ev = new CustomEvent("Named Gloss collection saved")
-                    //     UTILS.globalFeedbackBlip(ev, `Named Gloss collection saved successfully.`, true)
+                    //     const ev = new CustomEvent("Gloss collection saved")
+                    //     UTILS.globalFeedbackBlip(ev, `Gloss collection saved successfully.`, true)
                     // })
                     // .catch(err => throw new Error(err.getMessage())`))
 
@@ -1316,7 +1316,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     }
                     const thing = 
                         (type === "manuscript") ? "Manuscript" :
-                        (type === "named-gloss") ? "Named Gloss" :
+                        (type === "named-gloss") ? "Gloss" :
                         (type === "Range") ? "Gloss" : null
 
 

@@ -16,8 +16,8 @@
     <h2> <span class="add-update">Add</span> Witness Fragment </h2>
 
     ## TODO: add fragment to existing gloss
-    <!-- <form id="named-gloss" deer-type="NamedGloss" deer-context="http://purl.org/dc/terms" hash-id>
-        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
+    <!-- <form id="named-gloss" deer-type="Gloss" deer-context="http://purl.org/dc/terms" hash-id>
+        <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
             <label class="col-3 col-2-md text-right">Gloss Text:</label>
@@ -165,7 +165,7 @@
                 tagData.hasOwnProperty("items") ? tagData.items :
                     [tagData]
             if (arr_names.length === 0) {
-                console.warn("There are no tags recorded for this named gloss")
+                console.warn("There are no tags recorded for this Gloss")
                 return false
             }
             form.querySelector("input[deer-key='tags']").value = arr_names.join(",")
@@ -191,7 +191,7 @@
                 themeData.hasOwnProperty("items") ? themeData.items :
                     [themeData]
             if (arr_names.length === 0) {
-                console.warn("There are no themes recorded for this named gloss")
+                console.warn("There are no themes recorded for this Gloss")
                 return false
             }
             form.querySelector("input[deer-key='themes']").value = arr_names.join(",")
