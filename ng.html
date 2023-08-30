@@ -19,7 +19,7 @@
         avoid creating a new one unless it does not already exist.
     </p>
     <form id="named-gloss" deer-type="Gloss" deer-context="http://purl.org/dc/terms" hash-id>
-        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
+        <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
             <label class="col-3 col-2-md text-right">Gloss Text:</label>
@@ -141,14 +141,6 @@
                         document.querySelector('[deer-key="canonicalReference"]').value = `Matthew ${event.detail.targetChapter.value}:${event.detail.targetVerse.value}`
                         parseSections()
                     }
-                    setTimeout(() => {
-                        document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-                            el.value="HabesTest"
-                            el.setAttribute("value", "HabesTest")
-                        })
-                        document.getElementById("named-gloss").setAttribute("deer-creator", "HabesTest")
-                        window.GOG_USER["http://store.rerum.io/agent"] = "HabesTest"
-                    }, 4000)
                     break
                 default:
             }
