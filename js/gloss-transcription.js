@@ -187,18 +187,16 @@ function init(event){
     const $elem = event.target
     switch (whatRecordForm) {
         case "witnessForm":
-            // DO NOT populate these things in create scenarios.
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
                 prefillReferences(annotationData["references"], ngCollectionList)
             }
             else{
-                addEventListener('deer-view-rendered', references)
-
-                function references(event){
+                addEventListener('ng-list-loaded', ngListLoaded)
+                function ngListLoaded(event){
                     if(event.target.id === "ngCollectionList"){
                         prefillReferences(annotationData["references"], ngCollectionList)
                         // This listener is no longer needed
-                        removeEventListener('deer-view-rendered', references)
+                        removeEventListener('ng-list-loaded', ngListLoaded)
                     }
                 }
             }

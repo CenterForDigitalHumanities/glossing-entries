@@ -499,6 +499,8 @@ export default {
                 })
 
                 if(numloaded === total){
+                    elem.setAttribute("ng-list-loaded", "true")
+                    deerUtils.broadcast(undefined, "ng-list-loaded", elem, {})
                     cachedNotice.classList.remove("is-hidden")
                     filterInstructions.classList.remove("is-hidden")
                     modalBtn.classList.remove("is-hidden")
@@ -509,10 +511,6 @@ export default {
                         if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
                             i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
                             i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
-                        }
-                        else{
-                            i.value = ""
-                            i.setAttribute("value", "")
                         }
                         i.dispatchEvent(new Event('input', { bubbles: true }))
                     })
@@ -591,17 +589,18 @@ export default {
                     const updateScenario = elem.hasAttribute("update-scenario") ? true : false
                     let inclusionBtn = document.createElement("input")
                     inclusionBtn.setAttribute("type", "button")
-                    if(createScenario){
-                        inclusionBtn.setAttribute("data-id", obj["@id"])
-                        inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
-                        inclusionBtn.setAttribute("value", "➥ attach")
-                        inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
-                    }
-                    else if(updateScenario){
+                    if(updateScenario){
                         inclusionBtn.setAttribute("disabled", "")
                         inclusionBtn.setAttribute("value", "✓ attached")
                         inclusionBtn.setAttribute("title", "This Gloss is already attached!")
                         inclusionBtn.setAttribute("class", "toggleInclusion button success")  
+                    }
+                    else{
+                        // Either a create scenario, or neither (just loading up)
+                        inclusionBtn.setAttribute("data-id", obj["@id"])
+                        inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
+                        inclusionBtn.setAttribute("value", "➥ attach")
+                        inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
                     }
                     inclusionBtn.addEventListener('click', ev => {
                         ev.preventDefault()
@@ -629,7 +628,7 @@ export default {
                             }
                         }                    
                     })
-                    if(createScenario || updateScenario) li.appendChild(inclusionBtn)
+                    li.appendChild(inclusionBtn)
 
                     const filterPresent = containingListElem.$contentState ? true : false
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
@@ -692,6 +691,8 @@ export default {
                                 i.dispatchEvent(new Event('input', { bubbles: true }))
                             }
                         })
+                        containingListElem.setAttribute("ng-list-loaded", "true")
+                        deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
                     }
                     // FIXME we have to do this here instead of on gloss-transcription.html because the original elem here is replaced.
                     // When it is replaced, it destroys any listener on the original <li> defined by HTML pages upstream.

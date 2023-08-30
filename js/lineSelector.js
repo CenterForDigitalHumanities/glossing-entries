@@ -219,7 +219,7 @@ class TpenLineSelector extends HTMLElement {
                     })
                     tpenProjectLines.appendChild(pageContainer)
                 })
-                let e = new CustomEvent("tpen-lines-loaded", {bubbles: true })
+                const e = new CustomEvent("tpen-lines-loaded", {bubbles: true })
                 document.dispatchEvent(e)
                 $this.setAttribute("tpen-lines-loaded", "true")
             })
