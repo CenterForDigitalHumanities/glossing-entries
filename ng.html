@@ -87,6 +87,16 @@
 
     <div id="globalFeedback" class="card is-center"></div>
     <script>
+
+        setTimeout(() => {
+            document.querySelectorAll("input[deer-key='creator']").forEach(el => {
+                el.value="HabesTest"
+                el.setAttribute("value", "HabesTest")
+            })
+            document.getElementById("named-gloss").setAttribute("deer-creator", "HabesTest")
+            window.GOG_USER["http://store.rerum.io/agent"] = "HabesTest"
+        }, 4000)
+
         const labelElem = document.querySelector('input[deer-key="title"]')
         const textElem = glossText
         const textListener = textElem.addEventListener('input', ev => {
@@ -144,15 +154,6 @@
                     break
                 default:
             }
-            
-            setTimeout(() => {
-                document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-                    el.value="HabesTest"
-                    el.setAttribute("value", "HabesTest")
-                })
-                document.getElementById("named-gloss").setAttribute("deer-creator", "HabesTest")
-                window.GOG_USER["http://store.rerum.io/agent"] = "HabesTest"
-            }, 4000)
         })
 
         function parseSections() {
