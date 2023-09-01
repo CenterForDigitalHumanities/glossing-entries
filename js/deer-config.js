@@ -38,7 +38,7 @@ export default {
         CREATE: __constants.tiny+"/create",
         UPDATE: __constants.tiny+"/update",
         OVERWRITE: __constants.tiny+"/overwrite",
-        QUERY: __constants.tiny+"/query?limit=100&skip=0",
+        QUERY: __constants.tiny+"/query",
         DELETE: __constants.tiny+"/delete",
         SINCE: __constants.rerum+"/since"
     },
@@ -313,6 +313,13 @@ export default {
             }
             return { html, then }
         },
+        /**
+         * The Gloss selector for gloss-transcription.html.
+         * Users should see the Glossing-Matthew-Named-Glosses collection.  They can filter the list of titles using a text input that matches on title.
+         * The collection items have a button that, when clicked, attaches them to the T-PEN transcription text selected.
+         * When an existing witness is provided via the URL Hash, newly selected Glosses will update the Gloss reference to the text.
+         * Note this works in tandem with a tpen-line-selector element and the ?gog-filter Filter State URL parameter.
+         */ 
         glossesSelectorForTextualWitness: function (obj, options = {}) {
             // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let html = `
@@ -340,8 +347,8 @@ export default {
                 }
 
                 .toggleInclusion{
-                    padding: 3px;
-                    font-size: 10pt;
+                    padding: 3px !important;
+                    font-size: 10pt !important;
                     margin-right: 0.5em;
                 }
 
@@ -360,8 +367,10 @@ export default {
                 <h2 class="nomargin">Attach Gloss</h2>
                 <div class="cachedNotice is-hidden"> These Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
                 <p class="filterInstructions is-hidden"> 
-                Use the filter to narrow down your options.  Select a single Gloss from the list to attach this witness to. </p>
+                    Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to. 
+                </p>
                 <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
+                <gloss-modal-button class="is-right is-hidden"></gloss-modal-button>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                     <div class="totalsProgress" count="0"> 
@@ -382,7 +391,7 @@ export default {
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
-                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" href="${val['@id']}" title="Attach this Gloss and Save" value="&#10149; attach"/>`
+                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" data-id="${val['@id']}" title="Attach this Named Gloss and Save" value="➥ attach"/>`
                     if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
                         // We cached it in the past and are going to trust it right now.
                         const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))
@@ -439,6 +448,7 @@ export default {
                 const cachedNotice = elem.querySelector(".cachedNotice")
                 const progressArea = elem.querySelector(".progressArea")
                 const filterInstructions = elem.querySelector(".filterInstructions")
+                const modalBtn = elem.querySelector("gloss-modal-button")
                 // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                 totalsProgress.innerHTML = `
                     ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>
@@ -455,14 +465,14 @@ export default {
                 })
 
                 // Note the capability to select multiple that we are limiting to one.
-                elem.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
+                elem.querySelectorAll('.toggleInclusion').forEach(btn => btn.addEventListener('click', ev => {
                     ev.preventDefault()
                     ev.stopPropagation()
                     const glossIncipit = ev.target.closest("li").getAttribute("data-title")
                     if(confirm(`Save this textual witness for Gloss '${glossIncipit}'?`)){
                         const form = ev.target.closest("form")
-                        const customKey = elem.querySelector("input[custom-key]")
-                        const uri = a.getAttribute("href")
+                        const customKey = elem.querySelector("input[custom-key='references']")
+                        const uri = btn.getAttribute("data-id")
                         if(customKey.value !== uri){
                             customKey.value = uri 
                             customKey.setAttribute("value", uri) 
@@ -489,8 +499,11 @@ export default {
                 })
 
                 if(numloaded === total){
+                    elem.setAttribute("ng-list-loaded", "true")
+                    deerUtils.broadcast(undefined, "ng-list-loaded", elem, {})
                     cachedNotice.classList.remove("is-hidden")
                     filterInstructions.classList.remove("is-hidden")
+                    modalBtn.classList.remove("is-hidden")
                     progressArea.classList.add("is-hidden")
                     elem.querySelectorAll("input[filter]").forEach(i => {
                         // The filters that are used now need to be selected or take on the string or whatevs
@@ -498,10 +511,6 @@ export default {
                         if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
                             i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
                             i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
-                        }
-                        else{
-                            i.value = ""
-                            i.setAttribute("value", "")
                         }
                         i.dispatchEvent(new Event('input', { bubbles: true }))
                     })
@@ -556,11 +565,9 @@ export default {
          * This corresponds to an existing <li> element with a deer-id property.  These <li> elements need to be filterable.
          * As such, they require information about the Gloss they represent, whose URI is the deer-id.
          * That element is expand()ed in order to get the information for this element to be filterable.
-         * 
          * Since the object is expanded, if reasonable, it should be cached with its information (how would we know if it is out of date?)
-         * 
          * If a filter was present via the URL on page load, if it matches on this <li> the <li> should be filtered immediately.
-         * 
+         * Note there is some specific support for the glossesSelectorForTextualWitness template.
          */ 
         filterableListItem: function (obj, options = {}) {
             return{
@@ -571,28 +578,43 @@ export default {
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("li")
                     let a = document.createElement("a")
-                    let span = document.createElement("span")
+                    let span = document.createElement("span")   
 
-                    // Note the inclusion button is only for the glossesSelectorForTextualWitness template.
+                    /**
+                     * FIXME these booleans and the inclusionBtn are just for the glossesSelectorForTextualWitness on gloss-transcription.html
+                     * We should move this button generation out to that layer and keep this template clean
+                     * */
+                    const increaseTotal = (elem.hasAttribute("create-scenario") || elem.hasAttribute("update-scenario")) ? true : false
+                    const createScenario = elem.hasAttribute("create-scenario") ? true : false
+                    const updateScenario = elem.hasAttribute("update-scenario") ? true : false
                     let inclusionBtn = document.createElement("input")
                     inclusionBtn.setAttribute("type", "button")
-                    inclusionBtn.setAttribute("href", obj["@id"])
-                    inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
-                    inclusionBtn.setAttribute("value", `➥ attach`)
-                    inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+                    if(updateScenario){
+                        inclusionBtn.setAttribute("disabled", "")
+                        inclusionBtn.setAttribute("value", "✓ attached")
+                        inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+                        inclusionBtn.setAttribute("class", "toggleInclusion button success")  
+                    }
+                    else{
+                        // Either a create scenario, or neither (just loading up)
+                        inclusionBtn.setAttribute("data-id", obj["@id"])
+                        inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
+                        inclusionBtn.setAttribute("value", "➥ attach")
+                        inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
+                    }
                     inclusionBtn.addEventListener('click', ev => {
                         ev.preventDefault()
                         ev.stopPropagation()
-                        const glossIncipit = ev.target.closest("li").getAttribute("data-title")
-                        if(confirm(`Save this textual witness for Gloss '${glossIncipit}'?`)){
+                        const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
+                        if((createScenario || updateScenario) || confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
                             const form = ev.target.closest("form")
-                            const customKey = form.querySelector("input[custom-key]")
-                            const uri = a.getAttribute("href")
+                            const customKey = form.querySelector("input[custom-key='references']")
+                            const uri = event.target.getAttribute("data-id")
                             if(customKey.value !== uri){
                                 customKey.value = uri 
                                 customKey.setAttribute("value", uri) 
                                 customKey.$isDirty = true
-                                form.closest("form").$isDirty = true
+                                form.$isDirty = true
                                 // There must be a shelfmark.
                                 if(form.querySelector("input[deer-key='identifier']").value){
                                     form.querySelector("input[type='submit']").click()    
@@ -606,12 +628,14 @@ export default {
                             }
                         }                    
                     })
+                    li.appendChild(inclusionBtn)
 
                     const filterPresent = containingListElem.$contentState ? true : false
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     li.setAttribute("deer-id", obj["@id"])
                     a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("target", "_blank")
 
                     // Turn each property into an attribute for the <li> element
                     let action = "add"
@@ -636,18 +660,21 @@ export default {
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     a.appendChild(span)
-                    // maybe a bit hacky and we need to split out filterable from filterable+selectable collection list items.
-                    if(window.location.pathname.includes("gloss-transcription")) li.appendChild(inclusionBtn)
+                    
                     li.appendChild(a)
+                    // FIXME do not do replaceWith().  It should be .innerHTML= instead to preserve upstream event listeners.  
+                    // NOTE this FIXME will need to be checked for upstream refactors, like filterGlosses().
                     elem.replaceWith(li)
 
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
-                    const total = parseInt(totalsProgress.getAttribute("total"))
+                    let total = parseInt(totalsProgress.getAttribute("total"))
+                    if(increaseTotal) total++
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
                     totalsProgress.setAttribute("count", numloaded)
+                    totalsProgress.setAttribute("total", total)
                     totalsProgress.innerHTML = `
                         ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  
                         You may click to select any Gloss loaded already.<br>
@@ -656,18 +683,30 @@ export default {
                         cachedNotice.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
-                            // The filters that are used now need to be visiable and selected / take on the string / etc.
+                            // The filters that are used now need to be visible and selected / take on the string / etc.
                             i.classList.remove("is-hidden")
                             if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
                                 i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
                                 i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
+                                i.dispatchEvent(new Event('input', { bubbles: true }))
                             }
-                            else{
-                                i.value = ""
-                                i.setAttribute("value", "")
-                            }
-                            i.dispatchEvent(new Event('input', { bubbles: true }))
                         })
+                        containingListElem.setAttribute("ng-list-loaded", "true")
+                        deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
+                    }
+                    // FIXME we have to do this here instead of on gloss-transcription.html because the original elem here is replaced.
+                    // When it is replaced, it destroys any listener on the original <li> defined by HTML pages upstream.
+                    if(createScenario) { inclusionBtn.click() }
+                    else if(updateScenario) { 
+                        // Set the references input with the new gloss URI and update the form
+                        const refKey = witnessForm.querySelector("input[custom-key='references']")
+                        if(refKey.value !== obj["@id"]){
+                            refKey.value = obj["@id"]
+                            refKey.setAttribute("value", obj["@id"]) 
+                            refKey.$isDirty = true
+                            witnessForm.$isDirty = true
+                            witnessForm.querySelector("input[type='submit']").click() 
+                        }
                     }
                 }
             }
