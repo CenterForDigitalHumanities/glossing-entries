@@ -23,6 +23,7 @@ function setWitnessFormDefaults(){
     form.removeAttribute("deer-source")    
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
+    form.querySelector("input[deer-key='creator']").value = "HabesTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -141,6 +142,16 @@ window.onload = () => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
+    // Hack the login and attributed creator
+    setTimeout(() => {
+        document.querySelectorAll("input[deer-key='creator']").forEach(el => {
+            el.value="HabesTest"
+            el.setAttribute("value", "HabesTest")
+        })
+        witnessForm.setAttribute("deer-creator", "HabesTest")
+        document.querySelector("form[name='gloss-modal-form']").setAttribute("deer-creator", "HabesTest")
+        window.GOG_USER["http://store.rerum.io/agent"] = "HabesTest"
+    }, 4000)
 }
 
 /**
