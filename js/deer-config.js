@@ -628,8 +628,9 @@ export default {
                             }
                         }                    
                     })
-                    li.appendChild(inclusionBtn)
-
+                    if(document.location.pathname.includes("gloss-transcription")){
+                        li.appendChild(inclusionBtn)
+                    }
                     const filterPresent = containingListElem.$contentState ? true : false
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
