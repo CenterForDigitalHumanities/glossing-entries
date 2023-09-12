@@ -89,6 +89,7 @@ class AuthCreator extends HTMLInputElement {
     connectedCallback() {
         if(!window.GOG_USER) { return }
         this.value = GOG_USER["http://store.rerum.io/agent"] ?? "anonymous"
+        this.closest("form").setAttribute("deer-creator", GOG_USER["http://store.rerum.io/agent"] ?? "anonymous")
     }
 }
 
