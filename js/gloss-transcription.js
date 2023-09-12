@@ -23,8 +23,8 @@ function setWitnessFormDefaults(){
     form.removeAttribute("deer-source")    
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
-    // Note this does not need to change outside of testing scenarios
-    form.querySelector("input[deer-key='creator']").value = "HabesTest"
+    // For when we test
+    //form.querySelector("input[deer-key='creator']").value = "DevTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -143,16 +143,6 @@ window.onload = () => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
-    // Hack the login and attributed creator
-    setTimeout(() => {
-        document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-            el.value="HabesTest"
-            el.setAttribute("value", "HabesTest")
-        })
-        witnessForm.setAttribute("deer-creator", "HabesTest")
-        document.querySelector("form[name='gloss-modal-form']").setAttribute("deer-creator", "HabesTest")
-        window.GOG_USER["http://store.rerum.io/agent"] = "HabesTest"
-    }, 4000)
 }
 
 /**
@@ -187,18 +177,16 @@ function init(event){
     const $elem = event.target
     switch (whatRecordForm) {
         case "witnessForm":
-            // DO NOT populate these things in create scenarios.
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
                 prefillReferences(annotationData["references"], ngCollectionList)
             }
             else{
-                addEventListener('deer-view-rendered', references)
-
-                function references(event){
+                addEventListener('ng-list-loaded', ngListLoaded)
+                function ngListLoaded(event){
                     if(event.target.id === "ngCollectionList"){
                         prefillReferences(annotationData["references"], ngCollectionList)
                         // This listener is no longer needed
-                        removeEventListener('deer-view-rendered', references)
+                        removeEventListener('ng-list-loaded', ngListLoaded)
                     }
                 }
             }

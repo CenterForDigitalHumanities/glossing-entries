@@ -167,7 +167,7 @@ export default {
             </style>
             <h2> Glosses </h2>
             <div class="cachedNotice is-hidden"> These Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
-            <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
+            <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden">
             <div class="progressArea">
                 <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                 <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
@@ -249,7 +249,7 @@ export default {
 
                 // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
-                    const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
+                    const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
                     debounce(filterGlosses(filterQuery))
                 })
 
@@ -260,9 +260,10 @@ export default {
                         // The filters that are used now need to be selected or take on the string or whatevs
                         i.classList.remove("is-hidden")
                         if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
-                            i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
+                            i.value = filterObj[i.getAttribute("filter")]
+                            i.setAttribute("value", filterObj[i.getAttribute("filter")])
                         }
-
+                        i.dispatchEvent(new Event('input', { bubbles: true }))
                     })
                     if(filterPresent){
                         debounce(filterGlosses(elem.$contentState))
@@ -300,7 +301,8 @@ export default {
                                 const action = el.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
                                 el.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>el.classList.remove(`un${action}-item`),500)
-                                break
+                                // If it is showing, no need to check other properties for filtering.
+                                if(action === "remove") break
                             }
                         }
                     })
@@ -369,7 +371,7 @@ export default {
                 <p class="filterInstructions is-hidden"> 
                     Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to. 
                 </p>
-                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
+                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden">
                 <gloss-modal-button class="is-right is-hidden"></gloss-modal-button>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
@@ -494,11 +496,13 @@ export default {
 
                 // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
-                    const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
+                    const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
                     debounce(filterGlosses(filterQuery))
                 })
 
                 if(numloaded === total){
+                    elem.setAttribute("ng-list-loaded", "true")
+                    deerUtils.broadcast(undefined, "ng-list-loaded", elem, {})
                     cachedNotice.classList.remove("is-hidden")
                     filterInstructions.classList.remove("is-hidden")
                     modalBtn.classList.remove("is-hidden")
@@ -507,12 +511,8 @@ export default {
                         // The filters that are used now need to be selected or take on the string or whatevs
                         i.classList.remove("is-hidden")
                         if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
-                            i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
-                            i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
-                        }
-                        else{
-                            i.value = ""
-                            i.setAttribute("value", "")
+                            i.value = filterObj[i.getAttribute("filter")]
+                            i.setAttribute("value", filterObj[i.getAttribute("filter")])
                         }
                         i.dispatchEvent(new Event('input', { bubbles: true }))
                     })
@@ -549,7 +549,8 @@ export default {
                                 const action = el.getAttribute(`data-${prop}`).toLowerCase().trim().includes(query[prop].toLowerCase().trim()) ? "remove" : "add"
                                 el.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>el.classList.remove(`un${action}-item`),500)
-                                break
+                                // If it is showing, no need to check other properties for filtering.
+                                if(action === "remove") break
                             }
                         }
                     })
@@ -591,17 +592,19 @@ export default {
                     const updateScenario = elem.hasAttribute("update-scenario") ? true : false
                     let inclusionBtn = document.createElement("input")
                     inclusionBtn.setAttribute("type", "button")
-                    if(createScenario){
-                        inclusionBtn.setAttribute("data-id", obj["@id"])
-                        inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
-                        inclusionBtn.setAttribute("value", "➥ attach")
-                        inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
-                    }
-                    else if(updateScenario){
+
+                    if(updateScenario){
                         inclusionBtn.setAttribute("disabled", "")
                         inclusionBtn.setAttribute("value", "✓ attached")
                         inclusionBtn.setAttribute("title", "This Gloss is already attached!")
                         inclusionBtn.setAttribute("class", "toggleInclusion button success")  
+                    }
+                    else{
+                        // Either a create scenario, or neither (just loading up)
+                        inclusionBtn.setAttribute("data-id", obj["@id"])
+                        inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
+                        inclusionBtn.setAttribute("value", "➥ attach")
+                        inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
                     }
                     inclusionBtn.addEventListener('click', ev => {
                         ev.preventDefault()
@@ -629,8 +632,9 @@ export default {
                             }
                         }                    
                     })
-                    if(createScenario || updateScenario) li.appendChild(inclusionBtn)
-
+                    if(document.location.pathname.includes("gloss-transcription")){
+                        li.appendChild(inclusionBtn)
+                    }
                     const filterPresent = containingListElem.$contentState ? true : false
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
@@ -692,6 +696,8 @@ export default {
                                 i.dispatchEvent(new Event('input', { bubbles: true }))
                             }
                         })
+                        containingListElem.setAttribute("ng-list-loaded", "true")
+                        deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
                     }
                     // FIXME we have to do this here instead of on gloss-transcription.html because the original elem here is replaced.
                     // When it is replaced, it destroys any listener on the original <li> defined by HTML pages upstream.
