@@ -20,7 +20,17 @@ cd /web_container/
 git clone https://github.com/CenterForDigitalHumanities/glossing-entries.git glossing
 ```
 
-You will notice a `properties.json` located in the root folder.  It is staged to deploy the app for development (not as production).  Please keep it that way.  We will stage your changes for production upstream.  
+You will notice a `properties.json` file located in the root folder.  It is staged to deploy the app to production.  For development, please change this file to be the following:
+
+```JSON
+{
+    "ngCollection" : "https://devstore.rerum.io/v1/id/610c54deffce846a83e70625",
+    "msCollection" : "https://devstore.rerum.io/v1/id/610ad6f1ffce846a83e70613",
+    "generator" : "http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90",
+    "tiny" : "https://tinydev.rerum.io/app",
+    "rerum" : "https://devstore.rerum.io/v1"
+}
+```
 
 That's all you need!  Now start up your web server.  If you used the example above access the app at http://localhost/glossing.  
 

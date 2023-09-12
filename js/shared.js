@@ -2,14 +2,15 @@
  * Shared front end functionality across the HTML pages.
  */
 
-// For when we test, so we can easily find and blow away junk data
+//For when we test, so we can easily find and blow away junk data
 // setTimeout(() => {
 //     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
 //         el.value="DevTest"
 //         el.setAttribute("value", "DevTest")
 //     })
-//     witnessForm.setAttribute("deer-creator", "DevTest")
-//     document.querySelector("form[name='gloss-modal-form']").setAttribute("deer-creator", "DevTest")
+//     document.querySelectorAll("form").forEach(el => {
+//         el.setAttribute("deer-creator", "DevTest")
+//     })
 //     window.GOG_USER["http://store.rerum.io/agent"] = "DevTest"
 // }, 4000)
 
