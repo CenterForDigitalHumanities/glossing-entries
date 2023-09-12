@@ -167,7 +167,7 @@ export default {
             </style>
             <h2> Glosses </h2>
             <div class="cachedNotice is-hidden"> These Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
-            <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
+            <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden">
             <div class="progressArea">
                 <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                 <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
@@ -249,7 +249,7 @@ export default {
 
                 // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
-                    const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
+                    const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
                     debounce(filterGlosses(filterQuery))
                 })
 
@@ -260,9 +260,10 @@ export default {
                         // The filters that are used now need to be selected or take on the string or whatevs
                         i.classList.remove("is-hidden")
                         if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
-                            i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
+                            i.value = filterObj[i.getAttribute("filter")]
+                            i.setAttribute("value", filterObj[i.getAttribute("filter")])
                         }
-
+                        i.dispatchEvent(new Event('input', { bubbles: true }))
                     })
                     if(filterPresent){
                         debounce(filterGlosses(elem.$contentState))
@@ -300,7 +301,8 @@ export default {
                                 const action = el.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
                                 el.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>el.classList.remove(`un${action}-item`),500)
-                                break
+                                // If it is showing, no need to check other properties for filtering.
+                                if(action === "remove") break
                             }
                         }
                     })
@@ -369,7 +371,7 @@ export default {
                 <p class="filterInstructions is-hidden"> 
                     Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to. 
                 </p>
-                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">
+                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden">
                 <gloss-modal-button class="is-right is-hidden"></gloss-modal-button>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
@@ -494,7 +496,7 @@ export default {
 
                 // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
-                    const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value}))
+                    const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
                     debounce(filterGlosses(filterQuery))
                 })
 
@@ -509,8 +511,8 @@ export default {
                         // The filters that are used now need to be selected or take on the string or whatevs
                         i.classList.remove("is-hidden")
                         if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
-                            i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
-                            i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
+                            i.value = filterObj[i.getAttribute("filter")]
+                            i.setAttribute("value", filterObj[i.getAttribute("filter")])
                         }
                         i.dispatchEvent(new Event('input', { bubbles: true }))
                     })
@@ -547,7 +549,8 @@ export default {
                                 const action = el.getAttribute(`data-${prop}`).toLowerCase().trim().includes(query[prop].toLowerCase().trim()) ? "remove" : "add"
                                 el.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>el.classList.remove(`un${action}-item`),500)
-                                break
+                                // If it is showing, no need to check other properties for filtering.
+                                if(action === "remove") break
                             }
                         }
                     })
