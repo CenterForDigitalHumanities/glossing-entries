@@ -20,6 +20,8 @@ cd /web_container/
 git clone https://github.com/CenterForDigitalHumanities/glossing-entries.git glossing
 ```
 
+You will notice a `properties.json` located in the root folder.  It is staged to deploy the app for development (not as production).  Please keep it that way.  We will stage your changes for production upstream.  
+
 That's all you need!  Now start up your web server.  If you used the example above access the app at http://localhost/glossing.  
 
 ## 🎉 Ready to Start Contributing!
