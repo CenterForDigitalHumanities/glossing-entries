@@ -7,7 +7,11 @@ setTimeout(() => {
     window.GOG_USER["http://store.rerum.io/agent"] = "HabesTest"
 }, 4000)
 
-document.onload = function(e){ 
+/**
+ * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
+ */ 
+window.onload = () => {
+    const hash = window.location.hash.substr(1)
     const labelElem = document.querySelector('input[deer-key="title"]')
     const textElem = glossText
     const textListener = textElem.addEventListener('input', ev => {
@@ -33,14 +37,33 @@ document.onload = function(e){
             glossResult.insertAdjacentHTML('beforeend', `<a href="#${anno.id.split('/').pop()}">${anno.title}</a>`)
         })
     })
-        ;[glossText, textLang].forEach(elem => addEventListener('input', event => {
-            textObject.value = {
-                '@type': "Text",
-                textValue: glossText.value,
-                format: "text/plain",
-                language: textLang
-            }
-        }))
+    if(!hash){
+       // These items have default values that are dirty on fresh forms.
+        document.querySelector("select[custom-text-key='language']").$isDirty = true
+        document.querySelector("input[custom-text-key='format']").$isDirty = true
+    }
+    // mimic isDirty detection for these custom inputs
+    document.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
+        ev.target.$isDirty = true
+        ev.target.closest("form").$isDirty = true
+    })
+    document.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
+        ev.target.$isDirty = true
+        ev.target.closest("form").$isDirty = true
+    })
+    // Note that this HTML element is a checkbox
+    document.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+        if(ev.target.checked){
+            ev.target.value = "text/html"
+            ev.target.setAttribute("value", "text/html")
+        }
+        else{
+            ev.target.value = "text/plain"
+            ev.target.setAttribute("value", "text/plain")
+        }
+        ev.target.$isDirty = true
+        ev.target.closest("form").$isDirty = true
+    })
 }
 
 /**
@@ -73,6 +96,80 @@ addEventListener('deer-form-rendered', event => {
         document.getElementById("named-gloss").setAttribute("deer-creator", "HabesTest")
         window.GOG_USER["http://store.rerum.io/agent"] = "HabesTest"
     }, 4000)
+})
+
+/**
+ * The DEER announcement for when all form fields have been saved or updated.
+ * Extend this functionality by also saving or updating the custom fields.
+ * 
+ */ 
+addEventListener('deer-updated', event => {
+    const $elem = event.target
+    //Only care about witness form
+    if($elem?.id  !== "named-gloss") return
+    // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
+    event.preventDefault()
+    event.stopPropagation()
+
+    const entityID = event.detail["@id"]  
+    const customTextElems = [
+        $elem.querySelector("input[custom-text-key='format']"),
+        $elem.querySelector("select[custom-text-key='language']"),
+        $elem.querySelector("textarea[custom-text-key='text']")
+    ]
+    if(customTextElems.filter(el => el.$isDirty).length > 0){
+        // One of the text properties has changed so we need the text object
+        const format = customTextElems[0].value
+        const language = customTextElems[1].value
+        const text = customTextElems[2].value
+        let textanno = {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "@type": "Annotation",
+            "body": {
+                "text":{
+                    "format" : format,
+                    "language" : language,
+                    "textValue" : text
+                }
+            },
+            "target": entityID,
+            "creator" : window.GOG_USER["http://store.rerum.io/agent"]
+        }
+        const el = customTextElems[2]
+        if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
+        fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
+            method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+            body: JSON.stringify(textanno)
+        })
+        .then(res => res.json())
+        .then(a => {
+            $elem.setAttribute("deer-source", a["@id"])
+        })
+        .catch(err => {
+            console.error(`Could not generate 'text' property Annotation`)
+            console.error(err)
+        })
+        .then(success => {
+            console.log("FORM FULLY SAVED")
+            const ev = new CustomEvent("Thank you for your Gloss Submission!")
+            globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
+            const hash = window.location.hash.substr(1)
+            if(!hash){
+                setTimeout(() => {
+                    window.location.reload()
+                }, 2000)    
+            }
+        })
+        .catch(err => {
+            console.error("ERROR PROCESSING SOME FORM FIELDS")
+            console.error(err)
+        })
+    }
 })
 
 function parseSections() {

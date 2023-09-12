@@ -24,19 +24,21 @@
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
             <label class="col-3 col-2-md text-right">Gloss Text:</label>
-            <input type="hidden" deer-key="text" id="textObject">
-            <textarea id="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
+            <textarea custom-text-key="text" id="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
 
             <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
-            <select name="textLang" id="textLang" class="col-3 col-2-md">
+            <select custom-text-key="language" name="textLang" id="textLang" class="col-3 col-2-md">
                 <option value="la" selected>Latin</option>
                 <option value="de">German</option>
                 <option value="fr">French</option>
                 <option value="en">English</option>
             </select>
+
+            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
+                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
+            </label>
         </div>
         <div class="row">
-
             <label class="col-3 col-2-md text-right">Description:</label>
             <input type="text" deer-key="description" placeholder="description" class="col-9 col-10-md">
             <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
