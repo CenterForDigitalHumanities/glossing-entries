@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Gallery of Glosses</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="/js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/app.js" type="module"></script>
+    <script src="js/shared.js" defer></script>
+</head>
+
+<body class="container">
+    <gog-header class="container"></gog-header>
+    <h2> <span class="add-update">Add</span> Witness Fragment </h2>
+
+    ## TODO: add fragment to existing gloss
+    <!-- <form id="named-gloss" deer-type="Gloss" deer-context="http://purl.org/dc/terms" hash-id>
+        <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
+        <input is="auth-creator" type="hidden" deer-key="creator" />
+        <div class="row">
+            <label class="col-3 col-2-md text-right">Gloss Text:</label>
+            <input type="hidden" deer-key="text" id="textObject">
+            <textarea id="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
+
+            <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
+            <select name="textLang" id="textLang" class="col-3 col-2-md">
+                <option value="la" selected>Latin</option>
+                <option value="de">German</option>
+                <option value="fr">French</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+        <div class="row">
+
+            <label class="col-3 col-2-md text-right">Description:</label>
+            <input type="text" deer-key="description" placeholder="notes" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
+            <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
+            <button class="col-6" type="button" role="button" onclick="parseSections()">parse sections</button>
+            <label class="col-3 col-2-md text-right">Major Section:</label>
+            <input type="text" deer-key="section" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">First subsection:</label>
+            <input type="text" deer-key="subsection1" placeholder="chapter" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Second subsection:</label>
+            <input type="text" deer-key="subsection2" placeholder="verse" class="col-9 col-4-md">
+        </div>
+        <div class="row">
+            <label class="col-3 col-2-md text-right">Target Text:</label>
+            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text"></textarea>
+            <label class="col-3 col-2-md text-right">Label for display:</label>
+            <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
+
+            <!-- <label class="col-3 col-2-md text-right">Chapter</label>
+            <input type="number" deer-key="targetChapter" placeholder="0" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Verse</label>
+            <input type="text" deer-key="targetVerse" placeholder="0-1" class="col-9 col-4-md"> -->
+        </div>
+        <div class="row">
+            <gog-tag-widget class="col"> </gog-tag-widget>
+            <gog-theme-widget class="col"> </gog-theme-widget>
+        </div>
+        <div class="row">
+            <label class="col-3 col-2-md text-right">Notes</label>
+            <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-10-md">
+        </div>
+
+
+        <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
+        <div id="glossResult"></div>
+
+        <input type="submit" value="Create" class="col add-update">
+        <a href="./named-glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')"
+            class="text-error">Drop from collection</a>
+    </form> -->
+    <!-- 
+        <pre class="card bg-light is-hidden">
+            <deer-view deer-template="entity" deer-listening="named-gloss">current state</deer-view>
+        </pre> -->
+
+    <gog-footer class="row">
+
+    </gog-footer>
+
+    <div id="globalFeedback" class="card is-center"></div>
+    <script>
+        const labelElem = document.querySelector('input[deer-key="title"]')
+        const textElem = glossText
+        const textListener = textElem.addEventListener('input', ev => {
+            if (textElem.value?.length > 5) {
+                const words = textElem.value.split(' ')
+                let label = ''
+                while (label.length < 20 && words.length > 0) {
+                    label += words.shift() + " "
+                }
+                labelElem.value = label.trim()
+            }
+        })
+        labelElem.addEventListener('input', ev => {
+            if (!textElem.value.startsWith(labelElem.value)) {
+                textElem.removeEventListener('input', textListener)
+            }
+        })
+        textElem.addEventListener('blur', ev => checkForGlossesBtn.click())
+        checkForGlossesBtn.addEventListener('click', async ev => {
+            const matches = await findMatchingIncipits(textElem.value.trim(), labelElem.value)
+            glossResult.innerHTML = matches.length ? "<p>Potential matches found!</p>" : "<p>Gloss appears unique!</p>"
+            matches.forEach(anno => {
+                glossResult.insertAdjacentHTML('beforeend', `<a href="#${anno.id.split('/').pop()}">${anno.title}</a>`)
+            })
+        })
+            ;[glossText, textLang].forEach(elem => addEventListener('input', event => {
+                textObject.value = {
+                    '@type': "Text",
+                    value: glossText.value,
+                    format: "text/plain",
+                    language: textLang
+                }
+            }))
+        /**
+         * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
+         * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
+         * This event will come after all deer-view-rendered events have finished.
+         * @see deer-record.js DeerReport.constructor()  
+         */
+        addEventListener('deer-form-rendered', event => {
+            let whatRecordForm = event.target.id
+            let annotationData = event.detail
+            switch (whatRecordForm) {
+                case "named-gloss":
+                    // supporting forms populated
+                    prefillTagsArea(annotationData["tags"], event.target)
+                    prefillThemesArea(annotationData["themes"], event.target)
+                    const text = event.detail.text ?? event.detail.transcribedGloss
+                    if(text.language) { textLang.value = text.language }
+                    if(text.value) { glossText.value = text.value }
+                    if(event.detail.targetChapter && !event.detail.section) {
+                        document.querySelector('[deer-key="canonicalReference"]').value = `Matthew ${event.detail.targetChapter.value}:${event.detail.targetVerse.value}`
+                        parseSections()
+                    }
+                    break
+                default:
+            }
+        })
+
+        function parseSections() {
+            const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value
+            const section = document.querySelector('input[deer-key="section"]')
+            const subsection1 = document.querySelector('input[deer-key="subsection1"]')
+            const subsection2 = document.querySelector('input[deer-key="subsection2"]')
+            const elemSet = [section, subsection1, subsection2]
+            if (elemSet.includes(null) || !canonValue?.length) { throw new Error(`Missing elements in ${elemSet.join(', ')}`) }
+
+            const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/)
+            elemSet.forEach((el, index) => el.value = canonSplit[index])
+        }
+
+        function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
+            if (tagData === undefined) {
+                console.warn("Cannot set value for tags and build UI.  There is no data.")
+                return false
+            }
+            let arr_names = (tagData.hasOwnProperty("value") && tagData.value.hasOwnProperty("items")) ? tagData.value.items :
+                tagData.hasOwnProperty("items") ? tagData.items :
+                    [tagData]
+            if (arr_names.length === 0) {
+                console.warn("There are no tags recorded for this Gloss")
+                return false
+            }
+            form.querySelector("input[deer-key='tags']").value = arr_names.join(",")
+            let area = form.querySelector("input[deer-key='tags']").nextElementSibling //The view or select should always be just after the input tracking the values from it.
+            //Now build the little tags
+            let selectedTagsArea = area.parentElement.querySelector(".selectedEntities")
+            selectedTagsArea.innerHTML = ""
+            let tags = ""
+            arr_names.forEach(tagName => {
+                if (tagName) {
+                    tags += `<span class="tag is-small">${tagName}<span onclick="this.closest('gog-tag-widget').removeTag(event)" class="removeTag" tag-name="${tagName}"></span></span>`
+                }
+            })
+            selectedTagsArea.innerHTML = tags
+        }
+
+        function prefillThemesArea(themeData, form = document.getElementById("named-glosses")) {
+            if (themeData === undefined) {
+                console.warn("Cannot set value for themes and build UI.  There is no data.")
+                return false
+            }
+            let arr_names = (themeData.hasOwnProperty("value") && themeData.value.hasOwnProperty("items")) ? themeData.value.items :
+                themeData.hasOwnProperty("items") ? themeData.items :
+                    [themeData]
+            if (arr_names.length === 0) {
+                console.warn("There are no themes recorded for this Gloss")
+                return false
+            }
+            form.querySelector("input[deer-key='themes']").value = arr_names.join(",")
+            let area = form.querySelector("input[deer-key='themes']").nextElementSibling //The view or select should always be just after the input tracking the values from it.
+            //Now build the little themes
+            let selectedTagsArea = area.parentElement.querySelector(".selectedEntities")
+            selectedTagsArea.innerHTML = ""
+            let themes = ""
+            arr_names.forEach(themeName => {
+                if (themeName) {
+                    themes += `<span class="tag is-small">${themeName}<span onclick="this.closest('gog-theme-widget').removeTheme(event)" class="removeTheme" theme-name="${themeName}"></span></span>`
+                }
+            })
+            selectedTagsArea.innerHTML = themes
+        }
+
+    </script>
+</body>
+
+</html>

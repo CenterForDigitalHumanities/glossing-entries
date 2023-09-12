@@ -9,139 +9,87 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/shared.js"></script>
+    <script src="js/ng.js"></script>
 </head>
 
 <body class="container">
     <gog-header class="container"></gog-header>
-    <h2> Add Named Gloss </h2>
-    <p>
-        Note that you will add lines from paritcular gloss transcriptions in a different interface.
-        This mints the object with the desired basic metadata.
+    <h2> <span class="add-update">Add</span> Gloss </h2>
+    <p class="bg-light">
+        NB: A Gloss is an important thing. Please describe it as well as possible and
+        avoid creating a new one unless it does not already exist.
     </p>
-    <form id="named-gloss" deer-type="NamedGloss" deer-context="http://purl.org/dc/terms">
+    <form id="named-gloss" deer-type="Gloss_TEST" deer-context="http://purl.org/dc/terms" hash-id>
         <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
-            <label class="col-3 col-2-md text-right">Label:</label>
-            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md">
-            <label class="col-3 col-2-md text-right">Description:</label>
-            <input type="text" deer-key="description" placeholder="notes" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Gloss Text:</label>
+            <textarea custom-text-key="text" id="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
 
-            <label class="col-3 col-2-md text-right">Chapter</label>
+            <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
+            <select custom-text-key="language" name="textLang" id="textLang" class="col-3 col-2-md">
+                <option value="la" selected>Latin</option>
+                <option value="de">German</option>
+                <option value="fr">French</option>
+                <option value="en">English</option>
+            </select>
+
+            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
+                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
+            </label>
+        </div>
+        <div class="row">
+            <label class="col-3 col-2-md text-right">Description:</label>
+            <input type="text" deer-key="description" placeholder="description" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
+            <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
+            <button class="col-6" type="button" role="button" onclick="parseSections()">parse sections</button>
+            <label class="col-3 col-2-md text-right">Document:</label>
+            <input type="text" deer-key="_document" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Section:</label>
+            <input type="text" deer-key="_section" placeholder="chapter" class="col-9 col-4-md">
+            <label class="col-3 col-2-md text-right">Subsection(s):</label>
+            <input type="text" deer-key="_subsection" placeholder="verse" class="col-9 col-4-md">
+        </div>
+        <div class="row">
+            <label class="col-3 col-2-md text-right">Target Text:</label>
+            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text"></textarea>
+            <label class="col-3 col-2-md text-right">Label for display:</label>
+            <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
+
+            <!-- <label class="col-3 col-2-md text-right">Chapter</label>
             <input type="number" deer-key="targetChapter" placeholder="0" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Verse</label>
-            <input type="text" deer-key="targetVerse" placeholder="0-1" class="col-9 col-4-md">
-
-            <label class="col-3 col-2-md text-right">Target Text:</label>
-            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md"></textarea>
-            <label class="col-3 col-2-md text-right">Gloss Text:</label>
-            <textarea deer-key="transcribedGloss" rows="2" class="col-9 col-10-md"></textarea>
-
+            <input type="text" deer-key="targetVerse" placeholder="0-1" class="col-9 col-4-md"> -->
+        </div>
+        <div class="row">
+            <gog-tag-widget class="col"> </gog-tag-widget>
+            <gog-theme-widget class="col"> </gog-theme-widget>
+        </div>
+        <div class="row">
             <label class="col-3 col-2-md text-right">Notes</label>
-            <input type="text" deer-key="notes" placeholder="notes" class="col-9 col-10-md">
+            <input type="text" deer-key="_notes" placeholder="internal notes" class="col-9 col-10-md">
         </div>
 
-        <gog-tag-widget class="row"> </gog-tag-widget>
-        <gog-theme-widget class="row"> </gog-theme-widget>
 
-        <input type="submit" value="Create" class="col">
-        <a href="./named-glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')" class="text-error">Drop from collection</a>
+        <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
+        <div id="glossResult"></div>
+
+        <input type="submit" value="Create" class="col add-update">
+        <a href="./named-glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')"
+            class="text-error">Drop from collection</a>
     </form>
     <!-- 
-    <pre class="card bg-light is-hidden">
-        <deer-view deer-template="entity" deer-listening="named-gloss">current state</deer-view>
-    </pre> -->
+        <pre class="card bg-light is-hidden">
+            <deer-view deer-template="entity" deer-listening="named-gloss">current state</deer-view>
+        </pre> -->
 
     <gog-footer class="row">
 
     </gog-footer>
 
     <div id="globalFeedback" class="card is-center"></div>
-    <script>
-        /**
-         * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
-         * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
-         * This event will come after all deer-view-rendered events have finished.
-         * @see deer-record.js DeerReport.constructor()  
-         */
-        addEventListener('deer-form-rendered', event => {
-            let whatRecordForm = event.target.id
-            let annotationData = event.detail
-            switch (whatRecordForm) {
-                case "named-gloss":
-                    prefillTagsArea(annotationData["tags"], event.target)
-                    prefillThemesArea(annotationData["themes"], event.target)
-                    break
-                default:
-            }
-        })
-        window.onhashchange = onload = () => {
-            let ngID = window.location.hash.substr(1)
-            document.getElementById("named-gloss").setAttribute("deer-id", ngID)
-            if (ngID) {
-                document.querySelector("input[type='submit']").value = "Update"
-            }
-            else {
-                addEventListener('globalFeedbackFinished', event => {
-                    window.location.href = "./named-glosses.html"
-                })
-            }
-            //broadcast(undefined, "deer-view", document, {})
-        }
-
-        function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
-            if (tagData === undefined) {
-                console.warn("Cannot set value for tags and build UI.  There is no data.")
-                return false
-            }
-            let arr_names = (tagData.hasOwnProperty("value") && tagData.value.hasOwnProperty("items")) ? tagData.value.items :
-                tagData.hasOwnProperty("items") ? tagData.items :
-                    [tagData]
-            if (arr_names.length === 0) {
-                console.warn("There are no tags recorded for this named gloss")
-                return false
-            }
-            form.querySelector("input[deer-key='tags']").value = arr_names.join(",")
-            let area = form.querySelector("input[deer-key='tags']").nextElementSibling //The view or select should always be just after the input tracking the values from it.
-            //Now build the little tags
-            let selectedTagsArea = area.parentElement.querySelector(".selectedEntities")
-            selectedTagsArea.innerHTML = ""
-            let tags = ""
-            arr_names.forEach(tagName => {
-                if (tagName) {
-                    tags += `<span class="tag is-small">${tagName}<span onclick="this.closest('gog-tag-widget').removeTag(event)" class="removeTag" tag-name="${tagName}"></span></span>`
-                }
-            })
-            selectedTagsArea.innerHTML = tags
-        }
-
-        function prefillThemesArea(themeData, form = document.getElementById("named-glosses")) {
-            if (themeData === undefined) {
-                console.warn("Cannot set value for themes and build UI.  There is no data.")
-                return false
-            }
-            let arr_names = (themeData.hasOwnProperty("value") && themeData.value.hasOwnProperty("items")) ? themeData.value.items :
-                themeData.hasOwnProperty("items") ? themeData.items :
-                    [themeData]
-            if (arr_names.length === 0) {
-                console.warn("There are no themes recorded for this named gloss")
-                return false
-            }
-            form.querySelector("input[deer-key='themes']").value = arr_names.join(",")
-            let area = form.querySelector("input[deer-key='themes']").nextElementSibling //The view or select should always be just after the input tracking the values from it.
-            //Now build the little themes
-            let selectedTagsArea = area.parentElement.querySelector(".selectedEntities")
-            selectedTagsArea.innerHTML = ""
-            let themes = ""
-            arr_names.forEach(themeName => {
-                if (themeName) {
-                    themes += `<span class="tag is-small">${themeName}<span onclick="this.closest('gog-theme-widget').removeTheme(event)" class="removeTheme" theme-name="${themeName}"></span></span>`
-                }
-            })
-            selectedTagsArea.innerHTML = themes
-        }
-
-    </script>
+    
 </body>
 
 </html>

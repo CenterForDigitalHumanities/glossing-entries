@@ -8,7 +8,6 @@ class GlossFooter extends HTMLElement {
         }
     </style>
     <a href="./index.html">🏠</a>
-        <a href="./manuscripts.html">📚</a>
         <a href="./named-glosses.html">📑</a>
         <a rel="noopener noreferrer" title="View on GitHub"
             href="https://github.com/CenterForDigitalHumanities/glossing-entries" target="_blank">
@@ -35,7 +34,7 @@ class GlossHeader extends HTMLElement {
     #template = new DOMParser().parseFromString(`<template id="headerTemplate">
     <header>
     <link rel="stylesheet" href="css/gloss.css">
-    <button is="auth-button" disabled="true">login</button>
+    <button is="auth-button">login</button>
     <img src="media/gog-logo.jpg" alt="banner">
     <a href="/"><h1 class="title">
         Gallery of Glosses
@@ -79,8 +78,7 @@ class GlossHeader extends HTMLElement {
             opacity: 1;
         }
     </style>
-        <a href="./named-glosses.html">✏️ Named Glosses</a>
-        <a href="./manuscripts.html">📚 View Manuscripts</a>
+        <a href="./named-glosses.html">✏️ Glosses</a>
     </div>
     </header></template>
         `,'text/html').head.firstChild
@@ -161,9 +159,17 @@ class TagWidget extends HTMLElement {
         super()
     }
     connectedCallback() {
-        this.innerHTML = this.template
         const $this = this
-        this.querySelector("button").addEventListener("click", addTag)
+        this.innerHTML = this.template
+        const addBtn = this.querySelector("button")
+        this.querySelector(".tagInput").addEventListener("beforeinput",event=>{
+            if([' ',',',null].includes(event.data)) {
+                event.preventDefault()
+                addBtn.click()
+                return false
+            }
+        })
+        addBtn.addEventListener("click", addTag)
         
         /**
          * Click event handler for Add Tag.  Takes the user input and adds the string to the Set if it isn't already included.
@@ -280,9 +286,17 @@ class ThemeWidget extends HTMLElement {
         super()
     }
     connectedCallback() {
-        this.innerHTML = this.template
         const $this = this
-        this.querySelector("button").addEventListener("click", addTheme)
+        this.innerHTML = this.template
+        const addBtn = this.querySelector("button")
+        this.querySelector(".themeInput").addEventListener("beforeinput",event=>{
+            if([' ',',',null].includes(event.data)) {
+                event.preventDefault()
+                addBtn.click()
+                return false
+            }
+        })
+        addBtn.addEventListener("click", addTheme)
         /**
          * Click event handler for Add Theme.  Takes the user input and adds the string to the Set if it isn't already included.
          * Includes pagination.
@@ -356,61 +370,3 @@ class ThemeWidget extends HTMLElement {
 }
 
 customElements.define('gog-theme-widget', ThemeWidget)
-
-
-/**
- * A list of all Named Glosses Collections created by the logged in user. 
- */ 
-class ngCollections extends HTMLElement {
-    constructor() {
-        super()
-    }
-    connectedCallback() {
-        try {
-            // NOT USED
-            return
-            const collectionsQuery = {
-                "@type" : "UserNamedGlossCollection",
-                "creator" : "https://store.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
-            }
-            let tmpl = ``
-            const collections = fetch(config.URLS.QUERY, {
-                method: "POST",
-                mode: "cors",
-                headers:{
-                    "Content-Type" : "application/json;charset=utf-8"
-                },
-                body: JSON.stringify(collectionsQuery)
-            })
-            .then(response => response.json())
-            .then(collections => {
-                if(collections.length > 0){
-                    tmpl += `<ul>`    
-                    collections.forEach((collection, index) => {
-                        tmpl += `<li>`
-                        tmpl += `
-                        <a href="user-ng-collection.html#${collection['@id']}">
-                            <deer-view deer-id="${collection["@id"]}" deer-template="label">${index + 1}</deer-view>
-                        </a>
-                        </li>`
-                    })
-                    tmpl += `</ul>`
-                }
-                else{
-                    tmpl = "<h4 class='text-error'> You do not have any Named Gloss Collections.  <a href='user-ng-collection.html'>Go here</a> to create one. </h4>"
-                }
-                this.innerHTML = tmpl
-            })
-            .catch(err => {
-                console.error(err)
-                throw new Error(err.getMessage())
-            })
-        }
-        catch(err){
-            console.log("Could not get User Named Gloss Collections.")
-            console.error(err)
-            return null
-        }
-    }
-}
-customElements.define('gog-ng-collections', ngCollections)

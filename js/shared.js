@@ -1,7 +1,25 @@
 /**
  * Shared front end functionality across the HTML pages.
  */
-const __constants = fetch("../properties.json").then(r=>r.json()).catch(e=>{return {}})
+
+//For when we test, so we can easily find and blow away junk data
+// setTimeout(() => {
+//     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
+//         el.value="DevTest"
+//         el.setAttribute("value", "DevTest")
+//     })
+//     document.querySelectorAll("form").forEach(el => {
+//         el.setAttribute("deer-creator", "DevTest")
+//     })
+//     window.GOG_USER["http://store.rerum.io/agent"] = "DevTest"
+// }, 4000)
+
+let __constants = {}
+setConstants()
+
+async function setConstants(){
+    __constants = await fetch("../properties.json").then(r=>r.json()).catch(e=>{return {}})
+}
 
 /**
  * Use this on page load to find all the deer-views that should be showing a public collection.
@@ -36,29 +54,29 @@ function setListings(){
  * 
  * @param event {Event} A button/link click event
  * @param type {String} The archtype object's type or @type.
- */ 
+ */
 async function removeFromCollectionAndDelete(event, type, id = null) {
     event.preventDefault()
 
     // The URI for the item itself from the location hash, or null b/c it isn't available.
-    if(!id) id = location.hash ? location.hash.substr(1) : null
-    const thing = 
+    if (!id) id = location.hash ? location.hash.substr(1) : null
+    const thing =
         (type === "manuscript") ? "Manuscript" :
-        (type === "named-gloss") ? "Named Gloss" :
-        (type === "Range") ? "Gloss" : null
-    const redirect = 
+            (type === "named-gloss") ? "Gloss" :
+                (type === "Range") ? "Gloss" : null
+    const redirect =
         (type === "manuscript") ? "./manuscripts.html" :
-        (type === "named-gloss") ? "./named-glosses.html" :
-        (type === "Range") ? "./manage-glosses.html" : null    
+            (type === "named-gloss") ? "./named-glosses.html" :
+                (type === "Range") ? "./manage-glosses.html" : null
 
     // This won't do    
-    if(id === null){
+    if (id === null) {
         alert(`No URI supplied for delete.  Cannot delete.`)
         return
     }
 
     // If it is an unexpected type, we probably shouldn't go through with the delete.
-    if(thing === null){
+    if (thing === null) {
         alert(`Not sure what a ${type} is.  Cannot delete.`)
         return
     }
@@ -70,8 +88,8 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
 
     /**
      * A customized delete functionality for manuscripts, since they have Annotations and Glosses.
-     */ 
-    if(type==="manuscript"){
+     */
+    if (type === "manuscript") {
         // Such as ' [ Pn ] Paris, BnF, lat. 17233 ''
 
         const allGlossesOfManuscriptQueryObj = {
@@ -80,39 +98,39 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
             "__rerum.history.next" : historyWildcard
         }
         const allGlossIds = await getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
-        .then(annos => annos.map(anno => anno.target))
-        .catch(err => {
-            alert("Could not gather Glosses to delete.")
-            console.log(err)
-            return null
-        })
+            .then(annos => annos.map(anno => anno.target))
+            .catch(err => {
+                alert("Could not gather Glosses to delete.")
+                console.log(err)
+                return null
+            })
         // This is bad enough to stop here, we will not continue on towards deleting the entity.
-        if(allGlossIds === null) {return}
+        if (allGlossIds === null) { return }
 
         const allGlosses = allGlossIds.map(glossUri => {
             return fetch(`${__constants.tiny}/delete`, {
                 method: "DELETE",
-                body: JSON.stringify({"@id":glossUri.replace(/^https?:/,'https:')}),
+                body: JSON.stringify({ "@id": glossUri.replace(/^https?:/, 'https:') }),
                 headers: {
                     "Content-Type": "application/json; charset=utf-8",
                     "Authorization": `Bearer ${window.GOG_USER.authorization}`
                 }
             })
-            .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-            .catch(err => { 
-                console.warn(`There was an issue removing a connected Gloss: ${glossUri}`)
-                console.log(err)
-            })
+                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                .catch(err => {
+                    console.warn(`There was an issue removing a connected Gloss: ${glossUri}`)
+                    console.log(err)
+                })
         })
         // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
         await Promise.all(allGlosses).then(success => {
             console.log("Connected Glosses successfully removed.")
         })
-        .catch(err => {
-            // OK they may be orphaned.  We will continue on towards deleting the entity.
-            console.warn(`There was an issue removing Connected Glosses`)
-            console.log(err)
-        })
+            .catch(err => {
+                // OK they may be orphaned.  We will continue on towards deleting the entity.
+                console.warn(`There was an issue removing Connected Glosses`)
+                console.log(err)
+            })
     }
 
     // Get all Annotations throughout history targeting this object that were generated by this application.
@@ -121,62 +139,62 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
     const allAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
-    .then(annos => annos.map(anno => anno["@id"]))
-    .catch(err => {
-        alert("Could not gather Annotations to delete.")
-        console.log(err)
-        return null
-    })
+        .then(annos => annos.map(anno => anno["@id"]))
+        .catch(err => {
+            alert("Could not gather Annotations to delete.")
+            console.log(err)
+            return null
+        })
     // This is bad enough to stop here, we will not continue on towards deleting the entity.
-    if(allAnnotationIds === null) return
+    if (allAnnotationIds === null) return
 
     const allAnnotations = allAnnotationIds.map(annoUri => {
         return fetch(`${__constants.tiny}/delete`, {
             method: "DELETE",
-            body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
+            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
             }
         })
-        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-        .catch(err => { 
-            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
-            console.log(err)
-        })
+            .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+            .catch(err => {
+                console.warn(`There was an issue removing an Annotation: ${annoUri}`)
+                console.log(err)
+            })
     })
-    
+
     // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
     await Promise.all(allAnnotations).then(success => {
         console.log("Connected Annotationss successfully removed.")
     })
-    .catch(err => {
-        // OK they may be orphaned.  We will continue on towards deleting the entity.
-        console.warn("There was an issue removing connected Annotations.")
-        console.log(err)
-    })
+        .catch(err => {
+            // OK they may be orphaned.  We will continue on towards deleting the entity.
+            console.warn("There was an issue removing connected Annotations.")
+            console.log(err)
+        })
 
     // Now the entity itself
     fetch(`${__constants.tiny}/delete`, {
         method: "DELETE",
-        body: JSON.stringify({"@id":id}),
+        body: JSON.stringify({ "@id": id }),
         headers: {
             "Content-Type": "application/json; charset=utf-8",
             "Authorization": `Bearer ${window.GOG_USER.authorization}`
         }
     })
-    .then(r => {
-        if(r.ok){
-            location.href = redirect
-        }
-        else{
-            return Promise.reject(Error(r.text))
-        }
-    })
-    .catch(err => { 
-        alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
-        console.log(err)
-    })
+        .then(r => {
+            if (r.ok) {
+                location.href = redirect
+            }
+            else {
+                return Promise.reject(Error(r.text))
+            }
+        })
+        .catch(err => {
+            alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
+            console.log(err)
+        })
 }
 
 function getURLParameter(variable) {
@@ -215,18 +233,18 @@ function getPagedQuery(lim, it = 0, queryObj, allResults = []) {
         },
         body: JSON.stringify(queryObj)
     })
-    .then(response => response.json())
-    .then(results => {
-        if (results.length) {
-            allResults = allResults.concat(results)
-            return getPagedQuery(lim, it + results.length, queryObj, allResults)
-        }
-        return allResults
-    })
-    .catch(err => {
-        console.warn("Could not process a result in paged query")
-        throw err
-    })
+        .then(response => response.json())
+        .then(results => {
+            if (results.length) {
+                allResults = allResults.concat(results)
+                return getPagedQuery(lim, it + results.length, queryObj, allResults)
+            }
+            return allResults
+        })
+        .catch(err => {
+            console.warn("Could not process a result in paged query")
+            throw err
+        })
 }
 
 function globalFeedbackBlip(event, message, success) {
@@ -251,7 +269,7 @@ function globalFeedbackBlip(event, message, success) {
  * These filters will be provided to HTML pages via the URL parameter ?gog-filter.
  * The value will be a Base64 Encoded JSON object.
  * The object is decoded here and returned as JSON.  
- */ 
+ */
 function filtersFromURL() {
     const encoded = getURLParameter("gog-filter")
     let decodedJSON = decodeContentState(encoded)
@@ -287,6 +305,8 @@ function restorePadding(s) {
     return s + padding
 }
 
+self.onhashchange = loadHashId
+
 /**
  * A 'catch all' blip for forms submits that have not been set up with their own yet.
  * Note form submits that do have their own cause two blips for now.
@@ -297,26 +317,58 @@ document.addEventListener('deer-updated', event => {
 })
 
 /** Auth */
-/*
 
-const GLOSSING_USER_ROLES_CLAIM = "http://rerum.io/user_roles"
-const GOG_ADMIN = "glossing_user_admin"
-const GOG_CONTRIBUTOR = "glossing_user_contribustor"
-
-const auth = document.querySelector('[is="auth-button"]')
-
-auth.addEventListener("gog-authenticated", ev => {
-    if (document.querySelector("[data-user='admin']")) {
-        if( !tokenHasRole(ev.detail.authorization,GOG_ADMIN)){ document.querySelectorAll("[data-user='admin']").forEach(elem=>elem.replaceWith(`Restricted`)) }
-    }
-
-    if (document.querySelector("[data-user='contributor']")) {
-        if( !tokenHasRole(ev.detail.authorization,GOG_CONTRIBUTOR)){ document.querySelectorAll("[data-user='contributor']").forEach(elem=>elem.replaceWith(`Restricted`)) }
-    }
-})
-import jwt_decode from "./jwt.js"
-function tokenHasRole(token,role) {
-    const user = jwt_decode(token)
-    return userHasRole(user, role)
+function loadHashId() {
+    let hash = location.hash?.substring(1)
+    if (!hash) { return }
+    const rerumPrefix = "https://store.rerum.io/v1/id/"
+    if (hash.length === 24) { hash = `${rerumPrefix}${hash}` }
+    if (!hash.startsWith('http')) { return }
+    document.addEventListener('DOMContentLoaded', ev => {
+        document.querySelectorAll('.add-update').forEach(el => {
+            if (el.value) { el.value = el.value.replace("Create", "Update") }
+            if (el.textContent) { el.textContent = "Update" }
+        })
+        document.querySelectorAll('[hash-id]').forEach(el => el.setAttribute('deer-id', hash))
+    })
 }
-*/
+if (document.readyState === 'interactive' || 'loaded') loadHashId()
+
+async function findMatchingIncipits(incipit, titleStart) {
+    if (incipit?.length < 5) { throw Error(`Incipit "${incipit}" is too short to consider.`) }
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    titleStart ??= /\s/.test(incipit) ? incipit.split(' ')[0] : incipit
+    const queryObj = {
+        $or: [{
+            "body.title.value": titleStart
+        }, {
+            "body.transcribedGloss.value": incipit
+        }, {
+            "body.transcribedGloss": incipit
+        }],
+        "__rerum.history.next": historyWildcard
+    }
+    return fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+        method: "POST",
+        mode: 'cors',
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify(queryObj)
+    }).then(response => response.json())
+        .then(matches => {
+            const uniqueGlosses = new Map()
+            matches.forEach(each => {
+                const match = {
+                    id: each.target['@id'] ?? each.target.id ?? each.target,
+                    title: each.body.title?.value ?? each.body.title ?? each.body.transcribedGloss?.value ?? each.body.transcribedGloss
+                }
+                uniqueGlosses.set(match.id, match)
+            })
+            return [...uniqueGlosses.values()]
+        })
+        .catch(err => {
+            console.error(err)
+            return Promise.resolve([])
+        })
+}

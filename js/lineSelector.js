@@ -34,6 +34,22 @@ class TpenLineSelector extends HTMLElement {
                 font-family: "Eczar","Volkhov",serif;
                 user-select: none;
            }
+          .toggle{
+                position: absolute;
+                cursor: pointer;
+                top: 0;
+                right: 0;
+                font-weight: bold;
+           }
+           .toggle::before{
+                content: "toggle all text ";
+                font-family: "Eczar","Volkhov",serif;
+                font-size: 8pt;
+           }
+           .tpenProjectLines.is-toggled{
+                visibility: hidden;
+                height: 0px;
+           }
         </style>
 
         <h2> Select T-PEN Transcription Text </h2>
@@ -111,7 +127,7 @@ class TpenLineSelector extends HTMLElement {
                         if(!txt) lineElem.classList.add("emptyLine")
                         lineElem.onmouseup = function(e) {
                             const s = document.getSelection()
-                            const customKey = $this.querySelector("input[custom-key]")
+                            const customKey = $this.querySelector("input[custom-key='selections']")
                             const filter = document.querySelector("input[filter]")
                             const selectedText = document.getSelection() ? document.getSelection().toString().trim() : ""
                             const firstword = selectedText.split(" ")[0]
@@ -123,6 +139,7 @@ class TpenLineSelector extends HTMLElement {
                                     filter.setAttribute("value", firstword)
                                     filter.dispatchEvent(new Event('input', { bubbles: true }))
                                 }
+
                                 const textInput = document.querySelector("textarea[custom-text-key='text']")
                                 textInput.setAttribute("value", selectedText)
                                 textInput.value = selectedText
@@ -202,7 +219,7 @@ class TpenLineSelector extends HTMLElement {
                     })
                     tpenProjectLines.appendChild(pageContainer)
                 })
-                let e = new CustomEvent("tpen-lines-loaded", {bubbles: true })
+                const e = new CustomEvent("tpen-lines-loaded", {bubbles: true })
                 document.dispatchEvent(e)
                 $this.setAttribute("tpen-lines-loaded", "true")
             })

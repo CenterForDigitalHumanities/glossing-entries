@@ -273,6 +273,7 @@ line.li+line.li i.unassign {
 line {
   display    : block;
   position   : relative;
+  -webkit-user-select: none;
   user-select: none;
   transition : background-color .2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
@@ -399,8 +400,8 @@ line.selected.just {
     background-position: center;
     background-repeat: no-repeat;
     height: 35em;
-    filter: invert(100%);
     -webkit-filter: invert(100%);
+    filter: invert(100%);
     background-color: black;
     text-align: center;
 }

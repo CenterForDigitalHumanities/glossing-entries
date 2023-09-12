@@ -34,17 +34,16 @@ const logout = () => {
     webAuth.logout({ returnTo: origin })
 }
 const login = (custom) => {
-    //webAuth.authorize(Object.assign({ authParamsMap: { 'app': 'glossing' } },custom))
+    webAuth.authorize(Object.assign({ authParamsMap: { 'app': 'glossing' } },custom))
 }
 
 const getReferringPage = () => {
     try {
         return b64toUrl(location.hash.split("state=")[1].split("&")[0])
     } catch (err) {
-        return false
+        return ""
     }
 }
-
 class AuthButton extends HTMLButtonElement {
     constructor() {
         super()
@@ -60,9 +59,9 @@ class AuthButton extends HTMLButtonElement {
                 login()
             }
             const ref = getReferringPage()
-            if (ref && ref !== location.href) { location.href = ref }
-            if (!result || !result.idToken || !result.accessToken){
-                console.error("There was missing token information from the login.  Reset the cached User")
+            if (Boolean(ref) && ref !== location.href) { location.href = ref }
+            if (!(result?.idToken ?? result?.accessToken)){
+                console.error("There was missing token information from the login. Reset the cached User")
                 window.GOG_USER = {}
                 window.GOG_USER.authorization = "none"
                 localStorage.removeItem("userToken")
@@ -90,6 +89,7 @@ class AuthCreator extends HTMLInputElement {
     connectedCallback() {
         if(!window.GOG_USER) { return }
         this.value = GOG_USER["http://store.rerum.io/agent"] ?? "anonymous"
+        this.closest("form").setAttribute("deer-creator", GOG_USER["http://store.rerum.io/agent"] ?? "anonymous")
     }
 }
 
@@ -102,7 +102,7 @@ customElements.define('auth-creator', AuthCreator, { extends: 'input' })
  * @returns referring URL
  */
 function b64toUrl(base64str) {
-    return window.atob(base64str.replace(/\-/g, "+").replace(/_/g, "/"))
+    return window.atob(base64str.replace(/-/g, "+").replace(/_/g, "/"))
 }
 /**
  * Follows the 'base64url' rules to encode a string.

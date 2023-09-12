@@ -87,7 +87,7 @@ RENDER.element = function (elem, obj) {
          */
         setTimeout(function () {
             let newViews = (elem.querySelectorAll(config.VIEW).length) ? elem.querySelectorAll(config.VIEW) : []
-            let newForms = (elem.querySelectorAll(config.FORM).length) ? elem.querySelectorAll(config.VIEW) : []
+            let newForms = (elem.querySelectorAll(config.FORM).length) ? elem.querySelectorAll(config.FORM) : []
             if (newForms.length) {
                 UTILS.broadcast(undefined, DEER.EVENTS.NEW_FORM, elem, { set: newForms })
             }
@@ -200,7 +200,7 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                 <div class="page">
                     <h3>${b.label}</h3> 
                     <a href="./layout.html?partOf=${elem.getAttribute("deer-partof")}#${ms['@id']}">(edit layout)</a>
-                    <a href="./align-glosses.html#${ms['@id']}">(align named Glosses)</a>
+                    <a href="./align-glosses.html#${ms['@id']}">(align Glosses)</a>
                     <div class="pull-right col-6">
                         <img src="${b.images[0].resource['@id']}">
                     </div>
@@ -1025,114 +1025,114 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
 }
 
 /**
- * Used in the Named Glosses Collection generator form.  It shows an actionable list of Named Glosses to choose from.
- * If you only want to let users choose from the Public Named Glosses List, add the attribute public-collection to the deer view element.
+ * Used in the Glosses Collection generator form.  It shows an actionable list of Glosses to choose from.
+ * If you only want to let users choose from the Public Glosses List, add the attribute public-collection to the deer view element.
  * This template used the template 'managedlist' as a guideline for the UI.
  */ 
 DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses managers.</h4>` }
-    try {
+    return
+    // try {
         // NOT USED
-        return
 
         // If the collection doesn't have a name, something has gone wrong.
-        if(!obj.name) return
+    //     if(!obj.name) return
 
-        let tmpl = `<input type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">`
-        const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
-        const hashURI = window.location.hash.substr(1)
+    //     let tmpl = `<input type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">`
+    //     const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
+    //     const hashURI = window.location.hash.substr(1)
 
-        //Hmm we should make sure they never overwrite the managed/public lists 
-        if(hashURI.endsWith("610c54deffce846a83e70625") || hashURI.endsWith("610ad6f1ffce846a83e70613")) return
+    //     //Hmm we should make sure they never overwrite the managed/public lists 
+    //     if(hashURI.endsWith("610c54deffce846a83e70625") || hashURI.endsWith("610ad6f1ffce846a83e70613")) return
 
-        if (options.list) {
-            tmpl += `<ul>`
-            obj[options.list].forEach((val, index) => {
-                const inclusionBtn = `<a class="toggleInclusion" href="${val['@id']}" title="Toggle Named Gloss Inclusion"> 👁 </a>`
-                tmpl += `<li itemid="${val['@id']}">
-                ${inclusionBtn}
-                <a href="${options.link}${val['@id']}">
-                    <deer-view deer-template="label">${index + 1}</deer-view>
-                </a>
-                </li>`
-            })
-            tmpl += `</ul>`
-        }
-        else {
-            console.log("There are no items in this list to draw.")
-            console.log(obj)
-        }
-        return {
-            html: tmpl,
-            then: async (elem) => {
-                // This deer-listing needs to become the ID of the User Named Gloss Collection when provided.
-                const listing = elem.getAttribute("deer-listing")
-                const publicOnly = elem.getAttribute("public-collection")
-                elem.listCache = new Set()
-                elem.publicListCache = new Set()
-                let userNamedGlossCollection = {
-                    "@context": "https://schema.org/",
-                    "@type" : "UserNamedGlossCollection",
-                    "creator" : "https://store.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
-                }
-                if(publicOnly){
-                    await fetch(publicOnly)
-                    .then(r => r.json())
-                    .then(list => {
-                        list.itemListElement?.forEach(item => elem.publicListCache.add(item['@id']))
-                        for (const li of document.querySelectorAll('li[itemid]')) {
-                            if(elem.publicListCache.has(li.getAttribute("itemid"))){
-                                li.querySelector("deer-view").setAttribute("deer-id", li.getAttribute("itemid"))
-                            }
-                            else{
-                                li.remove()
-                            }
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err)
-                        alert("Could not resolve the provided UserNamedGlossCollection URI")
-                        throw new Error(err.getMessage())
-                    })    
-                }
+    //     if (options.list) {
+    //         tmpl += `<ul>`
+    //         obj[options.list].forEach((val, index) => {
+    //             const inclusionBtn = `<a class="toggleInclusion" href="${val['@id']}" title="Toggle Gloss Inclusion"> 👁 </a>`
+    //             tmpl += `<li itemid="${val['@id']}">
+    //             ${inclusionBtn}
+    //             <a href="${options.link}${val['@id']}">
+    //                 <deer-view deer-template="label">${index + 1}</deer-view>
+    //             </a>
+    //             </li>`
+    //         })
+    //         tmpl += `</ul>`
+    //     }
+    //     else {
+    //         console.log("There are no items in this list to draw.")
+    //         console.log(obj)
+    //     }
+    //     return {
+    //         html: tmpl,
+    //         then: async (elem) => {
+    //             // This deer-listing needs to become the ID of the User Gloss Collection when provided.
+    //             const listing = elem.getAttribute("deer-listing")
+    //             const publicOnly = elem.getAttribute("public-collection")
+    //             elem.listCache = new Set()
+    //             elem.publicListCache = new Set()
+    //             let userNamedGlossCollection = {
+    //                 "@context": "https://schema.org/",
+    //                 "@type" : "UserNamedGlossCollection",
+    //                 "creator" : "https://store.rerum.io/v1/id/5da75981e4b07f0c56c0f7f9"
+    //             }
+    //             if(publicOnly){
+    //                 await fetch(publicOnly)
+    //                 .then(r => r.json())
+    //                 .then(list => {
+    //                     list.itemListElement?.forEach(item => elem.publicListCache.add(item['@id']))
+    //                     for (const li of document.querySelectorAll('li[itemid]')) {
+    //                         if(elem.publicListCache.has(li.getAttribute("itemid"))){
+    //                             li.querySelector("deer-view").setAttribute("deer-id", li.getAttribute("itemid"))
+    //                         }
+    //                         else{
+    //                             li.remove()
+    //                         }
+    //                     }
+    //                 })
+    //                 .catch(err => {
+    //                     console.error(err)
+    //                     alert("Could not resolve the provided UserNamedGlossCollection URI")
+    //                     throw new Error(err.getMessage())
+    //                 })    
+    //             }
 
-                if(listing){
-                    await fetch(listing)
-                    .then(r => r.json())
-                    .then(list => {
-                        userNamedGlossCollection["@id"] = list["@id"] ?? list.id ?? ""
-                        list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
-                        for (const a of document.querySelectorAll('.toggleInclusion')) {
-                            const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
-                            a.classList[include]("is-included")
-                        }
-                    })
-                    .catch(err => {
-                        console.error(err)
-                        alert("Could not resolve the provided UserNamedGlossCollection URI")
-                        throw new Error(err.getMessage())
-                    })
-                }
-                ngCollectionActions.classList.remove("is-hidden")
-                saveList.addEventListener('click', listify)
-                document.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
-                    ev.preventDefault()
-                    ev.stopPropagation()
-                    const uri = a.getAttribute("href")
-                    const included = elem.listCache.has(uri)
-                    a.classList[included ? "remove" : "add"]("is-included")
-                    elem.listCache[included ? "delete" : "add"](uri)
-                }))
-                const filter = elem.querySelector('input')
-                filter.classList.remove('is-hidden')
-                filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
+    //             if(listing){
+    //                 await fetch(listing)
+    //                 .then(r => r.json())
+    //                 .then(list => {
+    //                     userNamedGlossCollection["@id"] = list["@id"] ?? list.id ?? ""
+    //                     list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
+    //                     for (const a of document.querySelectorAll('.toggleInclusion')) {
+    //                         const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
+    //                         a.classList[include]("is-included")
+    //                     }
+    //                 })
+    //                 .catch(err => {
+    //                     console.error(err)
+    //                     alert("Could not resolve the provided UserNamedGlossCollection URI")
+    //                     throw new Error(err.getMessage())
+    //                 })
+    //             }
+    //             ngCollectionActions.classList.remove("is-hidden")
+    //             saveList.addEventListener('click', listify)
+    //             document.querySelectorAll('.toggleInclusion').forEach(a => a.addEventListener('click', ev => {
+    //                 ev.preventDefault()
+    //                 ev.stopPropagation()
+    //                 const uri = a.getAttribute("href")
+    //                 const included = elem.listCache.has(uri)
+    //                 a.classList[included ? "remove" : "add"]("is-included")
+    //                 elem.listCache[included ? "delete" : "add"](uri)
+    //             }))
+    //             const filter = elem.querySelector('input')
+    //             filter.classList.remove('is-hidden')
+    //             filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
 
                 /**
-                 * Make or overwrite a User Named Glosses Collection based on the selected Named Glosses in this template.
+                 * Make or overwrite a User Glosses Collection based on the selected Glosses in this template.
                  */ 
                 function listify() {
                     if(elem.listCache.size === 0){
-                        alert("You have not made any Named Gloss selections.")
+                        alert("You have not made any Gloss selections.")
                         return
                     }
                     let ngs = []
@@ -1166,8 +1166,8 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                     Object.assign(userNamedGlossCollection, data)
                     console.log(`Going to ${listing ? DEER.URLS.OVERWRITE : DEER.URLS.CREATE} the following UserNamedGlossCollection`)
                     console.log(userNamedGlossCollection)
-                    const ev = new CustomEvent("Named Gloss collection saved")
-                    UTILS.globalFeedbackBlip(ev, `Named Gloss collection saved successfully.`, true)
+                    const ev = new CustomEvent("Gloss collection saved")
+                    UTILS.globalFeedbackBlip(ev, `Gloss collection saved successfully.`, true)
 
                     // fetch(listing ? DEER.URLS.OVERWRITE : DEER.URLS.CREATE, {
                     //     method: listing ? "PUT" : "POST",
@@ -1180,12 +1180,12 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                     // })
                     // .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
                     // .then(json => {
-                    //     const ev = new CustomEvent("Named Gloss collection saved")
-                    //     UTILS.globalFeedbackBlip(ev, `Named Gloss collection saved successfully.`, true)
+                    //     const ev = new CustomEvent("Gloss collection saved")
+                    //     UTILS.globalFeedbackBlip(ev, `Gloss collection saved successfully.`, true)
                     // })
                     // .catch(err => throw new Error(err.getMessage())`))
 
-                }
+             }
                
                 function debounce(func,timeout = 500) {
                     let timeRemains
@@ -1203,13 +1203,6 @@ DEER.TEMPLATES.namedGlossesSelector = function (obj, options = {}) {
                         setTimeout(()=>el.classList.remove(`un${action}-item`),500)
                     })
                 }
-            }
-        }
-    } catch (err) {
-        console.log("Could not build list template.")
-        console.error(err)
-        return null
-    }
 }
 
 DEER.TEMPLATES.managedlist = function (obj, options = {}) {
@@ -1323,7 +1316,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     }
                     const thing = 
                         (type === "manuscript") ? "Manuscript" :
-                        (type === "named-gloss") ? "Named Gloss" :
+                        (type === "named-gloss") ? "Gloss" :
                         (type === "Range") ? "Gloss" : null
 
 
