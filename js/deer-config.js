@@ -592,7 +592,6 @@ export default {
                     const updateScenario = elem.hasAttribute("update-scenario") ? true : false
                     let inclusionBtn = document.createElement("input")
                     inclusionBtn.setAttribute("type", "button")
-
                     if(updateScenario){
                         inclusionBtn.setAttribute("disabled", "")
                         inclusionBtn.setAttribute("value", "✓ attached")
