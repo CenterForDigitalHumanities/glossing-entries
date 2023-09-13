@@ -369,7 +369,7 @@ export default {
                 <h2 class="nomargin">Attach Gloss</h2>
                 <div class="cachedNotice is-hidden"> These Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
                 <p class="filterInstructions is-hidden"> 
-                    Use the filter to narrow down your options.  Select a single Named Gloss from the list to attach this witness to. 
+                    Use the filter to narrow down your options.  Select a single Gloss from the list to attach this witness to. 
                 </p>
                 <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden">
                 <gloss-modal-button class="is-right is-hidden"></gloss-modal-button>
@@ -393,7 +393,7 @@ export default {
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
-                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" data-id="${val['@id']}" title="Attach this Named Gloss and Save" value="➥ attach"/>`
+                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" data-id="${val['@id']}" title="Attach this Gloss and Save" value="➥ attach"/>`
                     if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
                         // We cached it in the past and are going to trust it right now.
                         const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))
@@ -602,7 +602,7 @@ export default {
                     else{
                         // Either a create scenario, or neither (just loading up)
                         inclusionBtn.setAttribute("data-id", obj["@id"])
-                        inclusionBtn.setAttribute("title", "Attach this Named Gloss and Save")
+                        inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
                         inclusionBtn.setAttribute("value", "➥ attach")
                         inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
                     }
@@ -610,7 +610,7 @@ export default {
                         ev.preventDefault()
                         ev.stopPropagation()
                         const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
-                        if((createScenario || updateScenario) || confirm(`Save this textual witness for Named Gloss '${namedGlossIncipit}'?`)){
+                        if((createScenario || updateScenario) || confirm(`Save this textual witness for Gloss '${namedGlossIncipit}'?`)){
                             const form = ev.target.closest("form")
                             const customKey = form.querySelector("input[custom-key='references']")
                             const uri = event.target.getAttribute("data-id")

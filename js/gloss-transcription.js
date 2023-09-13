@@ -73,7 +73,7 @@ function setWitnessFormDefaults(){
     sourceElem.removeAttribute("deer-source")
     sourceElem.$isDirty = false
 
-    // reset the named glosses filter
+    // reset the Glosses filter
     const filter = form.querySelector('input[filter]')
     filter.value = ""
     filter.setAttribute("value", "")
@@ -146,7 +146,7 @@ window.onload = () => {
 }
 
 /**
- * When the Named Gloss Collection List deer view loads its records (by finishing the paged query) we can show the witness form.
+ * When the Gloss Collection List deer view loads its records (by finishing the paged query) we can show the witness form.
  * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
  */ 
 addEventListener('deer-view-rendered', show)
@@ -280,7 +280,7 @@ function prefillText(textObj, form) {
 
  /**
  * Helper function for the specialized references key, which is an Array of URIs.
- * It needs to apply the filter with this Named Gloss's Label..
+ * It needs to apply the filter with this Gloss's Label..
  * */
 function prefillDigitalLocations(locationsArr, form) {
     const locationElem = form.querySelector("input[custom-key='source']")
@@ -306,7 +306,7 @@ function prefillDigitalLocations(locationsArr, form) {
 
 /**
  * Helper function for the specialized references key, which is an Array of URIs.
- * It needs to apply the filter with this Named Gloss's Label..
+ * It needs to apply the filter with this Gloss's Label..
  * */
 function prefillReferences(referencesArr, form) {
     if (referencesArr === undefined) {
@@ -350,7 +350,7 @@ function prefillReferences(referencesArr, form) {
 
 /**
  * Helper function for the specialized references key, which is an Array of URIs.
- * It needs to apply the filter with this Named Gloss's Label.
+ * It needs to apply the filter with this Gloss's Label.
  * */
 function preselectLines(linesArr, form) {
     const source = linesArr.source ?? null
