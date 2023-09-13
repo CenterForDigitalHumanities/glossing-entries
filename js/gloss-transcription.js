@@ -547,10 +547,11 @@ addEventListener('gloss-modal-saved', event => {
     modal.classList.add("is-hidden")
 
     const li = document.createElement("li")
+    const div = document.createElement("div")
     // Make this a deer-view so this Gloss is expanded and cached, resulting in more attributes for this element to be filtered on.
-    li.classList.add("deer-view")
-    li.setAttribute("deer-template", "filterableListItem")
-    li.setAttribute("deer-id", gloss["@id"])
+    div.classList.add("deer-view")
+    div.setAttribute("deer-template", "filterableListItem")
+    div.setAttribute("deer-id", gloss["@id"])
     li.setAttribute("data-title", title)
     li.setAttribute("deer-link", "ng.html#")
     // We know the title already so this makes a handy placeholder :)
@@ -562,13 +563,13 @@ addEventListener('gloss-modal-saved', event => {
     else{
         li.setAttribute("create-scenario", "true")
     }
-    list.appendChild(li)
+    div.appendChild(li)
+    list.appendChild(div)
 
-    // FIXME oh no this won't work.  This element is replaced by a new <li> in filterableListItem.
-    //li.addEventListener("deer-view-rendered", paginateGlossFromModal)
+    div.addEventListener("deer-view-rendered", paginateGlossFromModal)
     
     setTimeout(function() {
-        broadcast(undefined, "deer-view", li, { set: [li] })
+        broadcast(undefined, "deer-view", div, { set: [div] })
     }, 1)
 })
 
@@ -582,13 +583,63 @@ function paginateGlossFromModal(event) {
     const gloss_li = event.target
     if(gloss_li.tagName !== "LI") return
     // A new Gloss has been introduced and is done being cached.
-    if(textWitnessID){
-        // This is an 'update scenario'.  Click the Witness form submit.
-        witnessForm.querySelector("input[type='submit']").click()
+    let inclusionBtn = document.createElement("input")
+    inclusionBtn.setAttribute("type", "button")
+    if(updateScenario){
+        inclusionBtn.setAttribute("disabled", "")
+        inclusionBtn.setAttribute("value", "✓ attached")
+        inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+        inclusionBtn.setAttribute("class", "toggleInclusion button success")  
     }
     else{
-        // This is a 'create scenario'.  Click the attach button in the new Gloss listing.
-        gloss_li.querySelector(".toggleInclusion").click()
+        // Either a create scenario, or neither (just loading up)
+        inclusionBtn.setAttribute("data-id", obj["@id"])
+        inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
+        inclusionBtn.setAttribute("value", "➥ attach")
+        inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
+    }
+    inclusionBtn.addEventListener('click', ev => {
+        ev.preventDefault()
+        ev.stopPropagation()
+        const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
+        if((createScenario || updateScenario) || confirm(`Save this textual witness for Gloss '${namedGlossIncipit}'?`)){
+            const form = ev.target.closest("form")
+            const customKey = form.querySelector("input[custom-key='references']")
+            const uri = event.target.getAttribute("data-id")
+            if(customKey.value !== uri){
+                customKey.value = uri 
+                customKey.setAttribute("value", uri) 
+                customKey.$isDirty = true
+                form.$isDirty = true
+                // There must be a shelfmark.
+                if(form.querySelector("input[deer-key='identifier']").value){
+                    form.querySelector("input[type='submit']").click()    
+                }
+                else{
+                    alert("You must provide a Shelfmark value.")
+                }
+            }
+            else{
+                alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+            }
+        }                    
+    })
+    if(document.location.pathname.includes("gloss-transcription")){
+        li.appendChild(inclusionBtn)
+    }
+    // FIXME we have to do this here instead of on gloss-transcription.html because the original elem here is replaced.
+    // When it is replaced, it destroys any listener on the original <li> defined by HTML pages upstream.
+    if(createScenario) { inclusionBtn.click() }
+    else if(updateScenario) { 
+        // Set the references input with the new gloss URI and update the form
+        const refKey = witnessForm.querySelector("input[custom-key='references']")
+        if(refKey.value !== obj["@id"]){
+            refKey.value = obj["@id"]
+            refKey.setAttribute("value", obj["@id"]) 
+            refKey.$isDirty = true
+            witnessForm.$isDirty = true
+            witnessForm.querySelector("input[type='submit']").click() 
+        }
     }
 }
 

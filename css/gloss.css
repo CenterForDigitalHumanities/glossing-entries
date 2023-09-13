@@ -145,6 +145,46 @@ img.thumbnail {
   height: 0em;
 }
 
+#ngCollectionList div[deer-template="filterableListItem"].is-hidden.unadd-item, #ngCollectionList div[deer-template="filterableListItem"].is-hidden.unremove-item {
+  display: block !important;
+}
+
+#ngCollectionList div[deer-template="filterableListItem"].is-hidden {
+  height: 0em;
+  opacity: 0;
+}
+
+#ngCollectionList div[deer-template="filterableListItem"] {
+  transition: all 500ms;
+  opacity: 1;
+  height:1.6em;
+}
+
+#ngCollectionList div[deer-template="filterableListItem"].unadd-item {
+  opacity: 0;
+  height: 0em;
+}
+
+#collectionList div[deer-template="filterableListItem"].is-hidden.unadd-item, #collectionList div[deer-template="filterableListItem"].is-hidden.unremove-item {
+  display: block !important;
+}
+
+#collectionList div[deer-template="filterableListItem"].is-hidden {
+  height: 0em;
+  opacity: 0;
+}
+
+#collectionList div[deer-template="filterableListItem"] {
+  transition: all 500ms;
+  opacity: 1;
+  height:1.6em;
+}
+
+#collectionList div[deer-template="filterableListItem"].unadd-item {
+  opacity: 0;
+  height: 0em;
+}
+
 a.button {
   position: relative;
   z-index : 1;

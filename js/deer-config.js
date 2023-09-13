@@ -205,7 +205,7 @@ export default {
                         })
                         li += `>
                             <a href="${options.link}${val["@id"]}">
-                            <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
+                                <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                         </li>`
                         html += li
@@ -214,11 +214,14 @@ export default {
                     else{
                         // This object was not cached so we do not have its properties.
                         // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
-                        html += `<li deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
-                            <a href="${options.link}${val["@id"]}">
-                            <span>Loading Gloss #${index + 1}...</span>
-                            </a>
-                        </li>`
+                        html += 
+                        `<div deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
+                            <li>
+                                <a href="${options.link}${val["@id"]}">
+                                    <span>Loading Gloss #${index + 1}...</span>
+                                </a>
+                            </li>
+                        </div>`
                     }
                 })    
                 html += `</ul>`
@@ -292,15 +295,17 @@ export default {
                     queryString = queryString.trim()
                     const query = decodeContentState(queryString)
                     const items = elem.querySelectorAll('li')
-                    items.forEach(el=>{
-                        if(!el.classList.contains("is-hidden")){
-                            el.classList.add("is-hidden")
+                    items.forEach(li=>{
+                        const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
+                        const elem = templateContainer ? templateContainer : li
+                        if(!elem.classList.contains("is-hidden")){
+                            elem.classList.add("is-hidden")
                         }
                         for(const prop in query){
-                            if(el.hasAttribute(`data-${prop}`)){
-                                const action = el.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
-                                el.classList[action](`is-hidden`,`un${action}-item`)
-                                setTimeout(()=>el.classList.remove(`un${action}-item`),500)
+                            if(li.hasAttribute(`data-${prop}`)){
+                                const action = li.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
+                                elem.classList[action](`is-hidden`,`un${action}-item`)
+                                setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                 // If it is showing, no need to check other properties for filtering.
                                 if(action === "remove") break
                             }
@@ -416,7 +421,7 @@ export default {
                         li += `>
                             ${inclusionBtn}
                             <a target="_blank" href="${options.link}${val["@id"]}">
-                            <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
+                                <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                         </li>`
                         html += li
@@ -425,12 +430,14 @@ export default {
                     else{
                         // This object was not cached so we do not have its properties.
                         // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
-                        html += `<li deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
-                            ${inclusionBtn}
-                            <a target="_blank" href="${options.link}${val["@id"]}">
-                            <span>Loading Gloss #${index + 1}...</span>
-                            </a>
-                        </li>`
+                        html += 
+                        `<div deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
+                            <li>
+                                <a target="_blank" href="${options.link}${val["@id"]}">
+                                    <span>Loading Gloss #${index + 1}...</span>
+                                </a>
+                            </li>
+                        </div>`
                     }
                 })    
                 html += `</ul>`
@@ -582,62 +589,13 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")   
-
-                    /**
-                     * FIXME these booleans and the inclusionBtn are just for the glossesSelectorForTextualWitness on gloss-transcription.html
-                     * We should move this button generation out to that layer and keep this template clean
-                     * */
                     const increaseTotal = (elem.hasAttribute("create-scenario") || elem.hasAttribute("update-scenario")) ? true : false
                     const createScenario = elem.hasAttribute("create-scenario") ? true : false
                     const updateScenario = elem.hasAttribute("update-scenario") ? true : false
-                    let inclusionBtn = document.createElement("input")
-                    inclusionBtn.setAttribute("type", "button")
-                    if(updateScenario){
-                        inclusionBtn.setAttribute("disabled", "")
-                        inclusionBtn.setAttribute("value", "✓ attached")
-                        inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-                        inclusionBtn.setAttribute("class", "toggleInclusion button success")  
-                    }
-                    else{
-                        // Either a create scenario, or neither (just loading up)
-                        inclusionBtn.setAttribute("data-id", obj["@id"])
-                        inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
-                        inclusionBtn.setAttribute("value", "➥ attach")
-                        inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
-                    }
-                    inclusionBtn.addEventListener('click', ev => {
-                        ev.preventDefault()
-                        ev.stopPropagation()
-                        const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
-                        if((createScenario || updateScenario) || confirm(`Save this textual witness for Gloss '${namedGlossIncipit}'?`)){
-                            const form = ev.target.closest("form")
-                            const customKey = form.querySelector("input[custom-key='references']")
-                            const uri = event.target.getAttribute("data-id")
-                            if(customKey.value !== uri){
-                                customKey.value = uri 
-                                customKey.setAttribute("value", uri) 
-                                customKey.$isDirty = true
-                                form.$isDirty = true
-                                // There must be a shelfmark.
-                                if(form.querySelector("input[deer-key='identifier']").value){
-                                    form.querySelector("input[type='submit']").click()    
-                                }
-                                else{
-                                    alert("You must provide a Shelfmark value.")
-                                }
-                            }
-                            else{
-                                alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
-                            }
-                        }                    
-                    })
-                    if(document.location.pathname.includes("gloss-transcription")){
-                        li.appendChild(inclusionBtn)
-                    }
+                    
                     const filterPresent = containingListElem.$contentState ? true : false
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
-                    li.setAttribute("deer-id", obj["@id"])
                     a.setAttribute("href", options.link + obj['@id'])
                     a.setAttribute("target", "_blank")
 
@@ -658,17 +616,14 @@ export default {
                         }
                     })
 
-                    if(filterPresent) li.classList[action]("is-hidden")
+                    if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     a.appendChild(span)
-                    
                     li.appendChild(a)
-                    // FIXME do not do replaceWith().  It should be .innerHTML= instead to preserve upstream event listeners.  
-                    // NOTE this FIXME will need to be checked for upstream refactors, like filterGlosses().
-                    elem.replaceWith(li)
+                    elem.appendChild(li)
 
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
@@ -697,20 +652,6 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
-                    }
-                    // FIXME we have to do this here instead of on gloss-transcription.html because the original elem here is replaced.
-                    // When it is replaced, it destroys any listener on the original <li> defined by HTML pages upstream.
-                    if(createScenario) { inclusionBtn.click() }
-                    else if(updateScenario) { 
-                        // Set the references input with the new gloss URI and update the form
-                        const refKey = witnessForm.querySelector("input[custom-key='references']")
-                        if(refKey.value !== obj["@id"]){
-                            refKey.value = obj["@id"]
-                            refKey.setAttribute("value", obj["@id"]) 
-                            refKey.$isDirty = true
-                            witnessForm.$isDirty = true
-                            witnessForm.querySelector("input[type='submit']").click() 
-                        }
                     }
                 }
             }
