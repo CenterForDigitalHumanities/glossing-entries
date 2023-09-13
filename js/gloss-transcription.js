@@ -563,10 +563,10 @@ addEventListener('gloss-modal-saved', event => {
     li.innerHTML = `<span><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
     // This helps filterableListItem know how to style the attach button, and also lets us know to change count/total loaded Glosses.
     if(textWitnessID){
-        li.setAttribute("update-scenario", "true")
+        div.setAttribute("update-scenario", "true")
     }
     else{
-        li.setAttribute("create-scenario", "true")
+        div.setAttribute("create-scenario", "true")
     }
     div.appendChild(li)
     list.appendChild(div)
@@ -585,8 +585,8 @@ function addButton(event) {
     if(template_container.getAttribute("deer-template") !== "filterableListItem") return
     const obj = event.detail
     const gloss_li = template_container.firstElementChild
-    const createScenario = gloss_li.hasAttribute("create-scenario") ? true : false
-    const updateScenario = gloss_li.hasAttribute("update-scenario") ? true : false
+    const createScenario = template_container.hasAttribute("create-scenario") ? true : false
+    const updateScenario = template_container.hasAttribute("update-scenario") ? true : false
     // A new Gloss has been introduced and is done being cached.
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")

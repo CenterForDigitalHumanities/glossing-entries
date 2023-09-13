@@ -591,7 +591,7 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
-                    const createScenario = elem.hasAttribute("create-scenario") ? true : false
+                    const createScenario = elem.firsthasAttribute("create-scenario") ? true : false
                     const updateScenario = elem.hasAttribute("update-scenario") ? true : false   
                     const increaseTotal = (createScenario || updateScenario) ? true : false
                     const filterPresent = containingListElem.$contentState ? true : false
