@@ -161,6 +161,11 @@ function show(event){
 }
 
 /**
+ * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
+ */ 
+addEventListener('deer-view-rendered', addButton)
+
+/**
  * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
  * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
  * @see deer-record.js DeerReport.constructor()  
@@ -565,8 +570,6 @@ addEventListener('gloss-modal-saved', event => {
     }
     div.appendChild(li)
     list.appendChild(div)
-
-    div.addEventListener("deer-view-rendered", paginateGlossFromModal)
     
     setTimeout(function() {
         broadcast(undefined, "deer-view", div, { set: [div] })
@@ -574,14 +577,16 @@ addEventListener('gloss-modal-saved', event => {
 })
 
 /**
- * FIXME We want this listener here.  However, filterableListItem replaces the <li> element so we can't pass the <li> through from here! 
  * After a new Gloss from the modal has been added it needs to end up in the list of Glosses shown on this page.
  * It has become the chosen Gloss and a submit needs to happen.
  */ 
-
-function paginateGlossFromModal(event) {
-    const gloss_li = event.target
-    if(gloss_li.tagName !== "LI") return
+function addButton(event) {
+    const template_container = event.target
+    if(template_container.getAttribute("deer-template") !== "filterableListItem") return
+    const obj = event.detail
+    const gloss_li = template_container.firstElementChild
+    const createScenario = gloss_li.hasAttribute("create-scenario") ? true : false
+    const updateScenario = gloss_li.hasAttribute("update-scenario") ? true : false
     // A new Gloss has been introduced and is done being cached.
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")
@@ -624,11 +629,8 @@ function paginateGlossFromModal(event) {
             }
         }                    
     })
-    if(document.location.pathname.includes("gloss-transcription")){
-        li.appendChild(inclusionBtn)
-    }
-    // FIXME we have to do this here instead of on gloss-transcription.html because the original elem here is replaced.
-    // When it is replaced, it destroys any listener on the original <li> defined by HTML pages upstream.
+    gloss_li.prepend(inclusionBtn)
+    
     if(createScenario) { inclusionBtn.click() }
     else if(updateScenario) { 
         // Set the references input with the new gloss URI and update the form

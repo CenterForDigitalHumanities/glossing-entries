@@ -547,15 +547,17 @@ export default {
                     queryString = queryString.trim()
                     const query = decodeContentState(queryString)
                     const items = elem.querySelectorAll('li')
-                    items.forEach(el=>{
-                        if(!el.classList.contains("is-hidden")){
-                            el.classList.add("is-hidden")
+                    items.forEach(li=>{
+                        const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
+                        const elem = templateContainer ? templateContainer : li
+                        if(!elem.classList.contains("is-hidden")){
+                            elem.classList.add("is-hidden")
                         }
                         for(const prop in query){
-                            if(el.hasAttribute(`data-${prop}`)){
-                                const action = el.getAttribute(`data-${prop}`).toLowerCase().trim().includes(query[prop].toLowerCase().trim()) ? "remove" : "add"
-                                el.classList[action](`is-hidden`,`un${action}-item`)
-                                setTimeout(()=>el.classList.remove(`un${action}-item`),500)
+                            if(li.hasAttribute(`data-${prop}`)){
+                                const action = li.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
+                                elem.classList[action](`is-hidden`,`un${action}-item`)
+                                setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                 // If it is showing, no need to check other properties for filtering.
                                 if(action === "remove") break
                             }
@@ -588,11 +590,10 @@ export default {
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("li")
                     let a = document.createElement("a")
-                    let span = document.createElement("span")   
-                    const increaseTotal = (elem.hasAttribute("create-scenario") || elem.hasAttribute("update-scenario")) ? true : false
+                    let span = document.createElement("span")
                     const createScenario = elem.hasAttribute("create-scenario") ? true : false
-                    const updateScenario = elem.hasAttribute("update-scenario") ? true : false
-                    
+                    const updateScenario = elem.hasAttribute("update-scenario") ? true : false   
+                    const increaseTotal = (createScenario || updateScenario) ? true : false
                     const filterPresent = containingListElem.$contentState ? true : false
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
