@@ -398,7 +398,13 @@ export default {
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
-                    const inclusionBtn = `<input type="button" class="toggleInclusion button primary" data-id="${val['@id']}" title="Attach this Gloss and Save" value="➥ attach"/>`
+                    let inclusionBtn = null
+                    if(val["@id"] === referencedGlossID){
+                        inclusionBtn = `<input disabled type="button" class="toggleInclusion button success" data-id="${val['@id'].replace(/^https?:/, 'https:')}" title="This Gloss is already attached!" value="✓ attached"/>`
+                    }
+                    else{
+                        inclusionBtn = `<input type="button" class="toggleInclusion button primary" data-id="${val['@id'].replace(/^https?:/, 'https:')}" title="Attach this Gloss and Save" value="➥ attach"/>`
+                    }
                     if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
                         // We cached it in the past and are going to trust it right now.
                         const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))

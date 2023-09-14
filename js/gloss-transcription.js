@@ -1,4 +1,5 @@
 const textWitnessID = window.location.hash.substr(1)
+let referencedGlossID = null
 
 // Make the text in the Gloss modal form the same as the one in the Witness form
 document.addEventListener("gloss-modal-visible", function(event){
@@ -182,6 +183,8 @@ function init(event){
     const $elem = event.target
     switch (whatRecordForm) {
         case "witnessForm":
+            // We will need to know the reference for addButton() so let's get it out there now.
+            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
                 prefillReferences(annotationData["references"], ngCollectionList)
             }
@@ -191,7 +194,6 @@ function init(event){
                     if(event.target.id === "ngCollectionList"){
                         prefillReferences(annotationData["references"], ngCollectionList)
                         event.target.querySelector("gloss-modal-button").classList.remove("is-hidden")
-                        // This listener is no longer needed
                         removeEventListener('ng-list-loaded', ngListLoaded)
                     }
                 }
@@ -340,15 +342,6 @@ function prefillReferences(referencesArr, form) {
         refElem.setAttribute("deer-source", source.citationSource ?? "")
     }
     refElem.value = referencesArr[0]
-    
-    // Make this button appear as 'attached'
-    const button = elem.querySelector(".toggleInclusion")
-    button?.setAttribute("disabled", "")
-    button?.setAttribute("value", "✓ attached")
-    button?.setAttribute("title", "This Gloss is already attached!")
-    button?.classList.remove("primary")
-    button?.classList.add("success")
-
     // Now apply the references value to the filter
     filter.value = ngLabel.trim()
     filter.dispatchEvent(new Event('input', { bubbles: true }))
@@ -581,13 +574,13 @@ addEventListener('gloss-modal-saved', event => {
 })
 
 /**
- * After a new Gloss from the modal has been added it needs to end up in the list of Glosses shown on this page.
- * It has become the chosen Gloss and a submit needs to happen.
+ * After a filterableListItem loads, we need to determine what to do with its 'attach' button.
+ * In create/update scenarios, this will result in the need to click a button
+ * In loading scenarios, if a text witness URI was supplied to the page it will have a gloss which should appear as 'attached'.
  */ 
 function addButton(event) {
     const template_container = event.target
     const form_container = template_container.closest("form")
-    const reference = form_container.querySelector("input[custom-key='references']").value
     if(template_container.getAttribute("deer-template") !== "filterableListItem") return
     const obj = event.detail
     const gloss_li = template_container.firstElementChild
@@ -609,8 +602,8 @@ function addButton(event) {
         inclusionBtn.setAttribute("value", "➥ attach")
         inclusionBtn.setAttribute("class", "toggleInclusion button primary")
 
-        // If there is a hash AND references has a value there is a button to make appear as 'attached'
-        if(textWitnessID && reference){
+        // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
+        if(textWitnessID && referencedGlossID === obj["@id"]){
             // Make this button appear as 'attached'
             inclusionBtn.setAttribute("disabled", "")
             inclusionBtn.setAttribute("value", "✓ attached")
