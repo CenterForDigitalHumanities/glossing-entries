@@ -100,7 +100,7 @@ window.onload = () => {
     setPublicCollections()
     setListings()
     const tpenID = getURLParameter("tpen-project")
-    const dig_location = document.querySelector("input[custom-key='source']")
+    const dig_location = witnessForm.querySelector("input[custom-key='source']")
     if(tpenID) {
         needs.classList.add("is-hidden")
         document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
@@ -109,29 +109,29 @@ window.onload = () => {
         dig_location.setAttribute("value", tpenID)
     }
     if(textWitnessID){
-        const submitBtn = document.querySelector("input[type='submit']")
+        const submitBtn = witnessForm.querySelector("input[type='submit']")
         submitBtn.value = "Update Textual Witness"
         submitBtn.classList.remove("is-hidden")
-        document.querySelector("form").setAttribute("deer-id", textWitnessID)
+        witnessForm.setAttribute("deer-id", textWitnessID)
     }
     else{
         // These items have default values that are dirty on fresh forms.
         dig_location.$isDirty = true
-        document.querySelector("select[custom-text-key='language']").$isDirty = true
-        document.querySelector("input[custom-text-key='format']").$isDirty = true
+        witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
+        witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
     }
 
     // mimic isDirty detection for these custom inputs
-    document.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
+    witnessForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
-    document.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
+    witnessForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
     // Note that this HTML element is a checkbox
-    document.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+    witnessForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
         if(ev.target.checked){
             ev.target.value = "text/html"
             ev.target.setAttribute("value", "text/html")
@@ -171,7 +171,7 @@ addEventListener('deer-view-rendered', addButton)
  * @see deer-record.js DeerReport.constructor()  
  */
 addEventListener('deer-form-rendered', init)
-
+if(!textWitnessID) removeEventListener('deer-form-rendered', init)
 /**
  * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
  * Note this only needs to occur one time on page load.
@@ -190,6 +190,7 @@ function init(event){
                 function ngListLoaded(event){
                     if(event.target.id === "ngCollectionList"){
                         prefillReferences(annotationData["references"], ngCollectionList)
+                        event.target.querySelector("gloss-modal-button").classList.remove("is-hidden")
                         // This listener is no longer needed
                         removeEventListener('ng-list-loaded', ngListLoaded)
                     }
@@ -557,8 +558,9 @@ addEventListener('gloss-modal-saved', event => {
     div.classList.add("deer-view")
     div.setAttribute("deer-template", "filterableListItem")
     div.setAttribute("deer-id", gloss["@id"])
+    div.setAttribute("deer-link", "ng.html#")
     li.setAttribute("data-title", title)
-    li.setAttribute("deer-link", "ng.html#")
+    
     // We know the title already so this makes a handy placeholder :)
     li.innerHTML = `<span><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
     // This helps filterableListItem know how to style the attach button, and also lets us know to change count/total loaded Glosses.
@@ -590,6 +592,7 @@ function addButton(event) {
     // A new Gloss has been introduced and is done being cached.
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")
+    inclusionBtn.setAttribute("data-id", obj["@id"])
     if(updateScenario){
         inclusionBtn.setAttribute("disabled", "")
         inclusionBtn.setAttribute("value", "✓ attached")
@@ -598,7 +601,6 @@ function addButton(event) {
     }
     else{
         // Either a create scenario, or neither (just loading up)
-        inclusionBtn.setAttribute("data-id", obj["@id"])
         inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
         inclusionBtn.setAttribute("value", "➥ attach")
         inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
@@ -610,7 +612,7 @@ function addButton(event) {
         if((createScenario || updateScenario) || confirm(`Save this textual witness for Gloss '${namedGlossIncipit}'?`)){
             const form = ev.target.closest("form")
             const customKey = form.querySelector("input[custom-key='references']")
-            const uri = gloss_li.getAttribute("data-id")
+            const uri = ev.target.getAttribute("data-id")
             if(customKey.value !== uri){
                 customKey.value = uri 
                 customKey.setAttribute("value", uri) 
