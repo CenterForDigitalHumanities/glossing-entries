@@ -24,7 +24,7 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "DevTest"
+    form.querySelector("input[deer-key='creator']").value = "DevTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -327,7 +327,7 @@ function prefillReferences(referencesArr, form) {
     }
 
     const ngID = referencesArr[0]
-    const elem = form.querySelector(`li[deer-id="${ngID}"]`)
+    const elem = form.querySelector(`li[deer-id="${ngID}"]`) ? form.querySelector(`li[deer-id="${ngID}"]`) : form.querySelector(`div[deer-id="${ngID}"]`).firstElementChild
     const ngLabel = elem.getAttribute("data-title")
     const filter = document.querySelector("input[filter]")
     const refElem = form.querySelector("input[custom-key='references']")
@@ -610,7 +610,7 @@ function addButton(event) {
         if((createScenario || updateScenario) || confirm(`Save this textual witness for Gloss '${namedGlossIncipit}'?`)){
             const form = ev.target.closest("form")
             const customKey = form.querySelector("input[custom-key='references']")
-            const uri = event.target.getAttribute("data-id")
+            const uri = gloss_li.getAttribute("data-id")
             if(customKey.value !== uri){
                 customKey.value = uri 
                 customKey.setAttribute("value", uri) 

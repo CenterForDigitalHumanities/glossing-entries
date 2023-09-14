@@ -579,7 +579,6 @@ export default {
          * That element is expand()ed in order to get the information for this element to be filterable.
          * Since the object is expanded, if reasonable, it should be cached with its information (how would we know if it is out of date?)
          * If a filter was present via the URL on page load, if it matches on this <li> the <li> should be filtered immediately.
-         * Note there is some specific support for the glossesSelectorForTextualWitness template.
          */ 
         filterableListItem: function (obj, options = {}) {
             return{
@@ -591,7 +590,7 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
-                    const createScenario = elem.firsthasAttribute("create-scenario") ? true : false
+                    const createScenario = elem.hasAttribute("create-scenario") ? true : false
                     const updateScenario = elem.hasAttribute("update-scenario") ? true : false   
                     const increaseTotal = (createScenario || updateScenario) ? true : false
                     const filterPresent = containingListElem.$contentState ? true : false
