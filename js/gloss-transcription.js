@@ -341,13 +341,15 @@ function prefillReferences(referencesArr, form) {
     }
     refElem.value = referencesArr[0]
     
-    // Now apply the references value to the filter
+    // Make this button appear as 'attached'
     const button = elem.querySelector(".toggleInclusion")
     button?.setAttribute("disabled", "")
     button?.setAttribute("value", "✓ attached")
     button?.setAttribute("title", "This Gloss is already attached!")
     button?.classList.remove("primary")
     button?.classList.add("success")
+
+    // Now apply the references value to the filter
     filter.value = ngLabel.trim()
     filter.dispatchEvent(new Event('input', { bubbles: true }))
     const chosenGloss = document.querySelector(".chosenNamedGloss")
@@ -584,6 +586,8 @@ addEventListener('gloss-modal-saved', event => {
  */ 
 function addButton(event) {
     const template_container = event.target
+    const form_container = template_container.closest("form")
+    const reference = form_container.querySelector("input[custom-key='references']").value
     if(template_container.getAttribute("deer-template") !== "filterableListItem") return
     const obj = event.detail
     const gloss_li = template_container.firstElementChild
@@ -603,7 +607,17 @@ function addButton(event) {
         // Either a create scenario, or neither (just loading up)
         inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
         inclusionBtn.setAttribute("value", "➥ attach")
-        inclusionBtn.setAttribute("class", "toggleInclusion button primary")    
+        inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+
+        // If there is a hash AND references has a value there is a button to make appear as 'attached'
+        if(textWitnessID && reference){
+            // Make this button appear as 'attached'
+            inclusionBtn.setAttribute("disabled", "")
+            inclusionBtn.setAttribute("value", "✓ attached")
+            inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+            inclusionBtn.classList.remove("primary")
+            inclusionBtn.classList.add("success")
+        }
     }
     inclusionBtn.addEventListener('click', ev => {
         ev.preventDefault()
