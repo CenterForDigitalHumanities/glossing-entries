@@ -184,12 +184,13 @@ export default {
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
-                    if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
+                    const glossID = val["@id"].replace(/^https?:/, 'https:')
+                    if(cachedFilterableEntities.get(glossID)){
                         // We cached it in the past and are going to trust it right now.
-                        const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))
+                        const cachedObj = cachedFilterableEntities.get(glossID)
                         let filteringProps = Object.keys(cachedObj)
                         // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
-                        let li = `<li class="${hide}" deer-id="${val["@id"]}" data-expanded="true" `
+                        let li = `<li class="${hide}" deer-id="${glossID}" data-expanded="true" `
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
@@ -204,7 +205,7 @@ export default {
                             }
                         })
                         li += `>
-                            <a href="${options.link}${val["@id"]}">
+                            <a href="${options.link}${glossID}">
                                 <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                         </li>`
@@ -215,9 +216,9 @@ export default {
                         // This object was not cached so we do not have its properties.
                         // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
                         html += 
-                        `<div deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
+                        `<div deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${glossID}">
                             <li>
-                                <a href="${options.link}${val["@id"]}">
+                                <a href="${options.link}${glossID}">
                                     <span>Loading Gloss #${index + 1}...</span>
                                 </a>
                             </li>
@@ -252,8 +253,16 @@ export default {
 
                 // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
-                    const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
-                    debounce(filterGlosses(filterQuery))
+                    const val = ev?.target.value.trim()
+                    if(val){
+                        const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
+                        debounce(filterGlosses(filterQuery))
+                    }
+                    else{
+                        const url = new URL(window.location.href)
+                        url.searchParams.delete("gog-filter")
+                        window.history.replaceState(null, null, url)
+                    }
                 })
 
                 if(numloaded === total){
@@ -315,7 +324,7 @@ export default {
                     // This query was applied.  Make this the encoded query in the URL, but don't cause a page reload.
                     const url = new URL(window.location.href)
                     url.searchParams.set("gog-filter", queryString)
-                    window.history.replaceState(null, null, url);
+                    window.history.replaceState(null, null, url)
                 }
             }
             return { html, then }
@@ -510,8 +519,16 @@ export default {
 
                 // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
-                    const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
-                    debounce(filterGlosses(filterQuery))
+                    const val = ev?.target.value.trim()
+                    if(val){
+                        const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
+                        debounce(filterGlosses(filterQuery))
+                    }
+                    else{
+                        const url = new URL(window.location.href)
+                        url.searchParams.delete("gog-filter")
+                        window.history.replaceState(null, null, url)
+                    }
                 })
 
                 if(numloaded === total){
