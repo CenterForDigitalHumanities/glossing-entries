@@ -111,21 +111,22 @@ class GlossModal extends HTMLElement {
                         When you create this Gloss it will be attached to the T-PEN Transcription text selection and appear in the Gallery of Glosses Gloss Collection.
                     </p>
 
-                    <form name="gloss-modal-form" deer-type="Gloss" deer-context="http://purl.org/dc/terms">
+                    <form name="gloss-modal-form" deer-type="Gloss_TEST" deer-context="http://purl.org/dc/terms">
                         <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
                         <input is="auth-creator" type="hidden" deer-key="creator" />
                         <div class="row">
                             <label class="col-3 col-2-md text-right">Gloss Text:</label>
-                            <input type="hidden" deer-key="text">
-                            <textarea name="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
-
+                            <textarea custom-text-key="text" name="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
                             <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
-                            <select name="textLang" class="col-3 col-2-md">
+                            <select custom-text-key="language" name="textLang" class="col-3 col-2-md">
                                 <option value="la" selected>Latin</option>
                                 <option value="de">German</option>
                                 <option value="fr">French</option>
                                 <option value="en">English</option>
                             </select>
+                            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
+                                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
+                            </label>
                         </div>
                         <div class="row">
                             <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
@@ -162,12 +163,13 @@ class GlossModal extends HTMLElement {
     connectedCallback() {
         this.innerHTML = this.template
         const $this = this
-
-        // -- Might need to populate deer-key="creator"?
+        const $form = this.querySelector("form")
+        const textWitnessID = window.location.hash.substr(1)
 
         // Catch the entity creation announcement from DEER
         addEventListener('deer-updated', event => {
             const $elem = event.target
+
             //Only care about the gloss-modal form
             if($elem.getAttribute("name")  !== "gloss-modal-form") return
 
@@ -175,8 +177,66 @@ class GlossModal extends HTMLElement {
             event.preventDefault()
             event.stopPropagation()
 
-            // Announce a modal specific event with the details from the DEER announcement
-            utils.broadcast(event, `gloss-modal-saved`, $this, event.detail ?? {})
+            // We need to save the custom text Annotation for the gloss
+            const customTextElems = [
+                $elem.querySelector("input[custom-text-key='format']"),
+                $elem.querySelector("select[custom-text-key='language']"),
+                $elem.querySelector("textarea[custom-text-key='text']")
+            ]
+            if(customTextElems.filter(el => el.$isDirty).length > 0){
+                // One of the text properties has changed so we need the text object
+                const format = customTextElems[0].value
+                const language = customTextElems[1].value
+                const text = customTextElems[2].value
+                let textanno = {
+                    "@context": "http://www.w3.org/ns/anno.jsonld",
+                    "@type": "Annotation",
+                    "body": {
+                        "text":{
+                            "format" : format,
+                            "language" : language,
+                            "textValue" : text
+                        }
+                    },
+                    "target": event.detail["@id"],
+                    "creator" : window.GOG_USER["http://store.rerum.io/agent"]
+                }
+                const el = customTextElems[2]
+                if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
+                    
+                fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
+                    method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
+                    mode: 'cors',
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    },
+                    body: JSON.stringify(textanno)
+                })
+                .then(res => res.json())
+                .then(a => {
+                    customTextElems[0].setAttribute("deer-source", a["@id"])
+                    customTextElems[1].setAttribute("deer-source", a["@id"])
+                    customTextElems[2].setAttribute("deer-source", a["@id"])
+                })
+                .catch(err => {
+                    console.error(`Could not generate 'text' property Annotation`)
+                    console.error(err)
+                })
+                .then(success => {
+                    console.log("GLOSS FULLY SAVED")
+                    const ev = new CustomEvent("Thank you for your Gloss Submission!")
+                    globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
+                    // Announce a modal specific event with the details from the DEER announcement
+                    utils.broadcast(event, `gloss-modal-saved`, $this, event.detail ?? {})
+                })
+                .catch(err => {
+                    console.error("ERROR PROCESSING SOME FORM FIELDS")
+                    console.error(err)
+                    // Announce a modal specific event with the details from the DEER announcement
+                    utils.broadcast(event, `gloss-modal-error`, $this, event.detail ?? {})
+                })
+            }
         })
 
         // 'Submit' click event handler
@@ -230,7 +290,36 @@ class GlossModal extends HTMLElement {
             form.querySelector(".glossResult").innerHTML = ""
             console.log("GLOSS FORM RESET")
         }
-        
+
+        if(!textWitnessID){
+            // These items have default values that are dirty on fresh forms.
+            $form.querySelector("select[custom-text-key='language']").$isDirty = true
+            $form.querySelector("input[custom-text-key='format']").$isDirty = true
+        }
+
+        // mimic isDirty detection for these custom inputs
+        $form.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
+            ev.target.$isDirty = true
+            ev.target.closest("form").$isDirty = true
+        })
+        $form.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
+            ev.target.$isDirty = true
+            ev.target.closest("form").$isDirty = true
+        })
+        // Note that this HTML element is a checkbox
+        $form.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+            if(ev.target.checked){
+                ev.target.value = "text/html"
+                ev.target.setAttribute("value", "text/html")
+            }
+            else{
+                ev.target.value = "text/plain"
+                ev.target.setAttribute("value", "text/plain")
+            }
+            ev.target.$isDirty = true
+            ev.target.closest("form").$isDirty = true
+        })
+            
         const labelElem = this.querySelector('input[deer-key="title"]')
         const textElem = this.querySelector('textarea[name="glossText"]')
         const textLang = this.querySelector('select[name="textLang"]')
@@ -262,17 +351,6 @@ class GlossModal extends HTMLElement {
                 glossResult.insertAdjacentHTML('beforeend', `<a href="#${anno.id.split('/').pop()}">${anno.title}</a>`)
             })
         })
-
-        ;[textElem, textLang].forEach(elem => addEventListener('input', event => {
-            const textObject = $this.querySelector("input[deer-key='text']")
-            textObject.value = {
-                '@type': "Text",
-                value: textElem.value,
-                format: "text/plain",
-                language: textLang.value
-            }
-            textObject.$isDirty = true
-        }))
 
         utils.broadcast(undefined, "deer-form", this, { set: [this.querySelector("form")] })
     }

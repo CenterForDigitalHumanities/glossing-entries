@@ -131,14 +131,16 @@ addEventListener('deer-updated', event => {
         })
         .then(res => res.json())
         .then(a => {
-            $elem.setAttribute("deer-source", a["@id"])
+            customTextElems[0].setAttribute("deer-source", a["@id"])
+            customTextElems[1].setAttribute("deer-source", a["@id"])
+            customTextElems[2].setAttribute("deer-source", a["@id"])
         })
         .catch(err => {
             console.error(`Could not generate 'text' property Annotation`)
             console.error(err)
         })
         .then(success => {
-            console.log("FORM FULLY SAVED")
+            console.log("GLOSS FULLY SAVED")
             const ev = new CustomEvent("Thank you for your Gloss Submission!")
             globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
             const hash = window.location.hash.substr(1)
