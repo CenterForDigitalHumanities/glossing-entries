@@ -33,11 +33,12 @@ function setWitnessFormDefaults(){
     labelElem.removeAttribute("deer-source")
     labelElem.$isDirty = false
 
+    // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
-    shelfmarkElem.value = ""
-    shelfmarkElem.setAttribute("value", "")
+    //shelfmarkElem.value = ""
+    //shelfmarkElem.setAttribute("value", "")
     shelfmarkElem.removeAttribute("deer-source")
-    shelfmarkElem.$isDirty = false
+    shelfmarkElem.$isDirty = true
 
     const formatElem = form.querySelector("input[custom-text-key='format']")
     formatElem.removeAttribute("deer-source")

@@ -399,18 +399,19 @@ export default {
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
                     let inclusionBtn = null
-                    if(val["@id"] === referencedGlossID){
-                        inclusionBtn = `<input disabled type="button" class="toggleInclusion button success" data-id="${val['@id'].replace(/^https?:/, 'https:')}" title="This Gloss is already attached!" value="✓ attached"/>`
+                    const glossID = val['@id'].replace(/^https?:/, 'https:')
+                    if(glossID === referencedGlossID){
+                        inclusionBtn = `<input disabled type="button" class="toggleInclusion button success" data-id="${glossID}" title="This Gloss is already attached!" value="✓ attached"/>`
                     }
                     else{
-                        inclusionBtn = `<input type="button" class="toggleInclusion button primary" data-id="${val['@id'].replace(/^https?:/, 'https:')}" title="Attach this Gloss and Save" value="➥ attach"/>`
+                        inclusionBtn = `<input type="button" class="toggleInclusion button primary" data-id="${glossID}" title="Attach this Gloss and Save" value="➥ attach"/>`
                     }
-                    if(cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))){
+                    if(cachedFilterableEntities.get(glossID)){
                         // We cached it in the past and are going to trust it right now.
-                        const cachedObj = cachedFilterableEntities.get(val["@id"].replace(/^https?:/, 'https:'))
+                        const cachedObj = cachedFilterableEntities.get(glossID)
                         let filteringProps = Object.keys(cachedObj)
                         // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
-                        let li = `<li class="${hide}" deer-id="${val["@id"]}" data-expanded="true" `
+                        let li = `<li class="${hide}" deer-id="${glossID}" data-expanded="true" `
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
@@ -426,7 +427,7 @@ export default {
                         })
                         li += `>
                             ${inclusionBtn}
-                            <a target="_blank" href="${options.link}${val["@id"]}">
+                            <a target="_blank" href="${options.link}${glossID}">
                                 <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                         </li>`
@@ -437,9 +438,9 @@ export default {
                         // This object was not cached so we do not have its properties.
                         // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
                         html += 
-                        `<div deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
+                        `<div deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${glossID}">
                             <li>
-                                <a target="_blank" href="${options.link}${val["@id"]}">
+                                <a target="_blank" href="${options.link}${glossID}">
                                     <span>Loading Gloss #${index + 1}...</span>
                                 </a>
                             </li>
