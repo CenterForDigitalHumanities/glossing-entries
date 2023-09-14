@@ -124,7 +124,9 @@ class GlossModal extends HTMLElement {
                                 <option value="fr">French</option>
                                 <option value="en">English</option>
                             </select>
-                            <input class="is-hidden" type="checkbox" custom-text-key="format" value="text/plain" />
+                            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
+                                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
+                            </label>
                         </div>
                         <div class="row">
                             <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
