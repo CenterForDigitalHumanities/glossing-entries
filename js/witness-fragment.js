@@ -156,7 +156,7 @@ addEventListener('deer-view-rendered', show)
 function show(event){
     if(event.target.id == "ngCollectionList"){
         loading.classList.add("is-hidden")
-        witnessForm.classList.remove("is-hidden")
+        if(getURLParameter("witness-uri")) witnessForm.classList.remove("is-hidden")
         // This listener is no longer needed.
         removeEventListener('deer-view-rendered', show)
     }
