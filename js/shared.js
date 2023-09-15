@@ -3,16 +3,16 @@
  */
 
 //For when we test, so we can easily find and blow away junk data
-// setTimeout(() => {
-//     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="GlossingDevTest"
-//         el.setAttribute("value", "GlossingDevTest")
-//     })
-//     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "GlossingDevTest")
-//     })
-//     window.GOG_USER["http://store.rerum.io/agent"] = "GlossingDevTest"
-// }, 4000)
+setTimeout(() => {
+    document.querySelectorAll("input[deer-key='creator']").forEach(el => {
+        el.value="GlossingDevTest"
+        el.setAttribute("value", "GlossingDevTest")
+    })
+    document.querySelectorAll("form").forEach(el => {
+        el.setAttribute("deer-creator", "GlossingDevTest")
+    })
+    window.GOG_USER["http://store.rerum.io/agent"] = "GlossingDevTest"
+}, 4000)
 
 let __constants = {}
 setConstants()

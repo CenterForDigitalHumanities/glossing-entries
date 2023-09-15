@@ -25,7 +25,7 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "GlossingDevTest"
+    form.querySelector("input[deer-key='creator']").value = "GlossingDevTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -218,9 +218,8 @@ function init(event){
 }
 
 /**
- * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
- * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
- * @see deer-record.js DeerReport.constructor()  
+ * On page load and after submission DEER will announce this form as rendered.
+ * Set up all the default values.
  */
 addEventListener('deer-form-rendered', formReset)
 
