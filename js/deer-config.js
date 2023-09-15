@@ -254,15 +254,17 @@ export default {
                 // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
                     const val = ev?.target.value.trim()
+                    let filterQuery
                     if(val){
-                        const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
-                        debounce(filterGlosses(filterQuery))
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
                     }
                     else{
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
                         const url = new URL(window.location.href)
                         url.searchParams.delete("gog-filter")
                         window.history.replaceState(null, null, url)
                     }
+                    debounce(filterGlosses(filterQuery))
                 })
 
                 if(numloaded === total){
@@ -517,18 +519,20 @@ export default {
                     }                    
                 }))
 
-                // Filter the list of glosses as users type their query against 'title'
+                // Filter the list of glosses as users type their query
                 filter.addEventListener('input', ev =>{
                     const val = ev?.target.value.trim()
+                    let filterQuery
                     if(val){
-                        const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
-                        debounce(filterGlosses(filterQuery))
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
                     }
                     else{
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
                         const url = new URL(window.location.href)
                         url.searchParams.delete("gog-filter")
                         window.history.replaceState(null, null, url)
                     }
+                    debounce(filterGlosses(filterQuery))
                 })
 
                 if(numloaded === total){
