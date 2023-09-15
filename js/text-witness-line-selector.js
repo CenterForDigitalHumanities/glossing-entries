@@ -3,17 +3,17 @@
   * Generate the UI around canvases (pages) and text (lines) so that a user can select text.
   * Store that text selection as a URI Fragment using #char.  It may be an array that spans multiple lines.
 */
-class TpenLineSelector extends HTMLElement {
+class WitnessTextSelector extends HTMLElement {
     template = `
         <style>
-            tpen-line-selector{
+            witness-text-selector{
                 position: relative;
                 display: block;
             }
-           .tpenProjectLines, .selectedLines{
+           .witnessText, .selectedLines{
                 background-color: orange;
            }
-           div[tpen-line-id]{
+           div[witness-text-id]{
                 display: inline;
            }
            h4 {
@@ -46,30 +46,30 @@ class TpenLineSelector extends HTMLElement {
                 font-family: "Eczar","Volkhov",serif;
                 font-size: 8pt;
            }
-           .tpenProjectLines.is-toggled{
+           .witnessText.is-toggled{
                 visibility: hidden;
                 height: 0px;
            }
         </style>
 
-        <h2> Select T-PEN Transcription Text </h2>
+        <h2> Select Witness Text </h2>
         <input type="hidden" custom-key="selections" />
-        <div title="Collapse Transcription Area" class="toggle is-hidden">&#9660;</div>
-        <div class="tpenProjectLines col"></div>
+        <div title="Collapse Witness Text Area" class="toggle is-hidden">&#9660;</div>
+        <div class="witnessText col"></div>
     `
     constructor() {
         super()
     }
     attributeChangedCallback(name, oldValue, newValue) {
-      if(name === "tpen-project" && newValue && oldValue !== newValue){
+      if(name === "witness-uri" && newValue && oldValue !== newValue){
         this.connectedCallback()
       }
     }
     connectedCallback() {
         this.innerHTML = this.template
         const $this = this
-        const tpenProjectURI = this.getAttribute("tpen-project")
-        if(!tpenProjectURI) return
+        const witnessURI = this.getAttribute("witness-uri")
+        if(!witnessURI) return
         this.querySelector("div.toggle").addEventListener("click", event => {
             const container = event.target.nextElementSibling
             if(container.classList.contains("is-toggled")) {
@@ -83,11 +83,11 @@ class TpenLineSelector extends HTMLElement {
                 container.classList.add("is-toggled")
             }
         })
-        fetch(tpenProjectURI)
+        fetch(witnessURI)
             .then(response => response.json())
             .then(ms => {
                 let allLines = []
-                const tpenProjectLines = $this.querySelector(".tpenProjectLines")
+                const witnessText = $this.querySelector(".witnessText")
                 ms.sequences[0].canvases.forEach((canvas, index) => {
                     const pageContainer = document.createElement("div")
                     pageContainer.classList.add("pageContainer")
@@ -111,17 +111,17 @@ class TpenLineSelector extends HTMLElement {
                     pageToggle.innerHTML = `&#9660;`
                     pageHeader.setAttribute("tpen-canvas-id", canvas["@id"])
                     pageHeader.innerText = `${canvas.label ?? "No Page Label"} (Page ${index+1})`
-                    tpenProjectLines.appendChild(pageHeader)
-                    tpenProjectLines.appendChild(pageToggle)
+                    witnessText.appendChild(pageHeader)
+                    witnessText.appendChild(pageToggle)
                     if(canvas?.otherContent[0]?.resources) allLines.concat(canvas.otherContent[0].resources)
                     canvas.otherContent[0].resources.forEach(line => {
                         const lineElem = document.createElement("div")
                         lineElem.setAttribute("title", line["@id"])
-                        lineElem.setAttribute("tpen-line-id", line["@id"])
+                        lineElem.setAttribute("witness-text-id", line["@id"])
                         lineElem.setAttribute("tpen-image-url", canvas.images[0].resource["@id"])
                         lineElem.setAttribute("tpen-image-fragment", line.on.split("#").pop())
-                        lineElem.setAttribute("tpen-line-note", line._tpen_note)
-                        lineElem.setAttribute("tpen-line-creator", line._tpen_creator)
+                        lineElem.setAttribute("witness-text-note", line._tpen_note)
+                        lineElem.setAttribute("witness-text-creator", line._tpen_creator)
                         const txt = line.resource["cnt:chars"] ? line.resource["cnt:chars"] : ""
                         lineElem.innerText = txt
                         if(!txt) lineElem.classList.add("emptyLine")
@@ -170,24 +170,24 @@ class TpenLineSelector extends HTMLElement {
                                 }
                                 let selections = []
                                 let linePreviews = []
-                                const stopID = document.getSelection().extentNode.parentElement.getAttribute("tpen-line-id")
+                                const stopID = document.getSelection().extentNode.parentElement.getAttribute("witness-text-id")
                                 let el = document.getSelection().baseNode.parentElement
                                 let stopEl = document.getSelection().extentNode.parentElement
                                 $this.querySelectorAll(".togglePage").forEach(tog => tog.classList.remove("has-selection"))
                                 el.parentElement.previousElementSibling.classList.add("has-selection")
                                 stopEl.parentElement.previousElementSibling.classList.add("has-selection")
-                                if(stopID === el.getAttribute("tpen-line-id")){
+                                if(stopID === el.getAttribute("witness-text-id")){
                                     // The entire selection happened in just this line.  It will not be empty.
-                                    selections.push(`${el.getAttribute("tpen-line-id")}#char=${document.getSelection().baseOffset},${document.getSelection().extentOffset}`)
+                                    selections.push(`${el.getAttribute("witness-text-id")}#char=${document.getSelection().baseOffset},${document.getSelection().extentOffset}`)
                                     linePreviews.push()
                                 }
                                 else{
                                     // The selection happened over multiple lines.  We need to make a target out of each line.  There may be empty lines in-between.
-                                    if(!el.classList.contains("emptyLine")) selections.push(`${el.getAttribute("tpen-line-id")}#char=${document.getSelection().baseOffset},${el.innerText.length-1}`)
+                                    if(!el.classList.contains("emptyLine")) selections.push(`${el.getAttribute("witness-text-id")}#char=${document.getSelection().baseOffset},${el.innerText.length-1}`)
                                     el = el.nextElementSibling
-                                    while(el.getAttribute("tpen-line-id") !== stopID){
+                                    while(el.getAttribute("witness-text-id") !== stopID){
                                         if(!el.classList.contains("emptyLine")){
-                                            selections.push(`${el.getAttribute("tpen-line-id")}#char=0,${el.innerText.length-1}`)
+                                            selections.push(`${el.getAttribute("witness-text-id")}#char=0,${el.innerText.length-1}`)
                                         }
                                         if(el.nextElementSibling){
                                             el = el.nextElementSibling    
@@ -198,7 +198,7 @@ class TpenLineSelector extends HTMLElement {
                                         }
                                     }  
                                     if(!el.classList.contains("emptyLine")){
-                                        selections.push(`${el.getAttribute("tpen-line-id")}#char=0,${document.getSelection().extentOffset}`)
+                                        selections.push(`${el.getAttribute("witness-text-id")}#char=0,${document.getSelection().extentOffset}`)
                                     }
                                 }
                                 if(customKey.value !== selections.join("__")){
@@ -217,18 +217,18 @@ class TpenLineSelector extends HTMLElement {
                         }
                         pageContainer.appendChild(lineElem)
                     })
-                    tpenProjectLines.appendChild(pageContainer)
+                    witnessText.appendChild(pageContainer)
                 })
-                const e = new CustomEvent("tpen-lines-loaded", {bubbles: true })
+                const e = new CustomEvent("witness-texts-loaded", {bubbles: true })
                 document.dispatchEvent(e)
-                $this.setAttribute("tpen-lines-loaded", "true")
+                $this.setAttribute("witness-texts-loaded", "true")
             })
             .catch(err => {
                 console.error(err)
-                tpenProjectLines.innerHTML = `<b class="text-error"> Could not get T-PEN project ${tpenProjectURI} </b>`
+                witnessText.innerHTML = `<b class="text-error"> Could not get T-PEN project ${witnessURI} </b>`
             })
     }
-    static get observedAttributes() { return ['tpen-project'] }
+    static get observedAttributes() { return ['witness-uri'] }
 }
 
-customElements.define('tpen-line-selector', TpenLineSelector)
+customElements.define('witness-text-selector', WitnessTextSelector)
