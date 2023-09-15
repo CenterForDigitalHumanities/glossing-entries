@@ -197,6 +197,53 @@ class WitnessTextSelector extends HTMLElement {
                     plaintext.setAttribute("witness-uri", witnessURI)
                     plaintext.innerText = witness_text_data
                     witnessTextElem.appendChild(plaintext)
+
+                    plaintext.onmouseup = function(e) {
+                        const s = document.getSelection()
+                        const filter = document.querySelector("input[filter]")
+                        const selectedText = document.getSelection() ? document.getSelection().toString().trim() : ""
+                        const firstword = selectedText.split(" ")[0]
+                        if(selectedText){
+                            // The filter may not be in the DOM when the user is selecting text.
+                            // Only use the filter if it is !.is-hidden
+                            if(filter && !filter.classList.contains("is-hidden")){
+                                filter.value = firstword
+                                filter.setAttribute("value", firstword)
+                                filter.dispatchEvent(new Event('input', { bubbles: true }))
+                            }
+
+                            const textInput = document.querySelector("textarea[custom-text-key='text']")
+                            textInput.setAttribute("value", selectedText)
+                            textInput.value = selectedText
+                            textInput.dispatchEvent(new Event('input', { bubbles: true }))
+
+                            let witnessLabel = selectedText.slice(0, 16)
+                            const labelElem = document.querySelector("input[deer-key='label']")
+                            const shelfmark = document.querySelector("input[deer-key='identifier']").value
+                            // Generate a programmatic label
+                            if(witnessLabel){
+                                if(shelfmark){
+                                    witnessLabel += `...(${shelfmark})`
+                                }
+                                else{
+                                    witnessLabel += `...(${Date.now()})`
+                                }    
+                                if(labelElem.value !== witnessLabel){
+                                    labelElem.value = witnessLabel
+                                    labelElem.setAttribute("value", witnessLabel)
+                                    labelElem.dispatchEvent(new Event('input', { bubbles: true }))
+                                }
+                            }
+                            else{
+                               // A side effect of this is that a label cannot be unset by a typical DEER form update.
+                               labelElem.value = "" 
+                               labelElem.setAttribute("value", "")
+                               labelElem.$isDirty = false
+                            }                    
+                            console.log("You made the following text selection")
+                            console.log(selectedText)
+                        }
+                    }
                 }
                 const e = new CustomEvent("witness-text-loaded", {bubbles: true })
                 document.dispatchEvent(e)
