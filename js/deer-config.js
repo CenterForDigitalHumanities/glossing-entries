@@ -126,15 +126,18 @@ export default {
                         timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
                     }
                 }
-                function filterGlosses(queryString=''){
-                    const query = queryString.trim().toLowerCase()
-                    const items = elem.querySelectorAll('li')
-                    items.forEach(el=>{
-                        const action = el.textContent.trim().toLowerCase().includes(query) ? "remove" : "add"
-                        el.classList[action](`is-hidden`,`un${action}-item`)
-                        setTimeout(()=>el.classList.remove(`un${action}-item`),500)
-                    })
+                function filterGlosses(queryString='') {
+                    const query = queryString.trim().toLowerCase();
+                    const items = document.querySelectorAll('li');
+                    items.forEach(el => {
+                        if (el.textContent.trim().toLowerCase().includes(query)) {
+                            el.classList.remove('is-hidden');
+                        } else {
+                            el.classList.add('is-hidden');
+                        }
+                    });
                 }
+                
                 deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
             }
             return { html, then }
