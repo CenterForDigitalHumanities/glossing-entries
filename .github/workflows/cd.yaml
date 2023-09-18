@@ -1,8 +1,7 @@
 name: Glossing Entries Deploy
-on: 
+on:
   pull_request:
-      branches:
-        main
+    branches: main
 jobs:
   merge-branch:
     runs-on: ubuntu-latest
@@ -16,9 +15,16 @@ jobs:
           target_branch: ${{ github.head_ref }}
           github_token: ${{ secrets.BRY_PAT }}
           message: Merge main into this branch to deploy to dev for testing.
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - run: npm install
+      - run: npm test
   deploy:
-    needs: merge-branch
-    strategy: 
+    if: github.event.pull_request.draft == false
+    needs: [merge-branch, test]
+    strategy:
       matrix:
         machines: [vlcdhp02]
     runs-on: ${{ matrix.machines }}
