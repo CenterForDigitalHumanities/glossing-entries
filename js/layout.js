@@ -79,6 +79,7 @@ class GlossHeader extends HTMLElement {
         }
     </style>
         <a href="./named-glosses.html">✏️ Glosses</a>
+        <a href="./ng.html">🆕 New gloss</a>
     </div>
     </header></template>
         `,'text/html').head.firstChild
