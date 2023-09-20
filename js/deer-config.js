@@ -683,6 +683,8 @@ export default {
                     if(increaseTotal) total++
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
+                    const modalBtn = containingListElem.querySelector("gloss-modal-button")
+                    const filterInstructions = containingListElem.querySelector(".filterInstructions")
                     totalsProgress.setAttribute("count", numloaded)
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.innerHTML = `
@@ -691,6 +693,8 @@ export default {
                         A filter will become available when all items are loaded.`
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
+                        if(modalBtn) modalBtn.classList.remove("is-hidden")
+                        if(filterInstructions) filterInstructions.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be visible and selected / take on the string / etc.
