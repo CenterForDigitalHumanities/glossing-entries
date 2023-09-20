@@ -68,7 +68,7 @@ class TpenLineSelector extends HTMLElement {
     connectedCallback() {
         this.innerHTML = this.template
         const $this = this
-        const tpenProjectURI = this.getAttribute("tpen-project")
+        const tpenProjectURI = this.getAttribute("tpen-project") ? decodeURIComponent(this.getAttribute("tpen-project")) : null
         if(!tpenProjectURI) return
         this.querySelector("div.toggle").addEventListener("click", event => {
             const container = event.target.nextElementSibling
@@ -116,8 +116,10 @@ class TpenLineSelector extends HTMLElement {
                     if(canvas?.otherContent[0]?.resources) allLines.concat(canvas.otherContent[0].resources)
                     canvas.otherContent[0].resources.forEach(line => {
                         const lineElem = document.createElement("div")
+                        const projectLineID = line["@id"].replace("/TPEN/", `/TPEN/project/${tpenProjectURI.split("/").pop()}/`)
                         lineElem.setAttribute("title", line["@id"])
                         lineElem.setAttribute("tpen-line-id", line["@id"])
+                        lineElem.setAttribute("tpen-project-line-id", projectLineID)
                         lineElem.setAttribute("tpen-image-url", canvas.images[0].resource["@id"])
                         lineElem.setAttribute("tpen-image-fragment", line.on.split("#").pop())
                         lineElem.setAttribute("tpen-line-note", line._tpen_note)
@@ -178,16 +180,16 @@ class TpenLineSelector extends HTMLElement {
                                 stopEl.parentElement.previousElementSibling.classList.add("has-selection")
                                 if(stopID === el.getAttribute("tpen-line-id")){
                                     // The entire selection happened in just this line.  It will not be empty.
-                                    selections.push(`${el.getAttribute("tpen-line-id")}#char=${document.getSelection().baseOffset},${document.getSelection().extentOffset}`)
+                                    selections.push(`${el.getAttribute("tpen-project-line-id")}#char=${document.getSelection().baseOffset},${document.getSelection().extentOffset}`)
                                     linePreviews.push()
                                 }
                                 else{
                                     // The selection happened over multiple lines.  We need to make a target out of each line.  There may be empty lines in-between.
-                                    if(!el.classList.contains("emptyLine")) selections.push(`${el.getAttribute("tpen-line-id")}#char=${document.getSelection().baseOffset},${el.innerText.length-1}`)
+                                    if(!el.classList.contains("emptyLine")) selections.push(`${el.getAttribute("tpen-project-line-id")}#char=${document.getSelection().baseOffset},${el.innerText.length-1}`)
                                     el = el.nextElementSibling
                                     while(el.getAttribute("tpen-line-id") !== stopID){
                                         if(!el.classList.contains("emptyLine")){
-                                            selections.push(`${el.getAttribute("tpen-line-id")}#char=0,${el.innerText.length-1}`)
+                                            selections.push(`${el.getAttribute("tpen-project-line-id")}#char=0,${el.innerText.length-1}`)
                                         }
                                         if(el.nextElementSibling){
                                             el = el.nextElementSibling    
@@ -198,7 +200,7 @@ class TpenLineSelector extends HTMLElement {
                                         }
                                     }  
                                     if(!el.classList.contains("emptyLine")){
-                                        selections.push(`${el.getAttribute("tpen-line-id")}#char=0,${document.getSelection().extentOffset}`)
+                                        selections.push(`${el.getAttribute("tpen-project-line-id")}#char=0,${document.getSelection().extentOffset}`)
                                     }
                                 }
                                 if(customKey.value !== selections.join("__")){

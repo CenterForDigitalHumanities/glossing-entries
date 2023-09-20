@@ -25,7 +25,7 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    // form.querySelector("input[deer-key='creator']").value = "GlossingDevTest"
+    form.querySelector("input[deer-key='creator']").value = "ReleaseInterfaceTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -101,7 +101,7 @@ function setWitnessFormDefaults(){
 window.onload = () => {
     setPublicCollections()
     setListings()
-    const tpenID = getURLParameter("tpen-project")
+    const tpenID = decodeURIComponent(getURLParameter("tpen-project"))
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
     if(tpenID) {
         needs.classList.add("is-hidden")
@@ -403,7 +403,7 @@ function preselectLines(linesArr, form) {
  * Recieve a TPEN project as input from #needs.  Reload the page with a set ?tpen-project URL parameter.
 */
 function loadURI(){
-    let url = resourceURI.value ? resourceURI.value : getURLParameter("tpen-project")
+    let url = resourceURI.value ? resourceURI.value : decodeURIComponent(getURLParameter("tpen-project"))
     if(url){
         let tpen = "?tpen-project="+url
         url = window.location.href.split('?')[0] + tpen
