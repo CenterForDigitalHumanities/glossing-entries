@@ -195,7 +195,7 @@ class TpenLineSelector extends HTMLElement {
                                             el = el.nextElementSibling    
                                         }
                                         else{
-                                            //We are at the end of a page and are going on to the next page.  Get to the next page and get the firtst line
+                                            //We are at the end of a page and are going on to the next page.  Get to the next page and get the first line
                                             el = el.parentElement.nextElementSibling.nextElementSibling.nextElementSibling.firstChild
                                         }
                                     }  

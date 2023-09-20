@@ -233,6 +233,7 @@ export default {
                     elem.querySelector(".filterNotice").classList.remove("is-hidden")
                     elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                 }
+                let addFilterState = true
                 const totalsProgress = elem.querySelector(".totalsProgress")
                 const newcache = elem.querySelector(".newcache")
                 // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
@@ -260,9 +261,6 @@ export default {
                     }
                     else{
                         filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
-                        const url = new URL(window.location.href)
-                        url.searchParams.delete("gog-filter")
-                        window.history.replaceState(null, null, url)
                     }
                     debounce(filterGlosses(filterQuery))
                 })
@@ -325,8 +323,14 @@ export default {
 
                     // This query was applied.  Make this the encoded query in the URL, but don't cause a page reload.
                     const url = new URL(window.location.href)
-                    url.searchParams.set("gog-filter", queryString)
-                    window.history.replaceState(null, null, url)
+                    if(query.title){
+                        url.searchParams.set("gog-filter", queryString)
+                        window.history.replaceState(null, null, url)   
+                    }
+                    else{
+                        url.searchParams.delete("gog-filter")
+                        window.history.replaceState(null, null, url)
+                    }
                 }
             }
             return { html, then }
@@ -495,9 +499,19 @@ export default {
                 elem.querySelectorAll('.toggleInclusion').forEach(btn => btn.addEventListener('click', ev => {
                     ev.preventDefault()
                     ev.stopPropagation()
+                    const form = ev.target.closest("form")
+                    // There must be a shelfmark
+                    if(!form.querySelector("input[deer-key='identifier']").value){
+                        alert("You must provide a Shelfmark value.")
+                        return   
+                    }
+                    // There must be a selection
+                    if(!form.querySelector("input[custom-key='selections']").value){
+                        alert("Select some text first.")
+                        return   
+                    }
                     const glossIncipit = ev.target.closest("li").getAttribute("data-title")
                     if(confirm(`Save this textual witness for Gloss '${glossIncipit}'?`)){
-                        const form = ev.target.closest("form")
                         const customKey = elem.querySelector("input[custom-key='references']")
                         const uri = btn.getAttribute("data-id")
                         if(customKey.value !== uri){
@@ -505,13 +519,7 @@ export default {
                             customKey.setAttribute("value", uri) 
                             customKey.$isDirty = true
                             form.closest("form").$isDirty = true
-                            // There must be a shelfmark.
-                            if(form.querySelector("input[deer-key='identifier']").value){
-                                form.querySelector("input[type='submit']").click()    
-                            }
-                            else{
-                                alert("You must provide a Shelfmark value.")
-                            }
+                            form.querySelector("input[type='submit']").click()
                         }
                         else{
                             alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
@@ -519,7 +527,7 @@ export default {
                     }                    
                 }))
 
-                // Filter the list of glosses as users type their query
+                // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
                     const val = ev?.target.value.trim()
                     let filterQuery
@@ -528,9 +536,6 @@ export default {
                     }
                     else{
                         filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
-                        const url = new URL(window.location.href)
-                        url.searchParams.delete("gog-filter")
-                        window.history.replaceState(null, null, url)
                     }
                     debounce(filterGlosses(filterQuery))
                 })
@@ -594,9 +599,16 @@ export default {
                 }
 
                 // Could write content state url for the filter if desired.
-                //const url = new URL(window.location.href)
-                //url.searchParams.set("gog-filter", queryString)
-                //window.history.replaceState(null, null, url);
+                // This query was applied.  Make this the encoded query in the URL, but don't cause a page reload.
+                // const url = new URL(window.location.href)
+                // if(query.title){
+                //     url.searchParams.set("gog-filter", queryString)
+                //     window.history.replaceState(null, null, url)   
+                // }
+                // else{
+                //     url.searchParams.delete("gog-filter")
+                //     window.history.replaceState(null, null, url)
+                // }
             }
             return { html, then }
         },

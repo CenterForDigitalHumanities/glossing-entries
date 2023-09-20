@@ -12,7 +12,7 @@
     <script src="js/glossModal.js" type="module"></script>
     <script src="js/shared.js"></script>
     <style>
-       input.required{
+       input.required, textarea.required{
             border: 1px solid black;
        }
        .pageContainer.is-toggled{
@@ -59,7 +59,7 @@
             -->
 
             <label class="col-3 col-2-md text-right" >Text:</label>
-            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md" placeholder="Highlight transcription text..."></textarea>
+            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight transcription text..."></textarea>
 
             <label class="col-3 col-2-md text-right">Language:</label>
             <select custom-text-key="language" title="select language" class="col-9 col-4-md">

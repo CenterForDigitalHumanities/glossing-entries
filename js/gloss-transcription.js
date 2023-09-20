@@ -101,7 +101,7 @@ function setWitnessFormDefaults(){
 window.onload = () => {
     setPublicCollections()
     setListings()
-    const tpenID = decodeURIComponent(getURLParameter("tpen-project"))
+    const tpenID = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
     if(tpenID) {
         needs.classList.add("is-hidden")
@@ -615,9 +615,19 @@ function addButton(event) {
     inclusionBtn.addEventListener('click', ev => {
         ev.preventDefault()
         ev.stopPropagation()
+        const form = ev.target.closest("form")
+        // There must be a shelfmark
+        if(!form.querySelector("input[deer-key='identifier']").value){
+            alert("You must provide a Shelfmark value.")
+            return
+        }
+        // There must be a selection
+        if(!form.querySelector("input[custom-key='selections']").value){
+            alert("Select some text first.")
+            return   
+        }
         const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
         if((createScenario || updateScenario) || confirm(`Save this textual witness for Gloss '${namedGlossIncipit}'?`)){
-            const form = ev.target.closest("form")
             const customKey = form.querySelector("input[custom-key='references']")
             const uri = ev.target.getAttribute("data-id")
             if(customKey.value !== uri){
@@ -625,13 +635,7 @@ function addButton(event) {
                 customKey.setAttribute("value", uri) 
                 customKey.$isDirty = true
                 form.$isDirty = true
-                // There must be a shelfmark.
-                if(form.querySelector("input[deer-key='identifier']").value){
-                    form.querySelector("input[type='submit']").click()    
-                }
-                else{
-                    alert("You must provide a Shelfmark value.")
-                }
+                form.querySelector("input[type='submit']").click()    
             }
             else{
                 alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
