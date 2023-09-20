@@ -370,7 +370,9 @@ line.selected.just {
   position   : fixed;
   z-index    : 9;
   left       : 50%;
-  bottom     : 30px;
+  bottom     : 10em;
+  color      : white;
+  font-weight : bold;
 }
 
 #globalFeedback.show {
@@ -387,7 +389,7 @@ line.selected.just {
   }
 
   to {
-    bottom : 30px;
+    bottom : 10em;
     opacity: 1;
   }
 }
@@ -399,14 +401,14 @@ line.selected.just {
   }
 
   to {
-    bottom : 30px;
+    bottom : 10em;
     opacity: 1;
   }
 }
 
 @-webkit-keyframes fadeout {
   from {
-    bottom : 30px;
+    bottom : 10em;
     opacity: 1;
   }
 
@@ -418,7 +420,7 @@ line.selected.just {
 
 @keyframes fadeout {
   from {
-    bottom : 30px;
+    bottom : 10em;
     opacity: 1;
   }
 

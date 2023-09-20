@@ -298,7 +298,9 @@ export default {
                     const numloaded = parseInt(totalsProgress.getAttribute("count"))
                     const total = parseInt(totalsProgress.getAttribute("total"))
                     if(numloaded !== total){
-                        alert("All data must be loaded to use this filter.  Please wait.")
+                        //alert("All data must be loaded to use this filter.  Please wait.")
+                        const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
+                        deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
                         return
                     }
                     queryString = queryString.trim()
@@ -480,6 +482,7 @@ export default {
                 const progressArea = elem.querySelector(".progressArea")
                 const filterInstructions = elem.querySelector(".filterInstructions")
                 const modalBtn = elem.querySelector("gloss-modal-button")
+                let blip = new CustomEvent("Blip")
                 // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                 totalsProgress.innerHTML = `
                     ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>
@@ -502,12 +505,16 @@ export default {
                     const form = ev.target.closest("form")
                     // There must be a shelfmark
                     if(!form.querySelector("input[deer-key='identifier']").value){
-                        alert("You must provide a Shelfmark value.")
-                        return   
+                        //alert("You must provide a Shelfmark value.")
+                        blip = new CustomEvent("You must provide a Shelfmark value.")
+                        deerUtils.globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
+                        return
                     }
                     // There must be a selection
                     if(!form.querySelector("input[custom-key='selections']").value){
-                        alert("Select some text first.")
+                        //alert("Select some text first")
+                        blip = new CustomEvent("Select some text first.")
+                        deerUtils.globalFeedbackBlip(blip, `Select some text first.`, false)
                         return   
                     }
                     const glossIncipit = ev.target.closest("li").getAttribute("data-title")
@@ -522,7 +529,9 @@ export default {
                             form.querySelector("input[type='submit']").click()
                         }
                         else{
-                            alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                            //alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                            blip = new CustomEvent(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                            deerUtils.globalFeedbackBlip(blip, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
                         }
                     }                    
                 }))
@@ -574,7 +583,9 @@ export default {
                     const numloaded = parseInt(totalsProgress.getAttribute("count"))
                     const total = parseInt(totalsProgress.getAttribute("total"))
                     if(numloaded !== total){
-                        alert("All data must be loaded to use this filter.  Please wait.")
+                        //alert("All data must be loaded to use this filter.  Please wait.")
+                        const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
+                        deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
                         return
                     }
                     queryString = queryString.trim()

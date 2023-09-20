@@ -342,9 +342,7 @@ async function findMatchingIncipits(incipit, titleStart) {
         $or: [{
             "body.title.value": titleStart
         }, {
-            "body.transcribedGloss.value": incipit
-        }, {
-            "body.transcribedGloss": incipit
+            "body.text.textValue": incipit
         }],
         "__rerum.history.next": historyWildcard
     }
@@ -361,7 +359,7 @@ async function findMatchingIncipits(incipit, titleStart) {
             matches.forEach(each => {
                 const match = {
                     id: each.target['@id'] ?? each.target.id ?? each.target,
-                    title: each.body.title?.value ?? each.body.title ?? each.body.transcribedGloss?.value ?? each.body.transcribedGloss
+                    title: each.body.title?.value ?? each.body.title ?? each.body.text.textValue
                 }
                 uniqueGlosses.set(match.id, match)
             })

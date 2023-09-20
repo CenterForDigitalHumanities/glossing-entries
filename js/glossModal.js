@@ -46,18 +46,41 @@ class GlossModalActivationButton extends HTMLElement {
         }
 
         /**
+         * Check if the Witness form has text selection (for a text value).
+         */ 
+        function hasTextRequirement(){
+            if(witnessForm !== undefined){
+                const s = witnessForm.querySelector("input[custom-key='selections']")?.value
+                if(s){
+                    return true
+                }  
+            }
+            return false
+        }
+
+        /**
          * Hide or show the modal (no animation).
          * Fire an event for whether the modal is hidden or visiable.
          */ 
         function toggleModal(event){
             // A proprietary handler for gloss-transcription.html to make sure the Shelfmark requirement is met before pulling up the Gloss modal.
+            let blip = new CustomEvent("Blip")
             if(document.location.pathname.includes("gloss-transcription")){
-                if(!hasShelfmarkRequirement()) {
-                    alert("You must provide a Shelfmark value.")
-                    return false
+                // There must be a shelfmark
+                if(!hasShelfmarkRequirement()){
+                    //alert("You must provide a Shelfmark value.")
+                    blip = new CustomEvent("You must provide a Shelfmark value.")
+                    utils.globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
+                    return
+                }
+                // There must be a selection
+                if(!hasTextRequirement()){
+                    //alert("Select some text first")
+                    blip = new CustomEvent("Select some text first.")
+                    utils.globalFeedbackBlip(blip, `Select some text first.`, false)
+                    return   
                 }
             }
-
             const $button = event.target
             const modal = document.querySelector("gloss-modal")
             const action = modal.classList.contains("is-hidden") ? "remove" : "add"
