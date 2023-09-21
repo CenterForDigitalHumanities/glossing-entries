@@ -161,13 +161,13 @@ export default {
     async expand(entity, matchOn = ["__rerum.generatedBy", "creator"]) {
         let UTILS = this
         let findId = entity["@id"] ?? entity.id ?? entity
-        // Hacking this deferred TPEN bug.
-        if(findId.includes("/TPEN/manifest/")) {
-            findId = findId.replace("manifest.json", "")
-        }
         if (typeof findId !== "string") {
             UTILS.warning("Unable to find URI in object:", entity)
             return entity
+        }
+        // Hacking this deferred TPEN bug.
+        if(findId.includes("/TPEN/manifest/")) {
+            findId = findId.replace("manifest.json", "")
         }
         let getVal = UTILS.getValue
         return fetch(findId.replace(/^https?:/,'https:')).then(response => response.json())
