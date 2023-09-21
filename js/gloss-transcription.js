@@ -25,7 +25,7 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    // form.querySelector("input[deer-key='creator']").value = "GlossingDevTest"
+    //form.querySelector("input[deer-key='creator']").value = "ReleaseInterfaceTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -101,7 +101,7 @@ function setWitnessFormDefaults(){
 window.onload = () => {
     setPublicCollections()
     setListings()
-    const tpenID = getURLParameter("tpen-project")
+    const tpenID = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
     if(tpenID) {
         needs.classList.add("is-hidden")
@@ -403,14 +403,16 @@ function preselectLines(linesArr, form) {
  * Recieve a TPEN project as input from #needs.  Reload the page with a set ?tpen-project URL parameter.
 */
 function loadURI(){
-    let url = resourceURI.value ? resourceURI.value : getURLParameter("tpen-project")
+    let url = resourceURI.value ? resourceURI.value : decodeURIComponent(getURLParameter("tpen-project"))
     if(url){
         let tpen = "?tpen-project="+url
         url = window.location.href.split('?')[0] + tpen
         window.location = url
     }
     else{
-        alert("You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.")
+        //alert("You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.")
+        const ev = new CustomEvent("You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.")
+        globalFeedbackBlip(ev, `You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.`, false)
     }
 }
 
@@ -518,6 +520,8 @@ addEventListener('deer-updated', event => {
     .catch(err => {
         console.error("ERROR PROCESSING SOME FORM FIELDS")
         console.error(err)
+        const ev = new CustomEvent("Witness Save Error")
+        globalFeedbackBlip(ev, `Witness Save Error`, false)
     })
 })
 
@@ -615,9 +619,24 @@ function addButton(event) {
     inclusionBtn.addEventListener('click', ev => {
         ev.preventDefault()
         ev.stopPropagation()
+        const form = ev.target.closest("form")
+        let blip = new CustomEvent("Blip")
+        // There must be a shelfmark
+        if(!form.querySelector("input[deer-key='identifier']").value){
+            //alert("You must provide a Shelfmark value.")
+            blip = new CustomEvent("You must provide a Shelfmark value.")
+            globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
+            return
+        }
+        // There must be a selection
+        if(!form.querySelector("input[custom-key='selections']").value){
+            //alert("Select some text first")
+            blip = new CustomEvent("Select some text first.")
+            globalFeedbackBlip(blip, `Select some text first.`, false)
+            return   
+        }
         const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
         if((createScenario || updateScenario) || confirm(`Save this textual witness for Gloss '${namedGlossIncipit}'?`)){
-            const form = ev.target.closest("form")
             const customKey = form.querySelector("input[custom-key='references']")
             const uri = ev.target.getAttribute("data-id")
             if(customKey.value !== uri){
@@ -625,16 +644,12 @@ function addButton(event) {
                 customKey.setAttribute("value", uri) 
                 customKey.$isDirty = true
                 form.$isDirty = true
-                // There must be a shelfmark.
-                if(form.querySelector("input[deer-key='identifier']").value){
-                    form.querySelector("input[type='submit']").click()    
-                }
-                else{
-                    alert("You must provide a Shelfmark value.")
-                }
+                form.querySelector("input[type='submit']").click()    
             }
             else{
-                alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                //alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                blip = new CustomEvent(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                globalFeedbackBlip(ev, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
             }
         }                    
     })
@@ -653,4 +668,3 @@ function addButton(event) {
         }
     }
 }
-
