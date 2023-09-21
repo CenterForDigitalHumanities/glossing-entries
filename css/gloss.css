@@ -451,3 +451,13 @@ line.selected.just {
 #glossResult, .glossResult{
   margin-bottom: 2em;
 }
+
+#glossResult a, .glossResult a{
+  position: relative;
+  display: block;
+}
+
+#glossResult a::before, .glossResult a::before{
+  content: "*";
+  margin-right: 2px;
+}
