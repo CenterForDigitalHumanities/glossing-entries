@@ -335,7 +335,10 @@ function loadHashId() {
 if (document.readyState === 'interactive' || 'loaded') loadHashId()
 
 async function findMatchingIncipits(incipit, titleStart) {
-    if (incipit?.length < 5) { throw Error(`Incipit "${incipit}" is too short to consider.`) }
+    if (incipit?.length < 5) { 
+        const ev = new CustomEvent(`Text "${incipit}" is too short to consider.`)
+        globalFeedbackBlip(ev, `Text "${incipit}" is too short to consider for this check.`, false)
+    }
     const historyWildcard = { "$exists": true, "$size": 0 }
     titleStart ??= /\s/.test(incipit) ? incipit.split(' ')[0] : incipit
     const queryObj = {

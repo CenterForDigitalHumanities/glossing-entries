@@ -166,8 +166,13 @@ class GlossModal extends HTMLElement {
                             <gog-theme-widget class="col"> </gog-theme-widget>
                         </div>
 
-                        <button type="button" name="checkForGlossesBtn"> Check for Existing Glosses </button>
-                        <div class="glossResult"></div>
+                        <div class="row">
+                            <div class="col">
+                                <p> Before submitting you can check for existing Glosses that may already contain the text provided above. </p>
+                                <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
+                                <div id="glossResult"></div>
+                            </div>
+                        </div>
 
                         <input type="submit" value="Create" class="col is-hidden">
                     </form>

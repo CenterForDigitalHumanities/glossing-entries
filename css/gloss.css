@@ -447,3 +447,7 @@ line.selected.just {
     background-color: black;
     text-align: center;
 }
+
+#glossResult, .glossResult{
+  margin-bottom: 2em;
+}
