@@ -380,13 +380,15 @@ class ReferencesBrowser extends HTMLElement {
                 display: block;
             }
 
-            li {
+            .glossWitnesses li {
                 display: inline-block;
                 vertical-align: top;
                 padding: 0em 1em;
+                cursor: pointer;
+                color: var(--color-primary);
             }
 
-            li::before{
+            .glossWitnesses li::before{
                 margin-right: 3px;
                 font-size: 10pt;
                 opacity: 0.8;
@@ -395,7 +397,7 @@ class ReferencesBrowser extends HTMLElement {
                 content: '('attr(count)')';
             }
         </style>
-        <p> This Gloss can be found in the following texts.  A count will appear next to the texts which represents the number of recorded appearances. </p>
+        <p> This Gloss can be found in the following texts.  A count will appear next to the texts which represents the number of recorded appearances of this Gloss in that text. </p>
         <ul class="glossWitnesses"> </ul>
     `
     constructor() {
@@ -412,6 +414,20 @@ class ReferencesBrowser extends HTMLElement {
         const witnessList = $this.querySelector(".glossWitnesses")
         const glossURI = this.getAttribute("gloss-uri") ? decodeURIComponent(this.getAttribute("gloss-uri")) : null
         if(!glossURI) return
+
+        function activateWitnessModal(event){
+            const modal = document.querySelector("witness-modal")
+            const clicked_li = event.target.tagName === "SPAN" ? event.target.closest("li") : event.target
+            const source_uri = clicked_li.getAttribute("source-uri")
+            const witness_uris = clicked_li.getAttribute("appearances").split("__")
+            const witnessListElem = modal.querySelector(".appearancesList")
+            witnessListElem.innerHTML = ""
+            witness_uris.forEach((witness, index) => {
+                const li = `<li><a href="/gloss-transcription.html?tpen-project=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
+                witnessListElem.innerHTML += li
+            })
+            modal.toggleModal()
+        }
 
         const gloss_witness_annos_query = {
             "body.references.value" : glossURI,
@@ -465,24 +481,25 @@ class ReferencesBrowser extends HTMLElement {
                     .then(witness_source_annos => {
                         // Get the target's 'source' Annotation for a better label.  Should only be 1.
                         const witnessSource = witness_source_annos.length ? witness_source_annos[0].body.source.value[0] : null
-                        const id_for_label = witnessSource ? witnessSource : gloss_witness_anno.target
+                        const witnessURI = `${witness_source_annos.length ? witness_source_annos[0].target : ""}`
+                        const sourceURI = witnessSource ? witnessSource : gloss_witness_anno.target
                         // Do not add duplicates
-                        const existing = witnessList.querySelector(`a[href="${id_for_label}"]`)
+                        const existing = witnessList.querySelector(`li[source-uri="${sourceURI}"]`)
                         if(existing) {
                             const existing_li = existing.closest("li")
                             existing_li.setAttribute("count", parseInt(existing_li.getAttribute("count")) + 1)
+                            existing_li.setAttribute("appearances", existing_li.getAttribute("appearances")+`__${witnessURI}`)
                             return
                         }
+                        li.setAttribute("source-uri", sourceURI)
                         li.setAttribute("count", "1")
-                        a.setAttribute("href", id_for_label)
-                        a.setAttribute("target", "_blank")
+                        li.setAttribute("appearances", witnessURI)
+                        li.addEventListener("click", activateWitnessModal, false)
                         span.classList.add("deer-view")
-                        // The witness has a default label that includes the text and shelfmark
                         span.setAttribute("deer-template", "label")
-                        span.setAttribute("deer-id", id_for_label)
+                        span.setAttribute("deer-id", sourceURI)
                         span.innerHTML = "loading..."
-                        a.appendChild(span)
-                        li.appendChild(a)
+                        li.appendChild(span)
                         witnessList.appendChild(li)
                         utils.broadcast(undefined, "deer-view", document, { set: [span] })    
                     })

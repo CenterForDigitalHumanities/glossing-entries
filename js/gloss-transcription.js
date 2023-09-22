@@ -103,6 +103,8 @@ window.onload = () => {
     setListings()
     const tpenID = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
+    const deleteWitnessButton = document.querySelector(".deleteWitness")
+
     if(tpenID) {
         needs.classList.add("is-hidden")
         document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
@@ -112,8 +114,10 @@ window.onload = () => {
     }
     if(textWitnessID){
         const submitBtn = witnessForm.querySelector("input[type='submit']")
+        const deleteBtn = witnessForm.querySelector(".deleteWitness")
         submitBtn.value = "Update Textual Witness"
         submitBtn.classList.remove("is-hidden")
+        deleteBtn.classList.remove("is-hidden")
         witnessForm.setAttribute("deer-id", textWitnessID)
     }
     else{
@@ -144,6 +148,83 @@ window.onload = () => {
         }
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
+    })
+    deleteWitnessButton.addEventListener("click", ev => {
+        if(confirm("The witness will be deleted.  This action cannot be undone.")){
+            deleteWitness()
+        }
+    })
+}
+
+/**
+ *  Delete a Witness of a Gloss.  
+ *  This will delete the entity itself and its Annotations.  It will no longer appear as a Witness to the Gloss in any UI.
+*/
+async function deleteWitness(){
+    if(!textWitnessID) return
+    const annos_query = {
+        "target" : httpsIdArray(textWitnessID),
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    let anno_ids =
+        await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8"                },
+            body: JSON.stringify(annos_query)
+        })
+        .then(resp => resp.json()) 
+        .then(annos => annos.map(anno => anno["@id"]))
+        .catch(err => {
+            return []
+        })
+    let delete_calls = anno_ids.map(annoUri => {
+        return fetch(`${__constants.tiny}/delete`, {
+            method: "DELETE",
+            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            }
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+        .catch(err => {
+            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
+            console.log(err)
+        })
+    })
+
+    delete_calls.push(
+        fetch(`${__constants.tiny}/delete`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+            body: JSON.stringify({"@id" : textWitnessID.replace(/^https?:/, 'https:')})
+        })
+        .then(resp => resp.json()) 
+        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+        .catch(err => {
+            console.warn(`There was an issue removing the Witness: ${textWitnessID}`)
+            console.log(err)
+        })
+    )
+    Promise.all(delete_calls).then(success => {
+        addEventListener("globalFeedbackFinished", ev=> {
+            window.location = "ng.html#"
+        })
+        const ev = new CustomEvent("Witness Deleted.  You will be redirected.")
+        globalFeedbackBlip(ev, `Witness Deleted.  You will be redirected.`, true)
+    })
+    .catch(err => {
+        // OK they may be orphaned.  We will continue on towards deleting the entity.
+        console.warn("There was an issue removing connected Annotations.")
+        console.error(err)
+        const ev = new CustomEvent("Error Deleting Witness")
+        globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
     })
 }
 
@@ -375,14 +456,14 @@ function preselectLines(linesArr, form) {
     let sel = window.getSelection()
     let line = linesArr[0]
     let lineid = line.split("#")[0]
-    const lineStartElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
+    const lineStartElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
     lineStartElem.parentElement.previousElementSibling.classList.add("has-selection")
     let selection = line.split("#")[1].replace("char=", "").split(",")           
     range.setStart(lineStartElem.firstChild, parseInt(selection[0]))
     if(linesArr.length > 1){
         line = linesArr.pop()
         lineid = line.split("#")[0]
-        const lineEndElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
+        const lineEndElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
         lineEndElem.parentElement.previousElementSibling.classList.add("has-selection")
         selection = line.split("#")[1].replace("char=", "").split(",")           
         range.setEnd(lineEndElem.firstChild, parseInt(selection[1]))
