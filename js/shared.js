@@ -338,6 +338,7 @@ async function findMatchingIncipits(incipit, titleStart) {
     if (incipit?.length < 5) { 
         const ev = new CustomEvent(`Text "${incipit}" is too short to consider.`)
         globalFeedbackBlip(ev, `Text "${incipit}" is too short to consider for this check.`, false)
+        return
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
     titleStart ??= /\s/.test(incipit) ? incipit.split(' ')[0] : incipit
