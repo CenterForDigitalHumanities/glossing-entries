@@ -5,13 +5,13 @@
 //For when we test, so we can easily find and blow away junk data
 // setTimeout(() => {
 //     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="GlossingDevTest"
-//         el.setAttribute("value", "GlossingDevTest")
+//         el.value="ReleaseInterfaceTest"
+//         el.setAttribute("value", "ReleaseInterfaceTest")
 //     })
 //     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "GlossingDevTest")
+//         el.setAttribute("deer-creator", "ReleaseInterfaceTest")
 //     })
-//     window.GOG_USER["http://store.rerum.io/agent"] = "GlossingDevTest"
+//     window.GOG_USER["http://store.rerum.io/agent"] = "ReleaseInterfaceTest"
 // }, 4000)
 
 let __constants = {}
@@ -335,16 +335,17 @@ function loadHashId() {
 if (document.readyState === 'interactive' || 'loaded') loadHashId()
 
 async function findMatchingIncipits(incipit, titleStart) {
-    if (incipit?.length < 5) { throw Error(`Incipit "${incipit}" is too short to consider.`) }
+    if (incipit?.length < 5) { 
+        const ev = new CustomEvent(`Text "${incipit}" is too short to consider.`)
+        globalFeedbackBlip(ev, `Text "${incipit}" is too short to consider for this check.`, false)
+    }
     const historyWildcard = { "$exists": true, "$size": 0 }
     titleStart ??= /\s/.test(incipit) ? incipit.split(' ')[0] : incipit
     const queryObj = {
         $or: [{
             "body.title.value": titleStart
         }, {
-            "body.transcribedGloss.value": incipit
-        }, {
-            "body.transcribedGloss": incipit
+            "body.text.textValue": incipit
         }],
         "__rerum.history.next": historyWildcard
     }
@@ -361,7 +362,7 @@ async function findMatchingIncipits(incipit, titleStart) {
             matches.forEach(each => {
                 const match = {
                     id: each.target['@id'] ?? each.target.id ?? each.target,
-                    title: each.body.title?.value ?? each.body.title ?? each.body.transcribedGloss?.value ?? each.body.transcribedGloss
+                    title: each.body.title?.value ?? each.body.title ?? each.body.text.textValue
                 }
                 uniqueGlosses.set(match.id, match)
             })

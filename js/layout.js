@@ -1,4 +1,5 @@
 import { default as config } from './deer-config.js'
+import { default as utils } from './deer-utils.js'
 class GlossFooter extends HTMLElement {
     template = `
     <footer>
@@ -370,3 +371,133 @@ class ThemeWidget extends HTMLElement {
 }
 
 customElements.define('gog-theme-widget', ThemeWidget)
+
+class ReferencesBrowser extends HTMLElement {
+    template = `
+        <style>
+            gog-references-browser{
+                position: relative;
+                display: block;
+            }
+
+            li {
+                display: inline-block;
+                vertical-align: top;
+                padding: 0em 1em;
+            }
+
+            li::before{
+                margin-right: 3px;
+                font-size: 10pt;
+                opacity: 0.8;
+                position: relative;
+                bottom: 1px;
+                content: '('attr(count)')';
+            }
+        </style>
+        <p> This Gloss can be found in the following texts.  A count will appear next to the texts which represents the number of recorded appearances. </p>
+        <ul class="glossWitnesses"> </ul>
+    `
+    constructor() {
+        super()
+    }
+    attributeChangedCallback(name, oldValue, newValue) {
+      if(name === "gloss-uri" && newValue && oldValue !== newValue){
+        this.connectedCallback()
+      }
+    }
+    connectedCallback() {
+        const $this = this
+        this.innerHTML = this.template
+        const witnessList = $this.querySelector(".glossWitnesses")
+        const glossURI = this.getAttribute("gloss-uri") ? decodeURIComponent(this.getAttribute("gloss-uri")) : null
+        if(!glossURI) return
+
+        const gloss_witness_annos_query = {
+            "body.references.value" : glossURI,
+            '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
+            "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
+        }
+        fetch(`${config.URLS.QUERY}?limit=100&skip=0`, {
+            method: 'POST',
+            mode: 'cors',
+            headers:{
+                "Content-Type" : "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(gloss_witness_annos_query)
+        })
+        .then(res => {
+            if (!res.ok) {
+                throw Error(res.statusText)
+            }
+            return res.json()
+        })
+        .then(gloss_witness_annos => {
+            const newView = new Set()
+            if(gloss_witness_annos.length){
+                $this.classList.remove("is-hidden")
+                gloss_witness_annos.forEach((gloss_witness_anno, index) => {
+                    const li = document.createElement("li")
+                    li.setAttribute("count", "0")
+                    const a = document.createElement("a")
+                    const span = document.createElement("span")
+                    const witnessURI = gloss_witness_anno.target
+                    const query2 = {
+                        "body.source.value" : {"$exists":true},
+                        "target" : gloss_witness_anno.target,
+                        '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
+                        "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
+                    }
+                    fetch(`${config.URLS.QUERY}?limit=100&skip=0`, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers:{
+                            "Content-Type" : "application/json;charset=utf-8"
+                        },
+                        body: JSON.stringify(query2)
+                    })
+                    .then(res => {
+                        if (!res.ok) {
+                            throw Error(res.statusText)
+                        }
+                        return res.json()
+                    })
+                    .then(witness_source_annos => {
+                        // Get the target's 'source' Annotation for a better label.  Should only be 1.
+                        const witnessSource = witness_source_annos.length ? witness_source_annos[0].body.source.value[0] : null
+                        const id_for_label = witnessSource ? witnessSource : gloss_witness_anno.target
+                        // Do not add duplicates
+                        const existing = witnessList.querySelector(`a[href="${id_for_label}"]`)
+                        if(existing) {
+                            const existing_li = existing.closest("li")
+                            existing_li.setAttribute("count", parseInt(existing_li.getAttribute("count")) + 1)
+                            return
+                        }
+                        li.setAttribute("count", "1")
+                        a.setAttribute("href", id_for_label)
+                        a.setAttribute("target", "_blank")
+                        span.classList.add("deer-view")
+                        // The witness has a default label that includes the text and shelfmark
+                        span.setAttribute("deer-template", "label")
+                        span.setAttribute("deer-id", id_for_label)
+                        span.innerHTML = "loading..."
+                        a.appendChild(span)
+                        li.appendChild(a)
+                        witnessList.appendChild(li)
+                        utils.broadcast(undefined, "deer-view", document, { set: [span] })    
+                    })
+                    .catch(err => {
+                        return null
+                    })
+                })
+            }
+        })
+        .catch(err => {
+            console.error(err)
+            $this.innerHTML = `<b class="text-error"> Could not get Gloss witnesses. </b>`
+        })
+    }
+    static get observedAttributes() { return ['gloss-uri'] }
+}
+
+customElements.define('gog-references-browser', ReferencesBrowser)

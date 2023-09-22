@@ -46,18 +46,41 @@ class GlossModalActivationButton extends HTMLElement {
         }
 
         /**
+         * Check if the Witness form has text selection (for a text value).
+         */ 
+        function hasTextRequirement(){
+            if(witnessForm !== undefined){
+                const s = witnessForm.querySelector("input[custom-key='selections']")?.value
+                if(s){
+                    return true
+                }  
+            }
+            return false
+        }
+
+        /**
          * Hide or show the modal (no animation).
          * Fire an event for whether the modal is hidden or visiable.
          */ 
         function toggleModal(event){
             // A proprietary handler for gloss-transcription.html to make sure the Shelfmark requirement is met before pulling up the Gloss modal.
+            let blip = new CustomEvent("Blip")
             if(document.location.pathname.includes("gloss-transcription")){
-                if(!hasShelfmarkRequirement()) {
-                    alert("You must provide a Shelfmark value.")
-                    return false
+                // There must be a shelfmark
+                if(!hasShelfmarkRequirement()){
+                    //alert("You must provide a Shelfmark value.")
+                    blip = new CustomEvent("You must provide a Shelfmark value.")
+                    utils.globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
+                    return
+                }
+                // There must be a selection
+                if(!hasTextRequirement()){
+                    //alert("Select some text first")
+                    blip = new CustomEvent("Select some text first.")
+                    utils.globalFeedbackBlip(blip, `Select some text first.`, false)
+                    return   
                 }
             }
-
             const $button = event.target
             const modal = document.querySelector("gloss-modal")
             const action = modal.classList.contains("is-hidden") ? "remove" : "add"
@@ -111,7 +134,7 @@ class GlossModal extends HTMLElement {
                         When you create this Gloss it will be attached to the T-PEN Transcription text selection and appear in the Gallery of Glosses Gloss Collection.
                     </p>
 
-                    <form name="gloss-modal-form" deer-type="Gloss_TEST" deer-context="http://purl.org/dc/terms">
+                    <form name="gloss-modal-form" deer-type="Gloss" deer-context="http://purl.org/dc/terms">
                         <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
                         <input is="auth-creator" type="hidden" deer-key="creator" />
                         <div class="row">
@@ -143,8 +166,13 @@ class GlossModal extends HTMLElement {
                             <gog-theme-widget class="col"> </gog-theme-widget>
                         </div>
 
-                        <button type="button" name="checkForGlossesBtn"> Check for Existing Glosses </button>
-                        <div class="glossResult"></div>
+                        <div class="row">
+                            <div class="col">
+                                <p> Before submitting you can check for existing Glosses that may already contain the text provided above. </p>
+                                <button type="button" name="checkForGlossesBtn"> Check for Existing Glosses </button>
+                                <div class="glossResult"></div>
+                            </div>
+                        </div>
 
                         <input type="submit" value="Create" class="col is-hidden">
                     </form>

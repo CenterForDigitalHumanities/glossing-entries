@@ -3,6 +3,7 @@
  */ 
 window.onload = () => {
     const hash = window.location.hash.substr(1)
+    if(hash) document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
     const labelElem = document.querySelector('input[deer-key="title"]')
     const textElem = glossText
     const textListener = textElem.addEventListener('input', ev => {
