@@ -162,6 +162,9 @@ window.onload = () => {
 */
 async function deleteWitness(){
     if(!textWitnessID) return
+    // No extra clicks while you await.
+    const deleteWitnessButton = document.querySelector(".deleteWitness")
+    deleteWitnessButton.setAttribute("disabled", "true")
     const annos_query = {
         "target" : httpsIdArray(textWitnessID),
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
