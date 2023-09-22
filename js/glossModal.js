@@ -371,7 +371,7 @@ class GlossModal extends HTMLElement {
             }
         })
 
-        textElem.addEventListener('blur', ev => checkForGlossesBtn.click())
+        //textElem.addEventListener('blur', ev => checkForGlossesBtn.click())
         checkForGlossesBtn.addEventListener('click', async ev => {
             const matches = await findMatchingIncipits(textElem.value.trim(), labelElem.value)
             glossResult.innerHTML = matches.length ? "<p>Potential matches found!</p>" : "<p>Gloss appears unique!</p>"
