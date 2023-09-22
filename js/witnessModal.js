@@ -44,7 +44,7 @@ class WitnessModal extends HTMLElement {
             <div class="modal container">
                 <div class="card">
                     <header>
-                      <h4>Witness Appearances</h4>
+                      <h4>Gloss Appearances Throughout Text</h4>
                       <div class="is-right close"> Close </div>
                     </header>
                     <p>
