@@ -1,5 +1,5 @@
 const helloWorld = require("../hello-world.js");
 
 test("returns Hello, World!", () => {
-  expect(helloWorld()).toBe("Hello, Fail!");
+  expect(helloWorld()).toBe("Hello, World!");
 });
