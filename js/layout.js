@@ -423,7 +423,7 @@ class ReferencesBrowser extends HTMLElement {
             const witnessListElem = modal.querySelector(".appearancesList")
             witnessListElem.innerHTML = ""
             witness_uris.forEach((witness, index) => {
-                const li = `<li><a href="/gloss-transcription.html?tpen-project=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
+                const li = `<li><a target="_blank" href="/gloss-transcription.html?tpen-project=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
                 witnessListElem.innerHTML += li
             })
             modal.toggleModal()
