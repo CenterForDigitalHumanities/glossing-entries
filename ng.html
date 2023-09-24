@@ -8,6 +8,7 @@
     <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
+    <script src="js/witnessModal.js" type="module"></script>
     <script src="js/shared.js"></script>
     <script src="js/ng.js"></script>
 </head>
@@ -19,6 +20,7 @@
         NB: A Gloss is an important thing. Please describe it as well as possible and
         avoid creating a new one unless it does not already exist.
     </p>
+    <gog-references-browser class="bg-light is-hidden"> </gog-references-browser>
     <form id="named-gloss" deer-type="Gloss" deer-context="http://purl.org/dc/terms" hash-id>
         <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
@@ -63,18 +65,20 @@
             <input type="text" deer-key="targetVerse" placeholder="0-1" class="col-9 col-4-md"> -->
         </div>
         <div class="row">
+            <label class="col-3 col-2-md text-right">Notes</label>
+            <input type="text" deer-key="_notes" placeholder="internal notes" class="col-9 col-10-md">
+        </div>
+        <div class="row">
             <gog-tag-widget class="col"> </gog-tag-widget>
             <gog-theme-widget class="col"> </gog-theme-widget>
         </div>
         <div class="row">
-            <label class="col-3 col-2-md text-right">Notes</label>
-            <input type="text" deer-key="_notes" placeholder="internal notes" class="col-9 col-10-md">
+            <div class="col">
+                <p> Before submitting you can check for existing Glosses that may already contain the text provided above. </p>
+                <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
+                <div id="glossResult"></div>
+            </div>
         </div>
-
-
-        <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
-        <div id="glossResult"></div>
-
         <input type="submit" value="Create" class="col add-update">
         <a href="./named-glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')"
             class="text-error">Drop from collection</a>
@@ -89,7 +93,7 @@
     </gog-footer>
 
     <div id="globalFeedback" class="card is-center"></div>
-    
+    <witness-modal class="is-hidden"></witness-modal>
 </body>
 
 </html>

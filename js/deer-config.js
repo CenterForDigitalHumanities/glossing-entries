@@ -233,6 +233,7 @@ export default {
                     elem.querySelector(".filterNotice").classList.remove("is-hidden")
                     elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                 }
+                let addFilterState = true
                 const totalsProgress = elem.querySelector(".totalsProgress")
                 const newcache = elem.querySelector(".newcache")
                 // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
@@ -254,15 +255,14 @@ export default {
                 // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
                     const val = ev?.target.value.trim()
+                    let filterQuery
                     if(val){
-                        const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
-                        debounce(filterGlosses(filterQuery))
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
                     }
                     else{
-                        const url = new URL(window.location.href)
-                        url.searchParams.delete("gog-filter")
-                        window.history.replaceState(null, null, url)
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
                     }
+                    debounce(filterGlosses(filterQuery))
                 })
 
                 if(numloaded === total){
@@ -298,7 +298,9 @@ export default {
                     const numloaded = parseInt(totalsProgress.getAttribute("count"))
                     const total = parseInt(totalsProgress.getAttribute("total"))
                     if(numloaded !== total){
-                        alert("All data must be loaded to use this filter.  Please wait.")
+                        //alert("All data must be loaded to use this filter.  Please wait.")
+                        const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
+                        deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
                         return
                     }
                     queryString = queryString.trim()
@@ -323,8 +325,14 @@ export default {
 
                     // This query was applied.  Make this the encoded query in the URL, but don't cause a page reload.
                     const url = new URL(window.location.href)
-                    url.searchParams.set("gog-filter", queryString)
-                    window.history.replaceState(null, null, url)
+                    if(query.title){
+                        url.searchParams.set("gog-filter", queryString)
+                        window.history.replaceState(null, null, url)   
+                    }
+                    else{
+                        url.searchParams.delete("gog-filter")
+                        window.history.replaceState(null, null, url)
+                    }
                 }
             }
             return { html, then }
@@ -474,6 +482,7 @@ export default {
                 const progressArea = elem.querySelector(".progressArea")
                 const filterInstructions = elem.querySelector(".filterInstructions")
                 const modalBtn = elem.querySelector("gloss-modal-button")
+                let blip = new CustomEvent("Blip")
                 // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                 totalsProgress.innerHTML = `
                     ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>
@@ -493,9 +502,23 @@ export default {
                 elem.querySelectorAll('.toggleInclusion').forEach(btn => btn.addEventListener('click', ev => {
                     ev.preventDefault()
                     ev.stopPropagation()
+                    const form = ev.target.closest("form")
+                    // There must be a shelfmark
+                    if(!form.querySelector("input[deer-key='identifier']").value){
+                        //alert("You must provide a Shelfmark value.")
+                        blip = new CustomEvent("You must provide a Shelfmark value.")
+                        deerUtils.globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
+                        return
+                    }
+                    // There must be a selection
+                    if(!form.querySelector("input[custom-key='selections']").value){
+                        //alert("Select some text first")
+                        blip = new CustomEvent("Select some text first.")
+                        deerUtils.globalFeedbackBlip(blip, `Select some text first.`, false)
+                        return   
+                    }
                     const glossIncipit = ev.target.closest("li").getAttribute("data-title")
                     if(confirm(`Save this textual witness for Gloss '${glossIncipit}'?`)){
-                        const form = ev.target.closest("form")
                         const customKey = elem.querySelector("input[custom-key='references']")
                         const uri = btn.getAttribute("data-id")
                         if(customKey.value !== uri){
@@ -503,16 +526,12 @@ export default {
                             customKey.setAttribute("value", uri) 
                             customKey.$isDirty = true
                             form.closest("form").$isDirty = true
-                            // There must be a shelfmark.
-                            if(form.querySelector("input[deer-key='identifier']").value){
-                                form.querySelector("input[type='submit']").click()    
-                            }
-                            else{
-                                alert("You must provide a Shelfmark value.")
-                            }
+                            form.querySelector("input[type='submit']").click()
                         }
                         else{
-                            alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                            //alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                            blip = new CustomEvent(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                            deerUtils.globalFeedbackBlip(blip, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
                         }
                     }                    
                 }))
@@ -520,15 +539,14 @@ export default {
                 // Filter the list of glosses as users type their query against 'title'
                 filter.addEventListener('input', ev =>{
                     const val = ev?.target.value.trim()
+                    let filterQuery
                     if(val){
-                        const filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
-                        debounce(filterGlosses(filterQuery))
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
                     }
                     else{
-                        const url = new URL(window.location.href)
-                        url.searchParams.delete("gog-filter")
-                        window.history.replaceState(null, null, url)
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
                     }
+                    debounce(filterGlosses(filterQuery))
                 })
 
                 if(numloaded === total){
@@ -565,7 +583,9 @@ export default {
                     const numloaded = parseInt(totalsProgress.getAttribute("count"))
                     const total = parseInt(totalsProgress.getAttribute("total"))
                     if(numloaded !== total){
-                        alert("All data must be loaded to use this filter.  Please wait.")
+                        //alert("All data must be loaded to use this filter.  Please wait.")
+                        const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
+                        deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
                         return
                     }
                     queryString = queryString.trim()
@@ -590,9 +610,16 @@ export default {
                 }
 
                 // Could write content state url for the filter if desired.
-                //const url = new URL(window.location.href)
-                //url.searchParams.set("gog-filter", queryString)
-                //window.history.replaceState(null, null, url);
+                // This query was applied.  Make this the encoded query in the URL, but don't cause a page reload.
+                // const url = new URL(window.location.href)
+                // if(query.title){
+                //     url.searchParams.set("gog-filter", queryString)
+                //     window.history.replaceState(null, null, url)   
+                // }
+                // else{
+                //     url.searchParams.delete("gog-filter")
+                //     window.history.replaceState(null, null, url)
+                // }
             }
             return { html, then }
         },
@@ -656,6 +683,8 @@ export default {
                     if(increaseTotal) total++
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
+                    const modalBtn = containingListElem.querySelector("gloss-modal-button")
+                    const filterInstructions = containingListElem.querySelector(".filterInstructions")
                     totalsProgress.setAttribute("count", numloaded)
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.innerHTML = `
@@ -664,6 +693,8 @@ export default {
                         A filter will become available when all items are loaded.`
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
+                        if(modalBtn) modalBtn.classList.remove("is-hidden")
+                        if(filterInstructions) filterInstructions.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be visible and selected / take on the string / etc.

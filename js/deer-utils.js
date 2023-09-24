@@ -165,6 +165,10 @@ export default {
             UTILS.warning("Unable to find URI in object:", entity)
             return entity
         }
+        // Hacking this deferred TPEN bug.
+        if(findId.includes("/TPEN/manifest/")) {
+            findId = findId.replace("manifest.json", "")
+        }
         let getVal = UTILS.getValue
         return fetch(findId.replace(/^https?:/,'https:')).then(response => response.json())
             .then(obj => UTILS.findByTargetId(findId)
