@@ -43,7 +43,7 @@
             Please be patient while we get things together...  
         </p>
     </div>
-    <form id="witnessForm" class="is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
+    <form id="witnessForm" class="is-hidden" deer-type="Text_Witness_Test" deer-context="http://purl.org/dc/terms"> 
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">
         <div class="row">
@@ -77,7 +77,8 @@
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenNamedGloss col-9 col-10-md is-hidden"></textarea>
         </div>
-        <input class="is-hidden" type="submit" value="Create Textual Witness"/>
+        <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
+        <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
         <div class="row">
             <witness-text-selector class="lineSelector witness-needed is-hidden col-7-md col-6-sm"> </witness-text-selector>
             <deer-view class="witness-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-listing deer-collection="Glossing-Matthew-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
@@ -88,6 +89,6 @@
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <gloss-modal class="is-hidden"></gloss-modal>
-    <script src="js/witness-fragment.js"></script>
+    <script src="js/gloss-witness.js"></script>
 </body>
 </html>

@@ -25,7 +25,7 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "ReleaseInterfaceTest"
+    //form.querySelector("input[deer-key='creator']").value = "BasicWitnessTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""

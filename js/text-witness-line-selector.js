@@ -69,6 +69,8 @@ class WitnessTextSelector extends HTMLElement {
         this.innerHTML = this.template
         const $this = this
         const witnessURI = this.getAttribute("witness-uri")
+        const customKey = this.querySelector("input[custom-key='selections']")
+
         if(!witnessURI) return
         this.querySelector("div.toggle").addEventListener("click", event => {
             const container = event.target.nextElementSibling
@@ -128,7 +130,6 @@ class WitnessTextSelector extends HTMLElement {
                             if(!txt) lineElem.classList.add("emptyLine")
                             lineElem.onmouseup = function(e) {
                                 const s = document.getSelection()
-                                const customKey = $this.querySelector("input[custom-key='selections']")
                                 const filter = document.querySelector("input[filter]")
                                 const selectedText = document.getSelection() ? document.getSelection().toString().trim() : ""
                                 const firstword = selectedText.split(" ")[0]
@@ -239,7 +240,12 @@ class WitnessTextSelector extends HTMLElement {
                                labelElem.value = "" 
                                labelElem.setAttribute("value", "")
                                labelElem.$isDirty = false
-                            }                    
+                            }     
+                            if(customKey.value !== selectedText){
+                                customKey.value = selectedText
+                                customKey.$isDirty = true
+                                $this.closest("form").$isDirty = true
+                            }               
                             console.log("You made the following text selection")
                             console.log(selectedText)
                         }
