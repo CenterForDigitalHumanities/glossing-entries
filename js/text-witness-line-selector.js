@@ -197,6 +197,9 @@ class WitnessTextSelector extends HTMLElement {
                     const plaintext = document.createElement("div")
                     plaintext.setAttribute("witness-uri", witnessURI)
                     plaintext.innerText = witness_text_data
+
+                    //FIXME TODO later on for pre selection, each individual text line needs to be wrapped in an element with no other children
+
                     witnessTextElem.appendChild(plaintext)
 
                     plaintext.onmouseup = function(e) {

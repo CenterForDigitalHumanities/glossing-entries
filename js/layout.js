@@ -427,7 +427,13 @@ class ReferencesBrowser extends HTMLElement {
             const witnessListElem = modal.querySelector(".appearancesList")
             witnessListElem.innerHTML = ""
             witness_uris.forEach((witness, index) => {
-                const li = `<li><a target="_blank" href="/gloss-transcription.html?tpen-project=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
+                let li
+                if(source_uri.includes("t-pen.org/TPEN/")){
+                    li = `<li><a target="_blank" href="/gloss-transcription.html?tpen-project=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
+                }
+                else{
+                    li = `<li><a target="_blank" href="/gloss-witness.html?witness-uri=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
+                }
                 witnessListElem.innerHTML += li
             })
             modal.toggleModal()
@@ -499,13 +505,20 @@ class ReferencesBrowser extends HTMLElement {
                         li.setAttribute("count", "1")
                         li.setAttribute("appearances", witnessURI)
                         li.addEventListener("click", activateWitnessModal, false)
-                        span.classList.add("deer-view")
-                        span.setAttribute("deer-template", "label")
-                        span.setAttribute("deer-id", sourceURI)
-                        span.innerHTML = "loading..."
+                        let broadcast = false
+                        if(sourceURI.includes("t-pen.org/TPEN/")){
+                            span.classList.add("deer-view")
+                            span.setAttribute("deer-template", "label")
+                            span.setAttribute("deer-id", sourceURI)
+                            span.innerHTML = "loading..." 
+                            broadcast = true   
+                        }
+                        else{
+                            span.innerHTML = sourceURI  
+                        }
                         li.appendChild(span)
                         witnessList.appendChild(li)
-                        utils.broadcast(undefined, "deer-view", document, { set: [span] })    
+                        if(broadcast) utils.broadcast(undefined, "deer-view", document, { set: [span] })    
                     })
                     .catch(err => {
                         return null

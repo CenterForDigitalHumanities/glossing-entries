@@ -444,35 +444,23 @@ function preselectLines(linesArr, form) {
     }
     linesArr = linesArr.value ?? linesArr
     if (linesArr.length === 0) {
-        console.warn("There are no lines recorded for this witness")
+        console.warn("There are no text selections recorded for this witness")
         return false
     }
     const selectionsElem = form.querySelector("input[custom-key='selections']")
     if(source?.citationSource){
         selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
     }
-    selectionsElem.value = linesArr.join("__")
-
-    //Now highlight the lines
+    selectionsElem.value = linesArr[0]
+     //Now highlight the text
     let range = document.createRange()
     let sel = window.getSelection()
-    let line = linesArr[0]
-    let lineid = line.split("#")[0]
-    const lineStartElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-    lineStartElem.parentElement.previousElementSibling.classList.add("has-selection")
-    let selection = line.split("#")[1].replace("char=", "").split(",")           
-    range.setStart(lineStartElem.firstChild, parseInt(selection[0]))
-    if(linesArr.length > 1){
-        line = linesArr.pop()
-        lineid = line.split("#")[0]
-        const lineEndElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-        lineEndElem.parentElement.previousElementSibling.classList.add("has-selection")
-        selection = line.split("#")[1].replace("char=", "").split(",")           
-        range.setEnd(lineEndElem.firstChild, parseInt(selection[1]))
-    }
-    else{
-        range.setEnd(lineStartElem.firstChild, parseInt(selection[1]))
-    }
+    const text = linesArr[0]
+    const witness_text_elem = document.querySelector(".witnessText").firstElementChild
+    const selection_indexes = []
+    const lineStartElem = witness_text_elem.querySelectorAll("text").filter(textElems => textElems.innerText.includes(text)) 
+    range.setStart(lineStartElem, witness_text_elem.innerText.indexOf(text))
+    range.setEnd(lineStartElem, witness_text_elem.innerText.indexOf(text) + text.length)
     sel.removeAllRanges()
     sel.addRange(range)
     document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
