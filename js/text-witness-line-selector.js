@@ -196,10 +196,32 @@ class WitnessTextSelector extends HTMLElement {
                     // If we couldn't tell what kind of resource it was, treat it as plain text
                     const plaintext = document.createElement("div")
                     plaintext.setAttribute("witness-uri", witnessURI)
-                    plaintext.innerText = witness_text_data
+                    let just_text = ""
+                    witness_text_data.trim().split("\r\n").forEach(lineText => {
+                        const line = document.createElement("line")
+                        const br = document.createElement("br")
+                        if(lineText === ""){
+                            // Any line breaks cause extra child elements which screws up Selection and Range in preSelectLines()
+                        }
+                        else{
+                            just_text += lineText
+                        }
+                    })
 
-                    //FIXME TODO later on for pre selection, each individual text line needs to be wrapped in an element with no other children
-
+                    // witness_text_data.trim().split("\r\n").forEach(lineText => {
+                    //     const line = document.createElement("line")
+                    //     const br = document.createElement("br")
+                    //     if(lineText === ""){
+                    //         line.appendChild(br)
+                    //         line.appendChild(br)
+                    //     }
+                    //     else{
+                    //         line.innerText = lineText
+                    //     }
+                    //     plaintext.appendChild(line)
+                    // })
+                    
+                    plaintext.innerText = just_text
                     witnessTextElem.appendChild(plaintext)
 
                     plaintext.onmouseup = function(e) {

@@ -457,10 +457,8 @@ function preselectLines(linesArr, form) {
     let sel = window.getSelection()
     const text = linesArr[0]
     const witness_text_elem = document.querySelector(".witnessText").firstElementChild
-    const selection_indexes = []
-    const lineStartElem = witness_text_elem.querySelectorAll("text").filter(textElems => textElems.innerText.includes(text)) 
-    range.setStart(lineStartElem, witness_text_elem.innerText.indexOf(text))
-    range.setEnd(lineStartElem, witness_text_elem.innerText.indexOf(text) + text.length)
+    range.setStart(witness_text_elem.firstChild, witness_text_elem.innerText.indexOf(text))
+    range.setEnd(witness_text_elem.firstChild, witness_text_elem.innerText.indexOf(text) + text.length)
     sel.removeAllRanges()
     sel.addRange(range)
     document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
