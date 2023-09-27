@@ -1,6 +1,12 @@
 const textWitnessID = window.location.hash.substr(1)
 let referencedGlossID = null
 
+// UI for when the provided T-PEN URI does not resolve or cannot be processed.
+document.addEventListener("witness-text-error", function(event){
+    const witnessURI = getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
+    document.querySelector(".witnessText").innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${witnessURI} </b>`
+})
+
 // Make the text in the Gloss modal form the same as the one in the Witness form
 document.addEventListener("gloss-modal-visible", function(event){
     const text = witnessForm.querySelector("textarea[custom-text-key='text']").value
@@ -25,7 +31,7 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "BasicWitnessTest"
+    form.querySelector("input[deer-key='creator']").value = "BasicWitnessTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""

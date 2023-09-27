@@ -86,7 +86,15 @@ class WitnessTextSelector extends HTMLElement {
             }
         })
         fetch(witnessURI)
-            .then(response => response.text())
+            .then(response => {
+                if(response.ok){
+                    return response.text()
+                }
+                else{
+                    const err = new Error(`Could not get witness text from ${witnessURI}`)
+                    throw err
+                }
+            })
             .then(witness_text_data => {
                 const witnessTextElem = $this.querySelector(".witnessText")
                 let structured = false
@@ -198,10 +206,8 @@ class WitnessTextSelector extends HTMLElement {
                     plaintext.setAttribute("witness-uri", witnessURI)
                     let just_text = ""
                     witness_text_data.trim().split("\r\n").forEach(lineText => {
-                        const line = document.createElement("line")
-                        const br = document.createElement("br")
-                        if(lineText === ""){
-                            // Any line breaks cause extra child elements which screws up Selection and Range in preSelectLines()
+                        if(lineText === "\n"){
+                            just_text += "\n\n"
                         }
                         else{
                             just_text += lineText
@@ -277,12 +283,14 @@ class WitnessTextSelector extends HTMLElement {
                     }
                 }
                 const e = new CustomEvent("witness-text-loaded", {bubbles: true })
-                document.dispatchEvent(e)
                 $this.setAttribute("witness-text-loaded", "true")
+                document.dispatchEvent(e)
             })
             .catch(err => {
                 console.error(err)
-                witnessTextElem.innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${witnessURI} </b>`
+                const e = new CustomEvent("witness-text-error", {bubbles: true })
+                $this.setAttribute("witness-text-error", "true")
+                document.dispatchEvent(e)
             })
     }
     static get observedAttributes() { return ['witness-uri'] }
