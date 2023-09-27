@@ -420,10 +420,11 @@ class ReferencesBrowser extends HTMLElement {
         if(!glossURI) return
 
         function activateWitnessModal(event){
+            const witness_uris = clicked_li.getAttribute("appearances").split("__")
+            if(witness_uris.length <= 1) return
             const modal = document.querySelector("witness-modal")
             const clicked_li = event.target.tagName === "SPAN" ? event.target.closest("li") : event.target
             const source_uri = clicked_li.getAttribute("source-uri")
-            const witness_uris = clicked_li.getAttribute("appearances").split("__")
             const witnessListElem = modal.querySelector(".appearancesList")
             witnessListElem.innerHTML = ""
             witness_uris.forEach((witness, index) => {
@@ -435,7 +436,7 @@ class ReferencesBrowser extends HTMLElement {
                     li = `<li><a target="_blank" href="/gloss-witness.html?witness-uri=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
                 }
                 witnessListElem.innerHTML += li
-            })
+            })        
             modal.toggleModal()
         }
 
@@ -505,20 +506,13 @@ class ReferencesBrowser extends HTMLElement {
                         li.setAttribute("count", "1")
                         li.setAttribute("appearances", witnessURI)
                         li.addEventListener("click", activateWitnessModal, false)
-                        let broadcast = false
-                        if(sourceURI.includes("t-pen.org/TPEN/")){
-                            span.classList.add("deer-view")
-                            span.setAttribute("deer-template", "label")
-                            span.setAttribute("deer-id", sourceURI)
-                            span.innerHTML = "loading..." 
-                            broadcast = true   
-                        }
-                        else{
-                            span.innerHTML = sourceURI  
-                        }
+                        span.classList.add("deer-view")
+                        span.setAttribute("deer-template", "shelfmark")
+                        span.setAttribute("deer-id", witnessURI)
+                        span.innerHTML = "loading..." 
                         li.appendChild(span)
                         witnessList.appendChild(li)
-                        if(broadcast) utils.broadcast(undefined, "deer-view", document, { set: [span] })    
+                        utils.broadcast(undefined, "deer-view", document, { set: [span] })    
                     })
                     .catch(err => {
                         return null

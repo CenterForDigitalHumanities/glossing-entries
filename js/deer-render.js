@@ -156,6 +156,20 @@ DEER.TEMPLATES.label = function (obj, options = {}) {
 }
 
 /**
+ * Retreive the shelfmark for object and return it formatted as HTML to be drawn.  
+ * @param {Object} obj some JSON containing 'identifier'
+ * @param {Object} options for lookup
+ */
+DEER.TEMPLATES.shelfmark = function (obj, options = {}) {
+    const shelfmark = UTILS.getValue(obj.identifier)
+    try {
+        return `${shelfmark}`
+    } catch (err) {
+        return null
+    }
+}
+
+/**
  * Retreive the best label for object and return it formatted as HTML to be drawn.  
  * @param {Object} obj some obj to be labeled
  * @param {Object} options for lookup
