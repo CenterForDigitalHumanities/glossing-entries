@@ -419,6 +419,18 @@ class ReferencesBrowser extends HTMLElement {
         const glossURI = this.getAttribute("gloss-uri") ? decodeURIComponent(this.getAttribute("gloss-uri")) : null
         if(!glossURI) return
 
+        function witnessRedirect(event){
+            const clicked_li = event.target.tagName === "SPAN" ? event.target.closest("li") : event.target
+            const source_uri = clicked_li.getAttribute("source-uri")
+            const witness_uri = clicked_li.getAttribute("appearances")
+            if(source_uri.includes("t-pen.org/TPEN/")){
+                window.open(`gloss-transcription.html?tpen-project=${source_uri}#${witness_uri}`, "_blank")
+            }
+            else{
+                window.open(`gloss-witness.html?witness-uri=${source_uri}#${witness_uri}`, "_blank")
+            }
+        }
+
         function activateWitnessModal(event){
             const witness_uris = clicked_li.getAttribute("appearances").split("__")
             if(witness_uris.length <= 1) return
@@ -500,12 +512,14 @@ class ReferencesBrowser extends HTMLElement {
                             const existing_li = existing.closest("li")
                             existing_li.setAttribute("count", parseInt(existing_li.getAttribute("count")) + 1)
                             existing_li.setAttribute("appearances", existing_li.getAttribute("appearances")+`__${witnessURI}`)
+                            existing_li.removeEventListener("click", witnessRedirect)
+                            existing_li.addEventListener("click", activateWitnessModal, false)
                             return
                         }
                         li.setAttribute("source-uri", sourceURI)
                         li.setAttribute("count", "1")
                         li.setAttribute("appearances", witnessURI)
-                        li.addEventListener("click", activateWitnessModal, false)
+                        li.addEventListener("click", witnessRedirect, false)
                         span.classList.add("deer-view")
                         span.setAttribute("deer-template", "shelfmark")
                         span.setAttribute("deer-id", witnessURI)
