@@ -5,7 +5,7 @@ window.onload = () => {
     const hash = window.location.hash.substr(1)
     if(hash) {
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
-        document.querySelector(".addWitnessBtn").classList.remove("is-hidden")
+        document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
     }
     const labelElem = document.querySelector('input[deer-key="title"]')
     const textElem = glossText
@@ -270,5 +270,20 @@ function prefillText(textObj, form) {
     if(textElem){
         textElem.value = textVal
         textElem.setAttribute("value", textVal)
+    }
+}
+
+function witnessForGloss(tpen){
+    const title = document.getElementById("named-gloss").querySelector("input[deer-key='title']").value
+    if(!title) return
+    const encodedFilter = encodeContentState(JSON.stringify({"title" : title}))
+    const url = new URL(window.location.href)
+    if(tpen){
+        //window.location = `gloss-transcription.html?gog-filter=${encodedFilter}`
+        window.open(`gloss-transcription.html?gog-filter=${encodedFilter}`, "_blank")
+    }
+    else{
+        //window.location = `gloss-witness.html?gog-filter=${encodedFilter}`
+        window.open(`gloss-witness.html?gog-filter=${encodedFilter}`, "_blank")
     }
 }

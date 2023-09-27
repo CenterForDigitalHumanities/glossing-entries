@@ -493,10 +493,10 @@ function preselectLines(linesArr, form) {
  * Recieve a TPEN project as input from #needs.  Reload the page with a set ?tpen-project URL parameter.
 */
 function loadURI(){
-    let url = resourceURI.value ? resourceURI.value : decodeURIComponent(getURLParameter("tpen-project"))
-    if(url){
-        let tpen = "?tpen-project="+url
-        url = window.location.href.split('?')[0] + tpen
+    let tpenProjectURI = resourceURI.value ? resourceURI.value : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
+    if(tpenProjectURI){
+        let url = new URL(window.location.href)
+        url.searchParams.append("tpen-project", tpenProjectURI)
         window.location = url
     }
     else{

@@ -384,24 +384,20 @@ class ReferencesBrowser extends HTMLElement {
                 display: block;
             }
 
+            .glossWitnesses{
+                margin-bottom: 0.2em;
+            }
+
             .glossWitnesses li {
                 display: inline-block;
                 vertical-align: top;
-                padding: 0em 1em;
+                padding: 0.2em 1em;
                 cursor: pointer;
                 color: var(--color-primary);
             }
 
-            .glossWitnesses li::before{
-                margin-right: 3px;
-                font-size: 10pt;
-                opacity: 0.8;
-                position: relative;
-                bottom: 1px;
-                content: '('attr(count)')';
-            }
         </style>
-        <p> This Gloss can be found in the following texts.  A count will appear next to the texts which represents the number of recorded appearances of this Gloss in that text. </p>
+        <p> Known Witnesses of this Gloss are displayed below.  Click on one for details about the Witness. </p>
         <ul class="glossWitnesses"> </ul>
     `
     constructor() {
@@ -419,7 +415,7 @@ class ReferencesBrowser extends HTMLElement {
         const glossURI = this.getAttribute("gloss-uri") ? decodeURIComponent(this.getAttribute("gloss-uri")) : null
         if(!glossURI) return
 
-        function witnessRedirect(event){
+        function witnessForGloss(event){
             const clicked_li = event.target.tagName === "SPAN" ? event.target.closest("li") : event.target
             const source_uri = clicked_li.getAttribute("source-uri")
             const witness_uri = clicked_li.getAttribute("appearances")
@@ -512,14 +508,14 @@ class ReferencesBrowser extends HTMLElement {
                             const existing_li = existing.closest("li")
                             existing_li.setAttribute("count", parseInt(existing_li.getAttribute("count")) + 1)
                             existing_li.setAttribute("appearances", existing_li.getAttribute("appearances")+`__${witnessURI}`)
-                            existing_li.removeEventListener("click", witnessRedirect)
+                            existing_li.removeEventListener("click", witnessForGloss)
                             existing_li.addEventListener("click", activateWitnessModal, false)
                             return
                         }
                         li.setAttribute("source-uri", sourceURI)
                         li.setAttribute("count", "1")
                         li.setAttribute("appearances", witnessURI)
-                        li.addEventListener("click", witnessRedirect, false)
+                        li.addEventListener("click", witnessForGloss, false)
                         span.classList.add("deer-view")
                         span.setAttribute("deer-template", "shelfmark")
                         span.setAttribute("deer-id", witnessURI)

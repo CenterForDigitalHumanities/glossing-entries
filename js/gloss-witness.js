@@ -478,10 +478,10 @@ function preselectLines(linesArr, form) {
  * Recieve a Witness URI as input from #needs.  Reload the page with a set ?witness-uri URL parameter.
 */
 function loadURI(){
-    let url = resourceURI.value ? resourceURI.value : decodeURIComponent(getURLParameter("witness-uri"))
-    if(url){
-        let witness = "?witness-uri="+url
-        url = window.location.href.split('?')[0] + witness
+    let witnessURI = resourceURI.value ? resourceURI.value : getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
+    if(witnessURI){
+        let url = new URL(window.location.href)
+        url.searchParams.append("witness-uri", witnessURI)
         window.location = url
     }
     else{
