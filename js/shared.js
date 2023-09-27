@@ -5,13 +5,13 @@
 //For when we test, so we can easily find and blow away junk data
 // setTimeout(() => {
 //     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="ReleaseInterfaceTest"
-//         el.setAttribute("value", "ReleaseInterfaceTest")
+//         el.value="BasicWitnessTest"
+//         el.setAttribute("value", "BasicWitnessTest")
 //     })
 //     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "ReleaseInterfaceTest")
+//         el.setAttribute("deer-creator", "BasicWitnessTest")
 //     })
-//     window.GOG_USER["http://store.rerum.io/agent"] = "ReleaseInterfaceTest"
+//     window.GOG_USER["http://store.rerum.io/agent"] = "BasicWitnessTest"
 // }, 4000)
 
 let __constants = {}

@@ -156,6 +156,20 @@ DEER.TEMPLATES.label = function (obj, options = {}) {
 }
 
 /**
+ * Retreive the shelfmark for object and return it formatted as HTML to be drawn.  
+ * @param {Object} obj some JSON containing 'identifier'
+ * @param {Object} options for lookup
+ */
+DEER.TEMPLATES.shelfmark = function (obj, options = {}) {
+    const shelfmark = UTILS.getValue(obj.identifier)
+    try {
+        return `${shelfmark}`
+    } catch (err) {
+        return null
+    }
+}
+
+/**
  * Retreive the best label for object and return it formatted as HTML to be drawn.  
  * @param {Object} obj some obj to be labeled
  * @param {Object} options for lookup
@@ -1458,7 +1472,7 @@ export default class DeerRender {
                 throw err
             } else {
                 if (this.id) {
-                    this.id = this.id.replace(/^https?:/,'https:') // avoid mixed content
+                    this.id = (!this.id.includes("localhost")) ? this.id.replace(/^https?:/,'https:') : this.id // avoid mixed content
                     limiter(() => fetch(this.id).then(response => response.json()).then(obj => RENDER.element(this.elem, obj)).catch(err => err))
                 } else if (this.collection) {
                     // Look not only for direct objects, but also collection annotations
