@@ -365,14 +365,16 @@ line.selected.just {
 #globalFeedback {
   visibility : hidden;
   min-width  : 250px;
-  margin-left: -125px;
+  max-width  : 80%;
   text-align : center;
   position   : fixed;
   z-index    : 9;
-  left       : 50%;
   bottom     : 10em;
   color      : white;
   font-weight : bold;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
 }
 
 #globalFeedback.show {
@@ -460,4 +462,8 @@ line.selected.just {
 #glossResult a::before, .glossResult a::before{
   content: "*";
   margin-right: 2px;
+}
+
+.addWitnessBtn{
+  margin-bottom: 1em;
 }

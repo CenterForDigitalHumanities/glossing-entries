@@ -69,6 +69,7 @@ class TpenLineSelector extends HTMLElement {
         this.innerHTML = this.template
         const $this = this
         const tpenProjectURI = this.getAttribute("tpen-project") ? decodeURIComponent(this.getAttribute("tpen-project")) : null
+        const tpenProjectLines = this.querySelector(".tpenProjectLines")
         if(!tpenProjectURI) return
         this.querySelector("div.toggle").addEventListener("click", event => {
             const container = event.target.nextElementSibling
@@ -87,7 +88,6 @@ class TpenLineSelector extends HTMLElement {
             .then(response => response.json())
             .then(ms => {
                 let allLines = []
-                const tpenProjectLines = $this.querySelector(".tpenProjectLines")
                 ms.sequences[0].canvases.forEach((canvas, index) => {
                     const pageContainer = document.createElement("div")
                     pageContainer.classList.add("pageContainer")
@@ -222,12 +222,14 @@ class TpenLineSelector extends HTMLElement {
                     tpenProjectLines.appendChild(pageContainer)
                 })
                 const e = new CustomEvent("tpen-lines-loaded", {bubbles: true })
-                document.dispatchEvent(e)
                 $this.setAttribute("tpen-lines-loaded", "true")
+                document.dispatchEvent(e)
             })
             .catch(err => {
                 console.error(err)
-                tpenProjectLines.innerHTML = `<b class="text-error"> Could not get T-PEN project ${tpenProjectURI} </b>`
+                const e = new CustomEvent("tpen-lines-error", {bubbles: true })
+                $this.setAttribute("tpen-lines-error", "true")
+                document.dispatchEvent(e)
             })
     }
     static get observedAttributes() { return ['tpen-project'] }

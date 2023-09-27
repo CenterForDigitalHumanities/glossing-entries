@@ -1,6 +1,12 @@
 const textWitnessID = window.location.hash.substr(1)
 let referencedGlossID = null
 
+// UI for when the provided T-PEN URI does not resolve or cannot be processed.
+document.addEventListener("tpen-lines-error", function(event){
+    const tpenProjectURI = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
+    document.querySelector(".tpenProjectLines").innerHTML = `<b class="text-error"> Could not get T-PEN project ${tpenProjectURI} </b>`
+})
+
 // Make the text in the Gloss modal form the same as the one in the Witness form
 document.addEventListener("gloss-modal-visible", function(event){
     const text = witnessForm.querySelector("textarea[custom-text-key='text']").value
@@ -25,7 +31,7 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "ReleaseInterfaceTest"
+    //form.querySelector("input[deer-key='creator']").value = "BasicWitnessTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -487,10 +493,10 @@ function preselectLines(linesArr, form) {
  * Recieve a TPEN project as input from #needs.  Reload the page with a set ?tpen-project URL parameter.
 */
 function loadURI(){
-    let url = resourceURI.value ? resourceURI.value : decodeURIComponent(getURLParameter("tpen-project"))
-    if(url){
-        let tpen = "?tpen-project="+url
-        url = window.location.href.split('?')[0] + tpen
+    let tpenProjectURI = resourceURI.value ? resourceURI.value : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
+    if(tpenProjectURI){
+        let url = new URL(window.location.href)
+        url.searchParams.append("tpen-project", tpenProjectURI)
         window.location = url
     }
     else{

@@ -69,6 +69,8 @@ class WitnessTextSelector extends HTMLElement {
         this.innerHTML = this.template
         const $this = this
         const witnessURI = this.getAttribute("witness-uri")
+        const customKey = this.querySelector("input[custom-key='selections']")
+
         if(!witnessURI) return
         this.querySelector("div.toggle").addEventListener("click", event => {
             const container = event.target.nextElementSibling
@@ -84,7 +86,15 @@ class WitnessTextSelector extends HTMLElement {
             }
         })
         fetch(witnessURI)
-            .then(response => response.text())
+            .then(response => {
+                if(response.ok){
+                    return response.text()
+                }
+                else{
+                    const err = new Error(`Could not get witness text from ${witnessURI}`)
+                    throw err
+                }
+            })
             .then(witness_text_data => {
                 const witnessTextElem = $this.querySelector(".witnessText")
                 let structured = false
@@ -128,7 +138,6 @@ class WitnessTextSelector extends HTMLElement {
                             if(!txt) lineElem.classList.add("emptyLine")
                             lineElem.onmouseup = function(e) {
                                 const s = document.getSelection()
-                                const customKey = $this.querySelector("input[custom-key='selections']")
                                 const filter = document.querySelector("input[filter]")
                                 const selectedText = document.getSelection() ? document.getSelection().toString().trim() : ""
                                 const firstword = selectedText.split(" ")[0]
@@ -195,7 +204,30 @@ class WitnessTextSelector extends HTMLElement {
                     // If we couldn't tell what kind of resource it was, treat it as plain text
                     const plaintext = document.createElement("div")
                     plaintext.setAttribute("witness-uri", witnessURI)
-                    plaintext.innerText = witness_text_data
+                    let just_text = ""
+                    witness_text_data.trim().split("\r\n").forEach(lineText => {
+                        if(lineText === "\n"){
+                            just_text += "\n\n"
+                        }
+                        else{
+                            just_text += lineText
+                        }
+                    })
+
+                    // witness_text_data.trim().split("\r\n").forEach(lineText => {
+                    //     const line = document.createElement("line")
+                    //     const br = document.createElement("br")
+                    //     if(lineText === ""){
+                    //         line.appendChild(br)
+                    //         line.appendChild(br)
+                    //     }
+                    //     else{
+                    //         line.innerText = lineText
+                    //     }
+                    //     plaintext.appendChild(line)
+                    // })
+                    
+                    plaintext.innerText = just_text
                     witnessTextElem.appendChild(plaintext)
 
                     plaintext.onmouseup = function(e) {
@@ -239,19 +271,26 @@ class WitnessTextSelector extends HTMLElement {
                                labelElem.value = "" 
                                labelElem.setAttribute("value", "")
                                labelElem.$isDirty = false
-                            }                    
+                            }     
+                            if(customKey.value !== selectedText){
+                                customKey.value = selectedText
+                                customKey.$isDirty = true
+                                $this.closest("form").$isDirty = true
+                            }               
                             console.log("You made the following text selection")
                             console.log(selectedText)
                         }
                     }
                 }
                 const e = new CustomEvent("witness-text-loaded", {bubbles: true })
-                document.dispatchEvent(e)
                 $this.setAttribute("witness-text-loaded", "true")
+                document.dispatchEvent(e)
             })
             .catch(err => {
                 console.error(err)
-                witnessTextElem.innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${witnessURI} </b>`
+                const e = new CustomEvent("witness-text-error", {bubbles: true })
+                $this.setAttribute("witness-text-error", "true")
+                document.dispatchEvent(e)
             })
     }
     static get observedAttributes() { return ['witness-uri'] }

@@ -1,6 +1,12 @@
 const textWitnessID = window.location.hash.substr(1)
 let referencedGlossID = null
 
+// UI for when the provided T-PEN URI does not resolve or cannot be processed.
+document.addEventListener("witness-text-error", function(event){
+    const witnessURI = getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
+    document.querySelector(".witnessText").innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${witnessURI} </b>`
+})
+
 // Make the text in the Gloss modal form the same as the one in the Witness form
 document.addEventListener("gloss-modal-visible", function(event){
     const text = witnessForm.querySelector("textarea[custom-text-key='text']").value
@@ -25,7 +31,7 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    // form.querySelector("input[deer-key='creator']").value = "ReleaseInterfaceTest"
+    //form.querySelector("input[deer-key='creator']").value = "BasicWitnessTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -101,19 +107,22 @@ function setWitnessFormDefaults(){
 window.onload = () => {
     setPublicCollections()
     setListings()
-    const witnessURI = getURLParameter("witness-uri")
+    const witnessID = getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
-    if(witnessURI) {
+    const deleteWitnessButton = document.querySelector(".deleteWitness")
+    if(witnessID) {
         needs.classList.add("is-hidden")
         document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
-        document.querySelector(".lineSelector").setAttribute("witness-uri", witnessURI)
-        dig_location.value = witnessURI
-        dig_location.setAttribute("value", witnessURI)
+        document.querySelector(".lineSelector").setAttribute("witness-uri", witnessID)
+        dig_location.value = witnessID
+        dig_location.setAttribute("value", witnessID)
     }
     if(textWitnessID){
         const submitBtn = witnessForm.querySelector("input[type='submit']")
-        submitBtn.value = "Update Textual Witness"
+        const deleteBtn = witnessForm.querySelector(".deleteWitness")
+        submitBtn.value = "Update Witness"
         submitBtn.classList.remove("is-hidden")
+        deleteBtn.classList.remove("is-hidden")
         witnessForm.setAttribute("deer-id", textWitnessID)
     }
     else{
@@ -145,6 +154,86 @@ window.onload = () => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
+    deleteWitnessButton.addEventListener("click", ev => {
+        if(confirm("The witness will be deleted.  This action cannot be undone.")){
+            deleteWitness()
+        }
+    })
+}
+
+/**
+ *  Delete a Witness of a Gloss.  
+ *  This will delete the entity itself and its Annotations.  It will no longer appear as a Witness to the Gloss in any UI.
+*/
+async function deleteWitness(){
+    if(!textWitnessID) return
+    // No extra clicks while you await.
+    const deleteWitnessButton = document.querySelector(".deleteWitness")
+    deleteWitnessButton.setAttribute("disabled", "true")
+    const annos_query = {
+        "target" : httpsIdArray(textWitnessID),
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    let anno_ids =
+        await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8"                },
+            body: JSON.stringify(annos_query)
+        })
+        .then(resp => resp.json()) 
+        .then(annos => annos.map(anno => anno["@id"]))
+        .catch(err => {
+            return []
+        })
+    let delete_calls = anno_ids.map(annoUri => {
+        return fetch(`${__constants.tiny}/delete`, {
+            method: "DELETE",
+            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            }
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+        .catch(err => {
+            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
+            console.log(err)
+        })
+    })
+
+    delete_calls.push(
+        fetch(`${__constants.tiny}/delete`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+            body: JSON.stringify({"@id" : textWitnessID.replace(/^https?:/, 'https:')})
+        })
+        .then(resp => resp.json()) 
+        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+        .catch(err => {
+            console.warn(`There was an issue removing the Witness: ${textWitnessID}`)
+            console.log(err)
+        })
+    )
+    Promise.all(delete_calls).then(success => {
+        addEventListener("globalFeedbackFinished", ev=> {
+            window.location = "ng.html#"
+        })
+        const ev = new CustomEvent("Witness Deleted.  You will be redirected.")
+        globalFeedbackBlip(ev, `Witness Deleted.  You will be redirected.`, true)
+    })
+    .catch(err => {
+        // OK they may be orphaned.  We will continue on towards deleting the entity.
+        console.warn("There was an issue removing connected Annotations.")
+        console.error(err)
+        const ev = new CustomEvent("Error Deleting Witness")
+        globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
+    })
 }
 
 /**
@@ -163,32 +252,17 @@ function show(event){
 }
 
 /**
+ * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
+ */ 
+addEventListener('deer-view-rendered', addButton)
+
+/**
  * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
  * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
+ * @see deer-record.js DeerReport.constructor()  
  */
 addEventListener('deer-form-rendered', init)
 if(!textWitnessID) removeEventListener('deer-form-rendered', init)
-
-/**
- * On page load and after submission DEER will announce this form as rendered.
- * Set up all the default values.
- */
-addEventListener('deer-form-rendered', formReset)
-function formReset(event){
-    let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
-    const $elem = event.target
-    switch (whatRecordForm) {
-        case "witnessForm":
-            setWitnessFormDefaults()
-            break
-        case "gloss-modal-form":
-            // This element has its own reset function defined in its Custom Element
-            document.querySelector("gloss-modal").reset()
-            break
-        default:
-    }
-}
-
 /**
  * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
  * Note this only needs to occur one time on page load.
@@ -227,6 +301,27 @@ function init(event){
 
             // This event listener is no longer needed
             removeEventListener('deer-form-rendered', init)
+            break
+        default:
+    }
+}
+
+/**
+ * On page load and after submission DEER will announce this form as rendered.
+ * Set up all the default values.
+ */
+addEventListener('deer-form-rendered', formReset)
+
+function formReset(event){
+    let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
+    const $elem = event.target
+    switch (whatRecordForm) {
+        case "witnessForm":
+            setWitnessFormDefaults()
+            break
+        case "gloss-modal-form":
+            // This element has its own reset function defined in its Custom Element
+            document.querySelector("gloss-modal").reset()
             break
         default:
     }
@@ -355,38 +450,21 @@ function preselectLines(linesArr, form) {
     }
     linesArr = linesArr.value ?? linesArr
     if (linesArr.length === 0) {
-        console.warn("There are no lines recorded for this witness")
+        console.warn("There are no text selections recorded for this witness")
         return false
     }
     const selectionsElem = form.querySelector("input[custom-key='selections']")
     if(source?.citationSource){
         selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
     }
-    selectionsElem.value = linesArr.join("__")
-
-    //Now highlight the lines
+    selectionsElem.value = linesArr[0]
+     //Now highlight the text
     let range = document.createRange()
     let sel = window.getSelection()
-    
-
-    // TODO need to figure this text selection out.  It could be XML or plain text or tab deliminated text, etc.
-    let line = linesArr[0]
-    let lineid = line.split("#")[0]
-    const lineStartElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
-    lineStartElem.parentElement.previousElementSibling.classList.add("has-selection")
-    let selection = line.split("#")[1].replace("char=", "").split(",")           
-    range.setStart(lineStartElem.firstChild, parseInt(selection[0]))
-    if(linesArr.length > 1){
-        line = linesArr.pop()
-        lineid = line.split("#")[0]
-        const lineEndElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
-        lineEndElem.parentElement.previousElementSibling.classList.add("has-selection")
-        selection = line.split("#")[1].replace("char=", "").split(",")           
-        range.setEnd(lineEndElem.firstChild, parseInt(selection[1]))
-    }
-    else{
-        range.setEnd(lineStartElem.firstChild, parseInt(selection[1]))
-    }
+    const text = linesArr[0]
+    const witness_text_elem = document.querySelector(".witnessText").firstElementChild
+    range.setStart(witness_text_elem.firstChild, witness_text_elem.innerText.indexOf(text))
+    range.setEnd(witness_text_elem.firstChild, witness_text_elem.innerText.indexOf(text) + text.length)
     sel.removeAllRanges()
     sel.addRange(range)
     document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
@@ -397,17 +475,19 @@ function preselectLines(linesArr, form) {
 }
 
 /**
- * Recieve a Witness URI as input from #needs.  Reload the page with a set ?witness-urit URL parameter.
+ * Recieve a Witness URI as input from #needs.  Reload the page with a set ?witness-uri URL parameter.
 */
 function loadURI(){
-    let url = resourceURI.value ? resourceURI.value : getURLParameter("witness-uri")
-    if(url){
-        let witness = "?witness-uri="+url
-        url = window.location.href.split('?')[0] + witness
+    let witnessURI = resourceURI.value ? resourceURI.value : getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
+    if(witnessURI){
+        let url = new URL(window.location.href)
+        url.searchParams.append("witness-uri", witnessURI)
         window.location = url
     }
     else{
-        alert("You must supply a URI via the ?witness-uri URL parameter or supply a value in the text input.")
+        //alert("You must supply a URI via the witness-uri parameter or supply a value in the text input.")
+        const ev = new CustomEvent("You must supply a URI via the witness-uri parameter or supply a value in the text input.")
+        globalFeedbackBlip(ev, `You must supply a URI via the witness-uri parameter or supply a value in the text input.`, false)
     }
 }
 
@@ -515,6 +595,8 @@ addEventListener('deer-updated', event => {
     .catch(err => {
         console.error("ERROR PROCESSING SOME FORM FIELDS")
         console.error(err)
+        const ev = new CustomEvent("Witness Save Error")
+        globalFeedbackBlip(ev, `Witness Save Error`, false)
     })
 })
 
@@ -612,9 +694,24 @@ function addButton(event) {
     inclusionBtn.addEventListener('click', ev => {
         ev.preventDefault()
         ev.stopPropagation()
+        const form = ev.target.closest("form")
+        let blip = new CustomEvent("Blip")
+        // There must be a shelfmark
+        if(!form.querySelector("input[deer-key='identifier']").value){
+            //alert("You must provide a Shelfmark value.")
+            blip = new CustomEvent("You must provide a Shelfmark value.")
+            globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
+            return
+        }
+        // There must be a selection
+        if(!form.querySelector("input[custom-key='selections']").value){
+            //alert("Select some text first")
+            blip = new CustomEvent("Select some text first.")
+            globalFeedbackBlip(blip, `Select some text first.`, false)
+            return   
+        }
         const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
         if((createScenario || updateScenario) || confirm(`Save this textual witness for Gloss '${namedGlossIncipit}'?`)){
-            const form = ev.target.closest("form")
             const customKey = form.querySelector("input[custom-key='references']")
             const uri = ev.target.getAttribute("data-id")
             if(customKey.value !== uri){
@@ -622,16 +719,12 @@ function addButton(event) {
                 customKey.setAttribute("value", uri) 
                 customKey.$isDirty = true
                 form.$isDirty = true
-                // There must be a shelfmark.
-                if(form.querySelector("input[deer-key='identifier']").value){
-                    form.querySelector("input[type='submit']").click()    
-                }
-                else{
-                    alert("You must provide a Shelfmark value.")
-                }
+                form.querySelector("input[type='submit']").click()    
             }
             else{
-                alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                //alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                blip = new CustomEvent(`This textual witness is already attached to Gloss '${glossIncipit}'`)
+                globalFeedbackBlip(ev, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
             }
         }                    
     })
@@ -650,4 +743,3 @@ function addButton(event) {
         }
     }
 }
-
