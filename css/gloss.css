@@ -54,6 +54,11 @@ textarea {
   max-height: 20rem;
 }
 
+textarea.taller {
+  max-height: 90rem;
+  height: 55rem;
+}
+
 .needs-more {
   display: inline-block;
 }

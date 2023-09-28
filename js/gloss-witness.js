@@ -112,6 +112,7 @@ window.onload = () => {
     const deleteWitnessButton = document.querySelector(".deleteWitness")
     if(witnessID) {
         needs.classList.add("is-hidden")
+        reset.classList.remove("is-hidden")
         document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
         document.querySelector(".lineSelector").setAttribute("witness-uri", witnessID)
         dig_location.value = witnessID
@@ -730,20 +731,32 @@ function addButton(event) {
 resourceFile.addEventListener("change", function(event){
     let reader = new FileReader()
     const allowed = [".txt", ".json", ".json-ld", ".xml", ".tei", ".tei-xml", ".rdf", ".rdfs", ".html"]
-    const file_extension = "."+resourceFile.value.split(".").pop()
+    const file_extension = (ext) => allowed.includes(`.${resourceFile.value.split(".").pop()}`)
     const file_type_allowed = allowed.some(file_extension)
     if(!file_type_allowed){
-        const ev = new CustomEvent(`'${file_extension}' is not a supported file type.`)
-        globalFeedbackBlip(ev, `'${file_extension}' is not a supported file type.`, false)    
+        const ev = new CustomEvent(`'.${resourceFile.value.split(".").pop()}' is not a supported file type.`)
+        globalFeedbackBlip(ev, `'.${resourceFile.value.split(".").pop()}' is not a supported file type.`, false)
+        loadFile.classList.add("is-hidden")
+        fileText.classList.remove("taller")
+        fileText.value = " Awaiting file contents..."
+        return   
     }
     reader.onload = function(ev){
         if(reader.result){
             fileText.value = reader.result
-            loadFile.classList.remove("is-hidden")    
+            fileText.classList.add("taller")
+            loadFile.classList.remove("is-hidden")
+            setTimeout( () => {
+                window.scrollTo({ "top": document.body.scrollHeight, "behavior": "smooth" })
+            }, 500)
         }
         else{
             const ev = new CustomEvent("Could not load file contents or file was empty")
             globalFeedbackBlip(ev, `Could not load file contents or file was empty`, false)
+            loadFile.classList.add("is-hidden")
+            fileText.classList.remove("taller")
+            fileText.value = " Awaiting file contents..."
+            return
         }
     }
     reader.readAsText(this.files[0])
@@ -752,14 +765,20 @@ resourceFile.addEventListener("change", function(event){
 /**
  * Change which user input method is showing based on the chosen tab.
  */ 
-function changeUserInput(which){
+function changeUserInput(event, which){
     const inputs = document.querySelectorAll(".userInput")
+    const active = event.target.parentElement.querySelector(".ui-tab.active")
+    active.classList.remove("active")
+    event.target.classList.add("active")
     inputs.forEach(userInput => {
         userInput.classList.add("is-hidden")
-        userInput.classList.remove("active")
         if(userInput.getAttribute("user-input") === which){
-            userInput.classList.add("active")
             userInput.classList.remove("is-hidden")
+            if(which === "cp"){
+                setTimeout( () => {
+                    window.scrollTo({ "top": document.body.scrollHeight, "behavior": "smooth" })
+                }, 500)
+            }
         }
     })
 }
@@ -786,15 +805,25 @@ function loadUserInput(ev, which){
         break
         case "file":
             text = fileText.value
-            document.querySelector(".lineSelector").setAttribute("witness-text", text)
             needs.classList.add("is-hidden")
+            document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
+            document.querySelector(".lineSelector").setAttribute("witness-text", text)
+            loading.classList.add("is-hidden")
+            witnessForm.classList.remove("is-hidden")
         break
         case "cp":
             text = resourceText.value
-            document.querySelector(".lineSelector").setAttribute("witness-text", text)
             needs.classList.add("is-hidden")
+            document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
+            document.querySelector(".lineSelector").setAttribute("witness-text", text)
+            loading.classList.add("is-hidden")
+            witnessForm.classList.remove("is-hidden")
         break
         default:
     }
 
+}
+
+function startOver(){
+    window.location = window.location.origin + window.location.pathname
 }

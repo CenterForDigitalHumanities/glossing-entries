@@ -12,37 +12,51 @@
     <script src="js/glossModal.js" type="module"></script>
     <script src="js/shared.js"></script>
     <style>
-       input.required{
+        input.required{
             border: 1px solid black;
-       }
-       .pageContainer.is-toggled{
+        }
+        .pageContainer.is-toggled{
             visibility: hidden;
             height: 0px;
-       }
-       .loadingMsg{
+        }
+        .loadingMsg{
             color: white;
             padding-top: 4em;
-       }
-       line:nth-child(2n) {
+        }
+        line:nth-child(2n) {
             background-color: unset;
-       }
+        }
+        nav[user-input]{
+            margin-bottom: 1em;
+        }
+        nav[user-input] a{
+            cursor: pointer;
+        }
+        #reset{
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2 class="bg-basic"> Gloss Textual Witness </h2>
-    <p class="bg-basic"> Connect Virtual Glosses With Real World Text </p>
+    <p class="bg-basic"> 
+        Connect Virtual Glosses With Real World Text 
+    </p>
+    <p id="reset" class="bg-basic is-hidden"> 
+        This page automatically applied a text resource.  If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
+    </p>
     <div id="needs" class="row bg-basic">
         <div class="col">
             <p class="howTo"> 
                 It looks like you haven't provided the URI of the web resource with the text.  
                 If you are not using the <code>?witness-uri=</code> URL parameter then please choose a way to provide the text content. 
             </p>
-            <nav class="tabs is-full">
-              <a onclick="changeUserInput('uri')" class="active">I want to provide a URI</a>
-              <a onclick="changeUserInput('file')">I want to upload a file</a>
-              <a onclick="changeUserInput('cp')">I want to copy and paste</a>
+            <nav user-input class="tabs is-full">
+              <a onclick="changeUserInput(event, 'uri')" class="ui-tab active">I want to provide a URI</a>
+              <a onclick="changeUserInput(event, 'file')" class="ui-tab">I want to upload a file</a>
+              <a onclick="changeUserInput(event, 'cp')" class="ui-tab">I want to copy and paste</a>
             </nav>
             <div user-input="uri" class="userInput">
                 <input id="resourceURI" type="text" placeholder="The Text Witness URI"/>
@@ -53,12 +67,12 @@
                     The supported file types are ".txt", ".json", ".json-ld", ".xml", ".tei", ".tei-xml", ".rdf", ".rdfs", and ".html" 
                 </p>
                 <input id="resourceFile" type="file" placeholder="Select a File"/>
-                <textarea id="fileText">Awaiting file contents...</textarea>
+                <textarea disabled id="fileText"> No Typing or Pasting Text Here.  Awaiting file contents...</textarea>
                 <input id="loadFile" type="button" class="is-hidden" onclick="loadUserInput(event, 'file')" value="Use File Content" />
             </div>
             <div user-input="cp" class="userInput is-hidden">
-                <p class="howTo">Copy text from your source and paste it into this textarea.</p>
-                <textarea id="resourceText" placeholder="Paste Here"> </textarea>
+                <p class="howTo">Copy text from your source and paste it into this textarea.  You can also type out the text.</p>
+                <textarea placeholder=" Begin Typing or Paste the Text Here..." id="resourceText" class="taller"></textarea>
                 <input id="loadText" type="button" onclick="loadUserInput(event, 'cp')" value="Use Text" />
             </div>
         </div>        

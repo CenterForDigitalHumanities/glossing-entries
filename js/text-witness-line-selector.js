@@ -214,7 +214,6 @@ class WitnessTextSelector extends HTMLElement {
         else{
             // If we couldn't tell what kind of resource it was, treat it as plain text
             const plaintext = document.createElement("div")
-            plaintext.setAttribute("witness-uri", witnessURI)
             let just_text = ""
             textForUI.trim().split("\r\n").forEach(lineText => {
                 if(lineText === "\n"){
@@ -298,7 +297,7 @@ class WitnessTextSelector extends HTMLElement {
         document.dispatchEvent(e)
         
     }
-    static get observedAttributes() { return ['witness-uri'] }
+    static get observedAttributes() { return ['witness-uri', 'witness-text'] }
 }
 
 customElements.define('witness-text-selector', WitnessTextSelector)
