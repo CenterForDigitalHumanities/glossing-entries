@@ -138,7 +138,7 @@ export default {
                 deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
             }
             return { html, then }
-        },
+        }, 
         ngListFilterable: function (obj, options = {}) {
             // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let html = `
@@ -305,6 +305,11 @@ export default {
                     }
                     queryString = queryString.trim()
                     const query = decodeContentState(queryString)
+                    for (const key in query) {
+                        if (typeof query[key] === "string") {
+                            query[key] = query[key].toLowerCase();
+                        }
+                    }
                     const items = elem.querySelectorAll('li')
                     items.forEach(li=>{
                         const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
@@ -314,7 +319,7 @@ export default {
                         }
                         for(const prop in query){
                             if(li.hasAttribute(`data-${prop}`)){
-                                const action = li.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
+                                const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop]) ? "remove" : "add";
                                 elem.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                 // If it is showing, no need to check other properties for filtering.
@@ -589,7 +594,12 @@ export default {
                         return
                     }
                     queryString = queryString.trim()
-                    const query = decodeContentState(queryString)
+                    const query = decodeContentState(queryString);
+                    for (const key in query) {
+                        if (typeof query[key] === "string") {
+                            query[key] = query[key].toLowerCase();
+                        }
+                    }
                     const items = elem.querySelectorAll('li')
                     items.forEach(li=>{
                         const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
@@ -599,7 +609,7 @@ export default {
                         }
                         for(const prop in query){
                             if(li.hasAttribute(`data-${prop}`)){
-                                const action = li.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
+                                const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop]) ? "remove" : "add";
                                 elem.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                 // If it is showing, no need to check other properties for filtering.
