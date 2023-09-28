@@ -34,11 +34,34 @@
     <h2 class="bg-basic"> Gloss Textual Witness </h2>
     <p class="bg-basic"> Connect Virtual Glosses With Real World Text </p>
     <div id="needs" class="row bg-basic">
-        <p class="howTo"> 
-            It looks like you haven't provided the URI of the web resource with the text.  If you are not using the <code>?witness-uri=</code> URL parameter, you can supply a URI here.  
-            <input id="resourceURI" type="text" placeholder="The Text Witness URI"/>
-            <input id="loadInput" type="button" onclick="loadURI(event)" value="Load Witness" />
-        </p>
+        <div class="col">
+            <p class="howTo"> 
+                It looks like you haven't provided the URI of the web resource with the text.  
+                If you are not using the <code>?witness-uri=</code> URL parameter then please choose a way to provide the text content. 
+            </p>
+            <nav class="tabs is-full">
+              <a onclick="changeUserInput('uri')" class="active">I want to provide a URI</a>
+              <a onclick="changeUserInput('file')">I want to upload a file</a>
+              <a onclick="changeUserInput('cp')">I want to copy and paste</a>
+            </nav>
+            <div user-input="uri" class="userInput">
+                <input id="resourceURI" type="text" placeholder="The Text Witness URI"/>
+                <input id="loadURI" type="button" onclick="loadUserInput(event, 'uri')" value="Load URI" />    
+            </div>
+            <div user-input="file" class="userInput is-hidden">
+                <p class="howTo"> 
+                    The supported file types are ".txt", ".json", ".json-ld", ".xml", ".tei", ".tei-xml", ".rdf", ".rdfs", and ".html" 
+                </p>
+                <input id="resourceFile" type="file" placeholder="Select a File"/>
+                <textarea id="fileText">Awaiting file contents...</textarea>
+                <input id="loadFile" type="button" class="is-hidden" onclick="loadUserInput(event, 'file')" value="Use File Content" />
+            </div>
+            <div user-input="cp" class="userInput is-hidden">
+                <p class="howTo">Copy text from your source and paste it into this textarea.</p>
+                <textarea id="resourceText" placeholder="Paste Here"> </textarea>
+                <input id="loadText" type="button" onclick="loadUserInput(event, 'cp')" value="Use Text" />
+            </div>
+        </div>        
     </div>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
     <div id="loading" class="witness-needed is-hidden">

@@ -475,23 +475,6 @@ function preselectLines(linesArr, form) {
 }
 
 /**
- * Recieve a Witness URI as input from #needs.  Reload the page with a set ?witness-uri URL parameter.
-*/
-function loadURI(){
-    let witnessURI = resourceURI.value ? resourceURI.value : getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
-    if(witnessURI){
-        let url = new URL(window.location.href)
-        url.searchParams.append("witness-uri", witnessURI)
-        window.location = url
-    }
-    else{
-        //alert("You must supply a URI via the witness-uri parameter or supply a value in the text input.")
-        const ev = new CustomEvent("You must supply a URI via the witness-uri parameter or supply a value in the text input.")
-        globalFeedbackBlip(ev, `You must supply a URI via the witness-uri parameter or supply a value in the text input.`, false)
-    }
-}
-
-/**
  * The DEER announcement for when all form fields have been saved or updated.
  * Extend this functionality by also saving or updating the custom fields.
  * 
@@ -742,4 +725,76 @@ function addButton(event) {
             witnessForm.querySelector("input[type='submit']").click() 
         }
     }
+}
+
+resourceFile.addEventListener("change", function(event){
+    let reader = new FileReader()
+    const allowed = [".txt", ".json", ".json-ld", ".xml", ".tei", ".tei-xml", ".rdf", ".rdfs", ".html"]
+    const file_extension = "."+resourceFile.value.split(".").pop()
+    const file_type_allowed = allowed.some(file_extension)
+    if(!file_type_allowed){
+        const ev = new CustomEvent(`'${file_extension}' is not a supported file type.`)
+        globalFeedbackBlip(ev, `'${file_extension}' is not a supported file type.`, false)    
+    }
+    reader.onload = function(ev){
+        if(reader.result){
+            fileText.value = reader.result
+            loadFile.classList.remove("is-hidden")    
+        }
+        else{
+            const ev = new CustomEvent("Could not load file contents or file was empty")
+            globalFeedbackBlip(ev, `Could not load file contents or file was empty`, false)
+        }
+    }
+    reader.readAsText(this.files[0])
+})
+
+/**
+ * Change which user input method is showing based on the chosen tab.
+ */ 
+function changeUserInput(which){
+    const inputs = document.querySelectorAll(".userInput")
+    inputs.forEach(userInput => {
+        userInput.classList.add("is-hidden")
+        userInput.classList.remove("active")
+        if(userInput.getAttribute("user-input") === which){
+            userInput.classList.add("active")
+            userInput.classList.remove("is-hidden")
+        }
+    })
+}
+
+/**
+ * Load the chosen user input.  Hide the #needs area.
+ */
+function loadUserInput(ev, which){
+    let text = ""
+    switch(which){
+        case "uri":
+            // Recieve a Witness URI as input from #needs.  Reload the page with a set ?witness-uri URL parameter.
+            let witnessURI = resourceURI.value ? resourceURI.value : getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
+            if(witnessURI){
+                let url = new URL(window.location.href)
+                url.searchParams.append("witness-uri", witnessURI)
+                window.location = url
+            }
+            else{
+                //alert("You must supply a URI via the witness-uri parameter or supply a value in the text input.")
+                const ev = new CustomEvent("You must supply a URI via the witness-uri parameter or supply a value in the text input.")
+                globalFeedbackBlip(ev, `You must supply a URI via the witness-uri parameter or supply a value in the text input.`, false)
+            }
+        break
+        case "file":
+            text = fileText.value
+            document.querySelector(".lineSelector").setAttribute("witness-text", text)
+            needs.classList.add("is-hidden")
+        break
+        case "cp":
+            text = resourceText.value
+            document.querySelector(".lineSelector").setAttribute("witness-text", text)
+            needs.classList.add("is-hidden")
+        break
+        default:
+    }
+
 }
