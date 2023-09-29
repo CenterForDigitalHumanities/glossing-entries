@@ -215,27 +215,15 @@ class WitnessTextSelector extends HTMLElement {
             // If we couldn't tell what kind of resource it was, treat it as plain text
             const plaintext = document.createElement("div")
             let just_text = ""
-            textForUI.trim().split("\r\n").forEach(lineText => {
-                if(lineText === "\n"){
-                    just_text += "\n\n"
-                }
-                else{
-                    just_text += lineText
-                }
-            })
 
-            // textForUI.trim().split("\r\n").forEach(lineText => {
-            //     const line = document.createElement("line")
-            //     const br = document.createElement("br")
-            //     if(lineText === ""){
-            //         line.appendChild(br)
-            //         line.appendChild(br)
-            //     }
-            //     else{
-            //         line.innerText = lineText
-            //     }
-            //     plaintext.appendChild(line)
-            // })
+            /**
+             * Newlines (/r and /n) result in <br> separations when doing elem.innerText.  This makes it very difficult to do Selection selectors.
+             * Treating all filetypes that come through naively and making them plain text with newlines makes this work.  However, the UI may
+             * be unacceptable.  Not sure what to do yet.
+             * Will we need to treat each filetype separately because of this?
+             * File types allowed are ".txt", ".json", ".json-ld", ".xml", ".tei", ".tei-xml", ".rdf", ".rdfs", and ".html"
+             */ 
+            just_text = textForUI.replace(/(\r\n|\n|\r)/gm, "")
             
             plaintext.innerText = just_text
             witnessTextElem.appendChild(plaintext)
@@ -245,9 +233,11 @@ class WitnessTextSelector extends HTMLElement {
                 const filter = document.querySelector("input[filter]")
                 const selectedText = document.getSelection() ? document.getSelection().toString().trim() : ""
                 const firstword = selectedText.split(" ")[0]
+                let selections = []
                 if(selectedText){
                     // The filter may not be in the DOM when the user is selecting text.
                     // Only use the filter if it is !.is-hidden
+                    selections.push(`${selectedText}#char=${document.getSelection().baseOffset},${document.getSelection().extentOffset}`)
                     if(filter && !filter.classList.contains("is-hidden")){
                         filter.value = firstword
                         filter.setAttribute("value", firstword)
@@ -283,12 +273,12 @@ class WitnessTextSelector extends HTMLElement {
                        labelElem.$isDirty = false
                     }     
                     if(customKey.value !== selectedText){
-                        customKey.value = selectedText
+                        customKey.value = selections.join("__")
                         customKey.$isDirty = true
                         $this.closest("form").$isDirty = true
                     }               
                     console.log("You made the following text selection")
-                    console.log(selectedText)
+                    console.log(selections)
                 }
             }
         }

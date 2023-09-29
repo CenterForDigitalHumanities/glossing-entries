@@ -31,7 +31,7 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "BasicWitnessTest"
+    form.querySelector("input[deer-key='creator']").value = "BasicWitnessTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -788,6 +788,7 @@ function changeUserInput(event, which){
  */
 function loadUserInput(ev, which){
     let text = ""
+    const sourceElem = witnessForm.querySelector("input[custom-key='source']")
     switch(which){
         case "uri":
             // Recieve a Witness URI as input from #needs.  Reload the page with a set ?witness-uri URL parameter.
@@ -810,6 +811,9 @@ function loadUserInput(ev, which){
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             loading.classList.add("is-hidden")
             witnessForm.classList.remove("is-hidden")
+            // Typically the source is a URI which resolves to text.  Here, it is just the text.
+            sourceElem.value = text
+            sourceElem.setAttribute("value", text)
         break
         case "cp":
             text = resourceText.value
@@ -818,6 +822,9 @@ function loadUserInput(ev, which){
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             loading.classList.add("is-hidden")
             witnessForm.classList.remove("is-hidden")
+            // Typically the source is a URI which resolves to text.  Here, it is just the text.
+            sourceElem.value = text
+            sourceElem.setAttribute("value", text)
         break
         default:
     }
