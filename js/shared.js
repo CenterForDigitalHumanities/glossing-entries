@@ -71,13 +71,13 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
 
     // This won't do    
     if (id === null) {
-        alert(`No URI supplied for delete.  Cannot delete.`)
+        console.error(`No URI supplied for delete.  Cannot delete.`)
         return
     }
 
     // If it is an unexpected type, we probably shouldn't go through with the delete.
     if (thing === null) {
-        alert(`Not sure what a ${type} is.  Cannot delete.`)
+        console.error(`Not sure what a ${type} is.  Cannot delete.`)
         return
     }
 
@@ -100,7 +100,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
         const allGlossIds = await getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
             .then(annos => annos.map(anno => anno.target))
             .catch(err => {
-                alert("Could not gather Glosses to delete.")
+                console.error("Could not gather Glosses to delete.")
                 console.log(err)
                 return null
             })
@@ -141,7 +141,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
     const allAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
         .then(annos => annos.map(anno => anno["@id"]))
         .catch(err => {
-            alert("Could not gather Annotations to delete.")
+            console.error("Could not gather Annotations to delete.")
             console.log(err)
             return null
         })
@@ -192,7 +192,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
             }
         })
         .catch(err => {
-            alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
+            console.error(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
             console.log(err)
         })
 }
@@ -312,8 +312,18 @@ self.onhashchange = loadHashId
  * Note form submits that do have their own cause two blips for now.
  * Note we would like to be able to delete this and have each form submit give their own message.
  */ 
+
+/**
+ * data-has-feedback attribute serves as an indication that this particular form is already set up with its 
+ * own feedback mechanism and does not require the generic 'catch all' feedback.
+ * When the deer-updated event is triggered (indicating a form submission), the listener checks if the form (event target) has the data-has-feedback attribute. 
+ * If the attribute is present, the listener knows that this form has its own feedback mechanism and therefore will not trigger the generic globalFeedbackBlip(). 
+ * If the attribute is absent, it means the form doesn't have its own feedback, and the listener will proceed to trigger the generic feedback.
+ */
 document.addEventListener('deer-updated', event => {
-    globalFeedbackBlip(event, `Saving ${event.detail.name ? "'" + event.detail.name + "' " : ""}successful!`, true)
+    if (!event.target.hasAttribute('data-has-feedback')) {
+        globalFeedbackBlip(event, `Saving ${event.detail.name ? "'" + event.detail.name + "' " : ""}successful!`, true)
+    }
 })
 
 /** Auth */

@@ -1127,7 +1127,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         "Authorization": `Bearer ${window.GOG_USER.authorization}`
                         }
                     }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                        .catch(err => alert(`Failed to save: ${err}`))
+                        .catch(err => globalFeedbackBlip(`Failed to save: ${err}`))
                 }
 
                 /**
@@ -1144,7 +1144,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
 
                     // This won't do 
                     if(!id){
-                        alert(`No URI supplied for delete.  Cannot delete.`)
+                        globalFeedbackBlip(`No URI supplied for delete.  Cannot delete.`)
                         return
                     }
                     const thing = 
@@ -1155,7 +1155,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
 
                     // If it is an unexpected type, we probably shouldn't go through with the delete.
                     if(thing === null){
-                        alert(`Not sure what a ${type} is.  Cannot delete.`)
+                        globalFeedbackBlip(`Not sure what a ${type} is.  Cannot delete.`)
                         return
                     }
 
@@ -1178,7 +1178,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         const allGlossIds = await UTILS.getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
                         .then(annos => annos.map(anno => anno.target))
                         .catch(err => {
-                            alert("Could not gather Glosses to delete.")
+                            globalFeedbackBlip("Could not gather Glosses to delete.")
                             console.log(err)
                             return null
                         })
@@ -1219,7 +1219,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     const allAnnotationIds = await UTILS.getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
                     .then(annos => annos.map(anno => anno["@id"]))
                     .catch(err => {
-                        alert("Could not gather Annotations to delete.")
+                        globalFeedbackBlip("Could not gather Annotations to delete.")
                         console.log(err)
                         return null
                     })
@@ -1270,7 +1270,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         }
                     })
                     .catch(err => { 
-                        alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
+                        globalFeedbackBlip(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
                         console.log(err)
                     })
                 }
