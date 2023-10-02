@@ -41,8 +41,6 @@ function setWitnessFormDefaults(){
 
     // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
-    //shelfmarkElem.value = ""
-    //shelfmarkElem.setAttribute("value", "")
     shelfmarkElem.removeAttribute("deer-source")
     shelfmarkElem.$isDirty = true
 
@@ -76,10 +74,8 @@ function setWitnessFormDefaults(){
     referencesElem.$isDirty = false
 
     const sourceElem = form.querySelector("input[custom-key='source']")
-    sourceElem.value = ""
-    sourceElem.setAttribute("value", "")
-    sourceElem.removeAttribute("deer-source")
-    sourceElem.$isDirty = false
+    // The source does not change and would need to be captured on the next submit.
+    sourceElem.$isDirty = true
 
     // reset the Glosses filter
     const filter = form.querySelector('input[filter]')
@@ -107,20 +103,14 @@ function setWitnessFormDefaults(){
 window.onload = () => {
     setPublicCollections()
     setListings()
-    const witnessID = getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
+    const witnessURI = getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
     const deleteWitnessButton = document.querySelector(".deleteWitness")
-    if(witnessID) {
-        needs.classList.add("is-hidden")
-        reset.classList.remove("is-hidden")
-        document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
-        document.querySelector(".lineSelector").setAttribute("witness-uri", witnessID)
-        dig_location.value = witnessID
-        dig_location.setAttribute("value", witnessID)
-    }
     if(textWitnessID){
         const submitBtn = witnessForm.querySelector("input[type='submit']")
         const deleteBtn = witnessForm.querySelector(".deleteWitness")
+        needs.classList.add("is-hidden")
+        document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
         submitBtn.value = "Update Witness"
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
@@ -131,6 +121,14 @@ window.onload = () => {
         dig_location.$isDirty = true
         witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
         witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
+        if(witnessURI) {
+            needs.classList.add("is-hidden")
+            reset.classList.remove("is-hidden")
+            document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
+            document.querySelector(".lineSelector").setAttribute("witness-uri", witnessURI)
+            dig_location.value = witnessURI
+            dig_location.setAttribute("value", witnessURI)
+        }
     }
 
     // mimic isDirty detection for these custom inputs
@@ -246,7 +244,7 @@ addEventListener('deer-view-rendered', show)
 function show(event){
     if(event.target.id == "ngCollectionList"){
         loading.classList.add("is-hidden")
-        if(getURLParameter("witness-uri")) witnessForm.classList.remove("is-hidden")
+        if(getURLParameter("witness-uri") || textWitnessID) witnessForm.classList.remove("is-hidden")
         // This listener is no longer needed.
         removeEventListener('deer-view-rendered', show)
     }
@@ -308,8 +306,8 @@ function init(event){
 }
 
 /**
- * On page load and after submission DEER will announce this form as rendered.
- * Set up all the default values.
+ * After submission DEER will announce this form as rendered.
+ * Set up all the default values to be ready for another submission.
  */
 addEventListener('deer-form-rendered', formReset)
 
@@ -390,16 +388,23 @@ function prefillDigitalLocations(locationsArr, form) {
         console.warn("Cannot set value for digital locations and build UI.  There is no data.")
         return false
     }
-    if (!locationsArr.length) {
-        console.warn("There are no digital locations recorded for this witness")
-        return false
-    }
     const source = locationsArr?.source
     if(source?.citationSource){
         form.querySelector("input[custom-key='source']").setAttribute("deer-source", source.citationSource ?? "")
     }
-    locationsArr = locationsArr?.value ?? locationsArr
+    locationsArr = locationsArr?.value
+    if (!locationsArr || !locationsArr.length) {
+        console.warn("There are no digital locations recorded for this witness")
+        return false
+    }
     locationElem.value = locationsArr[0]
+    // If this is not a URI, then it also needs to populate the .witnessText element.
+    if(locationsArr[0].startsWith("http:") || locationsArr[0].startsWith("https:")){
+        document.querySelector(".lineSelector").setAttribute("witness-uri", locationsArr[0])
+    }
+    else{
+        document.querySelector(".lineSelector").setAttribute("witness-text", locationsArr[0])
+    }
 }
 
 /**
@@ -463,9 +468,10 @@ function preselectLines(linesArr, form) {
     let range = document.createRange()
     let sel = window.getSelection()
     const text = linesArr[0]
+    let selection = text.split("#")[1].replace("char=", "").split(",")           
     const witness_text_elem = document.querySelector(".witnessText").firstElementChild
-    range.setStart(witness_text_elem.firstChild, witness_text_elem.innerText.indexOf(text))
-    range.setEnd(witness_text_elem.firstChild, witness_text_elem.innerText.indexOf(text) + text.length)
+    range.setStart(witness_text_elem.firstChild, parseInt(selection[0]))
+    range.setEnd(witness_text_elem.firstChild, parseInt(selection[1]))
     sel.removeAllRanges()
     sel.addRange(range)
     document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
@@ -730,7 +736,8 @@ function addButton(event) {
 
 resourceFile.addEventListener("change", function(event){
     let reader = new FileReader()
-    const allowed = [".txt", ".json", ".json-ld", ".xml", ".tei", ".tei-xml", ".rdf", ".rdfs", ".html"]
+    //const allowed = [".txt", ".json", ".json-ld", ".xml", ".tei", ".tei-xml", ".rdf", ".rdfs", ".html"]
+    const allowed = [".txt"]
     const file_extension = (ext) => allowed.includes(`.${resourceFile.value.split(".").pop()}`)
     const file_type_allowed = allowed.some(file_extension)
     if(!file_type_allowed){
@@ -814,6 +821,7 @@ function loadUserInput(ev, which){
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElem.value = text
             sourceElem.setAttribute("value", text)
+            sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
         break
         case "cp":
             text = resourceText.value
@@ -825,6 +833,7 @@ function loadUserInput(ev, which){
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElem.value = text
             sourceElem.setAttribute("value", text)
+            sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
         break
         default:
     }
