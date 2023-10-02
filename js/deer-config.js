@@ -180,7 +180,7 @@ export default {
             const filterPresent = deerUtils.getURLParameter("gog-filter") ? true : false
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
-                // Then obj[options.list] is the entire Glossing-Matthew-Named-Glosses collection, URIs only.
+                // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
@@ -314,7 +314,8 @@ export default {
                         }
                         for(const prop in query){
                             if(li.hasAttribute(`data-${prop}`)){
-                                const action = li.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
+                                const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
+
                                 elem.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                 // If it is showing, no need to check other properties for filtering.
@@ -339,7 +340,7 @@ export default {
         },
         /**
          * The Gloss selector for gloss-transcription.html.
-         * Users should see the Glossing-Matthew-Named-Glosses collection.  They can filter the list of titles using a text input that matches on title.
+         * Users should see the GoG-Named-Glosses collection.  They can filter the list of titles using a text input that matches on title.
          * The collection items have a button that, when clicked, attaches them to the T-PEN transcription text selected.
          * When an existing witness is provided via the URL Hash, newly selected Glosses will update the Gloss reference to the text.
          * Note this works in tandem with a tpen-line-selector element and the ?gog-filter Filter State URL parameter.
@@ -411,7 +412,7 @@ export default {
             const filterPresent = deerUtils.getURLParameter("gog-filter") ? true : false
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
-                // Then obj[options.list] is the entire Glossing-Matthew-Named-Glosses collection, URIs only.
+                // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
@@ -599,7 +600,7 @@ export default {
                         }
                         for(const prop in query){
                             if(li.hasAttribute(`data-${prop}`)){
-                                const action = li.getAttribute(`data-${prop}`).includes(query[prop]) ? "remove" : "add"
+                                const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
                                 elem.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                 // If it is showing, no need to check other properties for filtering.

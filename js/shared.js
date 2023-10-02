@@ -26,7 +26,7 @@ async function setConstants(){
  */ 
 function setPublicCollections() {
     document.querySelectorAll("deer-view[public-collection]").forEach(elem => {
-        if(elem.getAttribute("public-collection") === "Glossing-Matthew-Named-Glosses"){
+        if(elem.getAttribute("public-collection") === "GoG-Named-Glosses"){
             elem.setAttribute("deer-id", __constants.ngCollection)    
         }
         else if(elem.getAttribute("public-collection") === "Glossing-Matthew"){
@@ -40,7 +40,7 @@ function setPublicCollections() {
  */
 function setListings(){
     document.querySelectorAll("deer-view[deer-listing]").forEach(elem => {
-        if(elem.getAttribute("deer-collection") === "Glossing-Matthew-Named-Glosses"){
+        if(elem.getAttribute("deer-collection") === "GoG-Named-Glosses"){
             elem.setAttribute("deer-listing", __constants.ngCollection)    
         }
         else if(elem.getAttribute("deer-collection") === "Glossing-Matthew"){

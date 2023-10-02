@@ -135,7 +135,7 @@ class GlossModal extends HTMLElement {
                     </p>
 
                     <form name="gloss-modal-form" deer-type="Gloss" deer-context="http://purl.org/dc/terms">
-                        <input type="hidden" deer-key="targetCollection" value="Glossing-Matthew-Named-Glosses">
+                        <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
                         <input is="auth-creator" type="hidden" deer-key="creator" />
                         <div class="row">
                             <label class="col-3 col-2-md text-right">Gloss Text:</label>
