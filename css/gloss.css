@@ -28,6 +28,8 @@ gog-header + div.container {
 .bg-basic, div.container, form {
   background-color: var(--bg-color)!important;
   display: block;
+  border-bottom: 2px solid var(--color-lightGrey);
+  padding: .7em;
 }
 div.content {
   min-height: 400px;

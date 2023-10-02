@@ -72,11 +72,13 @@ class GlossHeader extends HTMLElement {
             transition: all .2s;
         }
         ::slotted(a:hover), slot a:hover {
-            color: var(--color-accent)!important;
+            /*color: var(--color-accent)!important;
             background-color: var(--bg-secondary-color);
             border-bottom: 2px solid var(--color-darkGrey);
             border-color: var(--color-accent);
-            opacity: 1;
+            opacity: 1;*/
+            background-color: var(--color-primary);
+            color: var(--bg-color);
         }
     </style>
         <a href="./named-glosses.html">✏️ Glosses</a>
