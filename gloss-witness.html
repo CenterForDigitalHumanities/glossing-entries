@@ -54,9 +54,9 @@
                 If you are not using the <code>?witness-uri=</code> URL parameter then please choose a way to provide the text content. 
             </p>
             <nav user-input class="tabs is-full">
-              <a onclick="changeUserInput(event, 'uri')" class="ui-tab active">I want to provide a URI</a>
-              <a onclick="changeUserInput(event, 'file')" class="ui-tab">I want to upload a file</a>
-              <a onclick="changeUserInput(event, 'cp')" class="ui-tab">I want to copy and paste</a>
+              <a name="uri" onclick="changeUserInput(event, 'uri')" class="ui-tab active">I want to provide a URI</a>
+              <a name="file" onclick="changeUserInput(event, 'file')" class="ui-tab">I want to upload a file</a>
+              <a name="cp" onclick="changeUserInput(event, 'cp')" class="ui-tab">I want to copy and paste</a>
             </nav>
             <div user-input="uri" class="userInput">
                 <input id="resourceURI" type="text" placeholder="The Text Witness URI"/>

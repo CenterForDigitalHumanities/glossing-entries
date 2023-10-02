@@ -423,15 +423,7 @@ class ReferencesBrowser extends HTMLElement {
                 window.open(`gloss-transcription.html?tpen-project=${source_uri}#${witness_uri}`, "_blank")
             }
             else{
-                const s_id = source_uri.split("/").pop()
-                const w_id = witness_uri.split("/").pop()
-                if(s_id === w_id){
-                    // This means there was no source text URI.  However, it could just be a block of text.
-                    window.open(`gloss-witness.html#${witness_uri}`, "_blank")
-                }
-                else{
-                    window.open(`gloss-witness.html?witness-uri=${source_uri}#${witness_uri}`, "_blank")
-                }
+                window.open(`gloss-witness.html#${witness_uri}`, "_blank")
             }
         }
 
@@ -449,7 +441,7 @@ class ReferencesBrowser extends HTMLElement {
                     li = `<li><a target="_blank" href="/gloss-transcription.html?tpen-project=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
                 }
                 else{
-                    li = `<li><a target="_blank" href="/gloss-witness.html?witness-uri=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
+                    li = `<li><a target="_blank" href="/gloss-witness.html#${witness}">Appearance ${index+1}</a></li>`
                 }
                 witnessListElem.innerHTML += li
             })        

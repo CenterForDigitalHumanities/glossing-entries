@@ -104,6 +104,7 @@ window.onload = () => {
     setPublicCollections()
     setListings()
     const witnessURI = getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
+    const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : false
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
     const deleteWitnessButton = document.querySelector(".deleteWitness")
     if(textWitnessID){
@@ -129,6 +130,10 @@ window.onload = () => {
             dig_location.value = witnessURI
             dig_location.setAttribute("value", witnessURI)
         }
+    }
+
+    if(loadTab){
+        document.querySelector(`.ui-tab[name="${loadTab}"]`).click()
     }
 
     // mimic isDirty detection for these custom inputs
@@ -777,6 +782,9 @@ function changeUserInput(event, which){
     const active = event.target.parentElement.querySelector(".ui-tab.active")
     active.classList.remove("active")
     event.target.classList.add("active")
+    const url = new URL(window.location.href)
+    url.searchParams.set("tab", event.target.getAttribute("name"))
+    window.history.replaceState(null, null, url) 
     inputs.forEach(userInput => {
         userInput.classList.add("is-hidden")
         if(userInput.getAttribute("user-input") === which){
