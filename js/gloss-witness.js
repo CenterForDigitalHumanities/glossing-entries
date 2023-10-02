@@ -73,8 +73,8 @@ function setWitnessFormDefaults(){
     referencesElem.removeAttribute("deer-source")
     referencesElem.$isDirty = false
 
+    // The source value not change and would need to be captured on the next submit.
     const sourceElem = form.querySelector("input[custom-key='source']")
-    // The source does not change and would need to be captured on the next submit.
     sourceElem.$isDirty = true
 
     // reset the Glosses filter
@@ -108,6 +108,7 @@ window.onload = () => {
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
     const deleteWitnessButton = document.querySelector(".deleteWitness")
     if(textWitnessID){
+        // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
         const submitBtn = witnessForm.querySelector("input[type='submit']")
         const deleteBtn = witnessForm.querySelector(".deleteWitness")
         needs.classList.add("is-hidden")
@@ -123,6 +124,7 @@ window.onload = () => {
         witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
         witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(witnessURI) {
+            // special handler for ?wintess-uri=
             needs.classList.add("is-hidden")
             reset.classList.remove("is-hidden")
             document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
@@ -132,6 +134,7 @@ window.onload = () => {
         }
     }
 
+    // Support the '?tab=' URL parameter
     if(loadTab){
         document.querySelector(`.ui-tab[name="${loadTab}"]`).click()
     }
@@ -266,7 +269,13 @@ addEventListener('deer-view-rendered', addButton)
  * @see deer-record.js DeerReport.constructor()  
  */
 addEventListener('deer-form-rendered', init)
-if(!textWitnessID) removeEventListener('deer-form-rendered', init)
+if(!textWitnessID) {
+    // This event listener is no longer needed
+    removeEventListener('deer-form-rendered', init)
+
+    // Capture the render that occurs after the form submit now
+    addEventListener('deer-form-rendered', formReset)
+}
 /**
  * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
  * Note this only needs to occur one time on page load.
@@ -305,6 +314,9 @@ function init(event){
 
             // This event listener is no longer needed
             removeEventListener('deer-form-rendered', init)
+
+            // Capture the render that occurs after the form submit now
+            addEventListener('deer-form-rendered', formReset)
             break
         default:
     }
@@ -314,8 +326,6 @@ function init(event){
  * After submission DEER will announce this form as rendered.
  * Set up all the default values to be ready for another submission.
  */
-addEventListener('deer-form-rendered', formReset)
-
 function formReset(event){
     let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
     const $elem = event.target
@@ -380,8 +390,9 @@ function prefillText(textObj, form) {
 }
 
  /**
- * Helper function for the specialized references key, which is an Array of URIs.
- * It needs to apply the filter with this Gloss's Label..
+ * Helper function for the specialized references key, which is an Array.
+ * An item of the array can be either a URI or plain text.  Set the
+ * appropriate attribute based on which it is.
  * */
 function prefillDigitalLocations(locationsArr, form) {
     const locationElem = form.querySelector("input[custom-key='source']")
@@ -739,6 +750,9 @@ function addButton(event) {
     }
 }
 
+/**
+ * Process the text from a file on the users local machine.
+ */ 
 resourceFile.addEventListener("change", function(event){
     let reader = new FileReader()
     //const allowed = [".txt", ".json", ".json-ld", ".xml", ".tei", ".tei-xml", ".rdf", ".rdfs", ".html"]
@@ -848,6 +862,9 @@ function loadUserInput(ev, which){
 
 }
 
+/**
+ * Remove all URL parameters and restart the user flow on gloss-witness.html
+ */ 
 function startOver(){
     window.location = window.location.origin + window.location.pathname
 }
