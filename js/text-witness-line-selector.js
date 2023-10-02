@@ -76,19 +76,6 @@ class WitnessTextSelector extends HTMLElement {
         const witnessTextElem = this.querySelector(".witnessText")
         let textForUI = witnessText
         
-        this.querySelector("div.toggle").addEventListener("click", event => {
-            const container = event.target.nextElementSibling
-            if(container.classList.contains("is-toggled")) {
-                event.target.innerHTML = "&#9660;"
-                event.target.classList.remove("is-toggled")
-                container.classList.remove("is-toggled")
-            }
-            else{
-                event.target.innerHTML = "&#9664;"
-                event.target.classList.add("is-toggled")
-                container.classList.add("is-toggled")
-            }
-        })
         if(which === "witness-uri"){
            textForUI = await fetch(witnessURI)
             .then(response => {
