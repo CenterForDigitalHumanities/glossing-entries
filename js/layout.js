@@ -9,7 +9,7 @@ class GlossFooter extends HTMLElement {
         }
     </style>
     <a href="./index.html">🏠</a>
-        <a href="./named-glosses.html">📑</a>
+        <a href="./glosses.html">📑</a>
         <a rel="noopener noreferrer" title="View on GitHub"
             href="https://github.com/CenterForDigitalHumanities/glossing-entries" target="_blank">
             <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
@@ -79,7 +79,7 @@ class GlossHeader extends HTMLElement {
             opacity: 1;
         }
     </style>
-        <a href="./named-glosses.html">✏️ Glosses</a>
+        <a href="./glosses.html">✏️ Glosses</a>
         <a href="./ng.html">🆕 New gloss</a>
         <a href="./gloss-transcription.html">🔍 Detect glosses</a>
         <a href="./manage-glosses.html">💾 Manage glosses</a>
