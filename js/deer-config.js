@@ -148,10 +148,6 @@ export default {
                   display: block;
                 }
 
-                .progressArea{
-                  font-family: "Eczar","Volkhov",serif;
-                }
-
                 .cachedNotice a{
                   cursor: pointer;
                 }
@@ -350,10 +346,6 @@ export default {
                     display:block;
                 }
 
-                .progressArea{
-                    font-family: "Eczar","Volkhov",serif;
-                }
-
                 .cachedNotice a{
                     cursor: pointer;
                 }
@@ -465,7 +457,6 @@ export default {
                     elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                 }
                 const totalsProgress = elem.querySelector(".totalsProgress")
-                const newcache = elem.querySelector(".newcache")
                 // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                 const filter = elem.querySelector('input[filter]')
                 const cachedNotice = elem.querySelector(".cachedNotice")
@@ -482,10 +473,9 @@ export default {
                 totalsProgress.setAttribute("count", numloaded)
 
                 // FIXME this can be improved.  We need to update localStorage, not completely refresh it.
-                newcache.addEventListener("click", ev => {
+                elem.querySelector(".newcache").addEventListener("click", ev => {
                     localStorage.clear()
                     location.reload()
-                    return
                 })
 
                 // Note the capability to select multiple that we are limiting to one.
