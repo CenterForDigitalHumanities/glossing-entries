@@ -75,11 +75,9 @@ function setWitnessFormDefaults(){
     referencesElem.removeAttribute("deer-source")
     referencesElem.$isDirty = false
 
+    // The source value not change and would need to be captured on the next submit.
     const sourceElem = form.querySelector("input[custom-key='source']")
-    sourceElem.value = ""
-    sourceElem.setAttribute("value", "")
-    sourceElem.removeAttribute("deer-source")
-    sourceElem.$isDirty = false
+    sourceElem.$isDirty = true
 
     // reset the Glosses filter
     const filter = form.querySelector('input[filter]')
