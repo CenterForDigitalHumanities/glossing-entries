@@ -16,7 +16,7 @@ class TpenLineSelector extends HTMLElement {
                 word-break: break-word;
             }
             .serifText {
-               font-family: "Eczar","Volkhov",serif;
+               font-family: "Eczar","Volkhov",serif !important;
            }
            div[tpen-line-id]{
                 display: inline;
