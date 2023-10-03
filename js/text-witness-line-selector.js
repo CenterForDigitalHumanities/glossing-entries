@@ -80,6 +80,15 @@ class WitnessTextSelector extends HTMLElement {
            textForUI = await fetch(witnessURI)
             .then(response => {
                 if(response.ok){
+                    const t = response.headers.get("content-type")
+                    if(!t.includes("text/plain")){
+                        const ev = new CustomEvent(`'${t}' is not a supported file type.`)
+                        globalFeedbackBlip(ev, `'${t}' is not a supported file type.  Starting over...`, false)
+                        setTimeout( () => {
+                            startOver()
+                        }, 2500)
+                        return ""
+                    }
                     return response.text()
                 }
                 else{
