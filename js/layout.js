@@ -479,7 +479,7 @@ class ReferencesBrowser extends HTMLElement {
                     const witnessURI = gloss_witness_anno.target
                     const query2 = {
                         "body.source.value" : {"$exists":true},
-                        "target" : gloss_witness_anno.target,
+                        "target" : httpsIdArray(gloss_witness_anno.target),
                         '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
                         "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
                     }
