@@ -144,10 +144,8 @@ export default {
             let html = `
             <style>
                 .cachedNotice{
-                  top: -2em;
-                  position: relative;
-                  font-family: "Eczar","Volkhov",serif;
-                  font-size: 11pt;
+                  margin-top: -1em;
+                  display: block;
                 }
 
                 .progressArea{
@@ -166,7 +164,7 @@ export default {
                 }
             </style>
             <h2> Glosses </h2>
-            <div class="cachedNotice is-hidden"> These Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
+            <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
             <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden">
             <div class="progressArea">
                 <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
@@ -235,7 +233,6 @@ export default {
                 }
                 let addFilterState = true
                 const totalsProgress = elem.querySelector(".totalsProgress")
-                const newcache = elem.querySelector(".newcache")
                 // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                 const filter = elem.querySelector('input')
                 const cachedNotice = elem.querySelector(".cachedNotice")
@@ -246,10 +243,9 @@ export default {
                 totalsProgress.setAttribute("count", numloaded)
 
                 // FIXME this can be improved.  We need to update localStorage, not completely refresh it.
-                newcache.addEventListener("click", ev => {
+                elem.querySelector(".newcache").addEventListener("click", ev => {
                     localStorage.clear()
                     location.reload()
-                    return
                 })
 
                 // Filter the list of glosses as users type their query against 'title'
@@ -350,10 +346,8 @@ export default {
             let html = `
             <style>
                 .cachedNotice{
-                    position: relative;
-                    font-family: "Eczar","Volkhov",serif;
-                    font-size: 11pt;
-                    top: -11px;
+                    margin-top: -1em;
+                    display:block;
                 }
 
                 .progressArea{
@@ -381,20 +375,15 @@ export default {
                     margin: 0;
                 }
 
-                .filterInstructions{
-                    font-family: "Eczar","Volkhov",serif;
-                    margin: 0;
-                }
-
             </style>
             <input type="hidden" custom-key="references" />
             <div class="col">
                 <h2 class="nomargin">Attach Gloss</h2>
-                <div class="cachedNotice is-hidden"> These Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
+                <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag-is-small">click here</a>. </small>
                 <p class="filterInstructions is-hidden"> 
                     Use the filter to narrow down your options.  Select a single Gloss from the list to attach this witness to. 
                 </p>
-                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden">
+                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText">
                 <gloss-modal-button class="is-right is-hidden"></gloss-modal-button>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
@@ -446,7 +435,7 @@ export default {
                         li += `>
                             ${inclusionBtn}
                             <a target="_blank" href="${options.link}${glossID}">
-                                <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
+                                <span class="serifText">${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                         </li>`
                         html += li

@@ -11,8 +11,12 @@ class TpenLineSelector extends HTMLElement {
                 display: block;
             }
            .tpenProjectLines{
-                background-color: orange;
+                padding: 1em;
+                box-shadow: -0.25em 0.25em 0.75em rgba(0,0,0,.5);
                 word-break: break-word;
+            }
+            .serifText {
+               font-family: "Eczar","Volkhov",serif;
            }
            div[tpen-line-id]{
                 display: inline;
@@ -56,7 +60,7 @@ class TpenLineSelector extends HTMLElement {
         <h2> Select T-PEN Transcription Text </h2>
         <input type="hidden" custom-key="selections" />
         <div title="Collapse Transcription Area" class="toggle is-hidden">&#9660;</div>
-        <div class="tpenProjectLines col"></div>
+        <div class="tpenProjectLines col serifText"></div>
     `
     constructor() {
         super()
