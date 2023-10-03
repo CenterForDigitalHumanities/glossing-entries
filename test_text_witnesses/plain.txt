@@ -1,9 +1,0 @@
-Hello, this is some plain text.  You might find Ascendit ipse mons glosses in here.
-Glosses like Sententiarum numerus diligenter appear line to line.
-
-Sometimes, they appear over multiple lines like this one 'Hucusque sententias 
-generaliter'.  That's OK we can handle it.
-
-Sometimes there is text that is really long, like all one big block.  It is not separated by lines because people can be lazy.  It takes a bunch of time to read over it and there isn't event a gloss.  Bummer, thanks for reading.
-
-Enjoy your day!  Quorum mentes premissa.

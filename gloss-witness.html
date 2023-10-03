@@ -12,33 +12,70 @@
     <script src="js/glossModal.js" type="module"></script>
     <script src="js/shared.js"></script>
     <style>
-       input.required{
+        input.required{
             border: 1px solid black;
-       }
-       .pageContainer.is-toggled{
+        }
+        .pageContainer.is-toggled{
             visibility: hidden;
             height: 0px;
-       }
-       .loadingMsg{
+        }
+        .loadingMsg{
             color: white;
             padding-top: 4em;
-       }
-       line:nth-child(2n) {
+        }
+        line:nth-child(2n) {
             background-color: unset;
-       }
+        }
+        nav[user-input]{
+            margin-bottom: 1em;
+        }
+        nav[user-input] a{
+            cursor: pointer;
+        }
+        #reset{
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2 class="bg-basic"> Gloss Textual Witness </h2>
-    <p class="bg-basic"> Connect Virtual Glosses With Real World Text </p>
+    <p class="bg-basic"> 
+        Connect Virtual Glosses With Real World Text 
+    </p>
+    <p id="reset" class="bg-basic is-hidden"> 
+        This page automatically applied a text resource.  If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
+    </p>
     <div id="needs" class="row bg-basic">
-        <p class="howTo"> 
-            It looks like you haven't provided the URI of the web resource with the text.  If you are not using the <code>?witness-uri=</code> URL parameter, you can supply a URI here.  
-            <input id="resourceURI" type="text" placeholder="The Text Witness URI"/>
-            <input id="loadInput" type="button" onclick="loadURI(event)" value="Load Witness" />
-        </p>
+        <div class="col">
+            <p class="howTo"> 
+                It looks like you haven't provided the URI of the web resource with the text.  
+                If you are not using the <code>?witness-uri=</code> URL parameter then please choose a way to provide the text content. 
+            </p>
+            <nav user-input class="tabs is-full">
+              <a name="uri" onclick="changeUserInput(event, 'uri')" class="ui-tab active">I want to provide a URI</a>
+              <a name="file" onclick="changeUserInput(event, 'file')" class="ui-tab">I want to upload a file</a>
+              <a name="cp" onclick="changeUserInput(event, 'cp')" class="ui-tab">I want to copy and paste</a>
+            </nav>
+            <div user-input="uri" class="userInput">
+                <input id="resourceURI" type="text" placeholder="The Text Witness URI"/>
+                <input id="loadURI" type="button" onclick="loadUserInput(event, 'uri')" value="Load URI" />    
+            </div>
+            <div user-input="file" class="userInput is-hidden">
+                <p class="howTo"> 
+                    The only supported file type is ".txt" at this time.
+                </p>
+                <input id="resourceFile" type="file" placeholder="Select a File"/>
+                <textarea disabled id="fileText"> No Typing or Pasting Text Here.  Awaiting file contents...</textarea>
+                <input id="loadFile" type="button" class="is-hidden" onclick="loadUserInput(event, 'file')" value="Use File Content" />
+            </div>
+            <div user-input="cp" class="userInput is-hidden">
+                <p class="howTo">Copy text from your source and paste it into this textarea.  You can also type out the text.</p>
+                <textarea placeholder=" Begin Typing or Paste the Text Here..." id="resourceText" class="taller"></textarea>
+                <input id="loadText" type="button" onclick="loadUserInput(event, 'cp')" value="Use Text" />
+            </div>
+        </div>        
     </div>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
     <div id="loading" class="witness-needed is-hidden">
@@ -61,8 +98,8 @@
                 <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
             -->
 
-            <label class="col-3 col-2-md text-right" >Text:</label>
-            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md" placeholder="Highlight transcription text..."></textarea>
+            <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
+            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight some text..."></textarea>
 
             <label class="col-3 col-2-md text-right">Language:</label>
             <select custom-text-key="language" title="select language" class="col-9 col-4-md">
