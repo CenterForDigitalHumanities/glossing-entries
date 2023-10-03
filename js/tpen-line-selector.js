@@ -10,8 +10,9 @@ class TpenLineSelector extends HTMLElement {
                 position: relative;
                 display: block;
             }
-           .tpenProjectLines, .selectedLines{
+           .tpenProjectLines{
                 background-color: orange;
+                word-break: break-word;
            }
            div[tpen-line-id]{
                 display: inline;

@@ -10,8 +10,9 @@ class WitnessTextSelector extends HTMLElement {
                 position: relative;
                 display: block;
             }
-           .witnessText, .selectedLines{
+           .witnessText{
                 background-color: orange;
+                word-break: break-word;
            }
            div[witness-text-id]{
                 display: inline;
