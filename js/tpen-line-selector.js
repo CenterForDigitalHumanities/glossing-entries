@@ -92,7 +92,6 @@ class TpenLineSelector extends HTMLElement {
         fetch(tpenProjectURI)
             .then(response => response.json())
             .then(ms => {
-                let allLines = []
                 ms.sequences[0].canvases.forEach((canvas, index) => {
                     const pageContainer = document.createElement("div")
                     pageContainer.classList.add("pageContainer")
@@ -118,7 +117,6 @@ class TpenLineSelector extends HTMLElement {
                     pageHeader.innerText = `${canvas.label ?? "No Page Label"} (Page ${index+1})`
                     tpenProjectLines.appendChild(pageHeader)
                     tpenProjectLines.appendChild(pageToggle)
-                    if(canvas?.otherContent[0]?.resources) allLines.concat(canvas.otherContent[0].resources)
                     canvas.otherContent[0].resources.forEach(line => {
                         const lineElem = document.createElement("div")
                         const projectLineID = line["@id"].replace("/TPEN/", `/TPEN/project/${tpenProjectURI.split("/").pop()}/`)
@@ -136,7 +134,7 @@ class TpenLineSelector extends HTMLElement {
                             const s = document.getSelection()
                             const customKey = $this.querySelector("input[custom-key='selections']")
                             const filter = document.querySelector("input[filter]")
-                            const selectedText = document.getSelection() ? document.getSelection().toString().trim() : ""
+                            const selectedText = s?.toString().trim() ?? ""
                             const firstword = selectedText.split(" ")[0]
                             if(selectedText){
                                 // The filter may not be in the DOM when the user is selecting text.

@@ -1,4 +1,4 @@
-const textWitnessID = window.location.hash.substr(1)
+const textWitnessID = window.location.hash.substring(1)
 let referencedGlossID = null
 
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
@@ -313,7 +313,6 @@ addEventListener('deer-form-rendered', formReset)
 
 function formReset(event){
     let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
-    const $elem = event.target
     switch (whatRecordForm) {
         case "witnessForm":
             setWitnessFormDefaults()
@@ -627,7 +626,6 @@ addEventListener('gloss-modal-saved', event => {
     const list = view.querySelector("ul")
     const modal = event.target
     const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
-    const totalsProgress = list.closest("deer-view").querySelector(".totalsProgress")
 
     const selectedBtn = document.querySelector(".toggleInclusion[disabled]")
     if(selectedBtn){
@@ -672,12 +670,11 @@ addEventListener('gloss-modal-saved', event => {
  */ 
 function addButton(event) {
     const template_container = event.target
-    const form_container = template_container.closest("form")
     if(template_container.getAttribute("deer-template") !== "filterableListItem") return
     const obj = event.detail
     const gloss_li = template_container.firstElementChild
-    const createScenario = template_container.hasAttribute("create-scenario") ? true : false
-    const updateScenario = template_container.hasAttribute("update-scenario") ? true : false
+    const createScenario = !!template_container.hasAttribute("create-scenario")
+    const updateScenario = !!template_container.hasAttribute("update-scenario")
     // A new Gloss has been introduced and is done being cached.
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")
@@ -735,8 +732,6 @@ function addButton(event) {
                 form.querySelector("input[type='submit']").click()    
             }
             else{
-                //alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
-                blip = new CustomEvent(`This textual witness is already attached to Gloss '${glossIncipit}'`)
                 globalFeedbackBlip(ev, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
             }
         }                    

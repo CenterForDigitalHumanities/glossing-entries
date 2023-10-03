@@ -67,7 +67,6 @@ export default {
      */
     TEMPLATES: {
         msList: function (obj, options = {}) {
-            // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let tmpl = `<a href="./manage-mss.html" class="button">Manage Manuscript Glosses</a> <h2>Manuscripts</h2>`
             if (options.list) {
                 tmpl += `<ul>`
@@ -83,7 +82,6 @@ export default {
             return tmpl
         },
         ngList: function (obj, options = {}) {
-            // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let html = `<a href="./manage-glosses.html" class="button">Manage Glosses</a> <h2>Glosses</h2>
             <input type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">`
             if (options.list) {
@@ -119,13 +117,6 @@ export default {
                 const filter = elem.querySelector('input')
                 filter.classList.remove('is-hidden')
                 filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
-                function debounce(func,timeout = 500) {
-                    let timeRemains
-                    return (...args) => {
-                        clearTimeout(timeRemains)
-                        timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
-                    }
-                }
                 function filterGlosses(queryString=''){
                     const query = queryString.trim().toLowerCase()
                     const items = elem.querySelectorAll('li')
@@ -140,7 +131,6 @@ export default {
             return { html, then }
         },
         ngListFilterable: function (obj, options = {}) {
-            // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let html = `
             <style>
                 .cachedNotice{
@@ -171,7 +161,7 @@ export default {
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
             const total = obj[options.list].length
-            const filterPresent = deerUtils.getURLParameter("gog-filter") ? true : false
+            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
@@ -227,7 +217,6 @@ export default {
                     elem.querySelector(".filterNotice").classList.remove("is-hidden")
                     elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                 }
-                let addFilterState = true
                 const totalsProgress = elem.querySelector(".totalsProgress")
                 // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                 const filter = elem.querySelector('input')
@@ -274,14 +263,6 @@ export default {
                     }
                 }
 
-                function debounce(func,timeout = 500) {
-                    let timeRemains
-                    return (...args) => {
-                        clearTimeout(timeRemains)
-                        timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
-                    }
-                }
-
                 /** 
                  * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
                  * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
@@ -300,7 +281,7 @@ export default {
                     const items = elem.querySelectorAll('li')
                     items.forEach(li=>{
                         const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
-                        const elem = templateContainer ? templateContainer : li
+                        const elem = templateContainer ?? li
                         if(!elem.classList.contains("is-hidden")){
                             elem.classList.add("is-hidden")
                         }
@@ -338,7 +319,6 @@ export default {
          * Note this works in tandem with a tpen-line-selector element and the ?gog-filter Filter State URL parameter.
          */ 
         glossesSelectorForTextualWitness: function (obj, options = {}) {
-            // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let html = `
             <style>
                 .cachedNotice{
@@ -390,7 +370,7 @@ export default {
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
             const total = obj[options.list].length
-            const filterPresent = deerUtils.getURLParameter("gog-filter") ? true : false
+            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
@@ -573,7 +553,7 @@ export default {
                     const items = elem.querySelectorAll('li')
                     items.forEach(li=>{
                         const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
-                        const elem = templateContainer ? templateContainer : li
+                        const elem = templateContainer ?? li
                         if(!elem.classList.contains("is-hidden")){
                             elem.classList.add("is-hidden")
                         }
@@ -621,10 +601,10 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
-                    const createScenario = elem.hasAttribute("create-scenario") ? true : false
-                    const updateScenario = elem.hasAttribute("update-scenario") ? true : false   
-                    const increaseTotal = (createScenario || updateScenario) ? true : false
-                    const filterPresent = containingListElem.$contentState ? true : false
+                    const createScenario = !!elem.hasAttribute("create-scenario")
+                    const updateScenario = !!elem.hasAttribute("update-scenario")   
+                    const increaseTotal = !!((createScenario || updateScenario))
+                    const filterPresent = !!containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     a.setAttribute("href", options.link + obj['@id'])
@@ -639,10 +619,8 @@ export default {
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
                             li.setAttribute(attr, val)
-                            if(filterPresent){
-                                if(filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
-                                    action = "remove"
-                                }
+                            if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
+                                action = "remove"
                             }
                         }
                     })
@@ -703,4 +681,12 @@ export default {
 function userHasRole(roles){
     if (!Array.isArray(roles)) { roles = [roles] }
     return Boolean(window.GOG_USER?.["http://rerum.io/user_roles"]?.roles.filter(r=>roles.includes(r)).length)
+}
+
+function debounce(func,timeout = 500) {
+    let timeRemains
+    return (...args) => {
+        clearTimeout(timeRemains)
+        timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
+    }
 }
