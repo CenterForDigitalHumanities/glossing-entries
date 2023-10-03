@@ -66,7 +66,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
                 (type === "Range") ? "Gloss" : null
     const redirect =
         (type === "manuscript") ? "./manuscripts.html" :
-            (type === "named-gloss") ? "./named-glosses.html" :
+            (type === "named-gloss") ? "./glosses.html" :
                 (type === "Range") ? "./manage-glosses.html" : null
 
     // This won't do    
