@@ -432,7 +432,7 @@ function prefillReferences(referencesArr, form) {
     // Now apply the references value to the filter
     filter.value = ngLabel.trim()
     filter.dispatchEvent(new Event('input', { bubbles: true }))
-    const chosenGloss = document.querySelector(".chosenNamedGloss")
+    const chosenGloss = document.querySelector(".chosenGloss")
     if(chosenGloss) chosenGloss.value = ngLabel
 }
 
