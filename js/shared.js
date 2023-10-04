@@ -416,6 +416,9 @@ async function getAllWitnessesOfSource(source){
     })
 
     let glossUriSet = new Set()
+    // Each witness has Gloss and Selections
+    let witnessesObj = {}
+    let all = []
     for await (const witnessURI of witnessUriSet){
         // Each Witness has an Annotation whose body.value references [a Gloss]
         const referencesAnnosQuery = {
@@ -424,27 +427,70 @@ async function getAllWitnessesOfSource(source){
             "__rerum.history.next": historyWildcard,
             "__rerum.generatedBy" : httpsIdArray(__constants.generator)
         }
-        const glossUris = await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+        // It also has selections we need to highlight
+        const selectionsAnnosQuery = {
+            "target" : httpsIdArray(witnessURI),
+            "body.selections.value": { $exists:true },
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
             method: "POST",
             mode: 'cors',
             headers: {
                 "Content-Type": "application/json;charset=utf-8"
             },
-            body: JSON.stringify(queryObj)
+            body: JSON.stringify(referencesAnnosQuery)
         })
         .then(response => response.json())
         .then(annos => {
-            return new Set(annos.map(anno => anno.body.references.value))
+            if(!witnessesObj.hasOwnProperty(witnessURI)) witnessesObj[witnessURI] = {}
+            witnessesObj[witnessURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
+            return Promise.resolve(witnessesObj)
         })
         .catch(err => {
             console.error(err)
-            return Promise.resolve([])
+            return Promise.reject([])
+        }))
+
+        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(selectionsAnnosQuery)
         })
-        glossUriSet = new Set([...glossUriSet, ...glossUris])    
+        .then(response => response.json())
+        .then(annos => {
+            if(!witnessesObj.hasOwnProperty(witnessURI)) witnessesObj[witnessURI] = {}
+            const existingSelections = witnessesObj[witnessURI].selections ? witnessesObj[witnessURI].selections : []
+            witnessesObj[witnessURI].selections = [...existingSelections, ...annos.map(anno => anno.body.selections.value).flat()]
+            return Promise.resolve(witnessesObj)
+        })
+        .catch(err => {
+            console.error(err)
+            return Promise.reject([])
+        })
+        )
     }
 
-    console.log("We need to get the infor for this set of glosses")
-    console.log(glossUriSet)
+    Promise.all(all)
+    .then(success => {
+        console.log("Witnesses Object Successfully Built")
+        const ev = new CustomEvent("Witnesses Object Successfully Built")
+        globalFeedbackBlip(ev, `Witnesses Object Successfully Built!`, true)
+        console.log("Witnesses Object")
+        console.log(witnessesObj)
+    })
+    .catch(err => {
+        console.error("Witnesses Object Error")
+        console.error(err)
+        const ev = new CustomEvent("Witnesses Object Error")
+        globalFeedbackBlip(ev, `Witnesses Object Error`, false)
+    })
+    
+
     // Each Gloss has information pertinent to the page.  It was already expanded and is in cache.
     // Each Gloss in Cache is well described.
 }
