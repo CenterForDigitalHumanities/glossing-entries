@@ -381,6 +381,17 @@ async function findMatchingIncipits(incipit, titleStart) {
  * @param source A String that is either a text body or a URI to a text resource.
  */ 
 async function getAllWitnessesOfSource(source){
+    const totalsProgress = document.querySelector(".totalsProgress") ? document.querySelector(".totalsProgress") : null
+    if(totalsProgress === null){
+        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the Glosses to load.")
+    }
+    const cachedFilterableGlosses = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+    const numloaded = parseInt(totalsProgress.getAttribute("count"))
+    const total = parseInt(totalsProgress.getAttribute("total"))
+    if(cachedFilterableGlosses.size === 0 || numloaded !== total){
+        console.error("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the Glosses to load.")
+        return
+    }
     const historyWildcard = { "$exists": true, "$size": 0 }
     const isURI = (urlString) => {
           try { 
@@ -412,14 +423,14 @@ async function getAllWitnessesOfSource(source){
     })
     .catch(err => {
         console.error(err)
-        return Promise.resolve([])
+        return Promise.reject([])
     })
 
     let glossUriSet = new Set()
     // Each witness has Gloss and Selections
     let witnessesObj = {}
     let all = []
-    for await (const witnessURI of witnessUriSet){
+    for (const witnessURI of witnessUriSet){
         // Each Witness has an Annotation whose body.value references [a Gloss]
         const referencesAnnosQuery = {
             "target" : httpsIdArray(witnessURI),
@@ -446,6 +457,7 @@ async function getAllWitnessesOfSource(source){
         .then(annos => {
             if(!witnessesObj.hasOwnProperty(witnessURI)) witnessesObj[witnessURI] = {}
             witnessesObj[witnessURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
+            glossUriSet = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
             return Promise.resolve(witnessesObj)
         })
         .catch(err => {
@@ -475,6 +487,7 @@ async function getAllWitnessesOfSource(source){
         )
     }
 
+    // This has the asyncronous behavior necessary to build witnessesObj.
     Promise.all(all)
     .then(success => {
         console.log("Witnesses Object Successfully Built")
@@ -482,6 +495,11 @@ async function getAllWitnessesOfSource(source){
         globalFeedbackBlip(ev, `Witnesses Object Successfully Built!`, true)
         console.log("Witnesses Object")
         console.log(witnessesObj)
+
+        console.log("Glosses' Information")
+        glossUriSet.forEach(glossURI => {
+            console.log(cachedFilterableGlosses.get(glossURI))
+        })
     })
     .catch(err => {
         console.error("Witnesses Object Error")
@@ -490,7 +508,6 @@ async function getAllWitnessesOfSource(source){
         globalFeedbackBlip(ev, `Witnesses Object Error`, false)
     })
     
-
     // Each Gloss has information pertinent to the page.  It was already expanded and is in cache.
-    // Each Gloss in Cache is well described.
+
 }
