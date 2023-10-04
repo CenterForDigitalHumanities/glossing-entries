@@ -797,7 +797,7 @@ function changeUserInput(event, which){
     active.classList.remove("active")
     event.target.classList.add("active")
     const url = new URL(window.location.href)
-    url.searchParams.set("tab", event.target.getAttribute("name"))
+    url.searchParams.set("tab", event.target.getAttribute("id"))
     window.history.replaceState(null, null, url) 
     inputs.forEach(userInput => {
         userInput.classList.add("is-hidden")
