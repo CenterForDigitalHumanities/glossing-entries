@@ -3,16 +3,16 @@
  */
 
 // For when we test, so we can easily find and blow away junk data
-// setTimeout(() => {
-//     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="BasicWitnessTest"
-//         el.setAttribute("value", "BasicWitnessTest")
-//     })
-//     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "BasicWitnessTest")
-//     })
-//     window.GOG_USER["http://store.rerum.io/agent"] = "BasicWitnessTest"
-// }, 4000)
+setTimeout(() => {
+    document.querySelectorAll("input[deer-key='creator']").forEach(el => {
+        el.value="MultiplicityTest"
+        el.setAttribute("value", "MultiplicityTest")
+    })
+    document.querySelectorAll("form").forEach(el => {
+        el.setAttribute("deer-creator", "MultiplicityTest")
+    })
+    window.GOG_USER["http://store.rerum.io/agent"] = "MultiplicityTest"
+}, 4000)
 
 let __constants = {}
 setConstants()
@@ -348,7 +348,8 @@ async function findMatchingIncipits(incipit, titleStart) {
         }, {
             "body.text.textValue": incipit
         }],
-        "__rerum.history.next": historyWildcard
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
     return fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
         method: "POST",
@@ -373,4 +374,77 @@ async function findMatchingIncipits(incipit, titleStart) {
             console.error(err)
             return Promise.resolve([])
         })
+}
+
+/**
+ * 
+ * @param source A String that is either a text body or a URI to a text resource.
+ */ 
+async function getAllWitnessesOfSource(source){
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    const isURI = (urlString) => {
+          try { 
+            return Boolean(new URL(urlString))
+          }
+          catch(e){ 
+            return false
+          }
+      }
+
+    // Each source annotation targets a Witness.
+    // Get all the source annotations whose value is this source string (URI or text string)
+    const sourceAnnosQuery = {
+        "body.source.value": httpsIdArray(source),
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    const witnessUriSet = await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+        method: "POST",
+        mode: 'cors',
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify(sourceAnnosQuery)
+    })
+    .then(response => response.json())
+    .then(annos => {
+        return new Set(annos.map(anno => anno.target))
+    })
+    .catch(err => {
+        console.error(err)
+        return Promise.resolve([])
+    })
+
+    let glossUriSet = new Set()
+    for await (const witnessURI of witnessUriSet){
+        // Each Witness has an Annotation whose body.value references [a Gloss]
+        const referencesAnnosQuery = {
+            "target" : httpsIdArray(witnessURI),
+            "body.references.value": { $exists:true },
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        const glossUris = await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(queryObj)
+        })
+        .then(response => response.json())
+        .then(annos => {
+            return new Set(annos.map(anno => anno.body.references.value))
+        })
+        .catch(err => {
+            console.error(err)
+            return Promise.resolve([])
+        })
+        glossUriSet = new Set([...glossUriSet, ...glossUris])    
+    }
+
+    console.log("We need to get the infor for this set of glosses")
+    console.log(glossUriSet)
+    // Each Gloss has information pertinent to the page.  It was already expanded and is in cache.
+    // Each Gloss in Cache is well described.
 }
