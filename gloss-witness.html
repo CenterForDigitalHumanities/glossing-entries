@@ -129,6 +129,20 @@
 
             <div class="col-12" id="imageSnippet">
                 <!-- insert <img> when above changes -->
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const imageUrl = document.querySelector('[deer-key="depiction"]')
+                        imageUrl.addEventListener('input',ev=>{
+                            const imgPreview = document.createElement('IMG')
+                            imgPreview.onload = ev=>imageSnippet.innerHTML = imgPreview.outerHTML
+                            try {
+                                imgPreview.src = new URL(imageUrl.value)
+                            } catch(err) {
+                                imgPreview.setAttribute("aria-invalid", true)
+                            }
+                        })
+                    })
+                    </script>
             </div>
 
             <label title="Select the checkbox if the text contains markup tags like HTML or XML"
