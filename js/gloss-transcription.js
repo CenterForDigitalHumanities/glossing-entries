@@ -440,7 +440,10 @@ function prefillReferences(referencesArr, form) {
 /**
  * Helper function for the specialized references key, which is an Array of URIs.
  * It needs to apply the filter with this Gloss's Label.
- * */
+ * 
+ * Currently only Firefox supports multiple selection ranges, other browsers will not add new ranges to the selection if it already contains one.
+ * 
+ */
 function preselectLines(linesArr, form) {
     const source = linesArr.source ?? null
     if (linesArr === undefined) {
