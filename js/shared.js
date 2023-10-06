@@ -384,6 +384,10 @@ async function getAllWitnessesOfSource(source){
     if(totalsProgress === null){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the Glosses to load.")
     }
+    const linesLoaded = document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded") ? true : false
+    if(!linesLoaded){
+        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
+    }
     const cachedFilterableGlosses = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
     const numloaded = parseInt(totalsProgress.getAttribute("count"))
     const total = parseInt(totalsProgress.getAttribute("total"))
