@@ -2,6 +2,7 @@
  * Shared front end functionality across the HTML pages.
  */
 let witnessesObj = {}
+
 // For when we test, so we can easily find and blow away junk data
 setTimeout(() => {
     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
@@ -389,10 +390,9 @@ async function getAllWitnessesOfSource(source){
         for(const witnessURI in witnessesObj){
             const witnessInfo = witnessesObj[witnessURI]
             witnessInfo.glosses.forEach(glossURI => {
-                // For each Gloss URI find its corresponding 'attach' button and class it so users know that gloss has been attached to this source
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
                 document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
                     btn.classList.add("attached-to-source")
-                    btn.title = "This Gloss has been attached to this source in the past."
                 })    
             })
             preselectLines(witnessInfo.selections, witnessForm, false)
@@ -502,10 +502,9 @@ async function getAllWitnessesOfSource(source){
             if(witnessURI === "referencedGlosses") continue
             const witnessInfo = witnessesObj[witnessURI]
             witnessInfo.glosses.forEach(glossURI => {
-                // For each Gloss URI find its corresponding 'attach' button and class it so users know that gloss has been attached to this source
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
                 document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
                     btn.classList.add("attached-to-source")
-                    btn.title = "This Gloss has been attached to this source in the past."
                 })    
             })
             preselectLines(witnessInfo.selections, witnessForm, false)

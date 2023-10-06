@@ -341,6 +341,7 @@ export default {
                     padding: 3px !important;
                     font-size: 10pt !important;
                     margin-right: 0.5em;
+                    width: 5em;
                 }
 
                 h2.nomargin{
@@ -387,7 +388,11 @@ export default {
                         inclusionBtn = `<input disabled type="button" class="toggleInclusion ${already} button success" data-id="${glossID}" title="This Gloss is already attached!" value="✓ attached"/>`
                     }
                     else{
-                        inclusionBtn = `<input type="button" class="toggleInclusion ${already} button primary" data-id="${glossID}" title="Attach this Gloss and Save" value="➥ attach"/>`
+                        inclusionBtn = `
+                            <input type="button" class="toggleInclusion ${already} button primary" data-id="${glossID}" 
+                            title="${already ? "This gloss was attached in the past.  Be sure before you attach it."  : "Attach this Gloss and Save" }" 
+                            value="${already ? "❢" : "➥"} attach"
+                            />`
                     }
                     if(cachedFilterableEntities.get(glossID)){
                         // We cached it in the past and are going to trust it right now.
@@ -482,7 +487,10 @@ export default {
                         return   
                     }
                     const glossIncipit = ev.target.closest("li").getAttribute("data-title")
-                    if(confirm(`Save this textual witness for Gloss '${glossIncipit}'?`)){
+                    const note = ev.target.classList.contains("attached-to-source") 
+                       ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
+                       : `Save this textual witness for Gloss '${glossIncipit}'?`
+                    if(confirm(note)){
                         const customKey = elem.querySelector("input[custom-key='references']")
                         const uri = btn.getAttribute("data-id")
                         if(customKey.value !== uri){

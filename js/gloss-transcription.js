@@ -630,8 +630,8 @@ addEventListener('gloss-modal-saved', event => {
 
     const selectedBtn = document.querySelector(".toggleInclusion[disabled]")
     if(selectedBtn){
-        selectedBtn.setAttribute("title", "Attach this Gloss and Save")
-        selectedBtn.setAttribute("value", "➥ attach")
+        selectedBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
+        selectedBtn.setAttribute("value", "❢ attach")
         selectedBtn.setAttribute("class", "toggleInclusion attached-to-source button primary")
         selectedBtn.removeAttribute("disabled")    
     }
@@ -692,8 +692,8 @@ function addButton(event) {
     }
     else{
         // Either a create scenario, or neither (just loading up)
-        inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
-        inclusionBtn.setAttribute("value", "➥ attach")
+        inclusionBtn.setAttribute("title", `${already ? "This gloss was attached in the past.  Be sure before you attach it." : "Attach This Gloss and Save" }`)
+        inclusionBtn.setAttribute("value", `${already ? "❢" : "➥"} attach`)
         inclusionBtn.setAttribute("class", `toggleInclusion ${already} button primary`)
 
         // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
@@ -725,8 +725,11 @@ function addButton(event) {
             globalFeedbackBlip(blip, `Select some text first.`, false)
             return   
         }
-        const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
-        if((createScenario || updateScenario) || confirm(`Save this textual witness for Gloss '${namedGlossIncipit}'?`)){
+        const glossIncipit = ev.target.closest("li").getAttribute("data-title")
+        const note = ev.target.classList.contains("attached-to-source") 
+           ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
+           : `Save this textual witness for Gloss '${glossIncipit}'?`
+        if((createScenario || updateScenario) || confirm(note)){
             const customKey = form.querySelector("input[custom-key='references']")
             const uri = ev.target.getAttribute("data-id")
             if(customKey.value !== uri){
