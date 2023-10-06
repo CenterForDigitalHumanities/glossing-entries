@@ -1,4 +1,3 @@
-//import "/js/highlight.min.js"
 //import "/js/mark.min.js"
 /**
   * Process a T-PEN Manifest URI (Presentation API 2.1 only) for its transcription text.

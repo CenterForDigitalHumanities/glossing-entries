@@ -1,5 +1,5 @@
 const textWitnessID = window.location.hash.substring(1)
-const tpenProjectURI = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
+let tpenProjectURI = textWitnessID ? false : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
 let referencedGlossID = null
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("tpen-lines-error", function(event){
@@ -14,6 +14,131 @@ document.addEventListener("gloss-modal-visible", function(event){
     glossTextElem.setAttribute("value", text)
     glossTextElem.dispatchEvent(new Event('input', { bubbles: true }))
 })
+
+/**
+ * Attach all the event handlers to the custom key areas.
+ * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
+ * Set fixed value fields and make those inputs dirty.
+ */ 
+window.onload = () => {
+    setPublicCollections()
+    setListings()
+    const dig_location = witnessForm.querySelector("input[custom-key='source']")
+    const deleteWitnessButton = document.querySelector(".deleteWitness")
+    if(tpenProjectURI) {
+        document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
+        needs.classList.add("is-hidden")
+        document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
+        dig_location.value = tpenProjectURI
+        dig_location.setAttribute("value", tpenProjectURI)
+
+        // Technically getAllWitnesses needs ng-list-loaded and tpen-lines-loaded
+        // However, 100% of the time ng-list-loaded takes longer, so we aren't checking/awaiting tpen-lines-loaded
+        addEventListener('ng-list-loaded', getAllWitnesses)
+    }
+    if(textWitnessID){
+        needs.classList.add("is-hidden")
+        const submitBtn = witnessForm.querySelector("input[type='submit']")
+        const deleteBtn = witnessForm.querySelector(".deleteWitness")
+        submitBtn.value = "Update Textual Witness"
+        submitBtn.classList.remove("is-hidden")
+        deleteBtn.classList.remove("is-hidden")
+        witnessForm.setAttribute("deer-id", textWitnessID)
+    }
+    else{
+        // These items have default values that are dirty on fresh forms.
+        dig_location.$isDirty = true
+        witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
+        witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
+    }
+
+    // mimic isDirty detection for these custom inputs
+    witnessForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
+        ev.target.$isDirty = true
+        ev.target.closest("form").$isDirty = true
+    })
+    witnessForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
+        ev.target.$isDirty = true
+        ev.target.closest("form").$isDirty = true
+    })
+    // Note that this HTML element is a checkbox
+    witnessForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+        if(ev.target.checked){
+            ev.target.value = "text/html"
+            ev.target.setAttribute("value", "text/html")
+        }
+        else{
+            ev.target.value = "text/plain"
+            ev.target.setAttribute("value", "text/plain")
+        }
+        ev.target.$isDirty = true
+        ev.target.closest("form").$isDirty = true
+    })
+    deleteWitnessButton.addEventListener("click", ev => {
+        if(confirm("The witness will be deleted.  This action cannot be undone.")){
+            deleteWitness()
+        }
+    })
+}
+
+/**
+ * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
+ * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
+ * @see deer-record.js DeerReport.constructor()  
+ */
+addEventListener('deer-form-rendered', init)
+if(!textWitnessID) removeEventListener('deer-form-rendered', init)
+/**
+ * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
+ * Note this only needs to occur one time on page load.
+ */ 
+function init(event){
+    let whatRecordForm = event.target?.id
+    let annotationData = event.detail ?? {}
+    const $elem = event.target
+    switch (whatRecordForm) {
+        case "witnessForm":
+            // We will need to know the reference for addButton() so let's get it out there now.
+            tpenProjectURI = annotationData.source.value[0]
+            document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
+            document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
+            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
+            if(ngCollectionList.hasAttribute("ng-list-loaded")){
+                prefillReferences(annotationData["references"], ngCollectionList)
+                // Technically getAllWitnesses needs ng-list-loaded and tpen-lines-loaded
+                // However, 100% of the time ng-list-loaded takes longer, so we aren't checking/awaiting tpen-lines-loaded
+                getAllWitnesses(tpenProjectURI)
+            }
+            else{
+                addEventListener('ng-list-loaded', ngListLoaded)
+                function ngListLoaded(event){
+                    if(event.target.id === "ngCollectionList"){
+                        // Technically getAllWitnesses needs ng-list-loaded and tpen-lines-loaded
+                        // However, 100% of the time ng-list-loaded takes longer, so we aren't checking/awaiting tpen-lines-loaded
+                        getAllWitnesses(tpenProjectURI)
+                        prefillReferences(annotationData["references"], ngCollectionList)
+                        event.target.querySelector("gloss-modal-button").classList.remove("is-hidden")
+                        removeEventListener('ng-list-loaded', ngListLoaded)
+                    }
+                }
+            }
+            if(document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
+                preselectLines(annotationData["selections"], $elem, true)
+            }
+            else{
+                addEventListener('tpen-lines-loaded', ev => {
+                    preselectLines(annotationData["selections"], $elem, true)
+                })
+            }
+            prefillText(annotationData["text"], $elem)
+            prefillDigitalLocations(annotationData["source"], $elem)
+
+            // This event listener is no longer needed
+            removeEventListener('deer-form-rendered', init)
+            break
+        default:
+    }
+}
 
 /**
  * Reset all the Witness form elements so the form is ready to generate a new Witness.
@@ -38,10 +163,7 @@ function setWitnessFormDefaults(){
     labelElem.removeAttribute("deer-source")
     labelElem.$isDirty = false
 
-    // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
-    //shelfmarkElem.value = ""
-    //shelfmarkElem.setAttribute("value", "")
     shelfmarkElem.removeAttribute("deer-source")
     shelfmarkElem.$isDirty = true
 
@@ -95,72 +217,6 @@ function setWitnessFormDefaults(){
         }
     }
     console.log("WITNESS FORM RESET")
-}
-
-/**
- * Attach all the event handlers to the custom key areas.
- * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
- * Set fixed value fields and make those inputs dirty.
- */ 
-window.onload = () => {
-    setPublicCollections()
-    setListings()
-    const dig_location = witnessForm.querySelector("input[custom-key='source']")
-    const deleteWitnessButton = document.querySelector(".deleteWitness")
-
-    if(tpenProjectURI) {
-        needs.classList.add("is-hidden")
-        document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
-        document.querySelector(".lineSelector").setAttribute("tpen-project", tpenProjectURI)
-        dig_location.value = tpenProjectURI
-        dig_location.setAttribute("value", tpenProjectURI)
-        addEventListener('ng-list-loaded', getAllWitnesses)
-        function getAllWitnesses(event){
-            getAllWitnessesOfSource(tpenProjectURI)
-        }
-    }
-    if(textWitnessID){
-        const submitBtn = witnessForm.querySelector("input[type='submit']")
-        const deleteBtn = witnessForm.querySelector(".deleteWitness")
-        submitBtn.value = "Update Textual Witness"
-        submitBtn.classList.remove("is-hidden")
-        deleteBtn.classList.remove("is-hidden")
-        witnessForm.setAttribute("deer-id", textWitnessID)
-    }
-    else{
-        // These items have default values that are dirty on fresh forms.
-        dig_location.$isDirty = true
-        witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
-        witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
-    }
-
-    // mimic isDirty detection for these custom inputs
-    witnessForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
-        ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
-    })
-    witnessForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
-        ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
-    })
-    // Note that this HTML element is a checkbox
-    witnessForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
-        if(ev.target.checked){
-            ev.target.value = "text/html"
-            ev.target.setAttribute("value", "text/html")
-        }
-        else{
-            ev.target.value = "text/plain"
-            ev.target.setAttribute("value", "text/plain")
-        }
-        ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
-    })
-    deleteWitnessButton.addEventListener("click", ev => {
-        if(confirm("The witness will be deleted.  This action cannot be undone.")){
-            deleteWitness()
-        }
-    })
 }
 
 /**
@@ -257,56 +313,6 @@ function show(event){
  * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
  */ 
 addEventListener('deer-view-rendered', addButton)
-
-/**
- * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
- * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
- * @see deer-record.js DeerReport.constructor()  
- */
-addEventListener('deer-form-rendered', init)
-if(!textWitnessID) removeEventListener('deer-form-rendered', init)
-/**
- * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
- * Note this only needs to occur one time on page load.
- */ 
-function init(event){
-    let whatRecordForm = event.target?.id
-    let annotationData = event.detail ?? {}
-    const $elem = event.target
-    switch (whatRecordForm) {
-        case "witnessForm":
-            // We will need to know the reference for addButton() so let's get it out there now.
-            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
-            if(ngCollectionList.hasAttribute("ng-list-loaded")){
-                prefillReferences(annotationData["references"], ngCollectionList)
-            }
-            else{
-                addEventListener('ng-list-loaded', ngListLoaded)
-                function ngListLoaded(event){
-                    if(event.target.id === "ngCollectionList"){
-                        prefillReferences(annotationData["references"], ngCollectionList)
-                        event.target.querySelector("gloss-modal-button").classList.remove("is-hidden")
-                        removeEventListener('ng-list-loaded', ngListLoaded)
-                    }
-                }
-            }
-            if(document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
-                preselectLines(annotationData["selections"], $elem, true)
-            }
-            else{
-                addEventListener('tpen-lines-loaded', ev => {
-                    preselectLines(annotationData["selections"], $elem, true)
-                })
-            }
-            prefillText(annotationData["text"], $elem)
-            prefillDigitalLocations(annotationData["source"], $elem)
-
-            // This event listener is no longer needed
-            removeEventListener('deer-form-rendered', init)
-            break
-        default:
-    }
-}
 
 /**
  * On page load and after submission DEER will announce this form as rendered.
@@ -754,4 +760,9 @@ function addButton(event) {
             witnessForm.querySelector("input[type='submit']").click() 
         }
     }
+}
+
+function getAllWitnesses(event){
+    getAllWitnessesOfSource(tpenProjectURI)
+    removeEventListener('ng-list-loaded', getAllWitnesses)
 }

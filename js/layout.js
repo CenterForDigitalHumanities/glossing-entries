@@ -420,7 +420,7 @@ class ReferencesBrowser extends HTMLElement {
             const source_uri = clicked_li.getAttribute("source-uri")
             const witness_uri = clicked_li.getAttribute("appearances")
             if(source_uri.includes("t-pen.org/TPEN/")){
-                window.open(`gloss-transcription.html?tpen-project=${source_uri}#${witness_uri}`, "_blank")
+                window.open(`gloss-transcription.html#${witness_uri}`, "_blank")
             }
             else{
                 window.open(`gloss-witness.html#${witness_uri}`, "_blank")
@@ -438,7 +438,7 @@ class ReferencesBrowser extends HTMLElement {
             witness_uris.forEach((witness, index) => {
                 let li
                 if(source_uri.includes("t-pen.org/TPEN/")){
-                    li = `<li><a target="_blank" href="/gloss-transcription.html?tpen-project=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
+                    li = `<li><a target="_blank" href="/gloss-transcription.html#${witness}">Appearance ${index+1}</a></li>`
                 }
                 else{
                     li = `<li><a target="_blank" href="/gloss-witness.html#${witness}">Appearance ${index+1}</a></li>`

@@ -493,8 +493,7 @@ async function getAllWitnessesOfSource(source){
             const witnessInfo = witnessesObj[witnessURI]
             witnessInfo.glosses.forEach(glossURI => {
                 // For each Gloss URI find its corresponding 'attach' button and class it so users know that gloss has been attached to this source
-                document.querySelectorAll(`.toggleIncludes[data-id="${glossURI}"]`).forEach(btn => {
-                    console.log(cachedFilterableGlosses.get(glossURI))
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
                     btn.classList.add("attached-to-source")
                     btn.title = "This Gloss has been attached to this source in the past."
                 })    
