@@ -344,6 +344,12 @@ export default {
                     width: 5em;
                 }
 
+                .attached-to-source.primary{
+                    background-color: mark;
+                    color: black;
+                    border: 1px solid black;
+                }
+
                 h2.nomargin{
                     margin: 0;
                 }
