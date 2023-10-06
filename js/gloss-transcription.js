@@ -1,9 +1,8 @@
 const textWitnessID = window.location.hash.substring(1)
+const tpenProjectURI = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
 let referencedGlossID = null
-
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("tpen-lines-error", function(event){
-    const tpenProjectURI = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
     document.querySelector(".tpenProjectLines").innerHTML = `<b class="text-error"> Could not get T-PEN project ${tpenProjectURI} </b>`
 })
 
@@ -106,16 +105,19 @@ function setWitnessFormDefaults(){
 window.onload = () => {
     setPublicCollections()
     setListings()
-    const tpenID = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
     const deleteWitnessButton = document.querySelector(".deleteWitness")
 
-    if(tpenID) {
+    if(tpenProjectURI) {
         needs.classList.add("is-hidden")
         document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
-        document.querySelector(".lineSelector").setAttribute("tpen-project", tpenID)
-        dig_location.value = tpenID
-        dig_location.setAttribute("value", tpenID)
+        document.querySelector(".lineSelector").setAttribute("tpen-project", tpenProjectURI)
+        dig_location.value = tpenProjectURI
+        dig_location.setAttribute("value", tpenProjectURI)
+        addEventListener('ng-list-loaded', getAllWitnesses)
+        function getAllWitnesses(event){
+            getAllWitnessesOfSource(tpenProjectURI)
+        }
     }
     if(textWitnessID){
         const submitBtn = witnessForm.querySelector("input[type='submit']")
@@ -245,7 +247,7 @@ addEventListener('deer-view-rendered', show)
 function show(event){
     if(event.target.id == "ngCollectionList"){
         loading.classList.add("is-hidden")
-        if(getURLParameter("tpen-project")) witnessForm.classList.remove("is-hidden")
+        if(tpenProjectURI) witnessForm.classList.remove("is-hidden")
         // This listener is no longer needed.
         removeEventListener('deer-view-rendered', show)
     }
@@ -289,11 +291,11 @@ function init(event){
                 }
             }
             if(document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
-                preselectLines(annotationData["selections"], $elem)    
+                preselectLines(annotationData["selections"], $elem, true)
             }
             else{
                 addEventListener('tpen-lines-loaded', ev => {
-                    preselectLines(annotationData["selections"], $elem)
+                    preselectLines(annotationData["selections"], $elem, true)
                 })
             }
             prefillText(annotationData["text"], $elem)
@@ -444,7 +446,7 @@ function prefillReferences(referencesArr, form) {
  * Currently only Firefox supports multiple selection ranges, other browsers will not add new ranges to the selection if it already contains one.
  * 
  */
-function preselectLines(linesArr, form) {
+function preselectLines(linesArr, form, togglePages) {
     const source = linesArr.source ?? null
     if (linesArr === undefined) {
         console.warn("Cannot highlight lines in UI.  There is no data.")
@@ -462,42 +464,40 @@ function preselectLines(linesArr, form) {
     selectionsElem.value = linesArr.join("__")
 
     //Now highlight the lines
-    let range = document.createRange()
-    let sel = window.getSelection()
-    let line = linesArr[0]
-    let lineid = line.split("#")[0]
-    const lineStartElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-    lineStartElem.parentElement.previousElementSibling.classList.add("has-selection")
-    let selection = line.split("#")[1].replace("char=", "").split(",")           
-    range.setStart(lineStartElem.firstChild, parseInt(selection[0]))
-    if(linesArr.length > 1){
-        line = linesArr.pop()
-        lineid = line.split("#")[0]
-        const lineEndElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-        lineEndElem.parentElement.previousElementSibling.classList.add("has-selection")
-        selection = line.split("#")[1].replace("char=", "").split(",")           
-        range.setEnd(lineEndElem.firstChild, parseInt(selection[1]))
-    }
-    else{
-        range.setEnd(lineStartElem.firstChild, parseInt(selection[1]))
-    }
-    sel.removeAllRanges()
-    sel.addRange(range)
-    document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
-        if(!tog.classList.contains("is-toggled")){
-            tog.click()
+    linesArr.forEach(line => {
+        try{
+            let lineid = line.split("#")[0]
+            let selection = line.split("#")[1].replace("char=", "").split(",")
+            const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
+            lineElem.parentElement.previousElementSibling.classList.add("has-selection")
+            let markup = new Mark(lineElem)
+            markup.markRanges([{
+                start: selection[0],
+                length: (selection[1] - selection[0]) + 1
+            }])    
         }
-    })  
+        catch(err){
+            console.error(err)
+        }
+    })
+    if(togglePages){
+        document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
+            if(!tog.classList.contains("is-toggled")){
+                tog.click()
+            }
+        })    
+    }
+      
 }
 
 /**
  * Recieve a TPEN project as input from #needs.  Reload the page with a set ?tpen-project URL parameter.
 */
 function loadURI(){
-    let tpenProjectURI = resourceURI.value ? resourceURI.value : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
-    if(tpenProjectURI){
+    const tpenProjectLink = resourceURI.value ? resourceURI.value : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
+    if(tpenProjectLink){
         let url = new URL(window.location.href)
-        url.searchParams.append("tpen-project", tpenProjectURI)
+        url.searchParams.append("tpen-project", tpenProjectLink)
         window.location = url
     }
     else{

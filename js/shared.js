@@ -377,7 +377,6 @@ async function findMatchingIncipits(incipit, titleStart) {
 }
 
 /**
- * 
  * @param source A String that is either a text body or a URI to a text resource.
  */ 
 async function getAllWitnessesOfSource(source){
@@ -490,12 +489,6 @@ async function getAllWitnessesOfSource(source){
     // This has the asyncronous behavior necessary to build witnessesObj.
     Promise.all(all)
     .then(success => {
-        console.log("Witnesses Object Successfully Built")
-        const ev = new CustomEvent("Witnesses Object Successfully Built")
-        globalFeedbackBlip(ev, `Witnesses Object Successfully Built!`, true)
-        console.log("Witnesses Object")
-        console.log(witnessesObj)
-        console.log("Glosses' Information")
         for(const witnessURI in witnessesObj){
             const witnessInfo = witnessesObj[witnessURI]
             witnessInfo.glosses.forEach(glossURI => {
@@ -506,7 +499,7 @@ async function getAllWitnessesOfSource(source){
                     btn.title = "This Gloss has been attached to this source in the past."
                 })    
             })
-            preselectLines(witnessInfo.selections, witnessForm)
+            preselectLines(witnessInfo.selections, witnessForm, false)
         }
     })
     .catch(err => {
@@ -516,6 +509,4 @@ async function getAllWitnessesOfSource(source){
         globalFeedbackBlip(ev, `Witnesses Object Error`, false)
     })
     
-    // Each Gloss has information pertinent to the page.  It was already expanded and is in cache.
-
 }
