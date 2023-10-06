@@ -1,7 +1,7 @@
 /**
  * Shared front end functionality across the HTML pages.
  */
-
+let witnessesObj = {}
 // For when we test, so we can easily find and blow away junk data
 setTimeout(() => {
     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
@@ -380,19 +380,23 @@ async function findMatchingIncipits(incipit, titleStart) {
  * @param source A String that is either a text body or a URI to a text resource.
  */ 
 async function getAllWitnessesOfSource(source){
-    const totalsProgress = document.querySelector(".totalsProgress") ? document.querySelector(".totalsProgress") : null
-    if(totalsProgress === null){
-        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the Glosses to load.")
-    }
     const linesLoaded = document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded") ? true : false
     if(!linesLoaded){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
     }
-    const cachedFilterableGlosses = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
-    const numloaded = parseInt(totalsProgress.getAttribute("count"))
-    const total = parseInt(totalsProgress.getAttribute("total"))
-    if(cachedFilterableGlosses.size === 0 || numloaded !== total){
-        console.error("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the Glosses to load.")
+    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
+    if(Object.keys(witnessesObj).length > 0){
+        for(const witnessURI in witnessesObj){
+            const witnessInfo = witnessesObj[witnessURI]
+            witnessInfo.glosses.forEach(glossURI => {
+                // For each Gloss URI find its corresponding 'attach' button and class it so users know that gloss has been attached to this source
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
+                    btn.classList.add("attached-to-source")
+                    btn.title = "This Gloss has been attached to this source in the past."
+                })    
+            })
+            preselectLines(witnessInfo.selections, witnessForm, false)
+        }
         return
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
@@ -431,7 +435,7 @@ async function getAllWitnessesOfSource(source){
 
     let glossUriSet = new Set()
     // Each witness has Gloss and Selections
-    let witnessesObj = {}
+    
     let all = []
     for (const witnessURI of witnessUriSet){
         // Each Witness has an Annotation whose body.value references [a Gloss]
@@ -493,7 +497,9 @@ async function getAllWitnessesOfSource(source){
     // This has the asyncronous behavior necessary to build witnessesObj.
     Promise.all(all)
     .then(success => {
+        witnessesObj.referencedGlosses = glossUriSet
         for(const witnessURI in witnessesObj){
+            if(witnessURI === "referencedGlosses") continue
             const witnessInfo = witnessesObj[witnessURI]
             witnessInfo.glosses.forEach(glossURI => {
                 // For each Gloss URI find its corresponding 'attach' button and class it so users know that gloss has been attached to this source

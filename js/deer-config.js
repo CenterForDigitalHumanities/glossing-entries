@@ -378,12 +378,16 @@ export default {
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
                     let inclusionBtn = null
+                    let already = false
                     const glossID = val['@id'].replace(/^https?:/, 'https:')
+                    if(witnessesObj?.referencedGlosses){
+                        already = witnessesObj.referencedGlosses.has(glossID) ? "attached-to-source" : ""
+                    }
                     if(glossID === referencedGlossID){
-                        inclusionBtn = `<input disabled type="button" class="toggleInclusion button success" data-id="${glossID}" title="This Gloss is already attached!" value="✓ attached"/>`
+                        inclusionBtn = `<input disabled type="button" class="toggleInclusion ${already} button success" data-id="${glossID}" title="This Gloss is already attached!" value="✓ attached"/>`
                     }
                     else{
-                        inclusionBtn = `<input type="button" class="toggleInclusion button primary" data-id="${glossID}" title="Attach this Gloss and Save" value="➥ attach"/>`
+                        inclusionBtn = `<input type="button" class="toggleInclusion ${already} button primary" data-id="${glossID}" title="Attach this Gloss and Save" value="➥ attach"/>`
                     }
                     if(cachedFilterableEntities.get(glossID)){
                         // We cached it in the past and are going to trust it right now.

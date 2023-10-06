@@ -25,16 +25,13 @@ window.onload = () => {
     setListings()
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
     const deleteWitnessButton = document.querySelector(".deleteWitness")
+    addEventListener('tpen-lines-loaded', getAllWitnesses)
     if(tpenProjectURI) {
         document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
         needs.classList.add("is-hidden")
         document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
         dig_location.value = tpenProjectURI
         dig_location.setAttribute("value", tpenProjectURI)
-
-        // Technically getAllWitnesses needs ng-list-loaded and tpen-lines-loaded
-        // However, 100% of the time ng-list-loaded takes longer, so we aren't checking/awaiting tpen-lines-loaded
-        addEventListener('ng-list-loaded', getAllWitnesses)
     }
     if(textWitnessID){
         needs.classList.add("is-hidden")
@@ -105,17 +102,11 @@ function init(event){
             referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
                 prefillReferences(annotationData["references"], ngCollectionList)
-                // Technically getAllWitnesses needs ng-list-loaded and tpen-lines-loaded
-                // However, 100% of the time ng-list-loaded takes longer, so we aren't checking/awaiting tpen-lines-loaded
-                getAllWitnesses(tpenProjectURI)
             }
             else{
                 addEventListener('ng-list-loaded', ngListLoaded)
                 function ngListLoaded(event){
                     if(event.target.id === "ngCollectionList"){
-                        // Technically getAllWitnesses needs ng-list-loaded and tpen-lines-loaded
-                        // However, 100% of the time ng-list-loaded takes longer, so we aren't checking/awaiting tpen-lines-loaded
-                        getAllWitnesses(tpenProjectURI)
                         prefillReferences(annotationData["references"], ngCollectionList)
                         event.target.querySelector("gloss-modal-button").classList.remove("is-hidden")
                         removeEventListener('ng-list-loaded', ngListLoaded)
@@ -641,7 +632,7 @@ addEventListener('gloss-modal-saved', event => {
     if(selectedBtn){
         selectedBtn.setAttribute("title", "Attach this Gloss and Save")
         selectedBtn.setAttribute("value", "➥ attach")
-        selectedBtn.setAttribute("class", "toggleInclusion button primary")
+        selectedBtn.setAttribute("class", "toggleInclusion attached-to-source button primary")
         selectedBtn.removeAttribute("disabled")    
     }
 
@@ -689,17 +680,21 @@ function addButton(event) {
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")
     inclusionBtn.setAttribute("data-id", obj["@id"])
+    let already = false
+    if(witnessesObj?.referencedGlosses){
+        already = witnessesObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
+    }
     if(updateScenario){
         inclusionBtn.setAttribute("disabled", "")
         inclusionBtn.setAttribute("value", "✓ attached")
         inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-        inclusionBtn.setAttribute("class", "toggleInclusion button success")  
+        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button success`)  
     }
     else{
         // Either a create scenario, or neither (just loading up)
         inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
         inclusionBtn.setAttribute("value", "➥ attach")
-        inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button primary`)
 
         // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
         if(textWitnessID && referencedGlossID === obj["@id"]){
@@ -764,5 +759,4 @@ function addButton(event) {
 
 function getAllWitnesses(event){
     getAllWitnessesOfSource(tpenProjectURI)
-    removeEventListener('ng-list-loaded', getAllWitnesses)
 }
