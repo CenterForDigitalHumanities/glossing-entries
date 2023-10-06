@@ -56,6 +56,10 @@ class TpenLineSelector extends HTMLElement {
                 visibility: hidden;
                 height: 0px;
            }
+           .persists{
+                background-color : var(--color-primary);
+                color: white;
+           }
         </style>
 
         <h2> Select T-PEN Transcription Text </h2>
@@ -219,6 +223,27 @@ class TpenLineSelector extends HTMLElement {
                                 })    
                                 console.log("You made the following line selections")
                                 console.log(selections)
+                                // Now highlight the lines for persistence
+                                let unmarkup = new Mark(".tpenProjectLines")
+                                unmarkup.unmark({"className" : "persists"})
+                                selections.forEach(line => {
+                                    try{
+                                        let lineid = line.split("#")[0]
+                                        let selection = line.split("#")[1].replace("char=", "").split(",")
+                                        const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
+                                        let markup = new Mark(lineElem)
+                                        markup.markRanges([{
+                                            start: selection[0],
+                                            length: (selection[1] - selection[0]) + 1
+                                        }],
+                                        {
+                                            "className" : "persists"
+                                        })     
+                                    }
+                                    catch(err){
+                                        console.error(err)
+                                    }
+                                })
                             }
                         }
                         pageContainer.appendChild(lineElem)
