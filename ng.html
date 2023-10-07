@@ -85,23 +85,6 @@
     <div id="globalFeedback" class="card is-center"></div>
     <witness-modal class="is-hidden"></witness-modal>
 
-    <!-- JavaScript to prevent "undefined" from appearing -->
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            // Find the relevant input fields
-            const sectionInput = document.querySelector('input[deer-key="_section"]');
-            const subsectionInput = document.querySelector('input[deer-key="_subsection"]');
-
-            // Check if section and subsection are defined before setting their values
-            if (sectionInput.value === 'undefined') {
-                sectionInput.value = ''; // Set it to an empty string if undefined
-            }
-
-            if (subsectionInput.value === 'undefined') {
-                subsectionInput.value = ''; // Set it to an empty string if undefined
-            }
-        });
-    </script>
 </body>
 
 </html>
