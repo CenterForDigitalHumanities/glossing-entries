@@ -43,44 +43,23 @@
             </label>
         </div>
         <div class="row">
+            <label class="col-3 col-2-md text-right">Description:</label>
+            <input type="text" deer-key="description" placeholder="description" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
+            <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
+            <button class="col-6" type="button" role="button" onclick="parseSections()">parse sections</button>
+            <label class="col-3 col-2-md text-right">Document:</label>
+            <input type="text" deer-key="_document" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Section:</label>
             <input type="text" deer-key="_section" placeholder="chapter" class="col-9 col-4-md">
             <label class="col-3 col-2-md text-right">Subsection(s):</label>
             <input type="text" deer-key="_subsection" placeholder="verse" class="col-9 col-4-md">
         </div>
-        
-        <!-- JavaScript to prevent "undefined" from appearing -->
-        <script>
-            // Find the relevant input fields
-            const sectionInput = document.querySelector('input[deer-key="_section"]');
-            const subsectionInput = document.querySelector('input[deer-key="_subsection"]');
-        
-            // Check if section and subsection are defined before setting their values
-            if (sectionInput.value === 'undefined') {
-                sectionInput.value = ''; // Set it to an empty string if undefined
-            }
-        
-            if (subsectionInput.value === 'undefined') {
-                subsectionInput.value = ''; // Set it to an empty string if undefined
-            }
-        </script>
-        If the issue persists, please ensure that there are no JavaScript errors or conflicts in your page's JavaScript files, and that the input fields indeed contain the string "undefined" that you are trying to replace.
-        
-        
-        
-        
-        
-        
         <div class="row">
             <label class="col-3 col-2-md text-right">Target Text:</label>
             <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text"></textarea>
             <label class="col-3 col-2-md text-right">Label for display:</label>
             <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
-
-            <!-- <label class="col-3 col-2-md text-right">Chapter</label>
-            <input type="number" deer-key="targetChapter" placeholder="0" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Verse</label>
-            <input type="text" deer-key="targetVerse" placeholder="0-1" class="col-9 col-4-md"> -->
         </div>
         <div class="row">
             <label class="col-3 col-2-md text-right">Notes</label>
@@ -101,17 +80,26 @@
         <a href="./glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')"
             class="text-error">Drop from collection</a>
     </form>
-    <!-- 
-        <pre class="card bg-light is-hidden">
-            <deer-view deer-template="entity" deer-listening="named-gloss">current state</deer-view>
-        </pre> -->
 
-    <gog-footer class="row">
-
-    </gog-footer>
-
+    <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <witness-modal class="is-hidden"></witness-modal>
+
+    <!-- JavaScript to prevent "undefined" from appearing -->
+    <script>
+        // Find the relevant input fields
+        const sectionInput = document.querySelector('input[deer-key="_section"]');
+        const subsectionInput = document.querySelector('input[deer-key="_subsection"]');
+    
+        // Check if section and subsection are defined before setting their values
+        if (sectionInput.value === 'undefined') {
+            sectionInput.value = ''; // Set it to an empty string if undefined
+        }
+    
+        if (subsectionInput.value === 'undefined') {
+            subsectionInput.value = ''; // Set it to an empty string if undefined
+        }
+    </script>
 </body>
 
 </html>
