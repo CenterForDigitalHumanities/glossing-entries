@@ -92,9 +92,9 @@ addEventListener('deer-form-rendered', event => {
  */ 
 addEventListener('deer-updated', event => {
     const $elem = event.target
-    //Only care about witness form
+    // Only care about witness form
     if($elem?.id  !== "named-gloss") return
-    // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
+    // We don't want the typical DEER form stuff to happen. This may have no effect, not sure.
     event.preventDefault()
     event.stopPropagation()
 
@@ -124,42 +124,60 @@ addEventListener('deer-updated', event => {
         }
         const el = customTextElems[2]
         if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
-        fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
-            method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
-            mode: 'cors',
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            },
-            body: JSON.stringify(textanno)
-        })
-        .then(res => res.json())
-        .then(a => {
-            customTextElems[0].setAttribute("deer-source", a["@id"])
-            customTextElems[1].setAttribute("deer-source", a["@id"])
-            customTextElems[2].setAttribute("deer-source", a["@id"])
-        })
-        .catch(err => {
-            console.error(`Could not generate 'text' property Annotation`)
-            console.error(err)
-        })
-        .then(success => {
-            console.log("GLOSS FULLY SAVED")
-            const ev = new CustomEvent("Thank you for your Gloss Submission!")
-            globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
-            const hash = window.location.hash.substring(1)
-            if(!hash){
-                setTimeout(() => {
-                    window.location.reload()
-                }, 2000)    
+
+        let action, method;
+
+        // Check if the form or relevant input elements have been modified
+        if (el.$isDirty) {
+            if (el.hasAttribute("deer-source")) {
+                // If the element has a deer-source attribute, treat it as an update
+                action = "update";
+                method = "PUT";
+            } else {
+                // Otherwise, treat it as a create
+                action = "create";
+                method = "POST";
             }
-        })
-        .catch(err => {
-            console.error("ERROR PROCESSING SOME FORM FIELDS")
-            console.error(err)
-        })
+            
+            // Execute the fetch operation with the determined action and method
+            fetch(`${__constants.tiny}/${action}`, {
+                method: method,
+                mode: 'cors',
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                },
+                body: JSON.stringify(textanno)
+            })
+            .then(res => res.json())
+            .then(a => {
+                customTextElems[0].setAttribute("deer-source", a["@id"])
+                customTextElems[1].setAttribute("deer-source", a["@id"])
+                customTextElems[2].setAttribute("deer-source", a["@id"])
+            })
+            .catch(err => {
+                console.error(`Could not generate 'text' property Annotation`)
+                console.error(err)
+            })
+            .then(success => {
+                console.log("GLOSS FULLY SAVED")
+                const ev = new CustomEvent("Thank you for your Gloss Submission!")
+                globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
+                const hash = window.location.hash.substring(1)
+                if(!hash){
+                    setTimeout(() => {
+                        window.location.reload()
+                    }, 2000)    
+                }
+            })
+            .catch(err => {
+                console.error("ERROR PROCESSING SOME FORM FIELDS")
+                console.error(err)
+            })
+        }
     }
 })
+
 
 function parseSections() {
     const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value
