@@ -2,7 +2,7 @@
  * Shared front end functionality across the HTML pages.
  */
 
-//For when we test, so we can easily find and blow away junk data
+// For when we test, so we can easily find and blow away junk data
 // setTimeout(() => {
 //     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
 //         el.value="BasicWitnessTest"
@@ -26,7 +26,7 @@ async function setConstants(){
  */ 
 function setPublicCollections() {
     document.querySelectorAll("deer-view[public-collection]").forEach(elem => {
-        if(elem.getAttribute("public-collection") === "Glossing-Matthew-Named-Glosses"){
+        if(elem.getAttribute("public-collection") === "GoG-Named-Glosses"){
             elem.setAttribute("deer-id", __constants.ngCollection)    
         }
         else if(elem.getAttribute("public-collection") === "Glossing-Matthew"){
@@ -40,7 +40,7 @@ function setPublicCollections() {
  */
 function setListings(){
     document.querySelectorAll("deer-view[deer-listing]").forEach(elem => {
-        if(elem.getAttribute("deer-collection") === "Glossing-Matthew-Named-Glosses"){
+        if(elem.getAttribute("deer-collection") === "GoG-Named-Glosses"){
             elem.setAttribute("deer-listing", __constants.ngCollection)    
         }
         else if(elem.getAttribute("deer-collection") === "Glossing-Matthew"){
@@ -66,7 +66,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
                 (type === "Range") ? "Gloss" : null
     const redirect =
         (type === "manuscript") ? "./manuscripts.html" :
-            (type === "named-gloss") ? "./named-glosses.html" :
+            (type === "named-gloss") ? "./glosses.html" :
                 (type === "Range") ? "./manage-glosses.html" : null
 
     // This won't do    

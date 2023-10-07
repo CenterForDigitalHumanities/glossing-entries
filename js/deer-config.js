@@ -67,7 +67,6 @@ export default {
      */
     TEMPLATES: {
         msList: function (obj, options = {}) {
-            // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let tmpl = `<a href="./manage-mss.html" class="button">Manage Manuscript Glosses</a> <h2>Manuscripts</h2>`
             if (options.list) {
                 tmpl += `<ul>`
@@ -83,7 +82,6 @@ export default {
             return tmpl
         },
         ngList: function (obj, options = {}) {
-            // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let html = `<a href="./manage-glosses.html" class="button">Manage Glosses</a> <h2>Glosses</h2>
             <input type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">`
             if (options.list) {
@@ -119,13 +117,6 @@ export default {
                 const filter = elem.querySelector('input')
                 filter.classList.remove('is-hidden')
                 filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
-                function debounce(func,timeout = 500) {
-                    let timeRemains
-                    return (...args) => {
-                        clearTimeout(timeRemains)
-                        timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
-                    }
-                }
                 function filterGlosses(queryString=''){
                     const query = queryString.trim().toLowerCase()
                     const items = elem.querySelectorAll('li')
@@ -140,18 +131,11 @@ export default {
             return { html, then }
         }, 
         ngListFilterable: function (obj, options = {}) {
-            // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let html = `
             <style>
                 .cachedNotice{
-                  top: -2em;
-                  position: relative;
-                  font-family: "Eczar","Volkhov",serif;
-                  font-size: 11pt;
-                }
-
-                .progressArea{
-                  font-family: "Eczar","Volkhov",serif;
+                  margin-top: -1em;
+                  display: block;
                 }
 
                 .cachedNotice a{
@@ -166,8 +150,8 @@ export default {
                 }
             </style>
             <h2> Glosses </h2>
-            <div class="cachedNotice is-hidden"> These Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
-            <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden">
+            <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+            <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText">
             <div class="progressArea">
                 <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                 <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
@@ -177,10 +161,10 @@ export default {
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
             const total = obj[options.list].length
-            const filterPresent = deerUtils.getURLParameter("gog-filter") ? true : false
+            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
-                // Then obj[options.list] is the entire Glossing-Matthew-Named-Glosses collection, URIs only.
+                // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
@@ -233,9 +217,7 @@ export default {
                     elem.querySelector(".filterNotice").classList.remove("is-hidden")
                     elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                 }
-                let addFilterState = true
                 const totalsProgress = elem.querySelector(".totalsProgress")
-                const newcache = elem.querySelector(".newcache")
                 // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                 const filter = elem.querySelector('input')
                 const cachedNotice = elem.querySelector(".cachedNotice")
@@ -246,10 +228,9 @@ export default {
                 totalsProgress.setAttribute("count", numloaded)
 
                 // FIXME this can be improved.  We need to update localStorage, not completely refresh it.
-                newcache.addEventListener("click", ev => {
+                elem.querySelector(".newcache").addEventListener("click", ev => {
                     localStorage.clear()
                     location.reload()
-                    return
                 })
 
                 // Filter the list of glosses as users type their query against 'title'
@@ -282,14 +263,6 @@ export default {
                     }
                 }
 
-                function debounce(func,timeout = 500) {
-                    let timeRemains
-                    return (...args) => {
-                        clearTimeout(timeRemains)
-                        timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
-                    }
-                }
-
                 /** 
                  * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
                  * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
@@ -313,7 +286,7 @@ export default {
                     const items = elem.querySelectorAll('li')
                     items.forEach(li=>{
                         const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
-                        const elem = templateContainer ? templateContainer : li
+                        const elem = templateContainer ?? li
                         if(!elem.classList.contains("is-hidden")){
                             elem.classList.add("is-hidden")
                         }
@@ -345,24 +318,17 @@ export default {
         },
         /**
          * The Gloss selector for gloss-transcription.html.
-         * Users should see the Glossing-Matthew-Named-Glosses collection.  They can filter the list of titles using a text input that matches on title.
+         * Users should see the GoG-Named-Glosses collection.  They can filter the list of titles using a text input that matches on title.
          * The collection items have a button that, when clicked, attaches them to the T-PEN transcription text selected.
          * When an existing witness is provided via the URL Hash, newly selected Glosses will update the Gloss reference to the text.
          * Note this works in tandem with a tpen-line-selector element and the ?gog-filter Filter State URL parameter.
          */ 
         glossesSelectorForTextualWitness: function (obj, options = {}) {
-            // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
             let html = `
             <style>
                 .cachedNotice{
-                    position: relative;
-                    font-family: "Eczar","Volkhov",serif;
-                    font-size: 11pt;
-                    top: -11px;
-                }
-
-                .progressArea{
-                    font-family: "Eczar","Volkhov",serif;
+                    margin-top: -1em;
+                    display:block;
                 }
 
                 .cachedNotice a{
@@ -386,20 +352,15 @@ export default {
                     margin: 0;
                 }
 
-                .filterInstructions{
-                    font-family: "Eczar","Volkhov",serif;
-                    margin: 0;
-                }
-
             </style>
             <input type="hidden" custom-key="references" />
             <div class="col">
                 <h2 class="nomargin">Attach Gloss</h2>
-                <div class="cachedNotice is-hidden"> These Glosses were cached.  To reload the data <a class="newcache">click here</a>. </div>
+                <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag-is-small">click here</a>. </small>
                 <p class="filterInstructions is-hidden"> 
                     Use the filter to narrow down your options.  Select a single Gloss from the list to attach this witness to. 
                 </p>
-                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden">
+                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText">
                 <gloss-modal-button class="is-right is-hidden"></gloss-modal-button>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
@@ -414,10 +375,10 @@ export default {
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
             const total = obj[options.list].length
-            const filterPresent = deerUtils.getURLParameter("gog-filter") ? true : false
+            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
-                // Then obj[options.list] is the entire Glossing-Matthew-Named-Glosses collection, URIs only.
+                // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
                 obj[options.list].forEach((val, index) => {
@@ -451,7 +412,7 @@ export default {
                         li += `>
                             ${inclusionBtn}
                             <a target="_blank" href="${options.link}${glossID}">
-                                <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
+                                <span class="serifText">${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                         </li>`
                         html += li
@@ -481,7 +442,6 @@ export default {
                     elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                 }
                 const totalsProgress = elem.querySelector(".totalsProgress")
-                const newcache = elem.querySelector(".newcache")
                 // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                 const filter = elem.querySelector('input[filter]')
                 const cachedNotice = elem.querySelector(".cachedNotice")
@@ -498,10 +458,9 @@ export default {
                 totalsProgress.setAttribute("count", numloaded)
 
                 // FIXME this can be improved.  We need to update localStorage, not completely refresh it.
-                newcache.addEventListener("click", ev => {
+                elem.querySelector(".newcache").addEventListener("click", ev => {
                     localStorage.clear()
                     location.reload()
-                    return
                 })
 
                 // Note the capability to select multiple that we are limiting to one.
@@ -604,7 +563,7 @@ export default {
                     const items = elem.querySelectorAll('li')
                     items.forEach(li=>{
                         const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
-                        const elem = templateContainer ? templateContainer : li
+                        const elem = templateContainer ?? li
                         if(!elem.classList.contains("is-hidden")){
                             elem.classList.add("is-hidden")
                         }
@@ -652,10 +611,10 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
-                    const createScenario = elem.hasAttribute("create-scenario") ? true : false
-                    const updateScenario = elem.hasAttribute("update-scenario") ? true : false   
-                    const increaseTotal = (createScenario || updateScenario) ? true : false
-                    const filterPresent = containingListElem.$contentState ? true : false
+                    const createScenario = !!elem.hasAttribute("create-scenario")
+                    const updateScenario = !!elem.hasAttribute("update-scenario")   
+                    const increaseTotal = !!((createScenario || updateScenario))
+                    const filterPresent = !!containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     a.setAttribute("href", options.link + obj['@id'])
@@ -670,10 +629,8 @@ export default {
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
                             li.setAttribute(attr, val)
-                            if(filterPresent){
-                                if(filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
-                                    action = "remove"
-                                }
+                            if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
+                                action = "remove"
                             }
                         }
                     })
@@ -734,4 +691,12 @@ export default {
 function userHasRole(roles){
     if (!Array.isArray(roles)) { roles = [roles] }
     return Boolean(window.GOG_USER?.["http://rerum.io/user_roles"]?.roles.filter(r=>roles.includes(r)).length)
+}
+
+function debounce(func,timeout = 500) {
+    let timeRemains
+    return (...args) => {
+        clearTimeout(timeRemains)
+        timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
+    }
 }
