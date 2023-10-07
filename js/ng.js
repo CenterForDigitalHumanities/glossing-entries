@@ -94,7 +94,6 @@ addEventListener('deer-updated', event => {
     const $elem = event.target
     // Only care about witness form
     if($elem?.id  !== "named-gloss") return
-    // We don't want the typical DEER form stuff to happen. This may have no effect, not sure.
     event.preventDefault()
     event.stopPropagation()
 
@@ -105,7 +104,6 @@ addEventListener('deer-updated', event => {
         $elem.querySelector("textarea[custom-text-key='text']")
     ]
     if(customTextElems.filter(el => el.$isDirty).length > 0){
-        // One of the text properties has changed so we need the text object
         const format = customTextElems[0].value
         const language = customTextElems[1].value
         const text = customTextElems[2].value
@@ -127,19 +125,15 @@ addEventListener('deer-updated', event => {
 
         let action, method;
 
-        // Check if the form or relevant input elements have been modified
         if (el.$isDirty) {
             if (el.hasAttribute("deer-source")) {
-                // If the element has a deer-source attribute, treat it as an update
                 action = "update";
                 method = "PUT";
             } else {
-                // Otherwise, treat it as a create
                 action = "create";
                 method = "POST";
             }
             
-            // Execute the fetch operation with the determined action and method
             fetch(`${__constants.tiny}/${action}`, {
                 method: method,
                 mode: 'cors',
@@ -151,9 +145,8 @@ addEventListener('deer-updated', event => {
             })
             .then(res => res.json())
             .then(a => {
-                customTextElems[0].setAttribute("deer-source", a["@id"])
-                customTextElems[1].setAttribute("deer-source", a["@id"])
-                customTextElems[2].setAttribute("deer-source", a["@id"])
+                // Ensure deer-source is set for all elements after a successful create or update
+                customTextElems.forEach(elem => elem.setAttribute("deer-source", a["@id"]))
             })
             .catch(err => {
                 console.error(`Could not generate 'text' property Annotation`)
@@ -177,6 +170,7 @@ addEventListener('deer-updated', event => {
         }
     }
 })
+
 
 
 function parseSections() {
