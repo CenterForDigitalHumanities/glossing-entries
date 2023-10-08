@@ -174,30 +174,25 @@ function parseSections() {
     const elemSet = [_document, _section, _subsection];
     
     // Check if any of the input fields are missing or if the Canonical Reference Locator is empty
-    if (elemSet.includes(null) || !canonValue?.length) {
+    if (elemSet.includes(null)) {
         throw new Error(`Missing elements in ${elemSet.join(', ')}`);
     }
     
-    // Split the Canonical Reference Locator value at the ":" character
-    const canonSplit = canonValue.split(':');
+    // Split the Canonical Reference Locator value at the first ":" character
+    const firstColonIndex = canonValue.indexOf(':');
     
-    // Populate the Document input field with the first part
-    if (canonSplit.length >= 1) {
-        _document.value = canonSplit[0].trim();
+    if (firstColonIndex !== -1) {
+        _document.value = canonValue.substring(0, firstColonIndex).trim();
+        _section.value = canonValue.substring(firstColonIndex + 1).trim();
+        _subsection.value = ''; // Leave the Subsection(s) input field empty
     } else {
-        _document.value = '';
-    }
-    
-    // Populate the Section input field with the second part, if it exists
-    if (canonSplit.length >= 2) {
-        _section.value = canonSplit[1].trim();
-    } else {
+        // No ":" character found, populate both Document and Section
+        _document.value = canonValue.trim();
         _section.value = '';
+        _subsection.value = '';
     }
-    
-    // Leave the Subsection(s) input field empty
-    _subsection.value = '';
 }
+
 
 
 
