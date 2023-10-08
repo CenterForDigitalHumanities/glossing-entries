@@ -85,12 +85,12 @@
     <div id="globalFeedback" class="card is-center"></div>
     <witness-modal class="is-hidden"></witness-modal>
     <script>
-        window.onload = function() {
+        document.addEventListener('DOMContentLoaded', function() {
             const subsectionElem = document.querySelector('input[deer-key="_subsection"]');
             if (subsectionElem.value === "undefined") {
                 subsectionElem.value = ""; // clear the value if it's "undefined"
             }
-        }
+        });
     </script>
 </body>
 
