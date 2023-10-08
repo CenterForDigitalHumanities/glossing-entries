@@ -195,7 +195,11 @@ function parseSections() {
     
         if (firstColonIndex !== -1) {
             _document.value = canonValue.substring(0, firstColonIndex).trim();
-            _section.value = canonValue.substring(firstColonIndex + 1).trim();
+            
+            // Check if the section is "undefined" and set it to an empty string if needed
+            const sectionValue = canonValue.substring(firstColonIndex + 1).trim();
+            _section.value = sectionValue === "undefined" ? "" : sectionValue;
+            
             _subsection.value = ''; // Leave the Subsection(s) input field empty
         } else {
             // No ":" character found, populate both Document and Section
@@ -214,6 +218,7 @@ function parseSections() {
 
 // Uncomment the following line to call the function for debugging:
 // parseSections();
+
 
 
 
