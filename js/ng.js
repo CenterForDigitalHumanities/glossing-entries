@@ -161,7 +161,7 @@ addEventListener('deer-updated', event => {
     }
 })
 
-function parseSections() {
+function parseSections2() {
     console.log("Canonical Reference Locator value:")
     // Get the Canonical Reference Locator value
     const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value;
