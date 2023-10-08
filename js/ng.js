@@ -175,13 +175,17 @@ function parseSections() {
         throw new Error(`Missing elements in ${elemSet.join(', ')}`);
     }
     // Split the Canonical Reference Locator value using a regex pattern
-    const canonSplit = canonValue.match(/^(.*?)\s*(\d+)(?::(.*?))?$/);
-    
-    // Populate the input fields with corresponding parts of the split value
-    _document.value = canonSplit[1] || '';
-    _section.value = canonSplit[2] || '';
-    _subsection.value = canonSplit[3] || '';
+    const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/);
+    // Iterate through the input fields and populate them with corresponding parts of the split value
+    elemSet.forEach((el, index) => {
+        if (index < canonSplit.length && canonSplit[index] !== "undefined") {
+            el.value = canonSplit[index];
+        } else {
+            el.value = ''; // Set to an empty string
+        }
+    });
 }
+
 
 
 function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
