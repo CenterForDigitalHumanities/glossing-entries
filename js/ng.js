@@ -162,58 +162,28 @@ addEventListener('deer-updated', event => {
 })
 
 function parseSections() {
-    try {
-        // Get the Canonical Reference Locator value
-        const canonInput = document.querySelector('input[deer-key="canonicalReference"]');
-        if (!canonInput) {
-            console.error('Canonical Reference Locator input not found.');
-            return;
-        }
-        const canonValue = canonInput.value;
-        
-        // Get references to the input fields
-        const _document = document.querySelector('input[deer-key="_document"]');
-        const _section = document.querySelector('input[deer-key="_section"]');
-        const _subsection = document.querySelector('input[deer-key="_subsection"]');
-        
-        // Create an array of the input fields
-        const elemSet = [_document, _section, _subsection];
-        
-        // Check if any of the input fields are missing or if the Canonical Reference Locator is empty
-        if (elemSet.includes(null)) {
-            console.error('Missing elements in:', elemSet.join(', '));
-            return;
-        }
-        
-        // Split the Canonical Reference Locator value at the first ":" character
-        const firstColonIndex = canonValue.indexOf(':');
-        
-        console.log('Canonical Reference Locator:', canonValue);
-        console.log('Document (Before Split):', _document.value);
-        console.log('Section (Before Split):', _section.value);
-        console.log('Subsection(s) (Before Split):', _subsection.value);
-    
-        if (firstColonIndex !== -1) {
-            _document.value = canonValue.substring(0, firstColonIndex).trim();
-            _section.value = canonValue.substring(firstColonIndex + 1).trim();
-            _subsection.value = ''; // Leave the Subsection(s) input field empty
-        } else {
-            // No ":" character found, populate both Document and Section
-            _document.value = canonValue.trim();
-            _section.value = '';
-            _subsection.value = '';
-        }
-    
-        console.log('Document (After Split):', _document.value);
-        console.log('Section (After Split):', _section.value);
-        console.log('Subsection(s) (After Split):', _subsection.value);
-    } catch (error) {
-        console.error('An error occurred:', error);
-    }
-}
+    // Get the Canonical Reference Locator value
+    const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value;
+    const _document = document.querySelector('input[deer-key="_document"]');
+    const _section = document.querySelector('input[deer-key="_section"]');
+    const _subsection = document.querySelector('input[deer-key="_subsection"]');
 
-// Uncomment the following line to call the function for debugging:
-// parseSections();
+    // Create an array of the input fields
+    const elemSet = [_document, _section, _subsection];
+
+    // Check if any of the input fields are missing or if the Canonical Reference Locator is empty
+    if (elemSet.includes(null) || !canonValue?.length) {
+        throw new Error(`Missing elements in ${elemSet.join(', ')}`);
+    }
+
+    // Split the Canonical Reference Locator value using a regex pattern
+    const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/);
+
+    // Iterate through the input fields and populate them with corresponding parts of the split value
+    elemSet.forEach((el, index) => {
+        el.value = index < canonSplit.length ? canonSplit[index] : ''; // Set to an empty string if there's no corresponding part
+    });
+}
 
 
 function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
