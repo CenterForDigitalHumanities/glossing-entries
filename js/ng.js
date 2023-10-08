@@ -191,6 +191,10 @@ function parseSections() {
         _section.value = '';
         _subsection.value = '';
     }
+    console.log('Canonical Reference Locator:', canonValue);
+    console.log('Document:', _document.value);
+    console.log('Section:', _section.value);
+    console.log('Subsection(s):', _subsection.value);
 }
 
 
