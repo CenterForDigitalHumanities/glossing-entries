@@ -179,11 +179,29 @@ function parseSections() {
     // Split the Canonical Reference Locator value using a regex pattern
     const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/);
 
+    // Debug checks
+    //console.log("Canonical Reference Locator value:", canonValue);
+    //console.log("Split parts:", canonSplit);
+
     // Iterate through the input fields and populate them with corresponding parts of the split value
     elemSet.forEach((el, index) => {
-        el.value = index < canonSplit.length ? canonSplit[index] : ''; // Set to an empty string if there's no corresponding part
+        if (index < canonSplit.length) {
+            // Check if the split part is not "undefined" before assignment
+            if (canonSplit[index] !== "undefined") {
+                el.value = canonSplit[index];
+            } else {
+                el.value = ''; // Set to an empty string if the split part is "undefined"
+            }
+        } else {
+            el.value = ''; // Set to an empty string if there's no corresponding part
+        }
+
+        // Debug check for each input field's value
+        console.log(`${el.getAttribute('deer-key')} value:`, el.value);
     });
 }
+
+
 
 
 function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
