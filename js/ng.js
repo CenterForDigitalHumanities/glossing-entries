@@ -162,51 +162,59 @@ addEventListener('deer-updated', event => {
 })
 
 function parseSections() {
-    // Get the Canonical Reference Locator value
-    const canonValue = document.querySelector('input[deer-key="canonicalReference"]').value;
+    try {
+        // Get the Canonical Reference Locator value
+        const canonInput = document.querySelector('input[deer-key="canonicalReference"]');
+        if (!canonInput) {
+            console.error('Canonical Reference Locator input not found.');
+            return;
+        }
+        const canonValue = canonInput.value;
+        
+        // Get references to the input fields
+        const _document = document.querySelector('input[deer-key="_document"]');
+        const _section = document.querySelector('input[deer-key="_section"]');
+        const _subsection = document.querySelector('input[deer-key="_subsection"]');
+        
+        // Create an array of the input fields
+        const elemSet = [_document, _section, _subsection];
+        
+        // Check if any of the input fields are missing or if the Canonical Reference Locator is empty
+        if (elemSet.includes(null)) {
+            console.error('Missing elements in:', elemSet.join(', '));
+            return;
+        }
+        
+        // Split the Canonical Reference Locator value at the first ":" character
+        const firstColonIndex = canonValue.indexOf(':');
+        
+        console.log('Canonical Reference Locator:', canonValue);
+        console.log('Document (Before Split):', _document.value);
+        console.log('Section (Before Split):', _section.value);
+        console.log('Subsection(s) (Before Split):', _subsection.value);
     
-    // Get references to the input fields
-    const _document = document.querySelector('input[deer-key="_document"]');
-    const _section = document.querySelector('input[deer-key="_section"]');
-    const _subsection = document.querySelector('input[deer-key="_subsection"]');
+        if (firstColonIndex !== -1) {
+            _document.value = canonValue.substring(0, firstColonIndex).trim();
+            _section.value = canonValue.substring(firstColonIndex + 1).trim();
+            _subsection.value = ''; // Leave the Subsection(s) input field empty
+        } else {
+            // No ":" character found, populate both Document and Section
+            _document.value = canonValue.trim();
+            _section.value = '';
+            _subsection.value = '';
+        }
     
-    // Create an array of the input fields
-    const elemSet = [_document, _section, _subsection];
-    
-    // Check if any of the input fields are missing or if the Canonical Reference Locator is empty
-    if (elemSet.includes(null)) {
-        throw new Error(`Missing elements in ${elemSet.join(', ')}`);
+        console.log('Document (After Split):', _document.value);
+        console.log('Section (After Split):', _section.value);
+        console.log('Subsection(s) (After Split):', _subsection.value);
+    } catch (error) {
+        console.error('An error occurred:', error);
     }
-    
-    // Split the Canonical Reference Locator value at the first ":" character
-    const firstColonIndex = canonValue.indexOf(':');
-    
-    console.log('Canonical Reference Locator:', canonValue);
-    console.log('Document (Before Split):', _document.value);
-    console.log('Section (Before Split):', _section.value);
-    console.log('Subsection(s) (Before Split):', _subsection.value);
-
-    if (firstColonIndex !== -1) {
-        _document.value = canonValue.substring(0, firstColonIndex).trim();
-        _section.value = canonValue.substring(firstColonIndex + 1).trim();
-        _subsection.value = ''; // Leave the Subsection(s) input field empty
-    } else {
-        // No ":" character found, populate both Document and Section
-        _document.value = canonValue.trim();
-        _section.value = '';
-        _subsection.value = '';
-    }
-
-    console.log('Document (After Split):', _document.value);
-    console.log('Section (After Split):', _section.value);
-    console.log('Subsection(s) (After Split):', _subsection.value);
 }
 
-// Place breakpoints by clicking on line numbers in your JavaScript file in the browser's developer tools.
-// You can also add additional console.log statements or breakpoints as needed for further debugging.
-
-// Example usage:
+// Uncomment the following line to call the function for debugging:
 // parseSections();
+
 
 
 
