@@ -175,12 +175,12 @@ function parseSections() {
         throw new Error(`Missing elements in ${elemSet.join(', ')}`);
     }
     // Split the Canonical Reference Locator value using a regex pattern
-    const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/);
+    const canonSplit = canonValue.match(/^(.*?)\s*(\d+)(?::(.*?))?$/);
     
     // Populate the input fields with corresponding parts of the split value
-    _document.value = canonSplit[0] || '';
-    _section.value = canonSplit[1] || '';
-    _subsection.value = canonSplit.slice(2).join(' ') || ''; // Combine the remaining parts
+    _document.value = canonSplit[1] || '';
+    _section.value = canonSplit[2] || '';
+    _subsection.value = canonSplit[3] || '';
 }
 
 
