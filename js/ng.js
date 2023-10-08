@@ -181,6 +181,11 @@ function parseSections() {
     // Split the Canonical Reference Locator value at the first ":" character
     const firstColonIndex = canonValue.indexOf(':');
     
+    console.log('Canonical Reference Locator:', canonValue);
+    console.log('Document (Before Split):', _document.value);
+    console.log('Section (Before Split):', _section.value);
+    console.log('Subsection(s) (Before Split):', _subsection.value);
+
     if (firstColonIndex !== -1) {
         _document.value = canonValue.substring(0, firstColonIndex).trim();
         _section.value = canonValue.substring(firstColonIndex + 1).trim();
@@ -191,11 +196,17 @@ function parseSections() {
         _section.value = '';
         _subsection.value = '';
     }
-    console.log('Canonical Reference Locator:', canonValue);
-    console.log('Document:', _document.value);
-    console.log('Section:', _section.value);
-    console.log('Subsection(s):', _subsection.value);
+
+    console.log('Document (After Split):', _document.value);
+    console.log('Section (After Split):', _section.value);
+    console.log('Subsection(s) (After Split):', _subsection.value);
 }
+
+// Place breakpoints by clicking on line numbers in your JavaScript file in the browser's developer tools.
+// You can also add additional console.log statements or breakpoints as needed for further debugging.
+
+// Example usage:
+// parseSections();
 
 
 
