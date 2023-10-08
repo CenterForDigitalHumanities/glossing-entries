@@ -86,11 +86,26 @@
     <witness-modal class="is-hidden"></witness-modal>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const subsectionElem = document.querySelector('input[deer-key="_subsection"]');
-            if (subsectionElem.value === "undefined") {
-                subsectionElem.value = ""; // clear the value if it's "undefined"
+    const subsectionElem = document.querySelector('input[deer-key="_subsection"]');
+    
+    if (subsectionElem.value === "undefined") {
+        subsectionElem.value = ""; // clear the value if it's "undefined" during initial load
+    }
+
+    // Create an observer instance linked to the callback function
+    const observer = new MutationObserver(function(mutationsList, observer) {
+        for(let mutation of mutationsList) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'value') {
+                if (subsectionElem.value === "undefined") {
+                    subsectionElem.value = ""; // clear the value if it's "undefined" during any subsequent changes
+                }
             }
-        });
+        }
+    });
+
+    // Start observing the node with the configured parameters
+    observer.observe(subsectionElem, { attributes: true });
+});
     </script>
 </body>
 
