@@ -162,6 +162,7 @@ addEventListener('deer-updated', event => {
 })
 
 function parseSections() {
+    console.log("Canonical Reference Locator value:")
     // Get the Canonical Reference Locator value
     const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value;
     const _document = document.querySelector('input[deer-key="_document"]');
@@ -180,8 +181,8 @@ function parseSections() {
     const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/);
 
     // Debug checks
-    //console.log("Canonical Reference Locator value:", canonValue);
-    //console.log("Split parts:", canonSplit);
+    console.log("Canonical Reference Locator value:", canonValue);
+    console.log("Split parts:", canonSplit);
 
     // Iterate through the input fields and populate them with corresponding parts of the split value
     elemSet.forEach((el, index) => {
@@ -201,7 +202,7 @@ function parseSections() {
     });
 }
 
-
+//parseSections;
 
 
 function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
