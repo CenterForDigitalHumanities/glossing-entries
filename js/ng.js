@@ -178,20 +178,27 @@ function parseSections() {
         throw new Error(`Missing elements in ${elemSet.join(', ')}`);
     }
     
-    // Split the Canonical Reference Locator value using a regex pattern
-    const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/);
+    // Split the Canonical Reference Locator value at the ":" character
+    const canonSplit = canonValue.split(':');
     
-    // Iterate through the input fields and populate them with corresponding parts of the split value
-    elemSet.forEach((el, index) => {
-        if (index < canonSplit.length) {
-            // Set the value to the corresponding part if it exists
-            el.value = canonSplit[index].trim();
-        } else {
-            // Set to an empty string if there's no corresponding part
-            el.value = '';
-        }
-    });
+    // Populate the Document input field with the first part
+    if (canonSplit.length >= 1) {
+        _document.value = canonSplit[0].trim();
+    } else {
+        _document.value = '';
+    }
+    
+    // Populate the Section input field with the second part, if it exists
+    if (canonSplit.length >= 2) {
+        _section.value = canonSplit[1].trim();
+    } else {
+        _section.value = '';
+    }
+    
+    // Leave the Subsection(s) input field empty
+    _subsection.value = '';
 }
+
 
 
 
