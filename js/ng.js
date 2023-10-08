@@ -176,15 +176,20 @@ function parseSections() {
     }
     // Split the Canonical Reference Locator value using a regex pattern
     const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/);
+    
+    // Remove "undefined" strings from the array
+    for(let i = 0; i < canonSplit.length; i++) {
+        if(canonSplit[i] === "undefined") {
+            canonSplit[i] = '';
+        }
+    }
+    
     // Iterate through the input fields and populate them with corresponding parts of the split value
     elemSet.forEach((el, index) => {
-        if (index < canonSplit.length && canonSplit[index] !== "undefined") {
-            el.value = canonSplit[index];
-        } else {
-            el.value = ''; // Set to an empty string
-        }
+        el.value = index < canonSplit.length ? canonSplit[index] : ''; // Set to an empty string if there's no corresponding part
     });
 }
+
 
 
 
