@@ -163,35 +163,36 @@ addEventListener('deer-updated', event => {
 
 function parseSections() {
     // Get the Canonical Reference Locator value
-    const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value;
-    const _document = document.querySelector('input[deer-key="_document"]');
-    const _section = document.querySelector('input[deer-key="_section"]');
-    const _subsection = document.querySelector('input[deer-key="_subsection"]');
+    const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value
+    const _document = document.querySelector('input[deer-key="_document"]')
+    const _section = document.querySelector('input[deer-key="_section"]')
+    const _subsection = document.querySelector('input[deer-key="_subsection"]')
 
     // Create an array of the input fields
-    const elemSet = [_document, _section, _subsection];
+    const elemSet = [_document, _section, _subsection]
 
     // Check if any of the input fields are missing or if the Canonical Reference Locator is empty
     if (elemSet.includes(null) || !canonValue?.length) {
-        throw new Error(`Missing elements in ${elemSet.join(', ')}`);
+        throw new Error(`Missing elements in ${elemSet.join(', ')}`)
     }
 
     // Split the Canonical Reference Locator value using a regex pattern
-    const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/);
+    const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/)
 
     // Iterate through the input fields and populate them with corresponding parts of the split value
     elemSet.forEach((el, index) => {
         if (index < canonSplit.length) {
-            // Check if the split part is not "undefined" before assignment
-            if (canonSplit[index] !== "undefined") {
+            // Check if the split part is not "undefined" or the undefined primitive before assignment
+            if (canonSplit[index] !== "undefined" && canonSplit[index] !== undefined) {
                 el.value = canonSplit[index];
             } else {
-                el.value = ''; // Set to an empty string if the split part is "undefined"
+                el.value = '' // Set to an empty string if the split part is "undefined" or undefined
             }
         } else {
-            el.value = ''; // Set to an empty string if there's no corresponding part
+            el.value = '' // Set to an empty string if there's no corresponding part
         }
     });
+    
 }
 
 
