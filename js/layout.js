@@ -35,7 +35,7 @@ class GlossHeader extends HTMLElement {
     #template = new DOMParser().parseFromString(`<template id="headerTemplate">
     <header>
     <link rel="stylesheet" href="css/gloss.css">
-    <button is="auth-button">login</button>
+    <button class="button primary" is="auth-button">login</button>
     <img src="media/gog-logo.jpg" alt="banner">
     <a href="/"><h1 class="title">
         Gallery of Glosses
@@ -72,11 +72,13 @@ class GlossHeader extends HTMLElement {
             transition: all .2s;
         }
         ::slotted(a:hover), slot a:hover {
-            color: var(--color-accent)!important;
+            /*color: var(--color-accent)!important;
             background-color: var(--bg-secondary-color);
             border-bottom: 2px solid var(--color-darkGrey);
             border-color: var(--color-accent);
-            opacity: 1;
+            opacity: 1;*/
+            background-color: var(--color-primary);
+            color: var(--bg-color);
         }
     </style>
         <a href="./glosses.html">✏️ Glosses</a>
