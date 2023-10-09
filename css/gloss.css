@@ -31,6 +31,7 @@ gog-header + div.container {
   border-bottom: 2px solid var(--color-lightGrey);
   padding: .8em;
   border-radius: 0.2em;
+  margin-left: auto;
 }
 div.content {
   min-height: 400px;
@@ -38,6 +39,7 @@ div.content {
 .tabs {
   white-space: nowrap;
   font-family: 'Eczar',serif;
+  margin-left: -2em;
 }
 
 .tabs a {
