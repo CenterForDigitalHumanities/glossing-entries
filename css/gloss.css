@@ -33,6 +33,7 @@ gog-header + div.container {
   border-radius: 0.2em;
   margin-left: auto;
   margin-right: auto;
+  margin-top: 1em;
 }
 div.content {
   min-height: 400px;
@@ -496,4 +497,8 @@ p.bg-light {
 
 input#loadInput {
   margin-top: 1em;
+}
+
+.content.container {
+  margin-left: -.001em;
 }
