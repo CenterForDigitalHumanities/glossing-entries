@@ -129,7 +129,7 @@ export default {
                 deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
             }
             return { html, then }
-        },
+        }, 
         ngListFilterable: function (obj, options = {}) {
             let html = `
             <style>
@@ -278,6 +278,11 @@ export default {
                     }
                     queryString = queryString.trim()
                     const query = decodeContentState(queryString)
+                    for (const key in query) {
+                        if (typeof query[key] === "string") {
+                            query[key] = query[key].toLowerCase();
+                        }
+                    }
                     const items = elem.querySelectorAll('li')
                     items.forEach(li=>{
                         const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
@@ -549,7 +554,12 @@ export default {
                         return
                     }
                     queryString = queryString.trim()
-                    const query = decodeContentState(queryString)
+                    const query = decodeContentState(queryString);
+                    for (const key in query) {
+                        if (typeof query[key] === "string") {
+                            query[key] = query[key].toLowerCase();
+                        }
+                    }
                     const items = elem.querySelectorAll('li')
                     items.forEach(li=>{
                         const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
