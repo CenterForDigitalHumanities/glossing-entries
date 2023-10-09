@@ -341,7 +341,7 @@ export default {
                     padding: 3px !important;
                     font-size: 10pt !important;
                     margin-right: 0.5em;
-                    width: 5em;
+                    width: 6em;
                 }
 
                 .attached-to-source.primary{

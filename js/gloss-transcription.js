@@ -466,12 +466,15 @@ function preselectLines(linesArr, form, togglePages) {
             let lineid = line.split("#")[0]
             let selection = line.split("#")[1].replace("char=", "").split(",")
             const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
+            if(lineElem.classList.contains("has-selection")) return
+            lineElem.classList.add("has-selection")
             lineElem.parentElement.previousElementSibling.classList.add("has-selection")
             let markup = new Mark(lineElem)
+            const options = togglePages ? {className:"persists"} : {}
             markup.markRanges([{
                 start: selection[0],
                 length: (selection[1] - selection[0]) + 1
-            }])    
+            }], options)    
         }
         catch(err){
             console.error(err)

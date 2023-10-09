@@ -15,6 +15,10 @@ class TpenLineSelector extends HTMLElement {
                 padding: 1em;
                 box-shadow: -0.25em 0.25em 0.75em rgba(0,0,0,.5);
                 word-break: break-word;
+                margin-top: 1em;
+            }
+            .tpenProjectLines.no-select{
+                user-select: none;
             }
             .serifText {
                font-family: "Eczar","Volkhov",serif !important;
@@ -57,12 +61,12 @@ class TpenLineSelector extends HTMLElement {
                 height: 0px;
            }
            .persists{
-                background-color : var(--color-primary);
-                color: white;
+                background-color : var(--color-success);
            }
         </style>
 
-        <h2> Select T-PEN Transcription Text </h2>
+        <h2 class="nomargin"> Select T-PEN Transcription Text </h2>
+        <small class="cachedNotice text-primary"> Text highlighted yellow is already attached to a Gloss in the list.  Text highlighted green is the text selection of the identified Gloss text. </small>
         <input type="hidden" custom-key="selections" />
         <div title="Collapse Transcription Area" class="toggle is-hidden">&#9660;</div>
         <div class="tpenProjectLines col serifText"></div>
