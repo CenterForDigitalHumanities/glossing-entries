@@ -29,7 +29,8 @@ gog-header + div.container {
   background-color: var(--bg-color)!important;
   display: block;
   border-bottom: 2px solid var(--color-lightGrey);
-  padding: .7em;
+  padding: .8em;
+  border-radius: 0.2em;
 }
 div.content {
   min-height: 400px;
@@ -75,7 +76,7 @@ textarea.taller {
   position: absolute;
   max-width: none;
   min-width: 100%;
-  filter:blur(.2rem);
+  filter:blur(.5rem);
   left:0;
   top:0;
   z-index: -1;
@@ -473,4 +474,20 @@ line.selected.just {
 
 .addWitnessBtn{
   margin-bottom: 1em;
+}
+
+form#ngForm
+{
+  margin: 0.7em;
+}
+
+p.bg-light {
+  padding: 0.5em;
+  text-align: center;
+  border-radius: 0.5em;
+  font-weight: bold;
+}
+
+input#loadInput {
+  margin-top: 1em;
 }
