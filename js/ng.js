@@ -184,14 +184,14 @@ function parseSections() {
         if (index < canonSplit.length) {
             // Check if the split part is not "undefined" or the undefined primitive before assignment
             if (canonSplit[index] !== "undefined" && canonSplit[index] !== undefined) {
-                el.value = canonSplit[index];
+                el.value = canonSplit[index]
             } else {
                 el.value = '' // Set to an empty string if the split part is "undefined" or undefined
             }
         } else {
             el.value = '' // Set to an empty string if there's no corresponding part
         }
-    });
+    })
     
 }
 
