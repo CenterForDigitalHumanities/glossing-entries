@@ -9,7 +9,7 @@ class GlossFooter extends HTMLElement {
         }
     </style>
     <a href="./index.html">🏠</a>
-        <a href="./named-glosses.html">📑</a>
+        <a href="./glosses.html">📑</a>
         <a rel="noopener noreferrer" title="View on GitHub"
             href="https://github.com/CenterForDigitalHumanities/glossing-entries" target="_blank">
             <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
@@ -81,7 +81,7 @@ class GlossHeader extends HTMLElement {
             color: var(--bg-color);
         }
     </style>
-        <a href="./named-glosses.html">✏️ Glosses</a>
+        <a href="./glosses.html">✏️ Glosses</a>
         <a href="./ng.html">🆕 New gloss</a>
         <a href="./gloss-transcription.html">🔍 Detect glosses</a>
         <a href="./manage-glosses.html">💾 Manage glosses</a>
@@ -425,7 +425,7 @@ class ReferencesBrowser extends HTMLElement {
                 window.open(`gloss-transcription.html?tpen-project=${source_uri}#${witness_uri}`, "_blank")
             }
             else{
-                window.open(`gloss-witness.html?witness-uri=${source_uri}#${witness_uri}`, "_blank")
+                window.open(`gloss-witness.html#${witness_uri}`, "_blank")
             }
         }
 
@@ -443,7 +443,7 @@ class ReferencesBrowser extends HTMLElement {
                     li = `<li><a target="_blank" href="/gloss-transcription.html?tpen-project=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
                 }
                 else{
-                    li = `<li><a target="_blank" href="/gloss-witness.html?witness-uri=${source_uri}#${witness}">Appearance ${index+1}</a></li>`
+                    li = `<li><a target="_blank" href="/gloss-witness.html#${witness}">Appearance ${index+1}</a></li>`
                 }
                 witnessListElem.innerHTML += li
             })        
@@ -481,7 +481,7 @@ class ReferencesBrowser extends HTMLElement {
                     const witnessURI = gloss_witness_anno.target
                     const query2 = {
                         "body.source.value" : {"$exists":true},
-                        "target" : gloss_witness_anno.target,
+                        "target" : httpsIdArray(gloss_witness_anno.target),
                         '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
                         "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
                     }
@@ -500,11 +500,13 @@ class ReferencesBrowser extends HTMLElement {
                         return res.json()
                     })
                     .then(witness_source_annos => {
-                        // Get the target's 'source' Annotation for a better label.  Should only be 1.
-                        const witnessSource = witness_source_annos.length ? witness_source_annos[0].body.source.value[0] : null
-                        const witnessURI = `${witness_source_annos.length ? witness_source_annos[0].target : ""}`
-                        const sourceURI = witnessSource ? witnessSource : gloss_witness_anno.target
-                        // Do not add duplicates
+                        let witnessSource = witness_source_annos.length ? witness_source_annos[0].body.source.value[0] : null
+                        const witnessURI = witness_source_annos.length ? witness_source_annos[0].target : ""
+                        let sourceURI = witnessSource ? witnessSource : gloss_witness_anno.target
+                        if(!(witnessSource.startsWith("http:") || witnessSource.startsWith("https:"))){
+                            sourceURI = gloss_witness_anno.target
+                        }
+                        // Do not add duplicates.  This UI will list the separate occurances when there are more than 1.
                         const existing = witnessList.querySelector(`li[source-uri="${sourceURI}"]`)
                         if(existing) {
                             const existing_li = existing.closest("li")

@@ -2,7 +2,7 @@
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
  */ 
 window.onload = () => {
-    const hash = window.location.hash.substr(1)
+    const hash = window.location.hash.substring(1)
     if(hash) {
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
@@ -147,7 +147,7 @@ addEventListener('deer-updated', event => {
             console.log("GLOSS FULLY SAVED")
             const ev = new CustomEvent("Thank you for your Gloss Submission!")
             globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
-            const hash = window.location.hash.substr(1)
+            const hash = window.location.hash.substring(1)
             if(!hash){
                 setTimeout(() => {
                     window.location.reload()
@@ -277,7 +277,6 @@ function witnessForGloss(tpen){
     const title = document.getElementById("named-gloss").querySelector("input[deer-key='title']").value
     if(!title) return
     const encodedFilter = encodeContentState(JSON.stringify({"title" : title}))
-    const url = new URL(window.location.href)
     if(tpen){
         //window.location = `gloss-transcription.html?gog-filter=${encodedFilter}`
         window.open(`gloss-transcription.html?gog-filter=${encodedFilter}`, "_blank")

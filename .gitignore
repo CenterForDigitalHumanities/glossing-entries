@@ -3,3 +3,5 @@
 # dependencies
 /node_modules
 prod-properties.json
+/properties.json
+properties.json
