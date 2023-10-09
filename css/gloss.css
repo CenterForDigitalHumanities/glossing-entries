@@ -483,6 +483,8 @@ line.selected.just {
 form#ngForm
 {
   margin: 0.7em;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 p.bg-light {
