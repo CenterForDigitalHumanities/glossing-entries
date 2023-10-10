@@ -139,6 +139,11 @@ class TpenLineSelector extends HTMLElement {
                         const txt = line.resource["cnt:chars"] ? line.resource["cnt:chars"] : ""
                         lineElem.innerText = txt
                         if(!txt) lineElem.classList.add("emptyLine")
+                        lineElem.onmousedown = function(e){
+                            // The <mark> has to be removed before selection occurs or the range indexes will not line up.
+                            let unmarkup = new Mark(".tpenProjectLines")
+                            unmarkup.unmark({"className" : "persists"})
+                        }
                         lineElem.onmouseup = captureSelectedText
                         pageContainer.appendChild(lineElem)
                     })
@@ -159,8 +164,8 @@ class TpenLineSelector extends HTMLElement {
             const s = window.getSelection ? window.getSelection() : document.selection
             const customKey = $this.querySelector("input[custom-key='selections']")
             const filter = document.querySelector("input[filter]")
-            const selectedText = s?.toString().trim() ?? ""
-            const firstword = selectedText.split(" ")[0]
+            const selectedText = s?.toString() ?? ""
+            const firstword = selectedText.trim().split(" ")[0]
             if(selectedText){
                 // The filter may not be in the DOM when the user is selecting text.
                 // Only use the filter if it is !.is-hidden
@@ -171,8 +176,8 @@ class TpenLineSelector extends HTMLElement {
                 }
 
                 const textInput = document.querySelector("textarea[custom-text-key='text']")
-                textInput.setAttribute("value", selectedText)
-                textInput.value = selectedText
+                textInput.setAttribute("value", selectedText.trim())
+                textInput.value = selectedText.trim()
                 textInput.dispatchEvent(new Event('input', { bubbles: true }))
 
                 let witnessLabel = selectedText.slice(0, 16)
@@ -203,7 +208,7 @@ class TpenLineSelector extends HTMLElement {
 
                 let startEl = s.baseNode.parentElement.hasAttribute("tpen-line-id")
                     ? s.baseNode.parentElement
-                    : s.extentNode.parentElement.closest("div[tpen-line-id]")
+                    : s.baseNode.parentElement.closest("div[tpen-line-id]")
 
                 let stopEl = s.extentNode.parentElement.hasAttribute("tpen-line-id")
                     ? s.extentNode.parentElement
@@ -218,7 +223,7 @@ class TpenLineSelector extends HTMLElement {
 
                 if(stopID === startEl.getAttribute("tpen-line-id")){
                     // The entire selection happened in just this line.  It will not be empty.
-                    selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=${baseOffset},${extentOffset}`)
+                    selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=${baseOffset},${extentOffset-1}`)
                     linePreviews.push()
                 }
                 else{
@@ -238,7 +243,7 @@ class TpenLineSelector extends HTMLElement {
                         }
                     }  
                     if(!startEl.classList.contains("emptyLine")){
-                        selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=0,${extentOffset}`)
+                        selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=0,${extentOffset-1}`)
                     }
                 }
                 if(customKey.value !== selections.join("__")){
@@ -254,17 +259,17 @@ class TpenLineSelector extends HTMLElement {
                 console.log("You made the following line selections")
                 console.log(selections)
                 // Now highlight the lines for persistence
-                let unmarkup = new Mark(".tpenProjectLines")
-                unmarkup.unmark({"className" : "persists"})
+                // let unmarkup = new Mark(".tpenProjectLines")
+                // unmarkup.unmark({"className" : "persists"})
                 selections.forEach(line => {
                     try{
                         let lineid = line.split("#")[0]
                         let selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
                         const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
                         const textLength = lineElem.innerText.length
-                        const lengthOfSelection = (textLength === selection[1]+1) 
-                            ? (selection[1] - selection[0]) + 1
-                            : (selection[1] - selection[0])
+                        const lengthOfSelection = (selection[0] === selection[1]) 
+                            ? 1
+                            : (selection[1] - selection[0]) + 1
                         let markup = new Mark(lineElem)
                         markup.markRanges([{
                             start: selection[0],
