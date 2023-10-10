@@ -28,6 +28,12 @@ gog-header + div.container {
 .bg-basic, div.container, form {
   background-color: var(--bg-color)!important;
   display: block;
+  border-bottom: 2px solid var(--color-lightGrey);
+  padding: .8em;
+  border-radius: 0.2em;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 1em;
 }
 div.content {
   min-height: 400px;
@@ -35,6 +41,7 @@ div.content {
 .tabs {
   white-space: nowrap;
   font-family: 'Eczar',serif;
+  margin-left: -2em;
 }
 
 .tabs a {
@@ -73,7 +80,7 @@ textarea.taller {
   position: absolute;
   max-width: none;
   min-width: 100%;
-  filter:blur(.2rem);
+  filter:blur(.5rem);
   left:0;
   top:0;
   z-index: -1;
@@ -85,6 +92,7 @@ h1.title {
   font-size: 3em;
   font-family: "Eczar","Volkhov",serif;
   margin:0;
+  margin-left: -0.6em;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -471,4 +479,26 @@ line.selected.just {
 
 .addWitnessBtn{
   margin-bottom: 1em;
+}
+
+form#ngForm
+{
+  margin: 0.7em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+p.bg-light {
+  padding: 0.5em;
+  text-align: center;
+  border-radius: 0.5em;
+  font-weight: bold;
+}
+
+input#loadInput {
+  margin-top: 1em;
+}
+
+.content.container {
+  margin-left: -.001em;
 }
