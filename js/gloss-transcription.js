@@ -470,11 +470,16 @@ function preselectLines(linesArr, form, togglePages) {
             lineElem.classList.add("has-selection")
             lineElem.parentElement.previousElementSibling.classList.add("has-selection")
             const textLength = lineElem.innerText.length
-            const lengthOfSelection = (textLength === selection[1]+1) 
-                ? (selection[1] - selection[0]) + 1
-                : (selection[1] - selection[0])
+            const lengthOfSelection = (selection[0] === selection[1]) 
+                ? 1
+                : (selection[1] - selection[0]) + 1
             let markup = new Mark(lineElem)
-            const options = togglePages ? {className:"persists"} : {}
+            let options = togglePages ? {className:"persists"} : {}
+            Object.assign(options, {
+                diacritics : true,
+                className : "pre-select",
+                acrossElements : true
+            })
             markup.markRanges([{
                 start: selection[0],
                 length: lengthOfSelection
@@ -749,6 +754,7 @@ function addButton(event) {
             else{
                 globalFeedbackBlip(ev, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
             }
+            document.querySelector(".persists").classList.remove("persists")
         }                    
     })
     gloss_li.prepend(inclusionBtn)

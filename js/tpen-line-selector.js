@@ -25,6 +25,10 @@ class TpenLineSelector extends HTMLElement {
            }
            div[tpen-line-id]{
                 display: inline;
+                margin-right: 0.25em;
+           }
+           div[tpen-line-id].emptyLine{
+                margin-right: unset;
            }
            h4 {
                 display: inline;
@@ -140,9 +144,11 @@ class TpenLineSelector extends HTMLElement {
                         lineElem.innerText = txt
                         if(!txt) lineElem.classList.add("emptyLine")
                         lineElem.onmousedown = function(e){
+                            if(event.button > 0) return
                             // The <mark> has to be removed before selection occurs or the range indexes will not line up.
                             let unmarkup = new Mark(".tpenProjectLines")
                             unmarkup.unmark({"className" : "persists"})
+                            // What should we do on lines with text highlighted yellow already??
                         }
                         lineElem.onmouseup = captureSelectedText
                         pageContainer.appendChild(lineElem)
@@ -161,15 +167,29 @@ class TpenLineSelector extends HTMLElement {
             })
 
         function captureSelectedText(e){
+            const lineElem = e.target
             const s = window.getSelection ? window.getSelection() : document.selection
+            // If the users selection contains a <mark>, it is an invalid selection.
+            if(s.baseNode.parentElement.tagName === "MARK" || s.extentNode.parentElement.tagName === "MARK"){
+                const ev = new CustomEvent("Your selection contained text marked for another selection.  Make a different selection.")
+                globalFeedbackBlip(ev, `Your selection contained text marked for another selection.  Make a different selection.`, false)
+                //remove browser's text selection
+                if (s) {
+                    if (s.removeAllRanges) {
+                        s.removeAllRanges()
+                    } else if (s.empty) {
+                        s.empty()
+                    }
+                }
+                return
+            }
             const customKey = $this.querySelector("input[custom-key='selections']")
             const filter = document.querySelector("input[filter]")
             const selectedText = s?.toString() ?? ""
             const firstword = selectedText.trim().split(" ")[0]
             if(selectedText){
                 // The filter may not be in the DOM when the user is selecting text.
-                // Only use the filter if it is !.is-hidden
-                if(filter && !filter.classList.contains("is-hidden")){
+                if(ngCollectionList.hasAttribute("ng-list-loaded")){
                     filter.value = firstword
                     filter.setAttribute("value", firstword)
                     filter.dispatchEvent(new Event('input', { bubbles: true }))
@@ -204,13 +224,12 @@ class TpenLineSelector extends HTMLElement {
                    labelElem.$isDirty = false
                 }
                 let selections = []
-                let linePreviews = []
 
-                let startEl = s.baseNode.parentElement.hasAttribute("tpen-line-id")
+                const startEl = s.baseNode.parentElement.hasAttribute("tpen-line-id")
                     ? s.baseNode.parentElement
                     : s.baseNode.parentElement.closest("div[tpen-line-id]")
 
-                let stopEl = s.extentNode.parentElement.hasAttribute("tpen-line-id")
+                const stopEl = s.extentNode.parentElement.hasAttribute("tpen-line-id")
                     ? s.extentNode.parentElement
                     : s.extentNode.parentElement.closest("div[tpen-line-id]")
     
@@ -218,32 +237,28 @@ class TpenLineSelector extends HTMLElement {
                 const baseOffset = s.baseOffset
                 const extentOffset =  s.extentOffset
                 $this.querySelectorAll(".togglePage").forEach(tog => tog.classList.remove("has-selection"))
-                startEl.parentElement.previousElementSibling.classList.add("has-selection")
-                stopEl.parentElement.previousElementSibling.classList.add("has-selection")
-
                 if(stopID === startEl.getAttribute("tpen-line-id")){
                     // The entire selection happened in just this line.  It will not be empty.
                     selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=${baseOffset},${extentOffset-1}`)
-                    linePreviews.push()
                 }
                 else{
                     // The selection happened over multiple lines.  We need to make a target out of each line.  There may be empty lines in-between.
-                    if(!startEl.classList.contains("emptyLine")) selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=${baseOffset},${startEl.innerText.length-1}`)
-                    startEl = startEl.nextElementSibling
-                    while(startEl.getAttribute("tpen-line-id") !== stopID){
-                        if(!startEl.classList.contains("emptyLine")){
-                            selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=0,${startEl.innerText.length-1}`)
+                    if(!startEl.classList.contains("emptyLine")) selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=${baseOffset},${startEl.textContent.length-1}`)
+                    let nextEl = startEl.nextElementSibling
+                    while(nextEl.getAttribute("tpen-line-id") !== stopID){
+                        if(!nextEl.classList.contains("emptyLine")){
+                            selections.push(`${nextEl.getAttribute("tpen-project-line-id")}#char=0,${nextEl.textContent.length-1}`)
                         }
-                        if(startEl.nextElementSibling){
-                            startEl = startEl.nextElementSibling    
+                        if(nextEl.nextElementSibling){
+                            nextEl = nextEl.nextElementSibling    
                         }
                         else{
                             //We are at the end of a page and are going on to the next page.  Get to the next page element and get the first line element.
-                            startEl = startEl.closest(".pageContainer").nextElementSibling.nextElementSibling.nextElementSibling.firstChild
+                            nextEl = nextEl.closest(".pageContainer").nextElementSibling.nextElementSibling.nextElementSibling.firstChild
                         }
                     }  
-                    if(!startEl.classList.contains("emptyLine")){
-                        selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=0,${extentOffset-1}`)
+                    if(!nextEl.classList.contains("emptyLine")){
+                        selections.push(`${nextEl.getAttribute("tpen-project-line-id")}#char=0,${extentOffset-1}`)
                     }
                 }
                 if(customKey.value !== selections.join("__")){
@@ -259,14 +274,12 @@ class TpenLineSelector extends HTMLElement {
                 console.log("You made the following line selections")
                 console.log(selections)
                 // Now highlight the lines for persistence
-                // let unmarkup = new Mark(".tpenProjectLines")
-                // unmarkup.unmark({"className" : "persists"})
                 selections.forEach(line => {
                     try{
                         let lineid = line.split("#")[0]
                         let selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
                         const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-                        const textLength = lineElem.innerText.length
+                        const textLength = lineElem.textContent.length
                         const lengthOfSelection = (selection[0] === selection[1]) 
                             ? 1
                             : (selection[1] - selection[0]) + 1

@@ -511,6 +511,7 @@ export default {
                             blip = new CustomEvent(`This textual witness is already attached to Gloss '${glossIncipit}'`)
                             deerUtils.globalFeedbackBlip(blip, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
                         }
+                        document.querySelector(".persists").classList.remove("persists")
                     }                    
                 }))
 
