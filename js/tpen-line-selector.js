@@ -277,7 +277,7 @@ class TpenLineSelector extends HTMLElement {
                 }
             }
 
-            
+            // Put the first word of the select text into the filter
             const firstword = selectedText.trim().split(" ")[0]
             // The filter may not be in the DOM when the user is selecting text.
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
@@ -286,15 +286,16 @@ class TpenLineSelector extends HTMLElement {
                 filter.dispatchEvent(new Event('input', { bubbles: true }))
             }
 
+            // Set the Text input on the form
             const textInput = document.querySelector("textarea[custom-text-key='text']")
             textInput.setAttribute("value", selectedText.trim())
             textInput.value = selectedText.trim()
             textInput.dispatchEvent(new Event('input', { bubbles: true }))
 
+            // Generate a programmatic label
             let witnessLabel = selectedText.slice(0, 16)
             const labelElem = document.querySelector("input[deer-key='label']")
             const shelfmark = document.querySelector("input[deer-key='identifier']").value
-            // Generate a programmatic label
             if(witnessLabel){
                 if(shelfmark){
                     witnessLabel += `...(${shelfmark})`
@@ -315,11 +316,14 @@ class TpenLineSelector extends HTMLElement {
                labelElem.$isDirty = false
             }
             
+            // Set the selections input
             if(customKey.value !== selections.join("__")){
                 customKey.value = selections.join("__") 
                 customKey.$isDirty = true
                 $this.closest("form").$isDirty = true
             }
+
+            // Toggle all pages that aren't a part of the selection just made
             $this.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
                 if(!tog.classList.contains("is-toggled")){
                     tog.click()
@@ -327,7 +331,7 @@ class TpenLineSelector extends HTMLElement {
             })    
             console.log("You made the following line selections")
             console.log(selections)
-            // Now highlight the lines for persistence
+            // Mark the selection so it persists
             selections.forEach(line => {
                 try{
                     let lineid = line.split("#")[0]
