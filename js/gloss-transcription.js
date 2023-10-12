@@ -468,7 +468,7 @@ function preselectLines(linesArr, form, togglePages) {
             const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
             if(lineElem.classList.contains("has-selection")) return
             lineElem.classList.add("has-selection")
-            lineElem.parentElement.previousElementSibling.classList.add("has-selection")
+            //lineElem.parentElement.previousElementSibling.classList.add("has-selection")
             const textLength = lineElem.innerText.length
             const lengthOfSelection = (selection[0] === selection[1]) 
                 ? 1

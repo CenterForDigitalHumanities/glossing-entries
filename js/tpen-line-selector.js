@@ -145,10 +145,9 @@ class TpenLineSelector extends HTMLElement {
                         if(!txt) lineElem.classList.add("emptyLine")
                         lineElem.onmousedown = function(e){
                             if(event.button > 0) return
-                            // The <mark> has to be removed before selection occurs or the range indexes will not line up.
+                            // The green <mark> has to be removed before selection occurs or the range indexes will not line up.
                             let unmarkup = new Mark(".tpenProjectLines")
                             unmarkup.unmark({"className" : "persists"})
-                            // What should we do on lines with text highlighted yellow already??
                         }
                         lineElem.onmouseup = captureSelectedText
                         pageContainer.appendChild(lineElem)
@@ -167,8 +166,14 @@ class TpenLineSelector extends HTMLElement {
             })
 
         function captureSelectedText(e){
-            const lineElem = e.target
-            const s = window.getSelection ? window.getSelection() : document.selection
+            // Only when it's the 'left click' or noted primary button
+            if(e.button > 0) return
+            const lineElem = e.target.tagName === "MARK" ? e.target.parentElement : e.target
+            let s = window.getSelection ? window.getSelection() : document.selection
+            // Only if there is an actual text selection
+            const selectedText = s.toString() ? s.toString() : ""
+            if(!selectedText) return
+
             // If the users selection contains a <mark>, it is an invalid selection.
             if(s.baseNode.parentElement.tagName === "MARK" || s.extentNode.parentElement.tagName === "MARK"){
                 const ev = new CustomEvent("Your selection contained text marked for another selection.  Make a different selection.")
@@ -183,127 +188,192 @@ class TpenLineSelector extends HTMLElement {
                 }
                 return
             }
+            // The "page toggle" element needs to know this page contains the selection for the page collapse UI
+            $this.querySelectorAll(".togglePage").forEach(tog => tog.classList.remove("has-selection"))
+            lineElem.parentElement.previousElementSibling.classList.add("has-selection")
             const customKey = $this.querySelector("input[custom-key='selections']")
             const filter = document.querySelector("input[filter]")
-            const selectedText = s?.toString() ?? ""
-            const firstword = selectedText.trim().split(" ")[0]
-            if(selectedText){
-                // The filter may not be in the DOM when the user is selecting text.
-                if(ngCollectionList.hasAttribute("ng-list-loaded")){
-                    filter.value = firstword
-                    filter.setAttribute("value", firstword)
-                    filter.dispatchEvent(new Event('input', { bubbles: true }))
-                }
+            
+            // For each line elem in this selection, get rid of the <mark>.  Then rebuild the selection.
+            let selections = []
 
-                const textInput = document.querySelector("textarea[custom-text-key='text']")
-                textInput.setAttribute("value", selectedText.trim())
-                textInput.value = selectedText.trim()
-                textInput.dispatchEvent(new Event('input', { bubbles: true }))
+            const startEl = s.baseNode.parentElement.hasAttribute("tpen-line-id")
+                ? s.baseNode.parentElement
+                : s.baseNode.parentElement.closest("div[tpen-line-id]")
 
-                let witnessLabel = selectedText.slice(0, 16)
-                const labelElem = document.querySelector("input[deer-key='label']")
-                const shelfmark = document.querySelector("input[deer-key='identifier']").value
-                // Generate a programmatic label
-                if(witnessLabel){
-                    if(shelfmark){
-                        witnessLabel += `...(${shelfmark})`
-                    }
-                    else{
-                        witnessLabel += `...(${Date.now()})`
-                    }    
-                    if(labelElem.value !== witnessLabel){
-                        labelElem.value = witnessLabel
-                        labelElem.setAttribute("value", witnessLabel)
-                        labelElem.dispatchEvent(new Event('input', { bubbles: true }))
-                    }
-                }
-                else{
-                   // A side effect of this is that a label cannot be unset by a typical DEER form update.
-                   labelElem.value = "" 
-                   labelElem.setAttribute("value", "")
-                   labelElem.$isDirty = false
-                }
-                let selections = []
+            const stopEl = s.extentNode.parentElement.hasAttribute("tpen-line-id")
+                ? s.extentNode.parentElement
+                : s.extentNode.parentElement.closest("div[tpen-line-id]")
 
-                const startEl = s.baseNode.parentElement.hasAttribute("tpen-line-id")
-                    ? s.baseNode.parentElement
-                    : s.baseNode.parentElement.closest("div[tpen-line-id]")
+            const stopID = stopEl.getAttribute("tpen-line-id")
 
-                const stopEl = s.extentNode.parentElement.hasAttribute("tpen-line-id")
-                    ? s.extentNode.parentElement
-                    : s.extentNode.parentElement.closest("div[tpen-line-id]")
-    
-                const stopID = stopEl.getAttribute("tpen-line-id")
-                const baseOffset = s.baseOffset
-                const extentOffset =  s.extentOffset
-                $this.querySelectorAll(".togglePage").forEach(tog => tog.classList.remove("has-selection"))
-                if(stopID === startEl.getAttribute("tpen-line-id")){
-                    // The entire selection happened in just this line.  It will not be empty.
-                    selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=${baseOffset},${extentOffset-1}`)
+            let restore_strings = {}
+            let unmarkup = new Mark(startEl)
+
+            if(stopID === startEl.getAttribute("tpen-line-id")){
+                // The entire selection happened in just this line. unmark then remark after the selection.
+                restore_strings[startEl.getAttribute("tpen-line-id")] = []
+                // For each thing you want to unmark, grab the text so we can remark it
+                for(const mark of startEl.querySelectorAll(".pre-select")){
+                    restore_strings[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
                 }
-                else{
-                    // The selection happened over multiple lines.  We need to make a target out of each line.  There may be empty lines in-between.
-                    if(!startEl.classList.contains("emptyLine")) selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=${baseOffset},${startEl.textContent.length-1}`)
-                    let nextEl = startEl.nextElementSibling
-                    while(nextEl.getAttribute("tpen-line-id") !== stopID){
-                        if(!nextEl.classList.contains("emptyLine")){
-                            selections.push(`${nextEl.getAttribute("tpen-project-line-id")}#char=0,${nextEl.textContent.length-1}`)
-                        }
-                        if(nextEl.nextElementSibling){
-                            nextEl = nextEl.nextElementSibling    
-                        }
-                        else{
-                            //We are at the end of a page and are going on to the next page.  Get to the next page element and get the first line element.
-                            nextEl = nextEl.closest(".pageContainer").nextElementSibling.nextElementSibling.nextElementSibling.firstChild
-                        }
-                    }  
-                    if(!nextEl.classList.contains("emptyLine")){
-                        selections.push(`${nextEl.getAttribute("tpen-project-line-id")}#char=0,${extentOffset-1}`)
-                    }
-                }
-                if(customKey.value !== selections.join("__")){
-                    customKey.value = selections.join("__") 
-                    customKey.$isDirty = true
-                    $this.closest("form").$isDirty = true
-                }
-                $this.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
-                    if(!tog.classList.contains("is-toggled")){
-                        tog.click()
-                    }
-                })    
-                console.log("You made the following line selections")
-                console.log(selections)
-                // Now highlight the lines for persistence
-                selections.forEach(line => {
-                    try{
-                        let lineid = line.split("#")[0]
-                        let selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
-                        const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-                        const textLength = lineElem.textContent.length
-                        const lengthOfSelection = (selection[0] === selection[1]) 
-                            ? 1
-                            : (selection[1] - selection[0]) + 1
-                        let markup = new Mark(lineElem)
-                        markup.markRanges([{
-                            start: selection[0],
-                            length: lengthOfSelection
-                        }],
-                        {
-                            "className" : "persists"
-                        })     
-                    }
-                    catch(err){
-                        console.error(err)
+                unmarkup.unmark({
+                    "className" : "pre-select",
+                    "done" : function(){
+                        s = window.getSelection ? window.getSelection() : document.selection
                     }
                 })
-                //remove browser's text selection because now they are Mark'd
-                if (s) {
-                    if (s.removeAllRanges) {
-                        s.removeAllRanges()
-                    } else if (s.empty) {
-                        s.empty()
+            }
+            else{
+                // The selection happened over multiple lines.  Unmark in each line, then re mark
+                unmarkup = new Mark(startEl)
+                unmarkup.unmark({"className" : "pre-select"})
+                let nextEl = startEl.nextElementSibling
+                while(nextEl.getAttribute("tpen-line-id") !== stopID){
+                    if(nextEl.nextElementSibling){
+                        nextEl = nextEl.nextElementSibling
                     }
+                    else{
+                        //We are at the end of a page and are going on to the next page.  Get to the next page element and get the first line element.
+                        nextEl = nextEl.closest(".pageContainer").nextElementSibling.nextElementSibling.nextElementSibling.firstChild
+                    }
+                    unmarkup = new Mark(nextEl)
+                    unmarkup.unmark({"className" : "pre-select"})
+                }  
+                unmarkup = new Mark(stopEl)
+                unmarkup.unmark({
+                    "className" : "pre-select",
+                    "done" : function(){
+                        s = window.getSelection ? window.getSelection() : document.selection
+                    }
+                })
+            }
+
+            // Now build the selection
+            const baseOffset = s.baseOffset
+            const extentOffset =  s.extentOffset
+            if(stopID === startEl.getAttribute("tpen-line-id")){
+                // The entire selection happened in just this line.  It will not be empty.
+                selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=${baseOffset},${extentOffset-1}`)
+            }
+            else{
+                // The selection happened over multiple lines.  We need to make a target out of each line.  There may be empty lines in-between.
+                if(!startEl.classList.contains("emptyLine")) selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=${baseOffset},${startEl.textContent.length-1}`)
+                startEl = startEl.nextElementSibling
+                while(startEl.getAttribute("tpen-line-id") !== stopID){
+                    if(!startEl.classList.contains("emptyLine")){
+                        selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=0,${startEl.textContent.length-1}`)
+                    }
+                    if(startEl.nextElementSibling){
+                        startEl = startEl.nextElementSibling    
+                    }
+                    else{
+                        //We are at the end of a page and are going on to the next page.  Get to the next page element and get the first line element.
+                        startEl = startEl.closest(".pageContainer").nextElementSibling.nextElementSibling.nextElementSibling.firstChild
+                    }
+                }  
+                if(!startEl.classList.contains("emptyLine")){
+                    selections.push(`${startEl.getAttribute("tpen-project-line-id")}#char=0,${extentOffset-1}`)
                 }
+            }
+
+            
+            const firstword = selectedText.trim().split(" ")[0]
+            // The filter may not be in the DOM when the user is selecting text.
+            if(ngCollectionList.hasAttribute("ng-list-loaded")){
+                filter.value = firstword
+                filter.setAttribute("value", firstword)
+                filter.dispatchEvent(new Event('input', { bubbles: true }))
+            }
+
+            const textInput = document.querySelector("textarea[custom-text-key='text']")
+            textInput.setAttribute("value", selectedText.trim())
+            textInput.value = selectedText.trim()
+            textInput.dispatchEvent(new Event('input', { bubbles: true }))
+
+            let witnessLabel = selectedText.slice(0, 16)
+            const labelElem = document.querySelector("input[deer-key='label']")
+            const shelfmark = document.querySelector("input[deer-key='identifier']").value
+            // Generate a programmatic label
+            if(witnessLabel){
+                if(shelfmark){
+                    witnessLabel += `...(${shelfmark})`
+                }
+                else{
+                    witnessLabel += `...(${Date.now()})`
+                }    
+                if(labelElem.value !== witnessLabel){
+                    labelElem.value = witnessLabel
+                    labelElem.setAttribute("value", witnessLabel)
+                    labelElem.dispatchEvent(new Event('input', { bubbles: true }))
+                }
+            }
+            else{
+               // A side effect of this is that a label cannot be unset by a typical DEER form update.
+               labelElem.value = "" 
+               labelElem.setAttribute("value", "")
+               labelElem.$isDirty = false
+            }
+            
+            if(customKey.value !== selections.join("__")){
+                customKey.value = selections.join("__") 
+                customKey.$isDirty = true
+                $this.closest("form").$isDirty = true
+            }
+            $this.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
+                if(!tog.classList.contains("is-toggled")){
+                    tog.click()
+                }
+            })    
+            console.log("You made the following line selections")
+            console.log(selections)
+            // Now highlight the lines for persistence
+            selections.forEach(line => {
+                try{
+                    let lineid = line.split("#")[0]
+                    let selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
+                    const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
+                    const textLength = lineElem.textContent.length
+                    const lengthOfSelection = (selection[0] === selection[1]) 
+                        ? 1
+                        : (selection[1] - selection[0]) + 1
+                    let markup = new Mark(lineElem)
+                    markup.markRanges([{
+                        start: selection[0],
+                        length: lengthOfSelection
+                    }],
+                    {
+                        "className" : "persists"
+                    })     
+                }
+                catch(err){
+                    console.error(err)
+                }
+            })
+
+            //remove browser's text selection because now they are Mark'd
+            if (s) {
+                if (s.removeAllRanges) {
+                    s.removeAllRanges()
+                } else if (s.empty) {
+                    s.empty()
+                }
+            }
+
+            // restore the marks that were there before the user did the selection
+            for(const lineid in restore_strings){
+                const restoreMarkElem = document.querySelector(`div[tpen-line-id="${lineid}"]`)
+                const markit = new Mark(restoreMarkElem)
+                const strings = restore_strings[lineid]
+                strings.forEach(str => {
+                    markit.mark(str, {
+                        diacritics : true,
+                        separateWordSearch : false,
+                        className : "pre-select",
+                        acrossElements : true,
+                        accuracy: "exactly"
+                    })    
+                })
             }
         }
     }
