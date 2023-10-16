@@ -211,6 +211,7 @@ class TpenLineSelector extends HTMLElement {
 
             // For each line elem in this selection, get rid of the <mark>.  Then rebuild the selection.
             const remark_map = unmarkTPENLineElements(startEl, stopEl)
+            if(remark_map === null) return
 
             // Build the selection object from which to set the selection input in the form.
             const baseOffset = s.baseOffset
