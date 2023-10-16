@@ -513,7 +513,6 @@ function loadURI(){
         window.location = url
     }
     else{
-        //alert("You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.")
         const ev = new CustomEvent("You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.")
         globalFeedbackBlip(ev, `You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.`, false)
     }
@@ -728,14 +727,12 @@ function addButton(event) {
         let blip = new CustomEvent("Blip")
         // There must be a shelfmark
         if(!form.querySelector("input[deer-key='identifier']").value){
-            //alert("You must provide a Shelfmark value.")
             blip = new CustomEvent("You must provide a Shelfmark value.")
             globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
             return
         }
         // There must be a selection
         if(!form.querySelector("input[custom-key='selections']").value){
-            //alert("Select some text first")
             blip = new CustomEvent("Select some text first.")
             globalFeedbackBlip(blip, `Select some text first.`, false)
             return   
