@@ -518,3 +518,41 @@ async function getAllWitnessesOfSource(source){
     })
     
 }
+
+/**
+ * Undo a manual user selection of text on the page.  Mainly just a UI trick.
+ * 
+ * @param s The Browser Selection object
+ */ 
+function undoBrowserSelection(s){
+    if (s) {
+        if (s.removeAllRanges) {
+            s.removeAllRanges()
+        } else if (s.empty) {
+            s.empty()
+        }
+    }
+}
+
+/**
+ * Replace Marks that were undone during selection object get and set scenarios.
+ * 
+ * @param markData A Map of line ids that correlate to a line element.  The value is an array of strings to Mark within the line element.
+ */ 
+function remark(markData){
+    // restore the marks that were there before the user did the selection
+    for(const id in markData){
+        const restoreMarkElem = document.querySelector(`div[tpen-project-line-id="${id}"]`)
+        const markit = new Mark(restoreMarkElem)
+        const strings = markData[id]
+        strings.forEach(str => {
+            markit.mark(str, {
+                diacritics : true,
+                separateWordSearch : false,
+                className : "pre-select",
+                acrossElements : true,
+                accuracy: "exactly"
+            })    
+        })
+    }
+}

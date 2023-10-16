@@ -437,11 +437,11 @@ function prefillReferences(referencesArr, form) {
 }
 
 /**
- * Helper function for the specialized references key, which is an Array of URIs.
- * It needs to apply the filter with this Gloss's Label.
+ * Mark the line selections through mark.js and prepare selection form input.
  * 
- * Currently only Firefox supports multiple selection ranges, other browsers will not add new ranges to the selection if it already contains one.
- * 
+ * @param linesArr - A single Witness's text selection.  A flat array of TPEN Project Line id's containing a textual fragment selection #char=x,y.
+ * @param form - The form containing the selection input
+ * @param togglePages - A flag for whether or not to fire the page toggling UI.  Happens when loading up a witness via the browser hash. 
  */
 function preselectLines(linesArr, form, togglePages) {
     const source = linesArr.source ?? null
@@ -455,25 +455,32 @@ function preselectLines(linesArr, form, togglePages) {
         return false
     }
     const selectionsElem = form.querySelector("input[custom-key='selections']")
+    let remark_map = {}
     if(source?.citationSource){
         selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
     }
     selectionsElem.value = linesArr.join("__")
 
-    //Now highlight the lines
+    // Now Mark the lines
     linesArr.forEach(line => {
         try{
-            let lineid = line.split("#")[0]
-            let selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
+            const lineid = line.split("#")[0]
+            const selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
             const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-            if(lineElem.classList.contains("has-selection")) return
+            remark_map[lineid] = []
+
+            // For each thing you want to unmark, grab the text so we can remark it
+            for(const mark of lineElem.querySelectorAll(".pre-select")){
+                remark_map[lineid].push(mark.textContent)
+            }
+            const unmarkup = new Mark(lineElem)
+            unmarkup.unmark({"className" : "pre-select"})         
             lineElem.classList.add("has-selection")
-            //lineElem.parentElement.previousElementSibling.classList.add("has-selection")
-            const textLength = lineElem.innerText.length
+            const textLength = lineElem.textContent.length
             const lengthOfSelection = (selection[0] === selection[1]) 
                 ? 1
                 : (selection[1] - selection[0]) + 1
-            let markup = new Mark(lineElem)
+            const markup = new Mark(lineElem)
             let options = togglePages ? {className:"persists"} : {}
             Object.assign(options, {
                 diacritics : true,
@@ -484,6 +491,7 @@ function preselectLines(linesArr, form, togglePages) {
                 start: selection[0],
                 length: lengthOfSelection
             }], options)    
+            remark(remark_map)
         }
         catch(err){
             console.error(err)
@@ -496,7 +504,6 @@ function preselectLines(linesArr, form, togglePages) {
             }
         })    
     }
-      
 }
 
 /**
