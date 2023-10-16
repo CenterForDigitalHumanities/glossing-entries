@@ -161,6 +161,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
             .catch(err => {
                 console.warn(`There was an issue removing an Annotation: ${annoUri}`)
                 console.log(err)
+                globalFeedbackBlip(null, 'There was an issue connecting to RERUM.', false)
             })
     })
 
@@ -194,6 +195,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
         .catch(err => {
             alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
             console.log(err)
+            globalFeedbackBlip(null, 'There was an issue connecting to RERUM.', false)
         })
 }
 
@@ -243,6 +245,7 @@ function getPagedQuery(lim, it = 0, queryObj, allResults = []) {
         })
         .catch(err => {
             console.warn("Could not process a result in paged query")
+            globalFeedbackBlip(null, 'There was an issue connecting to RERUM.', false)
             throw err
         })
 }
@@ -371,6 +374,7 @@ async function findMatchingIncipits(incipit, titleStart) {
         })
         .catch(err => {
             console.error(err)
+            globalFeedbackBlip(null, 'There was an issue connecting to RERUM.', false)
             return Promise.resolve([])
         })
 }
