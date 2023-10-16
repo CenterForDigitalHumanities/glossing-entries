@@ -198,7 +198,7 @@ function setWitnessFormDefaults(){
     filter.setAttribute("value", "")
     filter.dispatchEvent(new Event('input', { bubbles: true }))
 
-    //remove text selection
+    // remove text selection
     let sel = window.getSelection ? window.getSelection() : document.selection
     if (sel) {
         if (sel.removeAllRanges) {
@@ -207,6 +207,13 @@ function setWitnessFormDefaults(){
             sel.empty()
         }
     }
+
+    // remove any Marks noting the user's text selection.
+    document.querySelectorAll(".persists").forEach(el => {
+        el.classList.remove("persists")
+        el.classList.add("pre-select")
+    })
+
     console.log("WITNESS FORM RESET")
 }
 
@@ -467,14 +474,8 @@ function preselectLines(linesArr, form, togglePages) {
             const lineid = line.split("#")[0]
             const selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
             const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-            remark_map[lineid] = []
-
-            // For each thing you want to unmark, grab the text so we can remark it
-            for(const mark of lineElem.querySelectorAll(".pre-select")){
-                remark_map[lineid].push(mark.textContent)
-            }
-            const unmarkup = new Mark(lineElem)
-            unmarkup.unmark({"className" : "pre-select"})         
+            const remark_map = unmarkLineElement(lineElem)
+                
             lineElem.classList.add("has-selection")
             const textLength = lineElem.textContent.length
             const lengthOfSelection = (selection[0] === selection[1]) 
@@ -491,7 +492,7 @@ function preselectLines(linesArr, form, togglePages) {
                 start: selection[0],
                 length: lengthOfSelection
             }], options)    
-            remark(remark_map)
+            remarkElements(remark_map)
         }
         catch(err){
             console.error(err)
@@ -504,6 +505,7 @@ function preselectLines(linesArr, form, togglePages) {
             }
         })    
     }
+
 }
 
 /**
@@ -761,7 +763,6 @@ function addButton(event) {
             else{
                 globalFeedbackBlip(ev, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
             }
-            document.querySelector(".persists").classList.remove("persists")
         }                    
     })
     gloss_li.prepend(inclusionBtn)

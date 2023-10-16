@@ -73,7 +73,7 @@ class TpenLineSelector extends HTMLElement {
         <small class="cachedNotice text-primary"> Text highlighted yellow is already attached to a Gloss in the list.  Text highlighted green is the text selection of the identified Gloss text. </small>
         <input type="hidden" custom-key="selections" />
         <div title="Collapse Transcription Area" class="toggle is-hidden">&#9660;</div>
-        <div class="tpenProjectLines col serifText"></div>
+        <div class="tpenProjectLines col serifText"><b>Loading T-PEN Transcription...</b></div>
     `
     constructor() {
         super()
@@ -102,9 +102,13 @@ class TpenLineSelector extends HTMLElement {
                 container.classList.add("is-toggled")
             }
         })
-        fetch(tpenProjectURI)
+        fetch(tpenProjectURI,
+            {
+                cache: "no-cache"
+            })
             .then(response => response.json())
             .then(ms => {
+                tpenProjectLines.innerHTML = ""
                 ms.sequences[0].canvases.forEach((canvas, index) => {
                     const pageContainer = document.createElement("div")
                     pageContainer.classList.add("pageContainer")
@@ -198,7 +202,7 @@ class TpenLineSelector extends HTMLElement {
             lineElem.parentElement.previousElementSibling.classList.add("has-selection")
 
             let selections = []
-            const startEl = s.baseNode.parentElement.hasAttribute("tpen-line-id")
+            let startEl = s.baseNode.parentElement.hasAttribute("tpen-line-id")
                 ? s.baseNode.parentElement
                 : s.baseNode.parentElement.closest("div[tpen-line-id]")
             const stopEl = s.extentNode.parentElement.hasAttribute("tpen-line-id")
@@ -207,61 +211,7 @@ class TpenLineSelector extends HTMLElement {
             const stopID = stopEl.getAttribute("tpen-line-id")
 
             // For each line elem in this selection, get rid of the <mark>.  Then rebuild the selection.
-            let remark_map = {}
-            let unmarkup = new Mark(startEl)
-            remark_map[startEl.getAttribute("tpen-line-id")] = []
-            for(const mark of startEl.querySelectorAll(".pre-select")){
-                // For each thing you want to unmark, grab the text so we can remark it
-                remark_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
-            }
-            if(stopID === startEl.getAttribute("tpen-line-id")){
-                // The entire selection happened in just this line. unmark in this line.
-                unmarkup.unmark({
-                    "className" : "pre-select",
-                    "done" : function(){
-                        // Re-initalize the Browser Selection to get accurate indexes
-                        s = window.getSelection ? window.getSelection() : document.selection
-                    }
-                })
-            }
-            else{
-                // The selection happened over multiple lines.  unmark in each line.
-                unmarkup.unmark({"className" : "pre-select"})
-                let nextEl = startEl.nextElementSibling
-                while(nextEl.getAttribute("tpen-line-id") !== stopID){
-                    if(nextEl.nextElementSibling){
-                        nextEl = nextEl.nextElementSibling
-                    }
-                    else{
-                        //We are at the end of a page and are going on to the next page.  Get to the next page element and get the first line element.
-                        nextEl = nextEl.closest(".pageContainer").nextElementSibling.nextElementSibling.nextElementSibling.firstChild
-                    }
-                    if(nextEl.querySelector("mark")){
-                        // The user selection contains a <mark> and is invalid.
-                        const ev = new CustomEvent("Your selection contained text marked for another selection.  Make a different selection.")
-                        globalFeedbackBlip(ev, `Your selection contained text marked for another selection.  Make a different selection.`, false)
-                        //remove browser's text selection
-                        undoBrowserSelection(s)
-                        remark(remark_map)
-                        return
-                    }
-                    remark_map[startEl.getAttribute("tpen-line-id")] = []
-                    // For each thing you want to unmark, grab the text so we can remark it
-                    for(const mark of startEl.querySelectorAll(".pre-select")){
-                        remark_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
-                    }
-                    unmarkup = new Mark(nextEl)
-                    unmarkup.unmark({"className" : "pre-select"})
-                }  
-                unmarkup = new Mark(stopEl)
-                unmarkup.unmark({
-                    "className" : "pre-select",
-                    "done" : function(){
-                        // Re-initalize the Browser Selection to get accurate indexes
-                        s = window.getSelection ? window.getSelection() : document.selection
-                    }
-                })
-            }
+            const remark_map = unmarkElements(startEl, stopEl)
 
             // Build the selection object from which to set the selection input in the form.
             const baseOffset = s.baseOffset
@@ -373,7 +323,7 @@ class TpenLineSelector extends HTMLElement {
             if (s) undoBrowserSelection(s)
 
             // restore the marks that were there before the user did the selection
-            remark(remark_map)
+            remarkElements(remark_map)
         }
     }
     static get observedAttributes() { return ['tpen-project'] }

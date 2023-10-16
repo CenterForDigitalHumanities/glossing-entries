@@ -535,14 +535,86 @@ function undoBrowserSelection(s){
 }
 
 /**
+ * Used with preselectLines().  This line element may already contain a mark.  That mark needs to be removed.
+ * Each mark removed will need to be restored later.
+ */ 
+function unmarkLineElement(lineElem){
+    let remark_map = {}
+    const lineid = lineElem.getAttribute("tpen-line-id")
+    remark_map[lineid] = []
+    for(const mark of lineElem.querySelectorAll(".pre-select")){
+       remark_map[lineid].push(mark.textContent)
+    }
+    const unmarkup = new Mark(lineElem)
+    unmarkup.unmark({"className" : "pre-select"})
+    return remark_map
+}
+
+/**
+ * Used with capstureSelectedText().  There is a range of line elements and any one of them may already contain a mark.  
+ * Each mark needs to be removed.  Each mark removed will need to be restored later.
+ */ 
+function unmarkElements(startEl, stopEl){
+    let unmarkup = new Mark(startEl)
+    let remark_map = {}
+    const stopID = stopEl.getAttribute("tpen-line-id")
+    // Upstream from this the selection in startEl is checked for a <mark>.  We know it does not have a <mark> here.
+    remark_map[startEl.getAttribute("tpen-line-id")] = []
+    for(const mark of startEl.querySelectorAll(".pre-select")){
+        // For each thing you want to unmark, grab the text so we can remark it
+        remark_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
+    }
+    unmarkup.unmark({"className" : "pre-select"})
+    if(stopID !== startEl.getAttribute("tpen-line-id")){
+        // The selection happened over multiple lines.  Any of those lines may contain a <mark>.  If they do, it is an invalid selection.
+        let nextEl = startEl.nextElementSibling
+        while(nextEl.getAttribute("tpen-line-id") !== stopID){
+            if(nextEl.nextElementSibling){
+                nextEl = nextEl.nextElementSibling
+            }
+            else{
+                //We are at the end of a page and are going on to the next page.  Get to the next page element and get the first line element.
+                nextEl = nextEl.closest(".pageContainer").nextElementSibling.nextElementSibling.nextElementSibling.firstChild
+            }
+            if(nextEl.querySelector("mark") && stopID !== nextEl.getAttribute("tpen-line-id")){
+                // The user selection contains a <mark> and is invalid.
+                const ev = new CustomEvent("Your selection contained text marked for another selection.  Make a different selection.")
+                globalFeedbackBlip(ev, `Your selection contained text marked for another selection.  Make a different selection.`, false)
+                // remove browser's text selection
+                undoBrowserSelection(s)
+                // rebuild valid marks that were removed
+                remarkElements(remark_map)
+                return null
+            }
+            remark_map[nextEl.getAttribute("tpen-line-id")] = []
+            // For each thing you want to unmark, grab the text so we can remark it
+            for(const mark of nextEl.querySelectorAll(".pre-select")){
+                remark_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
+            }
+            unmarkup = new Mark(nextEl)
+            unmarkup.unmark({"className" : "pre-select"})
+        }
+        // Upstream from this the selection in stopEl is checked for a <mark>.  We know it does not have a <mark> here.
+        remark_map[stopEl.getAttribute("tpen-line-id")] = []
+        for(const mark of stopEl.querySelectorAll(".pre-select")){
+            // For each thing you want to unmark, grab the text so we can remark it
+            remark_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
+        }
+        unmarkup = new Mark(stopEl)
+        unmarkup.unmark({"className" : "pre-select"})
+    }
+    return remark_map
+}
+
+/**
  * Replace Marks that were undone during selection object get and set scenarios.
  * 
  * @param markData A Map of line ids that correlate to a line element.  The value is an array of strings to Mark within the line element.
  */ 
-function remark(markData){
+function remarkElements(markData){
     // restore the marks that were there before the user did the selection
     for(const id in markData){
-        const restoreMarkElem = document.querySelector(`div[tpen-project-line-id="${id}"]`)
+        const restoreMarkElem = document.querySelector(`div[tpen-line-id="${id}"]`)
         const markit = new Mark(restoreMarkElem)
         const strings = markData[id]
         strings.forEach(str => {
@@ -551,7 +623,7 @@ function remark(markData){
                 separateWordSearch : false,
                 className : "pre-select",
                 acrossElements : true,
-                accuracy: "exactly"
+                accuracy: "complimentary"
             })    
         })
     }
