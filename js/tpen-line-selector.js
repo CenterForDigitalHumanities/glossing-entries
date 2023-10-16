@@ -1,4 +1,3 @@
-//import "/js/mark.min.js"
 /**
   * Process a T-PEN Manifest URI (Presentation API 2.1 only) for its transcription text.
   * Generate the UI around canvases (pages) and text (lines) so that a user can select text.
@@ -70,7 +69,7 @@ class TpenLineSelector extends HTMLElement {
         </style>
 
         <h2 class="nomargin"> Select T-PEN Transcription Text </h2>
-        <small class="cachedNotice text-primary"> Text highlighted yellow is already attached to a Gloss in the list.  Text highlighted green is the text selection of the identified Gloss text. </small>
+        <small class="cachedNotice text-primary"> Text highlighted yellow is already attached to a Gloss in the list.  Text highlighted green is the current text selection. </small>
         <input type="hidden" custom-key="selections" />
         <div title="Collapse Transcription Area" class="toggle is-hidden">&#9660;</div>
         <div class="tpenProjectLines col serifText"><b>Loading T-PEN Transcription...</b></div>
@@ -293,8 +292,7 @@ class TpenLineSelector extends HTMLElement {
                     tog.click()
                 }
             })    
-            console.log("You made the following line selections")
-            console.log(selections)
+
             // Mark the user selection so it persists
             selections.forEach(line => {
                 try{
@@ -319,7 +317,7 @@ class TpenLineSelector extends HTMLElement {
                 }
             })
 
-            //remove browser's text selection because it is Mark'd
+            // remove browser's text selection because it is Mark'd
             if (s) undoBrowserSelection(s)
 
             // restore the marks that were there before the user did the selection
