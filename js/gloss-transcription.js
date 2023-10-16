@@ -200,13 +200,7 @@ function setWitnessFormDefaults(){
 
     // remove text selection
     let sel = window.getSelection ? window.getSelection() : document.selection
-    if (sel) {
-        if (sel.removeAllRanges) {
-            sel.removeAllRanges()
-        } else if (sel.empty) {
-            sel.empty()
-        }
-    }
+    undoBrowserSelection(sel)
 
     // remove any Marks noting the user's text selection.
     document.querySelectorAll(".persists").forEach(el => {
@@ -474,7 +468,7 @@ function preselectLines(linesArr, form, togglePages) {
             const lineid = line.split("#")[0]
             const selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
             const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-            const remark_map = unmarkLineElement(lineElem)
+            const remark_map = unmarkTPENLineElement(lineElem)
                 
             lineElem.classList.add("has-selection")
             const textLength = lineElem.textContent.length
@@ -492,7 +486,7 @@ function preselectLines(linesArr, form, togglePages) {
                 start: selection[0],
                 length: lengthOfSelection
             }], options)    
-            remarkElements(remark_map)
+            remarkTPENLineElements(remark_map)
         }
         catch(err){
             console.error(err)
@@ -789,7 +783,7 @@ function getAllWitnesses(event){
  * Used with preselectLines().  This line element may already contain a mark.  That mark needs to be removed.
  * Each mark removed will need to be restored later.
  */ 
-function unmarkLineElement(lineElem){
+function unmarkTPENLineElement(lineElem){
     let remark_map = {}
     const lineid = lineElem.getAttribute("tpen-line-id")
     remark_map[lineid] = []
@@ -805,7 +799,7 @@ function unmarkLineElement(lineElem){
  * Used with capstureSelectedText().  There is a range of line elements and any one of them may already contain a mark.  
  * Each mark needs to be removed.  Each mark removed will need to be restored later.
  */ 
-function unmarkElements(startEl, stopEl){
+function unmarkTPENLineElements(startEl, stopEl){
     let unmarkup = new Mark(startEl)
     let remark_map = {}
     const stopID = stopEl.getAttribute("tpen-line-id")
@@ -834,7 +828,7 @@ function unmarkElements(startEl, stopEl){
                 // remove browser's text selection
                 undoBrowserSelection(s)
                 // rebuild valid marks that were removed
-                remarkElements(remark_map)
+                remarkTPENLineElements(remark_map)
                 return null
             }
             remark_map[nextEl.getAttribute("tpen-line-id")] = []
@@ -862,7 +856,7 @@ function unmarkElements(startEl, stopEl){
  * 
  * @param markData A Map of line ids that correlate to a line element.  The value is an array of strings to Mark within the line element.
  */ 
-function remarkElements(markData){
+function remarkTPENLineElements(markData){
     // restore the marks that were there before the user did the selection
     for(const id in markData){
         const restoreMarkElem = document.querySelector(`div[tpen-line-id="${id}"]`)

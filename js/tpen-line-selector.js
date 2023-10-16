@@ -210,7 +210,7 @@ class TpenLineSelector extends HTMLElement {
             const stopID = stopEl.getAttribute("tpen-line-id")
 
             // For each line elem in this selection, get rid of the <mark>.  Then rebuild the selection.
-            const remark_map = unmarkElements(startEl, stopEl)
+            const remark_map = unmarkTPENLineElements(startEl, stopEl)
 
             // Build the selection object from which to set the selection input in the form.
             const baseOffset = s.baseOffset
@@ -321,7 +321,7 @@ class TpenLineSelector extends HTMLElement {
             if (s) undoBrowserSelection(s)
 
             // restore the marks that were there before the user did the selection
-            remarkElements(remark_map)
+            remarkTPENLineElements(remark_map)
         }
     }
     static get observedAttributes() { return ['tpen-project'] }
