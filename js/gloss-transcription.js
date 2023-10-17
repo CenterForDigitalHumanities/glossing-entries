@@ -477,7 +477,7 @@ function preselectLines(linesArr, form, togglePages) {
                 : (selection[1] - selection[0]) + 1
             const markup = new Mark(lineElem)
             let options = togglePages ? {className:"persists"} : {className:"pre-select"}
-            // A special case.  This mark will already exist and we don't want to put the .pre-select version in.
+            // Do not accidentally overrule a .persists mark (the mark for #witnessURI).  It is both .persists and .pre-select, but .persists takes precedence. 
             options.exclude = [".persists"]
             markup.markRanges([{
                 start: selection[0],
