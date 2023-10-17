@@ -468,20 +468,17 @@ function preselectLines(linesArr, form, togglePages) {
             const lineid = line.split("#")[0]
             const selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
             const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
+            if(togglePages) lineElem.parentElement.previousElementSibling.classList.add("has-selection")
             const remark_map = unmarkTPENLineElement(lineElem)
-                
             lineElem.classList.add("has-selection")
             const textLength = lineElem.textContent.length
             const lengthOfSelection = (selection[0] === selection[1]) 
                 ? 1
                 : (selection[1] - selection[0]) + 1
             const markup = new Mark(lineElem)
-            let options = togglePages ? {className:"persists"} : {}
-            Object.assign(options, {
-                diacritics : true,
-                className : "pre-select",
-                acrossElements : true
-            })
+            let options = togglePages ? {className:"persists"} : {className:"pre-select"}
+            // A special case.  This mark will already exist and we don't want to put the .pre-select version in.
+            options.exclude = [".persists"]
             markup.markRanges([{
                 start: selection[0],
                 length: lengthOfSelection
