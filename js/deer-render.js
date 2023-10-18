@@ -1043,7 +1043,12 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
     try {
         // If the collection doesn't have a name, something has gone wrong.
         if(!obj.name) return
-        let tmpl = ``
+        let tmpl = `
+            <small class="cachedNotice text-primary"> 
+                Click the '👁' symbol to toggle public visibility.<br>
+                Click the '❌' symbol to delete a Gloss.  This cannot be undone.
+            </small>
+        `
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
         if (options.list) {
