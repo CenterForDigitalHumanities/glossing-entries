@@ -15,19 +15,18 @@
 <body class="container">
     <gog-header class="container"></gog-header>
     <h1 class="text-primary"> Managing Glosses </h1>
-    <input is="auth-creator" type="hidden" deer-key="creator" />
     <button id="checkAll" class="button" role="button">Check All</button>
     <button id="checkInvert" class="button" role="button">Invert Selection</button>
     <button id="saveList" style="visibility: hidden;" class="button primary" role="button">Save List</button>
     <div class="row">
-        <deer-view id="collectionList"
-            deer-collection="GoG-Named-Glosses" deer-listing deer-link="ms.html#" deer-template="managedlist">
-            Loading&hellip;
-        </deer-view>
+        <div class="column">
+            <deer-view class="bg-basic" id="collectionList"
+                deer-collection="GoG-Named-Glosses" deer-link="ms.html#" deer-template="managedlist">
+                Getting the Gallery of Glosses Gloss List&hellip;
+            </deer-view>
+        </div>
     </div>
-    <gog-footer class="container">
-
-    </gog-footer>
+    <gog-footer class="container"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
         checkAll.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.classList.has("is-included") ?? a.click()))
