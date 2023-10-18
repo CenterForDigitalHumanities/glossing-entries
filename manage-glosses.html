@@ -20,8 +20,8 @@
     <button id="saveList" style="visibility: hidden;" class="button primary" role="button">Save List</button>
     <div class="row">
         <div class="column">
-            <deer-view class="bg-basic" id="collectionList"
-                deer-collection="GoG-Named-Glosses" deer-link="ms.html#" deer-template="managedlist">
+            <deer-view class="bg-basic" id="collectionList" deer-listing 
+                deer-collection="GoG-Named-Glosses" deer-link="ms.html#" >
                 Getting the Gallery of Glosses Gloss List&hellip;
             </deer-view>
         </div>
@@ -31,9 +31,11 @@
     <script>
         checkAll.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.classList.has("is-included") ?? a.click()))
         checkInvert.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.click()))
-        window.onload = () => { 
-            setPublicCollections() 
-            setListings()
+        
+        window.onload = async () => { 
+            await setPublicCollections() 
+            await setListings()
+            collectionList.setAttribute("deer-template", "managedlist")
         }
     </script>
 </body>

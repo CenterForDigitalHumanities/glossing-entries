@@ -1043,8 +1043,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
     try {
         // If the collection doesn't have a name, something has gone wrong.
         if(!obj.name) return
-
-        let tmpl = `<input type="hidden" deer-collection="${options.collection}">`
+        let tmpl = ``
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
         if (options.list) {

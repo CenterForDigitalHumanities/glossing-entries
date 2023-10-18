@@ -25,7 +25,8 @@ async function setConstants(){
 /**
  * Use this on page load to find all the deer-views that should be showing a public collection.
  */ 
-function setPublicCollections() {
+async function setPublicCollections() {
+    if(!__constants?.ngCollection) await setConstants()
     document.querySelectorAll("deer-view[public-collection]").forEach(elem => {
         if(elem.getAttribute("public-collection") === "GoG-Named-Glosses"){
             elem.setAttribute("deer-id", __constants.ngCollection)    
@@ -39,7 +40,8 @@ function setPublicCollections() {
 /**
  * Use this on page load to find all the deer-views that should be showing a managed collection.
  */
-function setListings(){
+async function setListings(){
+    if(!__constants?.ngCollection) await setConstants()
     document.querySelectorAll("deer-view[deer-listing]").forEach(elem => {
         if(elem.getAttribute("deer-collection") === "GoG-Named-Glosses"){
             elem.setAttribute("deer-listing", __constants.ngCollection)    
