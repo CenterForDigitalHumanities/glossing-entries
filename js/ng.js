@@ -96,7 +96,7 @@ addEventListener('deer-updated', event => {
     if($elem?.id  !== "named-gloss") return
     event.preventDefault()
     event.stopPropagation()
-
+    
     const entityID = event.detail["@id"]  
     const customTextElems = [
         $elem.querySelector("input[custom-text-key='format']"),
