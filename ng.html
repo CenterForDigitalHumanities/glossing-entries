@@ -84,32 +84,6 @@
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <witness-modal class="is-hidden"></witness-modal>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-    // Function to replace "undefined" or undefined with an empty string
-        function stripUndefinedFromValue(element) {
-            if (element && (element.value === "undefined" || typeof element.value === "undefined")) {
-                element.value = '';
-            }
-        }
-
-        function stripUndefinedFromInputs() {
-            // Target the input fields by their 'deer-key' attributes
-            const canonicalReferenceElem = document.querySelector('input[deer-key="canonicalReference"]');
-            const documentElem = document.querySelector('input[deer-key="_document"]');
-
-            // Strip "undefined" from the value attributes of the targeted input fields
-            stripUndefinedFromValue(canonicalReferenceElem);
-            stripUndefinedFromValue(documentElem);
-        }
-
-        // Initially strip "undefined" during DOMContentLoaded
-        stripUndefinedFromInputs();
-
-        // Strip "undefined" again when any form in the page is rendered
-        document.addEventListener('deer-form-rendered', stripUndefinedFromInputs);
-    });
-    </script>
 </body>
 
 </html>

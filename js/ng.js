@@ -1,18 +1,7 @@
 /**
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
  */ 
-function replaceUndefinedOnLoad() {
-    // Select all input and textarea elements
-    const inputs = document.querySelectorAll('input, textarea');
-
-    inputs.forEach(input => {
-        if (input.value === "undefined" || typeof input.value === "undefined") {
-            input.value = '';
-        }
-    });
-}
 window.onload = () => {
-    replaceUndefinedOnLoad();
     const hash = window.location.hash.substring(1)
     if(hash) {
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
@@ -88,7 +77,7 @@ addEventListener('deer-form-rendered', event => {
             prefillThemesArea(annotationData["themes"], event.target)
             prefillText(annotationData["text"], event.target)
             if(event.detail.targetChapter && !event.detail.section) {
-                document.querySelector('[deer-key="canonicalReference"]').value = `Matthew ${event.detail.targetChapter.value?`${event.detail.targetChapter.value}:${event.detail.targetVerse.value}`:''}`
+                document.querySelector('[deer-key="canonicalReference"]').value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
                 parseSections()
             }
             break
@@ -174,61 +163,41 @@ addEventListener('deer-updated', event => {
 
 function parseSections() {
     // Get the Canonical Reference Locator value
-    const canonValueElem = document.querySelector('input[deer-key="canonicalReference"]');
-    console.log("Canonical Reference Locator Value:", canonValue);
-    // Ensure that the value is neither 'undefined' string nor undefined primitive
-    let canonValue = canonValueElem ? canonValueElem.value : '';
-    if (canonValue === "undefined" || typeof canonValue === "undefined") {
-        console.log("Canonical Value is 'undefined'");
-        canonValue = '';
-        if (canonValueElem) {
-            canonValueElem.value = '';
-        }
-    }
-    
-    const _document = document.querySelector('input[deer-key="_document"]');
-    if (_document && (_document.value === "undefined" || typeof _document.value === "undefined")) {
-        _document.value = '';
-    }
-    const _section = document.querySelector('input[deer-key="_section"]');
-    const _subsection = document.querySelector('input[deer-key="_subsection"]');
+    const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value
+    const _document = document.querySelector('input[deer-key="_document"]')
+    const _section = document.querySelector('input[deer-key="_section"]')
+    const _subsection = document.querySelector('input[deer-key="_subsection"]')
 
     // Create an array of the input fields
-    const elemSet = [_document, _section, _subsection];
-
-    // Initialize each input field with an empty string if its value is 'undefined' or the primitive type undefined 
-    elemSet.forEach(el => {
-        if (el && (el.value === "undefined" || typeof el.value === "undefined")) {
-            el.value = '';
-        }
-    });
+    const elemSet = [_document, _section, _subsection]
 
     // Check if any of the input fields are missing or if the Canonical Reference Locator is empty
-    if (elemSet.includes(null) || !canonValue.length) {
-        throw new Error(`Missing elements in ${elemSet.join(', ')}`);
+    if (elemSet.includes(null) || !canonValue?.length) {
+        throw new Error(`Missing elements in ${elemSet.join(', ')}`)
     }
 
     // Split the Canonical Reference Locator value using a regex pattern
-    const canonSplit = canonValue.split(/[\\s\\:\\.,;\\|#§]/);
-    console.log("Split values:", canonSplit);
+    const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/)
+
     // Iterate through the input fields and populate them with corresponding parts of the split value
     elemSet.forEach((el, index) => {
         if (index < canonSplit.length) {
-            console.log(`Assigning value: ${canonSplit[index]} to element: ${el.name || el.id}`);
             // Check if the split part is not "undefined" or the undefined primitive before assignment
             if (canonSplit[index] !== "undefined" && canonSplit[index] !== undefined) {
-                el.value = canonSplit[index];
+                el.value = canonSplit[index]
             } else {
-                el.value = '';  // Set to empty string if it's 'undefined'
+                el.value = '' // Set to an empty string if the split part is "undefined" or undefined
             }
+        } else {
+            el.value = '' // Set to an empty string if there's no corresponding part
         }
-    });
+    })
+    
 }
 
 
-
 function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
-    if (!tagData || tagData === "undefined" || typeof tagData === "undefined") {
+    if (tagData === undefined) {
         console.warn("Cannot set value for tags and build UI.  There is no data.")
         return false
     }
@@ -254,7 +223,7 @@ function prefillTagsArea(tagData, form = document.getElementById("named-glosses"
 }
 
 function prefillThemesArea(themeData, form = document.getElementById("named-glosses")) {
-    if (!themeData || themeData === "undefined" || typeof themeData === "undefined") {
+    if (themeData === undefined) {
         console.warn("Cannot set value for themes and build UI.  There is no data.")
         return false
     }
@@ -287,7 +256,7 @@ function prefillText(textObj, form) {
     const languageElem = form.querySelector("select[custom-text-key='language'")
     const formatElem = form.querySelector("input[custom-text-key='format'")
     const textElem = form.querySelector("textarea[custom-text-key='text'")
-    if (!textObj || textObj === "undefined" || typeof textObj === "undefined") {
+    if (textObj === undefined) {
         console.warn("Cannot set value for text and build UI.  There is no data.")
         return false
     }
@@ -340,17 +309,3 @@ function witnessForGloss(tpen){
         window.open(`gloss-witness.html?gog-filter=${encodedFilter}`, "_blank")
     }
 }
-document.addEventListener("DOMContentLoaded", function() {
-    const canonicalReferenceElem = document.querySelector('input[deer-key="canonicalReference"]');
-    const documentElem = document.querySelector('input[deer-key="_document"]');
-
-    [canonicalReferenceElem, documentElem].forEach(elem => {
-        if (elem) {
-            elem.addEventListener("input", function() {
-                if (this.value === "undefined" || typeof this.value === "undefined") {
-                    this.value = '';
-                }
-            });
-        }
-    });
-});
