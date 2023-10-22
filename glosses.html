@@ -54,6 +54,39 @@
             setTimeout(() => location.href = "", 3000)
         })
 
+        function removeDuplicateDeerIds() {
+            console.log('remove')
+            const deerIds = {}
+            const elementsToRemove = []
+            const liElements =  document.querySelector("#collectionList > ul").children
+            liElements.forEach(element => {
+                const deerId = element.getAttribute('deer-id')
+                if (deerIds[deerId])
+                    elementsToRemove.push(element)
+                else
+                    deerIds[deerId] = true
+            });
+            elementsToRemove.forEach((element) => {
+                element.remove()
+            });
+        }
+        function waitForElm(selector) {
+            return new Promise(resolve => {
+                if (document.querySelector(selector))
+                    return resolve(document.querySelector(selector))
+                const observer = new MutationObserver(mutations => {
+                    if (document.querySelector(selector)) {
+                        observer.disconnect()
+                        resolve(document.querySelector(selector))
+                    }
+                })
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                })
+            })
+        }
+        waitForElm('#collectionList > ul').then(elem => new MutationObserver(removeDuplicateDeerIds).observe(elem, { childList: true }))
     </script>
 </body>
 
