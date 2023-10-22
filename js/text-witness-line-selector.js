@@ -117,7 +117,7 @@ class WitnessTextSelector extends HTMLElement {
         plaintext.onmouseup = function(e) {
             const s = document.getSelection()
             const filter = document.querySelector("input[filter]")
-            const selectedText = document.getSelection() ? document.getSelection().toString().trim() : ""
+            const selectedText = document.getSelection() ? document.getSelection().toString() : ""
             const firstword = selectedText.split(" ")[0]
             let selections = []
             if(selectedText){
