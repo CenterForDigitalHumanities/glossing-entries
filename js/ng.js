@@ -77,7 +77,7 @@ addEventListener('deer-form-rendered', event => {
             prefillThemesArea(annotationData["themes"], event.target)
             prefillText(annotationData["text"], event.target)
             if(event.detail.targetChapter && !event.detail.section) {
-                document.querySelector('[deer-key="canonicalReference"]').value = `Matthew ${event.detail.targetChapter.value}:${event.detail.targetVerse.value}`
+                document.querySelector('[deer-key="canonicalReference"]').value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
                 parseSections()
             }
             break
