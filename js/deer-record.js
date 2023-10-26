@@ -273,7 +273,10 @@ export default class DeerReport {
                     UTILS.broadcast(undefined, DEER.EVENTS.CREATED, self.elem, data.new_obj_state)
                     return data.new_obj_state
                 })
-                .catch(err => { })
+                .catch(err => {
+                    const ev = new CustomEvent("RERUM error")
+                    globalFeedbackBlip(ev, 'There was an issue connecting to RERUM. Please try again later.', false)
+                })
         }
 
         formAction.then((function (entity) {
@@ -384,6 +387,11 @@ export default class DeerReport {
                             if(anno.new_obj_state.creator)input.setAttribute(DEER.ATTRIBUTION, anno.new_obj_state.creator)
                             //TODO handle @context?
                     })
+                    .catch(err => {
+                        const ev = new CustomEvent("RERUM error")
+                        globalFeedbackBlip(ev, 'There was an issue connecting to RERUM. Please try again later.', false)
+                    })
+                    
                 })
             return Promise.all(annotations).then(() => {
                 UTILS.broadcast(undefined,DEER.EVENTS.UPDATED, this.elem, entity)
@@ -481,6 +489,10 @@ export default class DeerReport {
         })
             .then(response => response.json())
             .then(obj => { return obj.new_obj_state })
+            .catch(err => {
+                const ev = new CustomEvent("RERUM error")
+                globalFeedbackBlip(ev, 'There was an issue connecting to RERUM. Please try again later.', false)
+            })
     }
 }
 
