@@ -630,7 +630,7 @@ export default {
                 globalFeedbackBlip(ev, `There was an internal server error. Please try again later. (${response.status})`, false)
                 break
             case 503:
-                globalFeedbackBlip(ev, `There is currently server downtime. PLease try again later. (${response.status})`, false)
+                globalFeedbackBlip(ev, `There is currently server downtime. Please try again later. (${response.status})`, false)
                 break
             default:
                 globalFeedbackBlip(ev, `There was an issue with RERUM. Please try again later. (Error code ${response.status})`, false)
