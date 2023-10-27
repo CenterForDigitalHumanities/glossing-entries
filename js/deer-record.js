@@ -268,14 +268,18 @@ export default class DeerReport {
                 },
                 body: JSON.stringify(record)
             })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok){
+                        UTILS.handleErrorBlip(response)
+                    }
+                    return response.json()
+                })
                 .then(data => {
                     UTILS.broadcast(undefined, DEER.EVENTS.CREATED, self.elem, data.new_obj_state)
                     return data.new_obj_state
                 })
                 .catch(err => {
-                    const ev = new CustomEvent("RERUM error")
-                    globalFeedbackBlip(ev, 'There was an issue connecting to RERUM. Please try again later.', false)
+                    console.log(err)
                 })
         }
 
@@ -379,7 +383,12 @@ export default class DeerReport {
                         },
                         body: JSON.stringify(annotation)
                     })
-                        .then(response => response.json())
+                        .then(response => {
+                            if (!response.ok){
+                                UTILS.handleErrorBlip(response)
+                            }
+                            return response.json()
+                        })
                         .then(anno => {
                             input.setAttribute(DEER.SOURCE, anno.new_obj_state["@id"])
                             if(anno.new_obj_state.evidence)input.setAttribute(DEER.EVIDENCE, anno.new_obj_state.evidence)
@@ -388,8 +397,7 @@ export default class DeerReport {
                             //TODO handle @context?
                     })
                     .catch(err => {
-                        const ev = new CustomEvent("RERUM error")
-                        globalFeedbackBlip(ev, 'There was an issue connecting to RERUM. Please try again later.', false)
+                        console.log(err)
                     })
                     
                 })
@@ -487,11 +495,15 @@ export default class DeerReport {
             },
             body: JSON.stringify(record)
         })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok){
+                    UTILS.handleErrorBlip(response)
+                }
+                return response.json()
+            })
             .then(obj => { return obj.new_obj_state })
             .catch(err => {
-                const ev = new CustomEvent("RERUM error")
-                globalFeedbackBlip(ev, 'There was an issue connecting to RERUM. Please try again later.', false)
+                console.log(err)
             })
     }
 }

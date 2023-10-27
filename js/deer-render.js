@@ -1516,7 +1516,12 @@ export default class DeerRender {
                                 "Content-Type": "application/json; charset=utf-8"
                             },
                             body: JSON.stringify(queryObj)
-                        }).then(response => response.json())
+                        }).then(response => {
+                            if (!response.ok){
+                                UTILS.handleErrorBlip(response)
+                            }
+                            return response.json()
+                        })
                             .then(list => {
                                 listObj.itemListElement = listObj.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
                                 this.elem.setAttribute(DEER.LIST, "itemListElement")
@@ -1528,8 +1533,7 @@ export default class DeerRender {
                                 }
                             })
                             .catch(err => {
-                                const ev = new CustomEvent("RERUM error")
-                                globalFeedbackBlip(ev, 'There was an issue connecting to RERUM. Please try again later.', false)
+                                console.log(err)
                             })
                     }
                 }

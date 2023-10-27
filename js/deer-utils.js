@@ -610,5 +610,30 @@ export default {
             }
         }
         return filters
+    },
+    handleErrorBlip(response){
+        const ev = new CustomEvent("RERUM error")
+        switch (response.status) {
+            case 400:
+                globalFeedbackBlip(ev, `Bad request to RERUM. Please check your entry and try again.(${response.status})`, false)
+                break
+            case 401:
+                globalFeedbackBlip(ev, `This request to RERUM is unauthorized. (${response.status})`, false)
+                break
+            case 403:
+                globalFeedbackBlip(ev, `You are forbidden to make this request to RERUM. (${response.status})`, false)
+                break
+            case 404:
+                globalFeedbackBlip(ev, `Failed to establish a connection to RERUM. Please try again later. (${response.status})`, false)
+                break
+            case 500:
+                globalFeedbackBlip(ev, `There was an internal server error. Please try again later. (${response.status})`, false)
+                break
+            case 503:
+                globalFeedbackBlip(ev, `There is currently server downtime. PLease try again later. (${response.status})`, false)
+                break
+            default:
+                globalFeedbackBlip(ev, `There was an issue with RERUM. Please try again later. (Error code ${response.status})`, false)
+        }
     }
 }
