@@ -1,48 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <title>Gallery of Glosses - Glosses</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="css/gloss.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css/gloss.css" />
     <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/shared.js"></script>
-</head>
+    <script>
+      // Toggle facet active state and apply filtering
+      document.querySelectorAll("facet").forEach((facet) => {
+        facet.addEventListener("click", function () {
+          this.classList.toggle("active");
+          filterGlosses();
+        });
+      });
 
-<body class="container">
+      function filterGlosses() {
+        let activeFacets = Array.from(
+          document.querySelectorAll("facet.active")
+        );
+        let filterCriteria = activeFacets.map((facet) => ({
+          type: facet.getAttribute("data-facet"),
+          value: facet.getAttribute("data-label").toLowerCase(),
+        }));
+
+        document.querySelectorAll("li").forEach((gloss) => {
+          let isMatch = filterCriteria.every((criteria) => {
+            return gloss
+              .getAttribute(`data-${criteria.type}`)
+              ?.toLowerCase()
+              .includes(criteria.value);
+          });
+          gloss.style.display = isMatch ? "block" : "none";
+        });
+      }
+    </script>
+  </head>
+
+  <body class="container">
     <gog-header class="container"></gog-header>
-    <h1 class="text-primary"> Managing Glosses </h1>
+    <h1 class="text-primary">Managing Glosses</h1>
     <button id="checkAll" class="button" role="button">Check All</button>
-    <button id="checkInvert" class="button" role="button">Invert Selection</button>
-    <button id="saveList" style="visibility: hidden;" class="button primary" role="button">Save List</button>
+    <button id="checkInvert" class="button" role="button">
+      Invert Selection
+    </button>
+    <button
+      id="saveList"
+      style="visibility: hidden"
+      class="button primary"
+      role="button"
+    >
+      Save List
+    </button>
+    <section id="facetFilter" class="is-hidden">
+      <ul>
+        <li>Type of Resource</li>
+        <facet
+          data-facet="resource-type"
+          data-label="Manuscript document"
+          data-count="76"
+          class=""
+          >Manuscript document</facet
+        >
+        <facet
+          data-facet="resource-type"
+          data-label="Manuscript book"
+          data-count="31"
+          >Manuscript book</facet
+        >
+        <li>Genre</li>
+        <facet
+          data-facet="genre"
+          data-label="Legal document"
+          data-count="51"
+          class=""
+          >Legal document</facet
+        >
+        <facet
+          data-facet="genre"
+          data-label="Narrative"
+          data-count="13"
+          class=""
+          >Narrative</facet
+        >
+      </ul>
+    </section>
     <div class="row">
-        <div class="column is-full-width">
-            <p class="bg-basic"> 
-                Click the '👁' symbol to toggle public visibility.<br>
-                Click the '❌' symbol to delete a Gloss -- This cannot be undone.<br>
-                Click any title to be taken to the Gloss Detail page for that entry.
-            </p>
-            <deer-view class="bg-basic" id="collectionList" deer-listing 
-                deer-collection="GoG-Named-Glosses" deer-link="ng.html#" >
-                Getting the Gallery of Glosses Gloss Collection&hellip;
-            </deer-view>
-        </div>
+      <div class="column is-full-width">
+        <p class="bg-basic">
+          Click the '👁' symbol to toggle public visibility.<br />
+          Click the '❌' symbol to delete a Gloss -- This cannot be undone.<br />
+          Click any title to be taken to the Gloss Detail page for that entry.
+        </p>
+        <deer-view
+          class="bg-basic"
+          id="collectionList"
+          deer-listing
+          deer-collection="GoG-Named-Glosses"
+          deer-link="ng.html#"
+          deer-template="ngListFilterable"
+        >
+          Getting the Gallery of Glosses Gloss Collection&hellip;
+        </deer-view>
+      </div>
     </div>
     <gog-footer class="container"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
-        checkAll.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.classList.has("is-included") ?? a.click()))
-        checkInvert.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.click()))
-        
-        window.onload = async () => { 
-            await setPublicCollections() 
-            await setListings()
-            collectionList.setAttribute("deer-template", "managedlist")
-        }
-    </script>
-</body>
+      checkAll.addEventListener("click", (ev) =>
+        document
+          .querySelectorAll(".togglePublic")
+          .forEach((a) => a.classList.has("is-included") ?? a.click())
+      );
+      checkInvert.addEventListener("click", (ev) =>
+        document.querySelectorAll(".togglePublic").forEach((a) => a.click())
+      );
 
+      window.onload = async () => {
+        await setPublicCollections();
+        await setListings();
+        collectionList.setAttribute("deer-template", "managedlist");
+      };
+    </script>
+  </body>
 </html>
