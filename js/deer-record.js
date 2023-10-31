@@ -268,19 +268,19 @@ export default class DeerReport {
                 },
                 body: JSON.stringify(record)
             })
-                .then(response => {
-                    if (!response.ok){
-                        UTILS.handleErrorBlip(response)
-                    }
-                    return response.json()
-                })
-                .then(data => {
-                    UTILS.broadcast(undefined, DEER.EVENTS.CREATED, self.elem, data.new_obj_state)
-                    return data.new_obj_state
-                })
-                .catch(err => {
-                    console.log(err)
-                })
+            .then(response => {
+                if (!response.ok){
+                    UTILS.handleErrorBlip(response)
+                }
+                return response.json()
+            })
+            .then(data => {
+                UTILS.broadcast(undefined, DEER.EVENTS.CREATED, self.elem, data.new_obj_state)
+                return data.new_obj_state
+            })
+            .catch(err => {
+                console.log(err)
+            })
         }
 
         formAction.then((function (entity) {
@@ -383,18 +383,18 @@ export default class DeerReport {
                         },
                         body: JSON.stringify(annotation)
                     })
-                        .then(response => {
-                            if (!response.ok){
-                                UTILS.handleErrorBlip(response)
-                            }
-                            return response.json()
-                        })
-                        .then(anno => {
-                            input.setAttribute(DEER.SOURCE, anno.new_obj_state["@id"])
-                            if(anno.new_obj_state.evidence)input.setAttribute(DEER.EVIDENCE, anno.new_obj_state.evidence)
-                            if(anno.new_obj_state.motivation)input.setAttribute(DEER.MOTIVATION, anno.new_obj_state.motivation)
-                            if(anno.new_obj_state.creator)input.setAttribute(DEER.ATTRIBUTION, anno.new_obj_state.creator)
-                            //TODO handle @context?
+                    .then(response => {
+                        if (!response.ok){
+                            UTILS.handleErrorBlip(response)
+                        }
+                        return response.json()
+                    })
+                    .then(anno => {
+                        input.setAttribute(DEER.SOURCE, anno.new_obj_state["@id"])
+                        if(anno.new_obj_state.evidence)input.setAttribute(DEER.EVIDENCE, anno.new_obj_state.evidence)
+                        if(anno.new_obj_state.motivation)input.setAttribute(DEER.MOTIVATION, anno.new_obj_state.motivation)
+                        if(anno.new_obj_state.creator)input.setAttribute(DEER.ATTRIBUTION, anno.new_obj_state.creator)
+                        //TODO handle @context?
                     })
                     .catch(err => {
                         console.log(err)

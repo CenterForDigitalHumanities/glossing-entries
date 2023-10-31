@@ -1522,19 +1522,19 @@ export default class DeerRender {
                             }
                             return response.json()
                         })
-                            .then(list => {
-                                listObj.itemListElement = listObj.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
-                                this.elem.setAttribute(DEER.LIST, "itemListElement")
-                                try {
-                                    listObj["@type"] = list[0]["@type"] ?? list[0].type ?? "ItemList"
-                                } catch (err) { }
-                                if (list.length ?? (list.length % lim === 0)) {
-                                    return getListPagedQuery.bind(this)(lim, it + list.length)
-                                }
-                            })
-                            .catch(err => {
-                                console.log(err)
-                            })
+                        .then(list => {
+                            listObj.itemListElement = listObj.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
+                            this.elem.setAttribute(DEER.LIST, "itemListElement")
+                            try {
+                                listObj["@type"] = list[0]["@type"] ?? list[0].type ?? "ItemList"
+                            } catch (err) { }
+                            if (list.length ?? (list.length % lim === 0)) {
+                                return getListPagedQuery.bind(this)(lim, it + list.length)
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err)
+                        })
                     }
                 }
             }
