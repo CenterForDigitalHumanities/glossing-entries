@@ -1197,6 +1197,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                             .catch(err => { 
                                 console.warn(`There was an issue removing a connected Gloss: ${glossUri}`)
                                 console.log(err)
+                                const ev = new CustomEvent("RERUM error")
+                                globalFeedbackBlip(ev, `There was an issue removing a connected Gloss: ${glossUri}`, false)
                             })
                         })
                         // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
@@ -1207,6 +1209,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                             // OK they may be orphaned.  We will continue on towards deleting the entity.
                             console.warn(`There was an issue removing Connected Glosses`)
                             console.log(err)
+                            const ev = new CustomEvent("RERUM error")
+                            globalFeedbackBlip(ev, 'There was an issue removing Connected Glosses.', false)
                         })
                     }
 
@@ -1238,6 +1242,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         .catch(err => { 
                             console.warn(`There was an issue removing an Annotation: ${annoUri}`)
                             console.log(err)
+                            const ev = new CustomEvent("RERUM error")
+                            globalFeedbackBlip(ev, `There was an issue removing an Annotation: ${annoUri}`, false)
                         })
                     })
                     
@@ -1271,6 +1277,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     .catch(err => { 
                         alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
                         console.log(err)
+                        const ev = new CustomEvent("RERUM error")
+                        globalFeedbackBlip(ev, `There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`, false)
                     })
                 }
             }
@@ -1508,17 +1516,25 @@ export default class DeerRender {
                                 "Content-Type": "application/json; charset=utf-8"
                             },
                             body: JSON.stringify(queryObj)
-                        }).then(response => response.json())
-                            .then(list => {
-                                listObj.itemListElement = listObj.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
-                                this.elem.setAttribute(DEER.LIST, "itemListElement")
-                                try {
-                                    listObj["@type"] = list[0]["@type"] ?? list[0].type ?? "ItemList"
-                                } catch (err) { }
-                                if (list.length ?? (list.length % lim === 0)) {
-                                    return getListPagedQuery.bind(this)(lim, it + list.length)
-                                }
-                            })
+                        }).then(response => {
+                            if (!response.ok){
+                                UTILS.handleErrorBlip(response)
+                            }
+                            return response.json()
+                        })
+                        .then(list => {
+                            listObj.itemListElement = listObj.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
+                            this.elem.setAttribute(DEER.LIST, "itemListElement")
+                            try {
+                                listObj["@type"] = list[0]["@type"] ?? list[0].type ?? "ItemList"
+                            } catch (err) { }
+                            if (list.length ?? (list.length % lim === 0)) {
+                                return getListPagedQuery.bind(this)(lim, it + list.length)
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err)
+                        })
                     }
                 }
             }
