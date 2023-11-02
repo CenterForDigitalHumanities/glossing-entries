@@ -145,8 +145,9 @@ function setWitnessFormDefaults(){
     form.removeAttribute("deer-source")    
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
+    form.querySelector("input[deer-key='targetCollection']").removeAttribute("deer-source")
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "MultiplicityTest"
+    form.querySelector("input[deer-key='creator']").value = "BugBustingDay"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -558,6 +559,12 @@ addEventListener('deer-updated', event => {
             })
             .then(res => res.json())
             .then(a => {
+                if(key === "references"){
+                    // Check for a success button
+                    // If there is one, it was probably an update scenario.  This one is no longer succes and another is.
+                    // If there isn't one, match on this Gloss ID and make that button .attched-to-source
+                    paginateAttachButtons(el.value.split("__"))
+                }
                 el.setAttribute("deer-source", a["@id"])
             })
             .catch(err => {
