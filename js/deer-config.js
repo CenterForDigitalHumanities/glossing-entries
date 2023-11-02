@@ -166,8 +166,9 @@ export default {
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
                 html += `<ul>`
+                let uniqueID = new Set(obj[options.list])
                 const hide = filterPresent ? "is-hidden" : ""
-                obj[options.list].forEach((val, index) => {
+                uniqueID.forEach((val, index) => {
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
                     if(cachedFilterableEntities.get(glossID)){
                         // We cached it in the past and are going to trust it right now.
@@ -382,8 +383,9 @@ export default {
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
                 html += `<ul>`
+                let uniqueID = new Set(obj[options.list])
                 const hide = filterPresent ? "is-hidden" : ""
-                obj[options.list].forEach((val, index) => {
+                uniqueID.forEach((val, index) => {
                     let inclusionBtn = null
                     const glossID = val['@id'].replace(/^https?:/, 'https:')
                     let already = witnessesObj?.referencedGlosses.has(glossID) ? "attached-to-source" : ""
