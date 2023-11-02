@@ -1,9 +1,8 @@
 const textWitnessID = window.location.hash.substring(1)
+let tpenProjectURI = textWitnessID ? false : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
 let referencedGlossID = null
-
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("tpen-lines-error", function(event){
-    const tpenProjectURI = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
     document.querySelector(".tpenProjectLines").innerHTML = `<b class="text-error"> Could not get T-PEN project ${tpenProjectURI} </b>`
 })
 
@@ -15,6 +14,122 @@ document.addEventListener("gloss-modal-visible", function(event){
     glossTextElem.setAttribute("value", text)
     glossTextElem.dispatchEvent(new Event('input', { bubbles: true }))
 })
+
+/**
+ * Attach all the event handlers to the custom key areas.
+ * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
+ * Set fixed value fields and make those inputs dirty.
+ */ 
+window.onload = () => {
+    setPublicCollections()
+    setListings()
+    const dig_location = witnessForm.querySelector("input[custom-key='source']")
+    const deleteWitnessButton = document.querySelector(".deleteWitness")
+    addEventListener('tpen-lines-loaded', getAllWitnesses)
+    if(tpenProjectURI) {
+        document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
+        needs.classList.add("is-hidden")
+        document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
+        dig_location.value = tpenProjectURI
+        dig_location.setAttribute("value", tpenProjectURI)
+    }
+    if(textWitnessID){
+        needs.classList.add("is-hidden")
+        const submitBtn = witnessForm.querySelector("input[type='submit']")
+        const deleteBtn = witnessForm.querySelector(".deleteWitness")
+        submitBtn.value = "Update Textual Witness"
+        submitBtn.classList.remove("is-hidden")
+        deleteBtn.classList.remove("is-hidden")
+        witnessForm.setAttribute("deer-id", textWitnessID)
+    }
+    else{
+        // These items have default values that are dirty on fresh forms.
+        dig_location.$isDirty = true
+        witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
+        witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
+    }
+
+    // mimic isDirty detection for these custom inputs
+    witnessForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
+        ev.target.$isDirty = true
+        ev.target.closest("form").$isDirty = true
+    })
+    witnessForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
+        ev.target.$isDirty = true
+        ev.target.closest("form").$isDirty = true
+    })
+    // Note that this HTML element is a checkbox
+    witnessForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+        if(ev.target.checked){
+            ev.target.value = "text/html"
+            ev.target.setAttribute("value", "text/html")
+        }
+        else{
+            ev.target.value = "text/plain"
+            ev.target.setAttribute("value", "text/plain")
+        }
+        ev.target.$isDirty = true
+        ev.target.closest("form").$isDirty = true
+    })
+    deleteWitnessButton.addEventListener("click", ev => {
+        if(confirm("The witness will be deleted.  This action cannot be undone.")){
+            deleteWitness()
+        }
+    })
+}
+
+/**
+ * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
+ * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
+ * @see deer-record.js DeerReport.constructor()  
+ */
+addEventListener('deer-form-rendered', init)
+if(!textWitnessID) removeEventListener('deer-form-rendered', init)
+/**
+ * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
+ * Note this only needs to occur one time on page load.
+ */ 
+function init(event){
+    let whatRecordForm = event.target?.id
+    let annotationData = event.detail ?? {}
+    const $elem = event.target
+    switch (whatRecordForm) {
+        case "witnessForm":
+            // We will need to know the reference for addButton() so let's get it out there now.
+            tpenProjectURI = annotationData.source.value[0]
+            document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
+            document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
+            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
+            if(ngCollectionList.hasAttribute("ng-list-loaded")){
+                prefillReferences(annotationData["references"], ngCollectionList)
+            }
+            else{
+                addEventListener('ng-list-loaded', ngListLoaded)
+                function ngListLoaded(event){
+                    if(event.target.id === "ngCollectionList"){
+                        prefillReferences(annotationData["references"], ngCollectionList)
+                        event.target.querySelector("gloss-modal-button").classList.remove("is-hidden")
+                        removeEventListener('ng-list-loaded', ngListLoaded)
+                    }
+                }
+            }
+            if(document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
+                preselectLines(annotationData["selections"], $elem, true)
+            }
+            else{
+                addEventListener('tpen-lines-loaded', ev => {
+                    preselectLines(annotationData["selections"], $elem, true)
+                })
+            }
+            prefillText(annotationData["text"], $elem)
+            prefillDigitalLocations(annotationData["source"], $elem)
+
+            // This event listener is no longer needed
+            removeEventListener('deer-form-rendered', init)
+            break
+        default:
+    }
+}
 
 /**
  * Reset all the Witness form elements so the form is ready to generate a new Witness.
@@ -31,7 +146,7 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "BasicWitnessTest"
+    //form.querySelector("input[deer-key='creator']").value = "MultiplicityTest"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -39,10 +154,7 @@ function setWitnessFormDefaults(){
     labelElem.removeAttribute("deer-source")
     labelElem.$isDirty = false
 
-    // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
-    //shelfmarkElem.value = ""
-    //shelfmarkElem.setAttribute("value", "")
     shelfmarkElem.removeAttribute("deer-source")
     shelfmarkElem.$isDirty = true
 
@@ -86,79 +198,17 @@ function setWitnessFormDefaults(){
     filter.setAttribute("value", "")
     filter.dispatchEvent(new Event('input', { bubbles: true }))
 
-    //remove text selection
+    // remove text selection
     let sel = window.getSelection ? window.getSelection() : document.selection
-    if (sel) {
-        if (sel.removeAllRanges) {
-            sel.removeAllRanges()
-        } else if (sel.empty) {
-            sel.empty()
-        }
-    }
+    undoBrowserSelection(sel)
+
+    // remove any Marks noting the user's text selection.
+    document.querySelectorAll(".persists").forEach(el => {
+        el.classList.remove("persists")
+        el.classList.add("pre-select")
+    })
+
     console.log("WITNESS FORM RESET")
-}
-
-/**
- * Attach all the event handlers to the custom key areas.
- * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
- * Set fixed value fields and make those inputs dirty.
- */ 
-window.onload = () => {
-    setPublicCollections()
-    setListings()
-    const tpenID = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
-    const dig_location = witnessForm.querySelector("input[custom-key='source']")
-    const deleteWitnessButton = document.querySelector(".deleteWitness")
-
-    if(tpenID) {
-        needs.classList.add("is-hidden")
-        document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
-        document.querySelector(".lineSelector").setAttribute("tpen-project", tpenID)
-        dig_location.value = tpenID
-        dig_location.setAttribute("value", tpenID)
-    }
-    if(textWitnessID){
-        const submitBtn = witnessForm.querySelector("input[type='submit']")
-        const deleteBtn = witnessForm.querySelector(".deleteWitness")
-        submitBtn.value = "Update Textual Witness"
-        submitBtn.classList.remove("is-hidden")
-        deleteBtn.classList.remove("is-hidden")
-        witnessForm.setAttribute("deer-id", textWitnessID)
-    }
-    else{
-        // These items have default values that are dirty on fresh forms.
-        dig_location.$isDirty = true
-        witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
-        witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
-    }
-
-    // mimic isDirty detection for these custom inputs
-    witnessForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
-        ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
-    })
-    witnessForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
-        ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
-    })
-    // Note that this HTML element is a checkbox
-    witnessForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
-        if(ev.target.checked){
-            ev.target.value = "text/html"
-            ev.target.setAttribute("value", "text/html")
-        }
-        else{
-            ev.target.value = "text/plain"
-            ev.target.setAttribute("value", "text/plain")
-        }
-        ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
-    })
-    deleteWitnessButton.addEventListener("click", ev => {
-        if(confirm("The witness will be deleted.  This action cannot be undone.")){
-            deleteWitness()
-        }
-    })
 }
 
 /**
@@ -245,7 +295,7 @@ addEventListener('deer-view-rendered', show)
 function show(event){
     if(event.target.id == "ngCollectionList"){
         loading.classList.add("is-hidden")
-        if(getURLParameter("tpen-project")) witnessForm.classList.remove("is-hidden")
+        if(tpenProjectURI) witnessForm.classList.remove("is-hidden")
         // This listener is no longer needed.
         removeEventListener('deer-view-rendered', show)
     }
@@ -255,56 +305,6 @@ function show(event){
  * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
  */ 
 addEventListener('deer-view-rendered', addButton)
-
-/**
- * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
- * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
- * @see deer-record.js DeerReport.constructor()  
- */
-addEventListener('deer-form-rendered', init)
-if(!textWitnessID) removeEventListener('deer-form-rendered', init)
-/**
- * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
- * Note this only needs to occur one time on page load.
- */ 
-function init(event){
-    let whatRecordForm = event.target?.id
-    let annotationData = event.detail ?? {}
-    const $elem = event.target
-    switch (whatRecordForm) {
-        case "witnessForm":
-            // We will need to know the reference for addButton() so let's get it out there now.
-            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
-            if(ngCollectionList.hasAttribute("ng-list-loaded")){
-                prefillReferences(annotationData["references"], ngCollectionList)
-            }
-            else{
-                addEventListener('ng-list-loaded', ngListLoaded)
-                function ngListLoaded(event){
-                    if(event.target.id === "ngCollectionList"){
-                        prefillReferences(annotationData["references"], ngCollectionList)
-                        event.target.querySelector("gloss-modal-button").classList.remove("is-hidden")
-                        removeEventListener('ng-list-loaded', ngListLoaded)
-                    }
-                }
-            }
-            if(document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
-                preselectLines(annotationData["selections"], $elem)    
-            }
-            else{
-                addEventListener('tpen-lines-loaded', ev => {
-                    preselectLines(annotationData["selections"], $elem)
-                })
-            }
-            prefillText(annotationData["text"], $elem)
-            prefillDigitalLocations(annotationData["source"], $elem)
-
-            // This event listener is no longer needed
-            removeEventListener('deer-form-rendered', init)
-            break
-        default:
-    }
-}
 
 /**
  * On page load and after submission DEER will announce this form as rendered.
@@ -438,10 +438,13 @@ function prefillReferences(referencesArr, form) {
 }
 
 /**
- * Helper function for the specialized references key, which is an Array of URIs.
- * It needs to apply the filter with this Gloss's Label.
- * */
-function preselectLines(linesArr, form) {
+ * Mark the line selections through mark.js and prepare selection form input.
+ * 
+ * @param linesArr - A single Witness's text selection.  A flat array of TPEN Project Line id's containing a textual fragment selection #char=x,y.
+ * @param form - The form containing the selection input
+ * @param togglePages - A flag for whether or not to fire the page toggling UI.  Happens when loading up a witness via the browser hash. 
+ */
+function preselectLines(linesArr, form, togglePages) {
     const source = linesArr.source ?? null
     if (linesArr === undefined) {
         console.warn("Cannot highlight lines in UI.  There is no data.")
@@ -453,52 +456,63 @@ function preselectLines(linesArr, form) {
         return false
     }
     const selectionsElem = form.querySelector("input[custom-key='selections']")
+    let remark_map = {}
     if(source?.citationSource){
         selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
     }
     selectionsElem.value = linesArr.join("__")
 
-    //Now highlight the lines
-    let range = document.createRange()
-    let sel = window.getSelection()
-    let line = linesArr[0]
-    let lineid = line.split("#")[0]
-    const lineStartElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-    lineStartElem.parentElement.previousElementSibling.classList.add("has-selection")
-    let selection = line.split("#")[1].replace("char=", "").split(",")           
-    range.setStart(lineStartElem.firstChild, parseInt(selection[0]))
-    if(linesArr.length > 1){
-        line = linesArr.pop()
-        lineid = line.split("#")[0]
-        const lineEndElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-        lineEndElem.parentElement.previousElementSibling.classList.add("has-selection")
-        selection = line.split("#")[1].replace("char=", "").split(",")           
-        range.setEnd(lineEndElem.firstChild, parseInt(selection[1]))
-    }
-    else{
-        range.setEnd(lineStartElem.firstChild, parseInt(selection[1]))
-    }
-    sel.removeAllRanges()
-    sel.addRange(range)
-    document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
-        if(!tog.classList.contains("is-toggled")){
-            tog.click()
+    // Now Mark the lines
+    linesArr.forEach(line => {
+        try{
+            const lineid = line.split("#")[0]
+            const selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
+            const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
+            if(togglePages) lineElem.parentElement.previousElementSibling.classList.add("has-selection")
+            const remark_map = unmarkTPENLineElement(lineElem)
+            lineElem.classList.add("has-selection")
+            const textLength = lineElem.textContent.length
+            const lengthOfSelection = (selection[0] === selection[1]) 
+                ? 1
+                : (selection[1] - selection[0]) + 1
+            const markup = new Mark(lineElem)
+            let options = togglePages ? {className:"persists"} : {className:"pre-select"}
+            // Do not accidentally overrule a .persists mark (the mark for #witnessURI).  It is both .persists and .pre-select, but .persists takes precedence. 
+            options.exclude = [".persists"]
+            markup.markRanges([{
+                start: selection[0],
+                length: lengthOfSelection
+            }], options)    
+            remarkTPENLineElements(remark_map)
         }
-    })  
+        catch(err){
+            console.error(err)
+        }
+    })
+    if(togglePages){
+        document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
+            if(!tog.classList.contains("is-toggled")){
+                tog.click()
+            }
+        })    
+    }
+
 }
 
 /**
  * Recieve a TPEN project as input from #needs.  Reload the page with a set ?tpen-project URL parameter.
 */
 function loadURI(){
-    let tpenProjectURI = resourceURI.value ? resourceURI.value : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
-    if(tpenProjectURI){
+    let tpenProjectLink = resourceURI.value ? resourceURI.value : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
+    if(tpenProjectLink){
+        if(parseInt(tpenProjectLink)){
+            tpenProjectLink = `https://t-pen.org/TPEN/project/${tpenProjectLink}`
+        }
         let url = new URL(window.location.href)
-        url.searchParams.append("tpen-project", tpenProjectURI)
+        url.searchParams.append("tpen-project", tpenProjectLink)
         window.location = url
     }
     else{
-        //alert("You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.")
         const ev = new CustomEvent("You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.")
         globalFeedbackBlip(ev, `You must supply a URI via the IIIF Content State iiif-content parameter or supply a value in the text input.`, false)
     }
@@ -630,9 +644,9 @@ addEventListener('gloss-modal-saved', event => {
 
     const selectedBtn = document.querySelector(".toggleInclusion[disabled]")
     if(selectedBtn){
-        selectedBtn.setAttribute("title", "Attach this Gloss and Save")
-        selectedBtn.setAttribute("value", "➥ attach")
-        selectedBtn.setAttribute("class", "toggleInclusion button primary")
+        selectedBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
+        selectedBtn.setAttribute("value", "❢ attach")
+        selectedBtn.setAttribute("class", "toggleInclusion attached-to-source button primary")
         selectedBtn.removeAttribute("disabled")    
     }
 
@@ -680,17 +694,21 @@ function addButton(event) {
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")
     inclusionBtn.setAttribute("data-id", obj["@id"])
+    let already = false
+    if(witnessesObj?.referencedGlosses){
+        already = witnessesObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
+    }
     if(updateScenario){
         inclusionBtn.setAttribute("disabled", "")
         inclusionBtn.setAttribute("value", "✓ attached")
         inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-        inclusionBtn.setAttribute("class", "toggleInclusion button success")  
+        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button success`)  
     }
     else{
         // Either a create scenario, or neither (just loading up)
-        inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
-        inclusionBtn.setAttribute("value", "➥ attach")
-        inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+        inclusionBtn.setAttribute("title", `${already ? "This gloss was attached in the past.  Be sure before you attach it." : "Attach This Gloss and Save" }`)
+        inclusionBtn.setAttribute("value", `${already ? "❢" : "➥"} attach`)
+        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button primary`)
 
         // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
         if(textWitnessID && referencedGlossID === obj["@id"]){
@@ -709,20 +727,21 @@ function addButton(event) {
         let blip = new CustomEvent("Blip")
         // There must be a shelfmark
         if(!form.querySelector("input[deer-key='identifier']").value){
-            //alert("You must provide a Shelfmark value.")
             blip = new CustomEvent("You must provide a Shelfmark value.")
             globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
             return
         }
         // There must be a selection
         if(!form.querySelector("input[custom-key='selections']").value){
-            //alert("Select some text first")
             blip = new CustomEvent("Select some text first.")
             globalFeedbackBlip(blip, `Select some text first.`, false)
             return   
         }
-        const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
-        if((createScenario || updateScenario) || confirm(`Save this textual witness for Gloss '${namedGlossIncipit}'?`)){
+        const glossIncipit = ev.target.closest("li").getAttribute("data-title")
+        const note = ev.target.classList.contains("attached-to-source") 
+           ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
+           : `Save this textual witness for Gloss '${glossIncipit}'?`
+        if((createScenario || updateScenario) || confirm(note)){
             const customKey = form.querySelector("input[custom-key='references']")
             const uri = ev.target.getAttribute("data-id")
             if(customKey.value !== uri){
@@ -750,5 +769,104 @@ function addButton(event) {
             witnessForm.$isDirty = true
             witnessForm.querySelector("input[type='submit']").click() 
         }
+    }
+}
+
+function getAllWitnesses(event){
+    getAllWitnessesOfSource(tpenProjectURI)
+}
+
+/**
+ * Used with preselectLines().  This line element may already contain a mark.  That mark needs to be removed.
+ * Each mark removed will need to be restored later.
+ */ 
+function unmarkTPENLineElement(lineElem){
+    let remark_map = {}
+    const lineid = lineElem.getAttribute("tpen-line-id")
+    remark_map[lineid] = []
+    for(const mark of lineElem.querySelectorAll(".pre-select")){
+       remark_map[lineid].push(mark.textContent)
+    }
+    const unmarkup = new Mark(lineElem)
+    unmarkup.unmark({"className" : "pre-select"})
+    return remark_map
+}
+
+/**
+ * Used with capstureSelectedText().  There is a range of line elements and any one of them may already contain a mark.  
+ * Each mark needs to be removed.  Each mark removed will need to be restored later.
+ */ 
+function unmarkTPENLineElements(startEl, stopEl){
+    let unmarkup = new Mark(startEl)
+    let remark_map = {}
+    const stopID = stopEl.getAttribute("tpen-line-id")
+    // Upstream from this the selection in startEl is checked for a <mark>.  We know it does not have a <mark> here.
+    remark_map[startEl.getAttribute("tpen-line-id")] = []
+    for(const mark of startEl.querySelectorAll(".pre-select")){
+        // For each thing you want to unmark, grab the text so we can remark it
+        remark_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
+    }
+    unmarkup.unmark({"className" : "pre-select"})
+    if(stopID !== startEl.getAttribute("tpen-line-id")){
+        // The selection happened over multiple lines.  Any of those lines may contain a <mark>.  If they do, it is an invalid selection.
+        let nextEl = startEl.nextElementSibling
+        while(nextEl.getAttribute("tpen-line-id") !== stopID){
+            if(nextEl.nextElementSibling){
+                nextEl = nextEl.nextElementSibling
+            }
+            else{
+                //We are at the end of a page and are going on to the next page.  Get to the next page element and get the first line element.
+                nextEl = nextEl.closest(".pageContainer").nextElementSibling.nextElementSibling.nextElementSibling.firstChild
+            }
+            if(nextEl.querySelector("mark") && stopID !== nextEl.getAttribute("tpen-line-id")){
+                // The user selection contains a <mark> and is invalid.
+                const ev = new CustomEvent("Your selection contained text marked for another selection.  Make a different selection.")
+                globalFeedbackBlip(ev, `Your selection contained text marked for another selection.  Make a different selection.`, false)
+                // remove browser's text selection
+                undoBrowserSelection(s)
+                // rebuild valid marks that were removed
+                remarkTPENLineElements(remark_map)
+                return null
+            }
+            remark_map[nextEl.getAttribute("tpen-line-id")] = []
+            // For each thing you want to unmark, grab the text so we can remark it
+            for(const mark of nextEl.querySelectorAll(".pre-select")){
+                remark_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
+            }
+            unmarkup = new Mark(nextEl)
+            unmarkup.unmark({"className" : "pre-select"})
+        }
+        // Upstream from this the selection in stopEl is checked for a <mark>.  We know it does not have a <mark> here.
+        remark_map[stopEl.getAttribute("tpen-line-id")] = []
+        for(const mark of stopEl.querySelectorAll(".pre-select")){
+            // For each thing you want to unmark, grab the text so we can remark it
+            remark_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
+        }
+        unmarkup = new Mark(stopEl)
+        unmarkup.unmark({"className" : "pre-select"})
+    }
+    return remark_map
+}
+
+/**
+ * Replace Marks that were undone during selection object get and set scenarios.
+ * 
+ * @param markData A Map of line ids that correlate to a line element.  The value is an array of strings to Mark within the line element.
+ */ 
+function remarkTPENLineElements(markData){
+    // restore the marks that were there before the user did the selection
+    for(const id in markData){
+        const restoreMarkElem = document.querySelector(`div[tpen-line-id="${id}"]`)
+        const markit = new Mark(restoreMarkElem)
+        const strings = markData[id]
+        strings.forEach(str => {
+            markit.mark(str, {
+                diacritics : true,
+                separateWordSearch : false,
+                className : "pre-select",
+                acrossElements : true,
+                accuracy: "complimentary"
+            })    
+        })
     }
 }
