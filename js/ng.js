@@ -78,7 +78,7 @@ addEventListener('deer-form-rendered', event => {
             prefillTagsArea(annotationData["tags"], event.target)
             prefillThemesArea(annotationData["themes"], event.target)
             prefillText(annotationData["text"], event.target)
-            const referenceString = annotationData["canonicalReference"].value ?? annotationData["canonicalReference"]
+            const referenceString = annotationData["canonicalReference"].value ?? annotationData["canonicalReference"] ?? ""
             parseSections(referenceString)
             break
         default:
@@ -196,7 +196,7 @@ function parseSections(reference = null) {
     
 }
 
-function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
+function prefillTagsArea(tagData, form = document.getElementById("named-gloss")) {
     if (tagData === undefined) {
         console.warn("Cannot set value for tags and build UI.  There is no data.")
         return false
@@ -222,7 +222,7 @@ function prefillTagsArea(tagData, form = document.getElementById("named-glosses"
     selectedTagsArea.innerHTML = tags
 }
 
-function prefillThemesArea(themeData, form = document.getElementById("named-glosses")) {
+function prefillThemesArea(themeData, form = document.getElementById("named-gloss")) {
     if (themeData === undefined) {
         console.warn("Cannot set value for themes and build UI.  There is no data.")
         return false

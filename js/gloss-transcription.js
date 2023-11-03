@@ -140,7 +140,9 @@ function setWitnessFormDefaults(){
     // Continue the session like normal if they had loaded up an existing witness and updated it.
     if(textWitnessID) return 
     
-    const form = witnessForm  
+    const form = witnessForm
+    form.setAttribute("deer-id", "")
+    form.setAttribute("deer-source", "")
     form.removeAttribute("deer-id")
     form.removeAttribute("deer-source")    
     form.$isDirty = true
@@ -530,7 +532,6 @@ addEventListener('deer-updated', event => {
     // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
     event.preventDefault()
     event.stopPropagation()
-
     const entityID = event.detail["@id"]  
     // These promise are for all the simple array values ('references' and 'selections')
     let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
@@ -561,7 +562,8 @@ addEventListener('deer-updated', event => {
                 if(key === "references"){
                     /**
                      * Paginate the 'attach' buttons.
-                     * If there is an '✓ attached' one, this is an update scenario.  It is no longer attached, but is still identified.
+                     * If there is an '✓ attached' one, this is an update scenario.
+                     *     It is no longer attached, the identified Gloss has been changed for this Witness.
                      * There will be a new one that needs to become the '✓ attached' one
                      */ 
                     const glossURIs = el.value.split("__")
@@ -572,7 +574,6 @@ addEventListener('deer-updated', event => {
                             inclusionBtn.classList.add("attached-to-source")
                             inclusionBtn.setAttribute("value", "❢ attach")
                             inclusionBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
-                            
                             if(previouslyChosen){
                                 inclusionBtn.setAttribute("disabled", "")
                                 inclusionBtn.setAttribute("value", "✓ attached")
@@ -589,7 +590,6 @@ addEventListener('deer-updated', event => {
                             }
                         })    
                     })
-                    
                 }
                 el.setAttribute("deer-source", a["@id"])
             })
@@ -674,14 +674,28 @@ addEventListener('gloss-modal-saved', event => {
     const list = view.querySelector("ul")
     const modal = event.target
     const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
+    const glossURI = gloss["@id"].replace(/^https?:/, 'https:')
+    // Paginate the attach/attached buttons
+    const previouslyChosen = document.querySelector(".toggleInclusion.success")
+    document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(inclusionBtn => {
+        inclusionBtn.classList.add("attached-to-source")
+        inclusionBtn.setAttribute("value", "❢ attach")
+        inclusionBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
+        if(previouslyChosen){
+            inclusionBtn.setAttribute("disabled", "")
+            inclusionBtn.setAttribute("value", "✓ attached")
+            inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+            inclusionBtn.classList.remove("primary")
+            inclusionBtn.classList.add("success")
 
-    const selectedBtn = document.querySelector(".toggleInclusion[disabled]")
-    if(selectedBtn){
-        selectedBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
-        selectedBtn.setAttribute("value", "❢ attach")
-        selectedBtn.setAttribute("class", "toggleInclusion attached-to-source button primary")
-        selectedBtn.removeAttribute("disabled")    
-    }
+            previouslyChosen.removeAttribute("disabled")
+            previouslyChosen.setAttribute("value", "➥ attach")
+            previouslyChosen.setAttribute("title", "Attach This Gloss and Save")
+            previouslyChosen.classList.add("primary")
+            previouslyChosen.classList.remove("success")
+            previouslyChosen.classList.remove("attached-to-source")
+        }
+    })    
 
     modal.classList.add("is-hidden")
 
