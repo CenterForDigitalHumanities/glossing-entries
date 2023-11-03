@@ -156,30 +156,25 @@ export default {
                 <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                 <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
             </div>`
-            function removeDuplicates(arr, key) {
-                const seen = new Set()
-                return arr.filter((item) => {
-                  const itemId = item["@id"]; // Assuming the key is always "@id"
-                  if (!seen.has(itemId)) {
-                    seen.add(itemId)
-                    return true
-                  }
-                  return false
-                });
-              }
+            function removeDuplicates(list, uniqueProp) {
+                return list.filter((item, index, self) =>
+                    index === self.findIndex((t) => (
+                        t[uniqueProp] === item[uniqueProp]
+                    ))
+                );
+            }
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+            const deduplicatedList = removeDuplicates(obj[options.list], '@id')
+            const total = deduplicatedList.length
             let numloaded = 0
-            const total = obj[options.list].length
             const filterPresent = !!deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
-                const uniqueArray = removeDuplicates(obj[options.list], "@id")
                 html += `<ul>`
-                let uniqueID = new Set(uniqueArray)
                 const hide = filterPresent ? "is-hidden" : ""
-                uniqueID.forEach((val, index) => {
+                deduplicatedList.forEach((val, index) => {
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
                     if(cachedFilterableEntities.get(glossID)){
                         // We cached it in the past and are going to trust it right now.
@@ -387,17 +382,16 @@ export default {
             
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+            const deduplicatedList = removeDuplicates(obj[options.list], '@id')
+            const total = deduplicatedList.length
             let numloaded = 0
-            const total = obj[options.list].length
             const filterPresent = !!deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
-                const uniqueArray = removeDuplicates(obj[options.list], "@id")
                 html += `<ul>`
-                let uniqueID = new Set(uniqueArray)
                 const hide = filterPresent ? "is-hidden" : ""
-                uniqueID.forEach((val, index) => {
+                deduplicatedList.forEach((val, index) => {
                     let inclusionBtn = null
                     const glossID = val['@id'].replace(/^https?:/, 'https:')
                     let already = witnessesObj?.referencedGlosses.has(glossID) ? "attached-to-source" : ""
