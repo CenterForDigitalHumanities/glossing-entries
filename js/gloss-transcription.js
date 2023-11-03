@@ -560,10 +560,34 @@ addEventListener('deer-updated', event => {
             .then(res => res.json())
             .then(a => {
                 if(key === "references"){
-                    // Check for a success button
-                    // If there is one, it was probably an update scenario.  This one is no longer succes and another is.
-                    // If there isn't one, match on this Gloss ID and make that button .attched-to-source
-                    paginateAttachButtons(el.value.split("__"))
+                    /**
+                     * Paginate the 'attach' buttons.
+                     * If there is an '✓ attached' one, this is an update scenario.  It is no longer attached, but is still identified.
+                     * There will be a new one that needs to become the '✓ attached' one
+                     */ 
+                    const glossURIs = el.value.split("__")
+                    const previouslyChosen = document.querySelector(".toggleInclusion.success")
+                    glosURIs.forEach(glossURI => {
+                        glossURI = glossURI.replace(/^https?:/, 'https:')
+                        document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(inclusionBtn => {
+                            inclusionBtn.classList.add("attached-to-source")
+                            if(previouslyChosen){
+                                inclusionBtn.setAttribute("disabled", "")
+                                inclusionBtn.setAttribute("value", "✓ attached")
+                                inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+                                inclusionBtn.classList.remove("primary")
+                                inclusionBtn.classList.add("success")
+
+                                previouslyChosen.removeAttribute("disabled")
+                                previouslyChosen.setAttribute("value", "➥ attach")
+                                previouslyChosen.setAttribute("title", "Attach This Gloss and Save")
+                                previouslyChosen.classList.add("primary")
+                                previouslyChosen.classList.remove("success")
+                                previouslyChosen.classList.remove("attached-to-source")
+                            }
+                        })    
+                    })
+                    
                 }
                 el.setAttribute("deer-source", a["@id"])
             })
