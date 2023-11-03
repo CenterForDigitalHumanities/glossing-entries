@@ -23,6 +23,7 @@ window.onload = () => {
         if (!textElem.value.startsWith(labelElem.value)) {
             textElem.removeEventListener('input', textListener)
         }
+        labelElem.$isDirty = true
     })
     //textElem.addEventListener('blur', ev => checkForGlossesBtn.click())
     checkForGlossesBtn.addEventListener('click', async ev => {
@@ -61,6 +62,7 @@ window.onload = () => {
     })
 }
 
+
 /**
  * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
  * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
@@ -76,10 +78,8 @@ addEventListener('deer-form-rendered', event => {
             prefillTagsArea(annotationData["tags"], event.target)
             prefillThemesArea(annotationData["themes"], event.target)
             prefillText(annotationData["text"], event.target)
-            if(event.detail.targetChapter && !event.detail.section) {
-                document.querySelector('[deer-key="canonicalReference"]').value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
-                parseSections()
-            }
+            const referenceString = annotationData["canonicalReference"].value ?? annotationData["canonicalReference"]
+            parseSections(referenceString)
             break
         default:
     }
@@ -150,7 +150,8 @@ addEventListener('deer-updated', event => {
             const hash = window.location.hash.substring(1)
             if(!hash){
                 setTimeout(() => {
-                    window.location.reload()
+                    console.log("I would have reloaded but TESTING BRO")
+                    //window.location.reload()
                 }, 2000)    
             }
         })
@@ -161,9 +162,9 @@ addEventListener('deer-updated', event => {
     }
 })
 
-function parseSections() {
+function parseSections(reference = null) {
     // Get the Canonical Reference Locator value
-    const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value
+    const canonValue = reference ? reference : document.querySelector('input[deer-key="canonicalReference"]')?.value
     const _document = document.querySelector('input[deer-key="_document"]')
     const _section = document.querySelector('input[deer-key="_section"]')
     const _subsection = document.querySelector('input[deer-key="_subsection"]')
@@ -183,10 +184,10 @@ function parseSections() {
     elemSet.forEach((el, index) => {
         if (index < canonSplit.length) {
             // Check if the split part is not "undefined" or the undefined primitive before assignment
-            if (canonSplit[index] !== "undefined" && canonSplit[index] !== undefined) {
+            if (canonSplit[index] !== "undefined" && canonSplit[index]) {
                 el.value = canonSplit[index]
             } else {
-                el.value = '' // Set to an empty string if the split part is "undefined" or undefined
+                el.value = '' // Set to an empty string if the split part is "undefined" or missing
             }
         } else {
             el.value = '' // Set to an empty string if there's no corresponding part
@@ -194,7 +195,6 @@ function parseSections() {
     })
     
 }
-
 
 function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
     if (tagData === undefined) {
