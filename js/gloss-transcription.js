@@ -145,7 +145,6 @@ function setWitnessFormDefaults(){
     form.removeAttribute("deer-source")    
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
-    form.querySelector("input[deer-key='targetCollection']").removeAttribute("deer-source")
     // For when we test
     form.querySelector("input[deer-key='creator']").value = "BugBustingDay"
     
@@ -567,10 +566,13 @@ addEventListener('deer-updated', event => {
                      */ 
                     const glossURIs = el.value.split("__")
                     const previouslyChosen = document.querySelector(".toggleInclusion.success")
-                    glosURIs.forEach(glossURI => {
+                    glossURIs.forEach(glossURI => {
                         glossURI = glossURI.replace(/^https?:/, 'https:')
                         document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(inclusionBtn => {
                             inclusionBtn.classList.add("attached-to-source")
+                            inclusionBtn.setAttribute("value", "❢ attach")
+                            inclusionBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
+                            
                             if(previouslyChosen){
                                 inclusionBtn.setAttribute("disabled", "")
                                 inclusionBtn.setAttribute("value", "✓ attached")
