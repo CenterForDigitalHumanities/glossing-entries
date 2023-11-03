@@ -92,11 +92,12 @@ addEventListener('deer-form-rendered', event => {
  */ 
 addEventListener('deer-updated', event => {
     const $elem = event.target
-    // Only care about witness form
+    //Only care about witness form
     if($elem?.id  !== "named-gloss") return
+    // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
     event.preventDefault()
     event.stopPropagation()
-    
+
     const entityID = event.detail["@id"]  
     const customTextElems = [
         $elem.querySelector("input[custom-text-key='format']"),
@@ -104,6 +105,7 @@ addEventListener('deer-updated', event => {
         $elem.querySelector("textarea[custom-text-key='text']")
     ]
     if(customTextElems.filter(el => el.$isDirty).length > 0){
+        // One of the text properties has changed so we need the text object
         const format = customTextElems[0].value
         const language = customTextElems[1].value
         const text = customTextElems[2].value
@@ -122,56 +124,42 @@ addEventListener('deer-updated', event => {
         }
         const el = customTextElems[2]
         if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
-
-        let action, method;
-
-        if (el.$isDirty) {
-            if (el.hasAttribute("deer-source")) {
-                action = "update";
-                method = "PUT";
-            } else {
-                action = "create";
-                method = "POST";
+        fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
+            method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+            body: JSON.stringify(textanno)
+        })
+        .then(res => res.json())
+        .then(a => {
+            customTextElems[0].setAttribute("deer-source", a["@id"])
+            customTextElems[1].setAttribute("deer-source", a["@id"])
+            customTextElems[2].setAttribute("deer-source", a["@id"])
+        })
+        .catch(err => {
+            console.error(`Could not generate 'text' property Annotation`)
+            console.error(err)
+        })
+        .then(success => {
+            console.log("GLOSS FULLY SAVED")
+            const ev = new CustomEvent("Thank you for your Gloss Submission!")
+            globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
+            const hash = window.location.hash.substring(1)
+            if(!hash){
+                setTimeout(() => {
+                    window.location.reload()
+                }, 2000)    
             }
-            
-            fetch(`${__constants.tiny}/${action}`, {
-                method: method,
-                mode: 'cors',
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                },
-                body: JSON.stringify(textanno)
-            })
-            .then(res => res.json())
-            .then(a => {
-                // Ensure deer-source is set for all elements after a successful create or update
-                customTextElems.forEach(elem => elem.setAttribute("deer-source", a["@id"]))
-            })
-            .catch(err => {
-                console.error(`Could not generate 'text' property Annotation`)
-                console.error(err)
-            })
-            .then(success => {
-                console.log("GLOSS FULLY SAVED")
-                const ev = new CustomEvent("Thank you for your Gloss Submission!")
-                globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
-                const hash = window.location.hash.substring(1)
-                if(!hash){
-                    setTimeout(() => {
-                        window.location.reload()
-                    }, 2000)    
-                }
-            })
-            .catch(err => {
-                console.error("ERROR PROCESSING SOME FORM FIELDS")
-                console.error(err)
-            })
-        }
+        })
+        .catch(err => {
+            console.error("ERROR PROCESSING SOME FORM FIELDS")
+            console.error(err)
+        })
     }
 })
-
-
 
 function parseSections() {
     // Get the Canonical Reference Locator value
