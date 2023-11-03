@@ -143,36 +143,34 @@ function setWitnessFormDefaults(){
     const form = witnessForm
     form.setAttribute("deer-id", "")
     form.setAttribute("deer-source", "")
-    form.removeAttribute("deer-id")
-    form.removeAttribute("deer-source")    
     form.$isDirty = true
-    form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
+    form.querySelectorAll("input[deer-source]").forEach(i => {
+        i.removeAttribute("deer-source")
+    })
+    form.querySelectorAll("textarea[deer-source]").forEach(t => {
+        t.removeAttribute("deer-source")
+    })
     // For when we test
     form.querySelector("input[deer-key='creator']").value = "BugBustingDay"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
     labelElem.setAttribute("value", "")
-    labelElem.removeAttribute("deer-source")
     labelElem.$isDirty = false
 
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
-    shelfmarkElem.removeAttribute("deer-source")
     shelfmarkElem.$isDirty = true
 
     const formatElem = form.querySelector("input[custom-text-key='format']")
-    formatElem.removeAttribute("deer-source")
     formatElem.checked = false
     formatElem.$isDirty = true
 
     const textElem = form.querySelector("textarea[custom-text-key='text']")
     textElem.value = ""
     textElem.setAttribute("value", "")
-    textElem.removeAttribute("deer-source")
     textElem.$isDirty = false
 
     const languageElem = form.querySelector("select[custom-text-key='language']")
-    languageElem.removeAttribute("deer-source")
     languageElem.setAttribute("value", "la")
     languageElem.value = "la"
     languageElem.$isDirty = true
@@ -180,18 +178,15 @@ function setWitnessFormDefaults(){
     const selectionsElem = form.querySelector("input[custom-key='selections']")
     selectionsElem.value = ""
     selectionsElem.setAttribute("value", "")
-    selectionsElem.removeAttribute("deer-source")
     selectionsElem.$isDirty = false
 
     const referencesElem = form.querySelector("input[custom-key='references']")
     referencesElem.value = ""
     referencesElem.setAttribute("value", "")
-    referencesElem.removeAttribute("deer-source")
     referencesElem.$isDirty = false
 
     // The source value not change and would need to be captured on the next submit.
     const sourceElem = form.querySelector("input[custom-key='source']")
-    sourceElem.removeAttribute("deer-source")
     sourceElem.$isDirty = true
 
     // reset the Glosses filter
