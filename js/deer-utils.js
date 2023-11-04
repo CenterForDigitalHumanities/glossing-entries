@@ -18,6 +18,13 @@ export default {
         if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
         return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
     },
+    removeDuplicates: function(list, uniqueProp) {
+        return list.filter((item, index, self) =>
+            index === self.findIndex((t) => (
+                t[uniqueProp] === item[uniqueProp]
+            ))
+        )
+    },
     globalFeedbackBlip: function(event, message, success) {
         globalFeedback.innerText = message
         globalFeedback.classList.add("show")
