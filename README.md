@@ -2,8 +2,8 @@
 <h1>Glossing Entries</h1>
 <i>Data entry website for the NEH funded "Gallery of Glosses" project! </i>
 <br />
-<b>📎 <a href="https://glossing.rerum.io">glossing.rerum.io</a></b> <br />
-<p> Also visit the Gallery of Glosses <a href="https://gog-public-site.vercel.app/">public site</a>!</p>
+<b>📎 <a href="https://glossing.rerum.io">glossing.rerum.io</a></b><br />
+<b>🌐 <a href="https://gog-public-site.vercel.app/">Gallery of Glosses</a></b>
 </div>
 
 <br />
