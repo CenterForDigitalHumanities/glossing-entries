@@ -683,6 +683,83 @@ export default {
                     }
                 }
             }
+        },
+        managedFilterableListItem: function (obj, options = {}) {
+            return {
+                html: ``,
+                then: (elem) => {
+                    let cachedManagedEntities = localStorage.getItem("managedListCache") ? new Map(Object.entries(JSON.parse(localStorage.getItem("managedListCache")))) : new Map();
+                    const containingListElem = elem.closest("deer-view");
+                    let filteringProps = Object.keys(obj);
+                    let li = document.createElement("li");
+                    let a = document.createElement("a");
+                    let span = document.createElement("span");
+                    const createScenario = !!elem.hasAttribute("create-scenario");
+                    const updateScenario = !!elem.hasAttribute("update-scenario");
+                    const increaseTotal = !!(createScenario || updateScenario);
+                    const filterPresent = !!containingListElem.$contentState;
+                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {};
+                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable";
+                    a.setAttribute("href", options.link + obj['@id']);
+                    a.setAttribute("target", "_blank");
+        
+                    // Turn each property into an attribute for the <li> element
+                    let action = "add"
+                    filteringProps.forEach( (prop) => {
+                        // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
+                        if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            const val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`
+                            li.setAttribute(attr, val)
+                            if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
+                                action = "remove"
+                            }
+                        }
+                    })
+        
+                    li.setAttribute("data-expanded", "true");
+                    cachedManagedEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    localStorage.setItem("managedListCache", JSON.stringify(Object.fromEntries(cachedManagedEntities)));
+
+                    a.appendChild(span)
+                    li.appendChild(a)
+                    elem.appendChild(li)
+
+                    // Pagination for the progress indicator element
+                    const totalsProgress = containingListElem.querySelector(".totalsProgress")
+                    const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
+                    let total = parseInt(totalsProgress.getAttribute("total"))
+                    if(increaseTotal) total++
+                    const cachedNotice = containingListElem.querySelector(".cachedNotice")
+                    const progressArea = containingListElem.querySelector(".progressArea")
+                    const modalBtn = containingListElem.querySelector("gloss-modal-button")
+                    const filterInstructions = containingListElem.querySelector(".filterInstructions")
+                    totalsProgress.setAttribute("count", numloaded)
+                    totalsProgress.setAttribute("total", total)
+                    totalsProgress.innerHTML = `
+                        ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  
+                        You may click to select any Gloss loaded already.<br>
+                        A filter will become available when all items are loaded.`
+                    if(numloaded === total){
+                        cachedNotice.classList.remove("is-hidden")
+                        if(modalBtn) modalBtn.classList.remove("is-hidden")
+                        if(filterInstructions) filterInstructions.classList.remove("is-hidden")
+                        progressArea.classList.add("is-hidden")
+                        containingListElem.querySelectorAll("input[filter]").forEach(i => {
+                            // The filters that are used now need to be visible and selected / take on the string / etc.
+                            i.classList.remove("is-hidden")
+                            if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
+                                i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
+                                i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
+                                i.dispatchEvent(new Event('input', { bubbles: true }))
+                            }
+                        })
+                        containingListElem.setAttribute("ng-list-loaded", "true")
+                        deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
+                    }
+                }
+            }
         }
     },
     version: "alpha"

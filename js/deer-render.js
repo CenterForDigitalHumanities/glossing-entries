@@ -1078,138 +1078,95 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
         if (options.list) {
             tmpl += `<ul>`;
             obj[options.list].forEach((val, index) => {
-                const glossID = val["@id"].replace(/^https?:/, 'https:');
-                // Define buttons outside the if-else scope
-                const removeBtn = `<a href="${glossID}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`;
-                const visibilityBtn = `<a class="togglePublic" href="${glossID}" title="Toggle public visibility"> 👁 </a>`;
-        
-                if(managedListCache.get(glossID)){
-                    const cachedObj = managedListCache.get(glossID);
-                    let li = `<li deer-id="${glossID}" data-expanded="true" `;
-        
-                    Object.keys(cachedObj).forEach((prop) => {
-                        if(typeof cachedObj[prop] === "string" || typeof cachedObj[prop] === "number") {
-                            const value = cachedObj[prop].toString(); 
-                            prop = prop.replaceAll("@", ""); 
-                            li += `data-${prop}="${value}" `;
-                        }
-                    });
-        
-                    li += `>
-                        ${visibilityBtn}
-                        <span>Testing if this text even shows up</span>
-                        <a href="${options.link}${glossID}">
-                            <span>${cachedObj.label ? cachedObj.label : "Label Unprocessable"}</span>
-                        </a>
-                        ${removeBtn}
-                    </li>`;
-                    tmpl += li;
-                    numloaded++;
-                } else {
-                    // This object was not cached so we do not have its properties.
-                    tmpl += 
-                    `<div deer-template="filterableListItem" deer-link="ng.html#" class="deer-view" deer-id="${glossID}">
-                        <li>
+                if (val["@id"] && typeof val["@id"] === "string") {
+                    const glossID = val["@id"].replace(/^https?:/, 'https:');
+                    // Define buttons outside the if-else scope
+                    const removeBtn = `<a href="${glossID}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`;
+                    const visibilityBtn = `<a class="togglePublic" href="${glossID}" title="Toggle public visibility"> 👁 </a>`;
+            
+                    if(managedListCache.get(glossID)){
+                        const cachedObj = managedListCache.get(glossID);
+                        let li = `<li>
                             ${visibilityBtn}
-                            <a href="${options.link}${glossID}">
-                                <span>Loading Gloss #${index + 1}...</span>
+                            <a href="ng.html#${glossID}">
+                                <deer-view deer-id="${glossID}" deer-template="label">${cachedObj.label || "Docens suos ascendere"}</deer-view>
                             </a>
                             ${removeBtn}
-                        </li>
-                    </div>`;
+                        </li>`;
+                        tmpl += li;
+                        numloaded++;
+                    } else {
+                        // This object was not cached so we do not have its properties.
+                        tmpl += 
+                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="deer-view" deer-id="${glossID}">
+                            <li>
+                                ${visibilityBtn}
+                                <a href="${options.link}${glossID}">
+                                    <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
+                                </a>
+                                ${removeBtn}
+                            </li>`;
+                    }
+                }else {
+                    console.error("Object is missing the '@id' property:", val);
                 }
             });
             tmpl += `</ul>`;
+            tmpl += `</div>`;
         } else {
             console.log("There are no items in this list to draw.");
             console.log(obj);
         }
         return {
             html: tmpl,
-            then: elem => {
-                elem.listCache = new Set()
+            then: async elem => {
                 elem.$contentState = ""
                 if (filterPresent) {
                     elem.querySelector(".filterNotice").classList.remove("is-hidden")
                     elem.$contentState = UTILS.getURLParameter("gog-filter").trim()
                 }
                 const totalsProgress = elem.querySelector(".totalsProgress")
-                const filter = elem.querySelector('input[filter]')
+
+                const filter = elem.querySelector('input')
                 const cachedNotice = elem.querySelector(".cachedNotice")
                 const progressArea = elem.querySelector(".progressArea")
-                const filterInstructions = elem.querySelector(".filterInstructions")
-                const modalBtn = elem.querySelector("gloss-modal-button")
-                let blip = new CustomEvent("Blip")
-                totalsProgress.innerHTML = `
-                    ${numloaded} of ${total} loaded (${parseInt(numloaded / total * 100)}%)<br>
-                    You may click to select any Gloss loaded already.<br>
-                    A filter will become available when all items are loaded.`
+
+                totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
                 totalsProgress.setAttribute("total", total)
                 totalsProgress.setAttribute("count", numloaded)
+
                 elem.querySelector(".newcache").addEventListener("click", ev => {
                     localStorage.clear()
                     location.reload()
                 })
-                elem.querySelectorAll('.toggleInclusion').forEach(btn => btn.addEventListener('click', ev => {
-                    ev.preventDefault()
-                    ev.stopPropagation()
-                    const form = ev.target.closest("form")
-                    if (!form.querySelector("input[deer-key='identifier']").value) {
-                        blip = new CustomEvent("You must provide a Shelfmark value.")
-                        UTILS.globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
-                        return
-                    }
-                    if (!form.querySelector("input[custom-key='selections']").value) {
-                        blip = new CustomEvent("Select some text first.")
-                        UTILS.globalFeedbackBlip(blip, `Select some text first.`, false)
-                        return
-                    }
-                    const glossIncipit = ev.target.closest("li").getAttribute("data-title")
-                    const note = ev.target.classList.contains("attached-to-source")
-                        ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
-                        : `Save this textual witness for Gloss '${glossIncipit}'?`
-                    if (confirm(note)) {
-                        const customKey = elem.querySelector("input[custom-key='references']")
-                        const uri = btn.getAttribute("data-id")
-                        if (customKey.value !== uri) {
-                            customKey.value = uri
-                            customKey.setAttribute("value", uri)
-                            customKey.$isDirty = true
-                            form.closest("form").$isDirty = true
-                            form.querySelector("input[type='submit']").click()
-                        }
-                        else {
-                            blip = new CustomEvent(`This textual witness is already attached to Gloss '${glossIncipit}'`)
-                            UTILS.globalFeedbackBlip(blip, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
-                        }
-                    }
-                }))
-                filter.addEventListener('input', ev => {
+ 
+                filter.addEventListener('input', ev =>{
                     const val = ev?.target.value.trim()
                     let filterQuery
-                    if (val) {
-                        filterQuery = encodeContentState(JSON.stringify({ "title": ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value }))
+                    if(val){
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
                     }
-                    else {
-                        filterQuery = encodeContentState(JSON.stringify({ "title": "" }))
+                    else{
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
                     }
                     debounce(filterGlosses(filterQuery))
                 })
-                if (numloaded === total) {
-                    elem.setAttribute("ng-list-loaded", "true")
-                    UTILS.broadcast(undefined, "ng-list-loaded", elem, {})
+
+                if(numloaded === total){
                     cachedNotice.classList.remove("is-hidden")
-                    filterInstructions.classList.remove("is-hidden")
-                    modalBtn.classList.remove("is-hidden")
                     progressArea.classList.add("is-hidden")
                     elem.querySelectorAll("input[filter]").forEach(i => {
+                        // The filters that are used now need to be selected or take on the string or whatevs
                         i.classList.remove("is-hidden")
-                        if (filterObj.hasOwnProperty(i.getAttribute("filter"))) {
+                        if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
                             i.value = filterObj[i.getAttribute("filter")]
                             i.setAttribute("value", filterObj[i.getAttribute("filter")])
                         }
                         i.dispatchEvent(new Event('input', { bubbles: true }))
                     })
+                    if(filterPresent){
+                        debounce(filterGlosses(elem.$contentState))
+                    }
                 }
                 function debounce(func, timeout = 500) {
                     let timer
@@ -1244,6 +1201,16 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                             }
                         }
                     })
+
+                    const url = new URL(window.location.href)
+                    if(query.title){
+                        url.searchParams.set("gog-filter", queryString)
+                        window.history.replaceState(null, null, url)   
+                    }
+                    else{
+                        url.searchParams.delete("gog-filter")
+                        window.history.replaceState(null, null, url)
+                    }
                 }
                 fetch(elem.getAttribute("deer-listing")).then(r => r.json())
                     .then(list => {
