@@ -23,6 +23,6 @@
 
 <p>To manage existing glosses, go to <b>💾 Manage glosses</b> in the navigation bar or <b>Manage Gloss Collection</b> on the home page. From here, you can see every stored gloss and its options. To view a the details of a gloss, simply click on its name. Click on the 👁 symbol to toggle the gloss' public visibility and click the ❌ symbol to delete a gloss.<emph> Deleting a gloss cannot be undone!</emph></p>
 
-<h2>🔎 Detecting a gloss with T=PEN</h2>
+<h2>🔎 Detecting a gloss with T-PEN</h2>
 <p>On Glossing Entries, you can insert a Transcription Witness using T-PEN manifest URIs. If you have a desired transcription text via URI to use for a gloss, go to <b>🔍 Detect glosses</b> and enter it in the text box. Then, click the <b>Load TPEN Manifest</b> button.</p>
 <br />
