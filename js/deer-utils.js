@@ -19,10 +19,10 @@ export default {
         return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
     }, 
     /**
-     * Removes duplicate elements from the input list based on the specified unique property.
-     * for each element and keeping only the first occurrence of each unique value
-     * @param list {Array} The input list from which duplicates will be removed. It should be an array.
-     * @param uniqueProp The name of the property used to identify uniqueness among elements in the list. It should be a string.
+     * Removes duplicate elements from the input list based on the specified unique property
+     * for each element and keeping only the first occurrence of each unique value.
+     * @param list {Array} The input list from which duplicates will be removed.
+     * @param uniqueProp {String} The name of the property used to identify uniqueness among elements in the list.
      * @return {Array} A new array containing only the unique elements from the input list based on the specified property.
      */
     removeDuplicates: function(list, uniqueProp) {
