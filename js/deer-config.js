@@ -730,7 +730,8 @@ export default {
                         const include = listCache.has(glossID) ? "add" : "remove"
                         visibilityBtn.classList[include]("is-included");
                     } else {
-                        fetch("https://devstore.rerum.io/v1/id/610c54deffce846a83e70625").then(r => r.json())
+                        const deerViewElem = document.querySelectorAll('deer-view');
+                        fetch(deerViewElem.getAttribute("deer-listing")).then(r => r.json())
                         .then(list => {
                             listCache = new Set(list.itemListElement?.map(item => item['@id']))
                             localStorage.setItem(storageKey, JSON.stringify([...listCache]))
@@ -740,10 +741,19 @@ export default {
                     }
 
                     async function toggleVisibility(id) { 
-                        const element = document.querySelector(`a.togglePublic[href='${id}']`)
+                        const element = document.querySelector(`a.togglePublic[href='${id}']`);
                         if (element) {
-                            element.classList.toggle("is-included");
+                            const included = element.classList.contains("is-included");
+                            if (included) {
+                                element.classList.remove("is-included");
+                                listCache.delete(id);
+                            } else {
+                                element.classList.add("is-included");
+                                listCache.add(id);
+                            }
+                            localStorage.setItem(storageKey, JSON.stringify([...listCache]));
                         }
+                    
                     
                         const saveList = document.getElementById("saveList")
                         if (saveList) {

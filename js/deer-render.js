@@ -1116,7 +1116,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         // This object was not cached so we do not have its properties.
                         
                         html += 
-                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
+                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${glossID}">
                             <li>
                                 ${visibilityBtn}
                                 <a href="${options.link}${val["@id"]}">
@@ -1261,7 +1261,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
 
                 function overwriteList() {
                     let mss = []
-                    
+                    console.log("mss", mss)
                     elem.listCache.forEach(uri => {
                         mss.push({
                             label: document.querySelector(`li[deer-id='${uri}'] span`).textContent.trim(),
@@ -1277,6 +1277,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         numberOfItems: elem.listCache.size,
                         itemListElement: mss
                     }
+
+                    console.log("list", list)
 
                     fetch(DEER.URLS.OVERWRITE, {
                         method: "PUT",
