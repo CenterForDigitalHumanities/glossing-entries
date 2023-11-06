@@ -160,7 +160,6 @@ export default {
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
-            
             const total = obj[options.list].length
             const filterPresent = !!deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
@@ -694,10 +693,10 @@ export default {
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("li")
                     let a = document.createElement("a")
-                    let span = document.createElement("span")
-
+                    let deerView = document.createElement("deer-view")
+                    const glossID = obj["@id"].replace(/^https?:/, 'http:')
+                    console.log("obj id", obj["@id"])
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
-                    const glossID = obj["@id"].replace(/^https?:/, 'https:')
 
                     // Create the remove button
                     let removeBtn = document.createElement("a")
@@ -727,8 +726,7 @@ export default {
                     }
 
                     async function removeFromCollectionAndDelete(id, type) {
-                        event.preventDefault()
-    
+
                         // This won't do 
                         if(!id){
                             alert(`No URI supplied for delete.  Cannot delete.`)
@@ -875,7 +873,7 @@ export default {
                     const increaseTotal = !!((createScenario || updateScenario))
                     const filterPresent = !!containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
-                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
+                    deerView.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     a.setAttribute("href", options.link + obj['@id'])
                     a.setAttribute("target", "_blank")
 
@@ -896,10 +894,10 @@ export default {
 
                     if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
-                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    cachedFilterableEntities.set(glossID, obj)
                     localStorage.setItem("managedListCache", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
-                    a.appendChild(span)
+                    a.appendChild(deerView)
                     li.appendChild(visibilityBtn)
                     li.appendChild(a)
                     li.appendChild(removeBtn)

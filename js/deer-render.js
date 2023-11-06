@@ -1069,6 +1069,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
         </div>`
         let managedListCache = localStorage.getItem("managedListCache") ? new Map(Object.entries(JSON.parse(localStorage.getItem("managedListCache")))) : new Map();
+        
         let numloaded = 0; 
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
@@ -1080,16 +1081,15 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             html += `<ul>`;
             const hide = filterPresent ? "is-hidden" : ""
             obj[options.list].forEach((val, index) => {
-                    const glossID = val["@id"].replace(/^https?:/, 'https:');
                     // Define buttons outside the if-else scope
-                    const removeBtn = `<a href="${glossID}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`;
-                    const visibilityBtn = `<a class="togglePublic" href="${glossID}" title="Toggle public visibility"> 👁 </a>`;
+                    const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`;
+                    const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`;
             
-                    if(managedListCache.get(glossID)){
-                        const cachedObj = managedListCache.get(glossID);
+                    if(managedListCache.get(val['@id'])){
+                        const cachedObj = managedListCache.get(val['@id']);
                         let filteringProps = Object.keys(cachedObj)
                         // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
-                        let li = `<li class="${hide}" deer-id="${glossID}" data-expanded="true" `
+                        let li = `<li class="${hide}" deer-id="${val['@id']}" data-expanded="true" `
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
@@ -1105,7 +1105,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         })
                         li += `>
                             ${visibilityBtn}
-                            <a href="${options.link}${glossID}">
+                            <a href="${options.link}${val['@id']}">
                                 <deer-view deer-id="${val["@id"]}" deer-template="label">Loading Gloss #${index + 1}</deer-view>
                             </a>
                             ${removeBtn}
@@ -1116,10 +1116,10 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         // This object was not cached so we do not have its properties.
                         
                         html += 
-                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${glossID}">
+                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val['@id']}">
                             <li>
                                 ${visibilityBtn}
-                                <a href="${options.link}${glossID}">
+                                <a href="${options.link}${val['@id']}">
                                     <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
                                 </a>
                                 ${removeBtn}
