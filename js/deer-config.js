@@ -696,20 +696,179 @@ export default {
                     let a = document.createElement("a")
                     let span = document.createElement("span")
 
-                    const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript";
-                    const glossID = obj["@id"].replace(/^https?:/, 'https:');
-                    let removeBtn = document.createElement("a");
-                    removeBtn.setAttribute("href", glossID);
-                    removeBtn.setAttribute("data-type", type);
-                    removeBtn.className = "removeCollectionItem";
-                    removeBtn.title = "Delete This Entry";
-                    removeBtn.innerHTML = "&#x274C;"; 
+                    const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
+                    const glossID = obj["@id"].replace(/^https?:/, 'https:')
 
-                    let visibilityBtn = document.createElement("a");
-                    visibilityBtn.className = "togglePublic";
-                    visibilityBtn.setAttribute("href", glossID);
-                    visibilityBtn.title = "Toggle public visibility";
-                    visibilityBtn.innerHTML = "👁";
+                    // Create the remove button
+                    let removeBtn = document.createElement("a")
+                    removeBtn.setAttribute("href", glossID)
+                    removeBtn.setAttribute("data-type", type)
+                    removeBtn.className = "removeCollectionItem"
+                    removeBtn.title = "Delete This Entry"
+                    removeBtn.innerHTML = "&#x274C;"
+                    removeBtn.addEventListener('click', function(event) {
+                        event.preventDefault()
+                        removeFromCollectionAndDelete(glossID, type)
+                    });
+
+                    // Create the visibility button
+                    let visibilityBtn = document.createElement("a")
+                    visibilityBtn.className = "togglePublic"
+                    visibilityBtn.setAttribute("href", glossID)
+                    visibilityBtn.title = "Toggle public visibility"
+                    visibilityBtn.innerHTML = "👁"
+                    visibilityBtn.addEventListener('click', function(event) {
+                        event.preventDefault()
+                        toggleVisibility(glossID, type)
+                    })
+
+                    async function toggleVisibility(id, type) { 
+                        // TODO: 
+                    }
+
+                    async function removeFromCollectionAndDelete(id, type) {
+                        event.preventDefault()
+    
+                        // This won't do 
+                        if(!id){
+                            alert(`No URI supplied for delete.  Cannot delete.`)
+                            return
+                        }
+                        const thing = 
+                            (type === "manuscript") ? "Manuscript" :
+                            (type === "named-gloss") ? "Gloss" :
+                            (type === "Range") ? "Gloss" : null
+    
+    
+                        // If it is an unexpected type, we probably shouldn't go through with the delete.
+                        if(thing === null){
+                            alert(`Not sure what a ${type} is.  Cannot delete.`)
+                            return
+                        }
+    
+                        // Confirm they want to do this
+                        if (!confirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
+    
+                        const historyWildcard = { "$exists": true, "$size": 0 }
+    
+                        /**
+                         * A customized delete functionality for manuscripts, since they have Annotations and Glosses.
+                         */ 
+                        if(type==="manuscript"){
+                            // Such as ' [ Pn ] Paris, BnF, lat. 17233 ''
+    
+                            const allGlossesOfManuscriptQueryObj = {
+                                "body.partOf.value": UTILS.httpsIdArray(id),
+                                "__rerum.generatedBy" : UTILS.httpsIdArray(DEER.GENERATOR),
+                                "__rerum.history.next" : historyWildcard
+                            }
+                            const allGlossIds = await UTILS.getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
+                            .then(annos => annos.map(anno => anno.target))
+                            .catch(err => {
+                                alert("Could not gather Glosses to delete.")
+                                console.log(err)
+                                return null
+                            })
+                            // This is bad enough to stop here, we will not continue on towards deleting the entity.
+                            if(allGlossIds === null) {return}
+    
+                            const allGlosses = allGlossIds.map(glossUri => {
+                                return fetch(config.URLS.DELETE, {
+                                    method: "DELETE",
+                                    body: JSON.stringify({"@id":glossUri.replace(/^https?:/,'https:')}),
+                                    headers: {
+                                        "Content-Type": "application/json; charset=utf-8",
+                                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                                    }
+                                })
+                                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                                .catch(err => { 
+                                    console.warn(`There was an issue removing a connected Gloss: ${glossUri}`)
+                                    console.log(err)
+                                    const ev = new CustomEvent("RERUM error")
+                                    globalFeedbackBlip(ev, `There was an issue removing a connected Gloss: ${glossUri}`, false)
+                                })
+                            })
+                            // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
+                            await Promise.all(allGlosses).then(success => {
+                                console.log("Connected Glosses successfully removed.")
+                            })
+                            .catch(err => {
+                                // OK they may be orphaned.  We will continue on towards deleting the entity.
+                                console.warn(`There was an issue removing Connected Glosses`)
+                                console.log(err)
+                                const ev = new CustomEvent("RERUM error")
+                                globalFeedbackBlip(ev, 'There was an issue removing Connected Glosses.', false)
+                            })
+                        }
+    
+                        // Get all Annotations throughout history targeting this object that were generated by this application.
+                        const allAnnotationsTargetingEntityQueryObj = {
+                            target: UTILS.httpsIdArray(id),
+                            "__rerum.generatedBy" : UTILS.httpsIdArray(DEER.GENERATOR)
+                        }
+                        const allAnnotationIds = await UTILS.getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
+                        .then(annos => annos.map(anno => anno["@id"]))
+                        .catch(err => {
+                            alert("Could not gather Annotations to delete.")
+                            console.log(err)
+                            return null
+                        })
+                        // This is bad enough to stop here, we will not continue on towards deleting the entity.
+                        if(allAnnotationIds === null) return
+    
+                        const allAnnotations = allAnnotationIds.map(annoUri => {
+                            return fetch(config.URLS.DELETE, {
+                                method: "DELETE",
+                                body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
+                                headers: {
+                                    "Content-Type": "application/json; charset=utf-8",
+                                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                                }
+                            })
+                            .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                            .catch(err => { 
+                                console.warn(`There was an issue removing an Annotation: ${annoUri}`)
+                                console.log(err)
+                                const ev = new CustomEvent("RERUM error")
+                                globalFeedbackBlip(ev, `There was an issue removing an Annotation: ${annoUri}`, false)
+                            })
+                        })
+                        
+                        // In this case, we don't have to wait on these.  We can run this and the entity delete syncronously.
+                        Promise.all(allAnnotations).then(success => {
+                            console.log("Connected Annotationss successfully removed.")
+                        })
+                        .catch(err => {
+                            // OK they may be orphaned.  We will continue on towards deleting the entity.
+                            console.warn("There was an issue removing connected Annotations.")
+                            console.log(err)
+                        })
+    
+                        // Now the entity itself
+                        fetch(config.URLS.DELETE, {
+                            method: "DELETE",
+                            body: JSON.stringify({"@id":id}),
+                            headers: {
+                                "Content-Type": "application/json; charset=utf-8",
+                                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                            }
+                        })
+                        .then(r => {
+                            if(r.ok){
+                                document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
+                            }
+                            else{
+                                return Promise.reject(Error(r.text))
+                            }
+                        })
+                        .catch(err => { 
+                            alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
+                            console.log(err)
+                            const ev = new CustomEvent("RERUM error")
+                            globalFeedbackBlip(ev, `There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`, false)
+                        })
+                    }
 
                     const createScenario = !!elem.hasAttribute("create-scenario")
                     const updateScenario = !!elem.hasAttribute("update-scenario")   
@@ -741,9 +900,9 @@ export default {
                     localStorage.setItem("managedListCache", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     a.appendChild(span)
-                    li.appendChild(visibilityBtn);
+                    li.appendChild(visibilityBtn)
                     li.appendChild(a)
-                    li.appendChild(removeBtn);
+                    li.appendChild(removeBtn)
                     elem.appendChild(li)
 
                     // Pagination for the progress indicator element

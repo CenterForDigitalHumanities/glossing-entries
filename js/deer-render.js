@@ -1106,7 +1106,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         li += `>
                             ${visibilityBtn}
                             <a href="${options.link}${glossID}">
-                                <span>${UTILS.getLabel(cachedObj) ? UTILS.getLabel(cachedObj) : "Label Unprocessable"}</span>
+                                <deer-view deer-id="${val["@id"]}" deer-template="label">Loading Gloss #${index + 1}</deer-view>
                             </a>
                             ${removeBtn}
                         </li>`;
@@ -1120,7 +1120,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                             <li>
                                 ${visibilityBtn}
                                 <a href="${options.link}${glossID}">
-                                    <span>Loading Gloss #${index + 1}...</span>
+                                    <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
                                 </a>
                                 ${removeBtn}
                             </li>
@@ -1133,6 +1133,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             console.log("There are no items in this list to draw.");
             console.log(obj);
         }
+        
         return {
             html: html,
             then: async elem => {
@@ -1229,33 +1230,34 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     }
                 }
                 fetch(elem.getAttribute("deer-listing")).then(r => r.json())
-                    .then(list => {
-                        elem.listCache = new Set()
-                        list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
-                        for (const a of document.querySelectorAll('.togglePublic')) {
-                            const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
-                            a.classList[include]("is-included")
-                        }
-                    })
-                    .then(() => {
-                        document.querySelectorAll(".removeCollectionItem").forEach(el => el.addEventListener('click', (ev) => {
-                            ev.preventDefault()
-                            ev.stopPropagation()
-                            const itemID = el.getAttribute("href")
-                            const itemType = el.getAttribute("data-type")
-                            removeFromCollectionAndDelete(itemID, itemType)
-                        }))
-                        document.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
-                            ev.preventDefault()
-                            ev.stopPropagation()
-                            const uri = a.getAttribute("href")
-                            const included = elem.listCache.has(uri)
-                            a.classList[included ? "remove" : "add"]("is-included")
-                            elem.listCache[included ? "delete" : "add"](uri)
-                            saveList.style.visibility = "visible"
-                        }))
-                        saveList.addEventListener('click', overwriteList)
-                    })
+                .then(list => {
+                    elem.listCache = new Set()
+                    list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
+                    for (const a of document.querySelectorAll('.togglePublic')) {
+                        const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
+                        a.classList[include]("is-included")
+                    }
+                })
+                .then(() => {
+                    document.querySelectorAll(".removeCollectionItem").forEach(el => el.addEventListener('click', (ev) => {
+                        ev.preventDefault()
+                        ev.stopPropagation()
+                        const itemID = el.getAttribute("href")
+                        const itemType = el.getAttribute("data-type")
+                        removeFromCollectionAndDelete(itemID, itemType)
+                    }))
+                    document.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
+                        ev.preventDefault()
+                        ev.stopPropagation()
+                        const uri = a.getAttribute("href")
+                        const included = elem.listCache.has(uri)
+                        a.classList[included ? "remove" : "add"]("is-included")
+                        elem.listCache[included ? "delete" : "add"](uri)
+                        saveList.style.visibility = "visible"
+                    }))
+                    saveList.addEventListener('click', overwriteList)
+                })
+
 
                 function overwriteList() {
                     let mss = []
