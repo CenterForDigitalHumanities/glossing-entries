@@ -642,7 +642,7 @@ export default {
 
                     if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
-                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'http:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     a.appendChild(span)
@@ -693,9 +693,8 @@ export default {
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("li")
                     let a = document.createElement("a")
-                    let deerView = document.createElement("deer-view")
+                    let span = document.createElement("span")
                     const glossID = obj["@id"].replace(/^https?:/, 'http:')
-                    console.log("obj id", obj["@id"])
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
                     // Create the remove button
@@ -718,15 +717,41 @@ export default {
                     visibilityBtn.innerHTML = "👁"
                     visibilityBtn.addEventListener('click', function(event) {
                         event.preventDefault()
-                        toggleVisibility(glossID, type)
+                        toggleVisibility(glossID)
                     })
+                    
+                    const storageKey = "listCache"
 
-                    async function toggleVisibility(id, type) { 
-                        // TODO: 
+                    let listCache = JSON.parse(localStorage.getItem(storageKey))
+                
+                    // Check if we have a cached list
+                    if (listCache) {
+                        listCache = new Set(listCache)
+                        const include = listCache.has(glossID) ? "add" : "remove"
+                        visibilityBtn.classList[include]("is-included");
+                    } else {
+                        fetch("https://devstore.rerum.io/v1/id/610c54deffce846a83e70625").then(r => r.json())
+                        .then(list => {
+                            listCache = new Set(list.itemListElement?.map(item => item['@id']))
+                            localStorage.setItem(storageKey, JSON.stringify([...listCache]))
+                            const include = listCache.has(glossID) ? "add" : "remove"
+                            visibilityBtn.classList[include]("is-included")
+                        });
+                    }
+
+                    async function toggleVisibility(id) { 
+                        const element = document.querySelector(`a.togglePublic[href='${id}']`)
+                        if (element) {
+                            element.classList.toggle("is-included");
+                        }
+                    
+                        const saveList = document.getElementById("saveList")
+                        if (saveList) {
+                            saveList.style.visibility = "visible"
+                        }
                     }
 
                     async function removeFromCollectionAndDelete(id, type) {
-
                         // This won't do 
                         if(!id){
                             alert(`No URI supplied for delete.  Cannot delete.`)
@@ -873,7 +898,7 @@ export default {
                     const increaseTotal = !!((createScenario || updateScenario))
                     const filterPresent = !!containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
-                    deerView.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
+                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     a.setAttribute("href", options.link + obj['@id'])
                     a.setAttribute("target", "_blank")
 
@@ -897,7 +922,7 @@ export default {
                     cachedFilterableEntities.set(glossID, obj)
                     localStorage.setItem("managedListCache", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
-                    a.appendChild(deerView)
+                    a.appendChild(span)
                     li.appendChild(visibilityBtn)
                     li.appendChild(a)
                     li.appendChild(removeBtn)

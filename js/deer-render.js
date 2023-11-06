@@ -1084,12 +1084,12 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     // Define buttons outside the if-else scope
                     const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`;
                     const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`;
-            
-                    if(managedListCache.get(val['@id'])){
-                        const cachedObj = managedListCache.get(val['@id']);
+                    const glossID = val["@id"].replace(/^https?:/, 'http:')
+                    if(managedListCache.get(glossID)){
+                        const cachedObj = managedListCache.get(glossID);
                         let filteringProps = Object.keys(cachedObj)
                         // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
-                        let li = `<li class="${hide}" deer-id="${val['@id']}" data-expanded="true" `
+                        let li = `<li class="${hide}" deer-id="${val["@id"]}" data-expanded="true" `
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
@@ -1105,22 +1105,22 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         })
                         li += `>
                             ${visibilityBtn}
-                            <a href="${options.link}${val['@id']}">
-                                <deer-view deer-id="${val["@id"]}" deer-template="label">Loading Gloss #${index + 1}</deer-view>
+                            <a href="${options.link}${val["@id"]}">
+                                <span>${UTILS.getLabel(cachedObj) ? UTILS.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                             ${removeBtn}
                         </li>`;
-                        html += li;
-                        numloaded++;
+                        html += li
+                        numloaded++
                     } else {
                         // This object was not cached so we do not have its properties.
                         
                         html += 
-                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val['@id']}">
+                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
                             <li>
                                 ${visibilityBtn}
-                                <a href="${options.link}${val['@id']}">
-                                    <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
+                                <a href="${options.link}${val["@id"]}">
+                                    <deer-view deer-id="${val["@id"]}" deer-template="label">Loading Gloss #${index + 1}</deer-view>
                                 </a>
                                 ${removeBtn}
                             </li>
@@ -1130,8 +1130,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             );
             html += `</ul>`;
         } else {
-            console.log("There are no items in this list to draw.");
-            console.log(obj);
+            console.log("There are no items in this list to draw.")
+            console.log(obj)
         }
         
         return {
@@ -1261,9 +1261,10 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
 
                 function overwriteList() {
                     let mss = []
+                    
                     elem.listCache.forEach(uri => {
                         mss.push({
-                            label: document.querySelector(`deer-view[deer-id='${uri}']`).textContent.trim(),
+                            label: document.querySelector(`li[deer-id='${uri}'] span`).textContent.trim(),
                             '@id': uri
                         })
                     })
