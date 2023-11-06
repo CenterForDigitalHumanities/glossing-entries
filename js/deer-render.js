@@ -66,8 +66,8 @@ const RENDER = {}
 RENDER.element = function (elem, obj) {
 
     return UTILS.expand(obj).then(obj => {
-        let tmplName = elem.getAttribute(DEER.TEMPLATE) ?? (elem.getAttribute(DEER.COLLECTION) ? "list" : "json")
-        let template = DEER.TEMPLATES[tmplName] ?? DEER.TEMPLATES.json
+        let htmlName = elem.getAttribute(DEER.TEMPLATE) ?? (elem.getAttribute(DEER.COLLECTION) ? "list" : "json")
+        let template = DEER.TEMPLATES[htmlName] ?? DEER.TEMPLATES.json
         let options = {
             list: elem.getAttribute(DEER.LIST),
             link: elem.getAttribute(DEER.LINK),
@@ -1043,7 +1043,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
     try {
         // If the collection doesn't have a name, something has gone wrong.
         if(!obj.name) return
-        let tmpl = ` 
+        let html = ` 
         <style>
             .cachedNotice{
             margin-top: -1em;
@@ -1069,16 +1069,17 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
         </div>`
         let managedListCache = localStorage.getItem("managedListCache") ? new Map(Object.entries(JSON.parse(localStorage.getItem("managedListCache")))) : new Map();
-        const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
         let numloaded = 0; 
-        const total = obj.itemListElement.length; 
+        const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
+
+        const total = obj[options.list].length
         const filterPresent = !!UTILS.getURLParameter("gog-filter")
         const filterObj = filterPresent ? decodeContentState(UTILS.getURLParameter("gog-filter").trim()) : {}
     
         if (options.list) {
-            tmpl += `<ul>`;
+            html += `<ul>`;
+            const hide = filterPresent ? "is-hidden" : ""
             obj[options.list].forEach((val, index) => {
-                if (val["@id"] && typeof val["@id"] === "string") {
                     const glossID = val["@id"].replace(/^https?:/, 'https:');
                     // Define buttons outside the if-else scope
                     const removeBtn = `<a href="${glossID}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`;
@@ -1086,39 +1087,54 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             
                     if(managedListCache.get(glossID)){
                         const cachedObj = managedListCache.get(glossID);
-                        let li = `<li>
+                        let filteringProps = Object.keys(cachedObj)
+                        // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
+                        let li = `<li class="${hide}" deer-id="${glossID}" data-expanded="true" `
+                        // Add all Gloss object properties to the <li> element as attributes to match on later
+                        filteringProps.forEach( (prop) => {
+                            // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
+                            if(typeof UTILS.getValue(cachedObj[prop]) === "string" || typeof UTILS.getValue(cachedObj[prop]) === "number") {
+                                const value = UTILS.getValue(cachedObj[prop])+"" //typecast to a string
+                                prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                                const attr = `data-${prop}`
+                                li += `${attr}="${value}" `
+                                if(value.includes(filterObj[prop])){
+                                    li = li.replace(hide, "")
+                                }
+                            }
+                        })
+                        li += `>
                             ${visibilityBtn}
-                            <a href="ng.html#${glossID}">
-                                <deer-view deer-id="${glossID}" deer-template="label">${cachedObj.label || "Docens suos ascendere"}</deer-view>
+                            <a href="${options.link}${glossID}">
+                                <span>${UTILS.getLabel(cachedObj) ? UTILS.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                             ${removeBtn}
                         </li>`;
-                        tmpl += li;
+                        html += li;
                         numloaded++;
                     } else {
                         // This object was not cached so we do not have its properties.
-                        tmpl += 
-                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="deer-view" deer-id="${glossID}">
+                        
+                        html += 
+                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${glossID}">
                             <li>
                                 ${visibilityBtn}
                                 <a href="${options.link}${glossID}">
-                                    <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
+                                    <span>Loading Gloss #${index + 1}...</span>
                                 </a>
                                 ${removeBtn}
-                            </li>`;
+                            </li>
+                        </div>`;
                     }
-                }else {
-                    console.error("Object is missing the '@id' property:", val);
                 }
-            });
-            tmpl += `</ul>`;
-            tmpl += `</div>`;
+            );
+            html += `</ul>`;
         } else {
             console.log("There are no items in this list to draw.");
             console.log(obj);
         }
         return {
-            html: tmpl,
+            html: html,
             then: async elem => {
                 elem.$contentState = ""
                 if (filterPresent) {
@@ -1438,7 +1454,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
  * @param {Object} options additional properties to draw with the Entity
  */
 DEER.TEMPLATES.entity = function (obj, options = {}) {
-    let tmpl = `<h2>${UTILS.getLabel(obj)}</h2>`
+    let html = `<h2>${UTILS.getLabel(obj)}</h2>`
     let list = ``
 
     for (let key in obj) {
@@ -1478,21 +1494,21 @@ DEER.TEMPLATES.entity = function (obj, options = {}) {
             }
         }
     }
-    tmpl += (list.includes("</dd>")) ? `<dl>${list}</dl>` : ``
-    return tmpl
+    html += (list.includes("</dd>")) ? `<dl>${list}</dl>` : ``
+    return html
 }
 
 DEER.TEMPLATES.list = function (obj, options = {}) {
-    let tmpl = `<h2>${UTILS.getLabel(obj)}</h2>`
+    let html = `<h2>${UTILS.getLabel(obj)}</h2>`
     if (options.list) {
-        tmpl += `<ul>`
+        html += `<ul>`
         obj[options.list].forEach((val, index) => {
             let name = UTILS.getLabel(val, (val.type ?? val['@type'] ?? index))
-            tmpl += (val["@id"] && options.link) ? `<li ${DEER.ID}="${val["@id"]}"><a href="${options.link}${val["@id"]}">${name}</a></li>` : `<li ${DEER.ID}="${val["@id"]}">${name}</li>`
+            html += (val["@id"] && options.link) ? `<li ${DEER.ID}="${val["@id"]}"><a href="${options.link}${val["@id"]}">${name}</a></li>` : `<li ${DEER.ID}="${val["@id"]}">${name}</li>`
         })
-        tmpl += `</ul>`
+        html += `</ul>`
     }
-    return tmpl
+    return html
 }
 
 /**
@@ -1502,15 +1518,15 @@ DEER.TEMPLATES.list = function (obj, options = {}) {
  */
 DEER.TEMPLATES.person = function (obj, options = {}) {
     try {
-        let tmpl = `<h2>${UTILS.getLabel(obj)}</h2>`
+        let html = `<h2>${UTILS.getLabel(obj)}</h2>`
         let dob = DEER.TEMPLATES.prop(obj, { key: "birthDate", label: "Birth Date" }) ?? ``
         let dod = DEER.TEMPLATES.prop(obj, { key: "deathDate", label: "Death Date" }) ?? ``
         let famName = (obj.familyName && UTILS.getValue(obj.familyName)) ?? "[ unknown ]"
         let givenName = (obj.givenName && UTILS.getValue(obj.givenName)) ?? ""
-        tmpl += (obj.familyName ?? obj.givenName) ? `<div>Name: ${famName}, ${givenName}</div>` : ``
-        tmpl += dob + dod
-        tmpl += `<a href="#${obj["@id"]}">JSON</a>`
-        return tmpl
+        html += (obj.familyName ?? obj.givenName) ? `<div>Name: ${famName}, ${givenName}</div>` : ``
+        html += dob + dod
+        html += `<a href="#${obj["@id"]}">JSON</a>`
+        return html
     } catch (err) {
         return null
     }
@@ -1556,7 +1572,7 @@ DEER.TEMPLATES.pageRanges = function (obj, options = {}) {
 // DEER.TEMPLATES.canvasDropdown = function (obj, options = {}) {
 //     return null
 //     try {
-//         let tmpl = `<form deer-type="Range" deer-context="http://iiif.io/api/image/3/context.json">
+//         let html = `<form deer-type="Range" deer-context="http://iiif.io/api/image/3/context.json">
 //         <input type="hidden" deer-key="isPartOf" value="${obj['@id']}">
 //         <input type="hidden" deer-key="motivation" value="supplementing">
 
@@ -1573,7 +1589,7 @@ DEER.TEMPLATES.pageRanges = function (obj, options = {}) {
 //         <input type="submit">
 //         </form>`
 
-//         return tmpl
+//         return html
 //     } catch (err) {
 //         return null
 //     }
@@ -1588,8 +1604,8 @@ DEER.TEMPLATES.pageRanges = function (obj, options = {}) {
  */
 DEER.TEMPLATES.event = function (obj, options = {}) {
     try {
-        let tmpl = `<h1>${UTILS.getLabel(obj)}</h1>`
-        return tmpl
+        let html = `<h1>${UTILS.getLabel(obj)}</h1>`
+        return html
     } catch (err) {
         return null
     }

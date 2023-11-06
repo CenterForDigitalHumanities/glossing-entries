@@ -160,6 +160,7 @@ export default {
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
+            
             const total = obj[options.list].length
             const filterPresent = !!deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
@@ -688,21 +689,37 @@ export default {
             return {
                 html: ``,
                 then: (elem) => {
-                    let cachedManagedEntities = localStorage.getItem("managedListCache") ? new Map(Object.entries(JSON.parse(localStorage.getItem("managedListCache")))) : new Map();
-                    const containingListElem = elem.closest("deer-view");
-                    let filteringProps = Object.keys(obj);
-                    let li = document.createElement("li");
-                    let a = document.createElement("a");
-                    let span = document.createElement("span");
-                    const createScenario = !!elem.hasAttribute("create-scenario");
-                    const updateScenario = !!elem.hasAttribute("update-scenario");
-                    const increaseTotal = !!(createScenario || updateScenario);
-                    const filterPresent = !!containingListElem.$contentState;
-                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {};
-                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable";
-                    a.setAttribute("href", options.link + obj['@id']);
-                    a.setAttribute("target", "_blank");
-        
+                    let cachedFilterableEntities = localStorage.getItem("managedListCache") ? new Map(Object.entries(JSON.parse(localStorage.getItem("managedListCache")))) : new Map()
+                    const containingListElem = elem.closest("deer-view")
+                    let filteringProps = Object.keys(obj)
+                    let li = document.createElement("li")
+                    let a = document.createElement("a")
+                    let span = document.createElement("span")
+
+                    const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript";
+                    const glossID = obj["@id"].replace(/^https?:/, 'https:');
+                    let removeBtn = document.createElement("a");
+                    removeBtn.setAttribute("href", glossID);
+                    removeBtn.setAttribute("data-type", type);
+                    removeBtn.className = "removeCollectionItem";
+                    removeBtn.title = "Delete This Entry";
+                    removeBtn.innerHTML = "&#x274C;"; 
+
+                    let visibilityBtn = document.createElement("a");
+                    visibilityBtn.className = "togglePublic";
+                    visibilityBtn.setAttribute("href", glossID);
+                    visibilityBtn.title = "Toggle public visibility";
+                    visibilityBtn.innerHTML = "👁";
+
+                    const createScenario = !!elem.hasAttribute("create-scenario")
+                    const updateScenario = !!elem.hasAttribute("update-scenario")   
+                    const increaseTotal = !!((createScenario || updateScenario))
+                    const filterPresent = !!containingListElem.$contentState
+                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
+                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
+                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("target", "_blank")
+
                     // Turn each property into an attribute for the <li> element
                     let action = "add"
                     filteringProps.forEach( (prop) => {
@@ -717,13 +734,16 @@ export default {
                             }
                         }
                     })
-        
-                    li.setAttribute("data-expanded", "true");
-                    cachedManagedEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
-                    localStorage.setItem("managedListCache", JSON.stringify(Object.fromEntries(cachedManagedEntities)));
+
+                    if(filterPresent) elem.classList[action]("is-hidden")
+                    li.setAttribute("data-expanded", "true")
+                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    localStorage.setItem("managedListCache", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     a.appendChild(span)
+                    li.appendChild(visibilityBtn);
                     li.appendChild(a)
+                    li.appendChild(removeBtn);
                     elem.appendChild(li)
 
                     // Pagination for the progress indicator element
