@@ -17,7 +17,14 @@ export default {
         if (!id.startsWith("http")) return justArray ? [ id ] : id
         if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
         return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
-    }, //removeDuplicates() removes duplicate glosses from the input list by checking the value of the uniqueProp property for each element and keeping only the first occurrence of each unique value. The result is an array containing only unique elements based on the specified property.
+    }, 
+    /**
+     * Removes duplicate glosses from the input list by checking the value of the uniqueProp property 
+     * for each element and keeping only the first occurrence of each unique value. 
+     * @param list {Array} lorem ipsum...
+     * @param uniqueProp {String} lorem ipsum...
+     * @return {Array} an array containing only unique elements based on the specified property.
+     */ 
     removeDuplicates: function(list, uniqueProp) {
         return list.filter((item, index, self) =>
             index === self.findIndex((t) => (
