@@ -39,7 +39,7 @@
             </section>
 
             <deer-view class="bg-basic" id="collectionList" deer-listing 
-                deer-collection="GoG-Named-Glosses" deer-link="ng.html#" >
+                deer-collection="GoG-Named-Glosses" deer-template="managedlist" deer-link="ng.html#" >
                 Getting the Gallery of Glosses Gloss Collection&hellip;
             </deer-view>
         </div>
@@ -53,7 +53,6 @@
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()
-            collectionList.setAttribute("deer-template", "managedlist")
         }
     </script>
 </body>
