@@ -151,7 +151,7 @@ function setWitnessFormDefaults(){
         t.removeAttribute("deer-source")
     })
     // For when we test
-    form.querySelector("input[deer-key='creator']").value = "BugBustingDay"
+    //form.querySelector("input[deer-key='creator']").value = "BugBustingDay"
     
     const labelElem = form.querySelector("input[deer-key='label']")
     labelElem.value = ""
@@ -555,12 +555,7 @@ addEventListener('deer-updated', event => {
             .then(res => res.json())
             .then(a => {
                 if(key === "references"){
-                    /**
-                     * Paginate the 'attach' buttons.
-                     * If there is an '✓ attached' one, this is an update scenario.
-                     *     It is no longer attached, the identified Gloss has been changed for this Witness.
-                     * There will be a new one that needs to become the '✓ attached' one
-                     */ 
+                    // Paginate the '➥ attach' and possibly '✓ attached' button(s)
                     const glossURIs = el.value.split("__")
                     const previouslyChosen = document.querySelector(".toggleInclusion.success")
                     glossURIs.forEach(glossURI => {
@@ -570,6 +565,9 @@ addEventListener('deer-updated', event => {
                             inclusionBtn.setAttribute("value", "❢ attach")
                             inclusionBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
                             if(previouslyChosen){
+                                // If there is an '✓ attached' one on the page already, this is an update scenario.
+                                // The '➥ attach' button that was clicked is now the chosen Gloss for the loaded Witness.
+                                // The '✓ attached' one is no longer connected to this Witness or Source URL via this Witness.
                                 inclusionBtn.setAttribute("disabled", "")
                                 inclusionBtn.setAttribute("value", "✓ attached")
                                 inclusionBtn.setAttribute("title", "This Gloss is already attached!")
