@@ -17,6 +17,20 @@ export default {
         if (!id.startsWith("http")) return justArray ? [ id ] : id
         if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
         return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
+    }, 
+    /**
+     * Removes duplicate elements from the input list based on the specified unique property
+     * for each element and keeping only the first occurrence of each unique value.
+     * @param list {Array} The input list from which duplicates will be removed.
+     * @param uniqueProp {String} The name of the property used to identify uniqueness among elements in the list.
+     * @return {Array} A new array containing only the unique elements from the input list based on the specified property.
+     */
+    removeDuplicates: function(list, uniqueProp) {
+        return list.filter((item, index, self) =>
+            index === self.findIndex((t) => (
+                t[uniqueProp] === item[uniqueProp]
+            ))
+        )
     },
     globalFeedbackBlip: function(event, message, success) {
         globalFeedback.innerText = message
