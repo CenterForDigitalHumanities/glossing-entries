@@ -790,7 +790,6 @@ function paginateButtonsAfterSubmit(glossURIs){
                 inclusionBtn.setAttribute("title", "This Gloss is already attached!")
                 inclusionBtn.classList.remove("primary")
                 inclusionBtn.classList.add("success")
-
                 previouslyChosen.removeAttribute("disabled")
                 previouslyChosen.setAttribute("value", "➥ attach")
                 previouslyChosen.setAttribute("title", "Attach This Gloss and Save")
