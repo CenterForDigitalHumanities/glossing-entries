@@ -386,7 +386,7 @@ export default {
                 obj[options.list].forEach((val, index) => {
                     let inclusionBtn = null
                     const glossID = val['@id'].replace(/^https?:/, 'https:')
-                    let already = witnessesObj?.referencedGlosses.has(glossID) ? "attached-to-source" : ""
+                    let already = witnessesObj?.referencedGlosses?.has(glossID) ? "attached-to-source" : ""
                     if(glossID === referencedGlossID){
                         inclusionBtn = `<input disabled type="button" class="toggleInclusion ${already} button success" data-id="${glossID}" title="This Gloss is already attached!" value="✓ attached"/>`
                     }

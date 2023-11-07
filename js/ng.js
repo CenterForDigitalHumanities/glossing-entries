@@ -78,8 +78,13 @@ addEventListener('deer-form-rendered', event => {
             prefillTagsArea(annotationData["tags"], event.target)
             prefillThemesArea(annotationData["themes"], event.target)
             prefillText(annotationData["text"], event.target)
-            const referenceString = annotationData["canonicalReference"].value ?? annotationData["canonicalReference"] ?? ""
-            parseSections(referenceString)
+            if(event.detail.targetChapter && !event.detail["_section"]) {
+                document.querySelector('[deer-key="canonicalReference"]').value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
+                parseSections()
+            }
+            else{
+                if(annotationData["canonicalReference"]) parseSections(annotationData["canonicalReference"])
+            }
             break
         default:
     }
@@ -192,6 +197,7 @@ function parseSections(reference = null) {
         } else {
             el.value = '' // Set to an empty string if there's no corresponding part
         }
+        el.dispatchEvent(new Event('input', { bubbles: true }))
     })
     
 }
