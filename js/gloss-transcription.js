@@ -465,6 +465,8 @@ function preselectLines(linesArr, form, togglePages) {
             const lineid = line.split("#")[0]
             const selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
             const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
+            // Do not accidentally overrule a .persists mark (the mark for #witnessURI).  It is both .persists and .pre-select, but .persists takes precedence. 
+            if(lineElem.innerHTML.indexOf('<mark data-markjs="true" class="persists">') === selection[0]) return
             if(togglePages) lineElem.parentElement.previousElementSibling.classList.add("has-selection")
             const remark_map = unmarkTPENLineElement(lineElem)
             lineElem.classList.add("has-selection")
@@ -474,7 +476,6 @@ function preselectLines(linesArr, form, togglePages) {
                 : (selection[1] - selection[0]) + 1
             const markup = new Mark(lineElem)
             let options = togglePages ? {className:"persists"} : {className:"pre-select"}
-            // Do not accidentally overrule a .persists mark (the mark for #witnessURI).  It is both .persists and .pre-select, but .persists takes precedence. 
             options.exclude = [".persists"]
             markup.markRanges([{
                 start: selection[0],

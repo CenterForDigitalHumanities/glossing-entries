@@ -303,7 +303,7 @@ class ThemeWidget extends HTMLElement {
         const $this = this
         this.innerHTML = this.template
         const addBtn = this.querySelector("button")
-        this.querySelector(".tagInput").addEventListener("beforeinput",event=>{
+        this.querySelector(".themeInput").addEventListener("beforeinput",event=>{
             //Enter or other line break actions.  Note not to overrule TAB for accessibility reasons.
             if(event.inputType === "insertLineBreak"){
                 event.preventDefault()
