@@ -359,7 +359,7 @@ export default {
             <input type="hidden" custom-key="references" />
             <div class="col">
                 <h2 class="nomargin">Attach Gloss</h2>
-                <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag-is-small">click here</a>. </small>
+                <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
                 <p class="filterInstructions is-hidden"> 
                     Use the filter to narrow down your options.  Select a single Gloss from the list to attach this witness to. 
                 </p>
@@ -618,6 +618,7 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
+                    span.classList.add("serifText")
                     const createScenario = !!elem.hasAttribute("create-scenario")
                     const updateScenario = !!elem.hasAttribute("update-scenario")   
                     const increaseTotal = !!((createScenario || updateScenario))

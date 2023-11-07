@@ -557,32 +557,33 @@ addEventListener('deer-updated', event => {
                 if(key === "references"){
                     // Paginate the '➥ attach' and possibly '✓ attached' button(s)
                     const glossURIs = el.value.split("__")
-                    const previouslyChosen = document.querySelector(".toggleInclusion.success")
-                    glossURIs.forEach(glossURI => {
-                        glossURI = glossURI.replace(/^https?:/, 'https:')
-                        document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(inclusionBtn => {
-                            inclusionBtn.classList.add("attached-to-source")
-                            inclusionBtn.setAttribute("value", "❢ attach")
-                            inclusionBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
-                            if(previouslyChosen){
-                                // If there is an '✓ attached' one on the page already, this is an update scenario.
-                                // The '➥ attach' button that was clicked is now the chosen Gloss for the loaded Witness.
-                                // The '✓ attached' one is no longer connected to this Witness or Source URL via this Witness.
-                                inclusionBtn.setAttribute("disabled", "")
-                                inclusionBtn.setAttribute("value", "✓ attached")
-                                inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-                                inclusionBtn.classList.remove("primary")
-                                inclusionBtn.classList.add("success")
+                    paginateButtonsAfterSubmit(glossURIs)
+                    // const previouslyChosen = document.querySelector(".toggleInclusion.success")
+                    // glossURIs.forEach(glossURI => {
+                    //     glossURI = glossURI.replace(/^https?:/, 'https:')
+                    //     document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(inclusionBtn => {
+                    //         inclusionBtn.classList.add("attached-to-source")
+                    //         inclusionBtn.setAttribute("value", "❢ attach")
+                    //         inclusionBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
+                    //         if(previouslyChosen){
+                    //             // If there is an '✓ attached' one on the page already, this is an update scenario.
+                    //             // The '➥ attach' button that was clicked is now the chosen Gloss for the loaded Witness.
+                    //             // The '✓ attached' one is no longer connected to this Witness or Source URL via this Witness.
+                    //             inclusionBtn.setAttribute("disabled", "")
+                    //             inclusionBtn.setAttribute("value", "✓ attached")
+                    //             inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+                    //             inclusionBtn.classList.remove("primary")
+                    //             inclusionBtn.classList.add("success")
 
-                                previouslyChosen.removeAttribute("disabled")
-                                previouslyChosen.setAttribute("value", "➥ attach")
-                                previouslyChosen.setAttribute("title", "Attach This Gloss and Save")
-                                previouslyChosen.classList.add("primary")
-                                previouslyChosen.classList.remove("success")
-                                previouslyChosen.classList.remove("attached-to-source")
-                            }
-                        })    
-                    })
+                    //             previouslyChosen.removeAttribute("disabled")
+                    //             previouslyChosen.setAttribute("value", "➥ attach")
+                    //             previouslyChosen.setAttribute("title", "Attach This Gloss and Save")
+                    //             previouslyChosen.classList.add("primary")
+                    //             previouslyChosen.classList.remove("success")
+                    //             previouslyChosen.classList.remove("attached-to-source")
+                    //         }
+                    //     })    
+                    // })
                 }
                 el.setAttribute("deer-source", a["@id"])
             })
@@ -668,28 +669,7 @@ addEventListener('gloss-modal-saved', event => {
     const modal = event.target
     const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
     const glossURI = gloss["@id"].replace(/^https?:/, 'https:')
-    // Paginate the attach/attached buttons
-    const previouslyChosen = document.querySelector(".toggleInclusion.success")
-    document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(inclusionBtn => {
-        inclusionBtn.classList.add("attached-to-source")
-        inclusionBtn.setAttribute("value", "❢ attach")
-        inclusionBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
-        if(previouslyChosen){
-            inclusionBtn.setAttribute("disabled", "")
-            inclusionBtn.setAttribute("value", "✓ attached")
-            inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-            inclusionBtn.classList.remove("primary")
-            inclusionBtn.classList.add("success")
-
-            previouslyChosen.removeAttribute("disabled")
-            previouslyChosen.setAttribute("value", "➥ attach")
-            previouslyChosen.setAttribute("title", "Attach This Gloss and Save")
-            previouslyChosen.classList.add("primary")
-            previouslyChosen.classList.remove("success")
-            previouslyChosen.classList.remove("attached-to-source")
-        }
-    })    
-
+    paginateButtonsAfterSubmit([glossURI]) 
     modal.classList.add("is-hidden")
 
     const li = document.createElement("li")
@@ -810,6 +790,35 @@ function addButton(event) {
             witnessForm.querySelector("input[type='submit']").click() 
         }
     }
+}
+
+function paginateButtonsAfterSubmit(glossURIs){
+    const previouslyChosen = document.querySelector(".toggleInclusion.success")
+    glossURIs.forEach(glossURI => {
+        glossURI = glossURI.replace(/^https?:/, 'https:')
+        document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(inclusionBtn => {
+            inclusionBtn.classList.add("attached-to-source")
+            inclusionBtn.setAttribute("value", "❢ attach")
+            inclusionBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
+            if(previouslyChosen){
+                // If there is an '✓ attached' one on the page already, this is an update scenario.
+                // The '➥ attach' button that was clicked is now the chosen Gloss for the loaded Witness.
+                // The '✓ attached' one is no longer connected to this Witness or Source URL via this Witness.
+                inclusionBtn.setAttribute("disabled", "")
+                inclusionBtn.setAttribute("value", "✓ attached")
+                inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+                inclusionBtn.classList.remove("primary")
+                inclusionBtn.classList.add("success")
+
+                previouslyChosen.removeAttribute("disabled")
+                previouslyChosen.setAttribute("value", "➥ attach")
+                previouslyChosen.setAttribute("title", "Attach This Gloss and Save")
+                previouslyChosen.classList.add("primary")
+                previouslyChosen.classList.remove("success")
+                previouslyChosen.classList.remove("attached-to-source")
+            }
+        })    
+    })
 }
 
 function getAllWitnesses(event){
