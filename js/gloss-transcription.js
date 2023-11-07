@@ -442,6 +442,14 @@ function prefillReferences(referencesArr, form) {
  * @param togglePages - A flag for whether or not to fire the page toggling UI.  Happens when loading up a witness via the browser hash. 
  */
 function preselectLines(linesArr, form, togglePages) {
+
+    function quickDecode(html) {
+        // This helps with detecting the persists mark and knowing not to write over it.
+        var txt = document.createElement("textarea")
+        txt.innerHTML = html
+        return txt.value
+    }
+
     const source = linesArr.source ?? null
     if (linesArr === undefined) {
         console.warn("Cannot highlight lines in UI.  There is no data.")
@@ -466,7 +474,8 @@ function preselectLines(linesArr, form, togglePages) {
             const selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
             const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
             // Do not accidentally overrule a .persists mark (the mark for #witnessURI).  It is both .persists and .pre-select, but .persists takes precedence. 
-            if(lineElem.innerHTML.indexOf('<mark data-markjs="true" class="persists">') === selection[0]) return
+            const checkInner = quickDecode(lineElem.innerHTML)
+            if(checkInner.indexOf('<mark data-markjs="true" class="persists">') === selection[0]) return
             if(togglePages) lineElem.parentElement.previousElementSibling.classList.add("has-selection")
             const remark_map = unmarkTPENLineElement(lineElem)
             lineElem.classList.add("has-selection")
@@ -555,35 +564,8 @@ addEventListener('deer-updated', event => {
             .then(res => res.json())
             .then(a => {
                 if(key === "references"){
-                    // Paginate the '➥ attach' and possibly '✓ attached' button(s)
                     const glossURIs = el.value.split("__")
                     paginateButtonsAfterSubmit(glossURIs)
-                    // const previouslyChosen = document.querySelector(".toggleInclusion.success")
-                    // glossURIs.forEach(glossURI => {
-                    //     glossURI = glossURI.replace(/^https?:/, 'https:')
-                    //     document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(inclusionBtn => {
-                    //         inclusionBtn.classList.add("attached-to-source")
-                    //         inclusionBtn.setAttribute("value", "❢ attach")
-                    //         inclusionBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
-                    //         if(previouslyChosen){
-                    //             // If there is an '✓ attached' one on the page already, this is an update scenario.
-                    //             // The '➥ attach' button that was clicked is now the chosen Gloss for the loaded Witness.
-                    //             // The '✓ attached' one is no longer connected to this Witness or Source URL via this Witness.
-                    //             inclusionBtn.setAttribute("disabled", "")
-                    //             inclusionBtn.setAttribute("value", "✓ attached")
-                    //             inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-                    //             inclusionBtn.classList.remove("primary")
-                    //             inclusionBtn.classList.add("success")
-
-                    //             previouslyChosen.removeAttribute("disabled")
-                    //             previouslyChosen.setAttribute("value", "➥ attach")
-                    //             previouslyChosen.setAttribute("title", "Attach This Gloss and Save")
-                    //             previouslyChosen.classList.add("primary")
-                    //             previouslyChosen.classList.remove("success")
-                    //             previouslyChosen.classList.remove("attached-to-source")
-                    //         }
-                    //     })    
-                    // })
                 }
                 el.setAttribute("deer-source", a["@id"])
             })
@@ -669,7 +651,6 @@ addEventListener('gloss-modal-saved', event => {
     const modal = event.target
     const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
     const glossURI = gloss["@id"].replace(/^https?:/, 'https:')
-    paginateButtonsAfterSubmit([glossURI]) 
     modal.classList.add("is-hidden")
 
     const li = document.createElement("li")
@@ -682,7 +663,7 @@ addEventListener('gloss-modal-saved', event => {
     li.setAttribute("data-title", title)
     
     // We know the title already so this makes a handy placeholder :)
-    li.innerHTML = `<span><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
+    li.innerHTML = `<span class="serifText"><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
     // This helps filterableListItem know how to style the attach button, and also lets us know to change count/total loaded Glosses.
     if(textWitnessID){
         div.setAttribute("update-scenario", "true")
@@ -692,7 +673,6 @@ addEventListener('gloss-modal-saved', event => {
     }
     div.appendChild(li)
     list.appendChild(div)
-    
     setTimeout(function() {
         broadcast(undefined, "deer-view", div, { set: [div] })
     }, 1)
@@ -792,6 +772,7 @@ function addButton(event) {
     }
 }
 
+// Paginate the '➥ attach' and possibly '✓ attached' button(s) after a Witness submission.
 function paginateButtonsAfterSubmit(glossURIs){
     const previouslyChosen = document.querySelector(".toggleInclusion.success")
     glossURIs.forEach(glossURI => {
