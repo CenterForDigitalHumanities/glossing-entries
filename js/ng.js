@@ -155,8 +155,7 @@ addEventListener('deer-updated', event => {
             const hash = window.location.hash.substring(1)
             if(!hash){
                 setTimeout(() => {
-                    console.log("I would have reloaded but TESTING BRO")
-                    //window.location.reload()
+                    window.location.reload()
                 }, 2000)    
             }
         })

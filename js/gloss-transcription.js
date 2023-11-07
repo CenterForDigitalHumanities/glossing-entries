@@ -494,7 +494,6 @@ function preselectLines(linesArr, form, togglePages) {
             }
         })    
     }
-
 }
 
 /**
