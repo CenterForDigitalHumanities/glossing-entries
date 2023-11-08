@@ -369,6 +369,7 @@ class GlossModal extends HTMLElement {
             if (!textElem.value.startsWith(labelElem.value)) {
                 textElem.removeEventListener('input', textListener)
             }
+            labelElem.$isDirty = true
         })
 
         //textElem.addEventListener('blur', ev => checkForGlossesBtn.click())
