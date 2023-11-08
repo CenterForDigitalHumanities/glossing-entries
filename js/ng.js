@@ -79,11 +79,11 @@ addEventListener('deer-form-rendered', event => {
             prefillThemesArea(annotationData["themes"], event.target)
             prefillText(annotationData["text"], event.target)
             if(event.detail.targetChapter && !event.detail["_section"]) {
-                document.querySelector('[deer-key="canonicalReference"]').value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
+                // This conditional is solely to support Glossing Matthew data and accession it into the new encoding.
+                const canonRef = document.querySelector('[deer-key="canonicalReference"]')
+                canonRef.value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
+                canonRef.dispatchEvent(new Event('input', { bubbles: true }))
                 parseSections()
-            }
-            else{
-                if(annotationData["canonicalReference"]) parseSections(annotationData["canonicalReference"])
             }
             break
         default:
@@ -166,9 +166,14 @@ addEventListener('deer-updated', event => {
     }
 })
 
-function parseSections(reference = null) {
+/**
+ * Take the value of the canonical reference locator and parse its pieces to populate
+ * _document, _section, and _subsection.  Note that this does not affect the $isDirty state
+ * or the value of the canonicalReference input.
+ */ 
+function parseSections() {
     // Get the Canonical Reference Locator value
-    const canonValue = reference ? reference : document.querySelector('input[deer-key="canonicalReference"]')?.value
+    const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value
     const _document = document.querySelector('input[deer-key="_document"]')
     const _section = document.querySelector('input[deer-key="_section"]')
     const _subsection = document.querySelector('input[deer-key="_subsection"]')
