@@ -258,7 +258,7 @@ class TpenLineSelector extends HTMLElement {
 
             // Generate a programmatic label and set the label input on the form
             let witnessLabel = selectedText.slice(0, 16)
-            const labelElem = document.querySelector("input[deer-key='label']")
+            const labelElem = document.querySelector("input[deer-key='title']")
             const shelfmark = document.querySelector("input[deer-key='identifier']").value
             if(witnessLabel){
                 if(shelfmark){
