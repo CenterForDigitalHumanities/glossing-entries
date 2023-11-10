@@ -17,6 +17,7 @@ window.onload = () => {
                 label += words.shift() + " "
             }
             labelElem.value = label.trim()
+            labelElem.dispatchEvent(new Event('input', { bubbles: true }))
         }
     })
     labelElem.addEventListener('input', ev => {
