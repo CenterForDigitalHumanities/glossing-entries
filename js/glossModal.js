@@ -102,15 +102,10 @@ class GlossModal extends HTMLElement {
     template = `
         <style>
         gloss-modal {
-            position: fixed; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 1000;
+            position: absolute;
+            display: block;
+            top: 1em;
+            z-index: 2;
             overflow: auto; 
         }
         .window-shadow {
@@ -123,20 +118,10 @@ class GlossModal extends HTMLElement {
         }
         .modal {
             position: relative;
-            margin: auto;
-            max-height: 90vh; 
-            overflow-y: auto; 
-            width: auto; 
-            box-sizing: border-box; 
+            top: 3em;
         }
         .modal form {
-            padding-bottom: 2em; 
-        }
-        @media (max-width: 768px) {
-            .modal {
-                width: 90%;
-                max-height: 85vh;
-            }
+
         }
         </style>
         <div class="window-shadow"> 
