@@ -1258,13 +1258,18 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     saveList.addEventListener('click', overwriteList)
                 })
 
-
                 function overwriteList() {
                     let mss = []
-                    console.log("mss", mss)
+                    
                     elem.listCache.forEach(uri => {
+                        let label;
+                        if (document.querySelector(`li[deer-id='${uri}'] span`)) {
+                            label = document.querySelector(`li[deer-id='${uri}'] span`).textContent.trim()
+                        }else {
+                            label = document.querySelector(`div[deer-id='${uri}'] span`).textContent.trim()
+                        }
                         mss.push({
-                            label: document.querySelector(`li[deer-id='${uri}'] span`).textContent.trim(),
+                            label: label,
                             '@id': uri
                         })
                     })
@@ -1277,7 +1282,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         numberOfItems: elem.listCache.size,
                         itemListElement: mss
                     }
-
+                    
+                    console.log("mss", mss)
                     console.log("list", list)
 
                     fetch(DEER.URLS.OVERWRITE, {

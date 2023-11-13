@@ -719,25 +719,10 @@ export default {
                         event.preventDefault()
                         toggleVisibility(glossID)
                     })
-                    
-                    const storageKey = "listCache"
 
-                    let listCache = JSON.parse(localStorage.getItem(storageKey))
-                
-                    // Check if we have a cached list
-                    if (listCache) {
-                        listCache = new Set(listCache)
-                        const include = listCache.has(glossID) ? "add" : "remove"
-                        visibilityBtn.classList[include]("is-included");
-                    } else {
-                        fetch("https://devstore.rerum.io/v1/id/610c54deffce846a83e70625").then(r => r.json())
-                        .then(list => {
-                            listCache = new Set(list.itemListElement?.map(item => item['@id']))
-                            localStorage.setItem(storageKey, JSON.stringify([...listCache]))
-                            const include = listCache.has(glossID) ? "add" : "remove"
-                            visibilityBtn.classList[include]("is-included")
-                        });
-                    }
+                    let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
+                    const include = listCache.has(glossID) ? "add" : "remove"
+                    visibilityBtn.classList[include]("is-included")
 
                     async function toggleVisibility(id) { 
                         const element = document.querySelector(`a.togglePublic[href='${id}']`)
