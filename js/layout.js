@@ -170,7 +170,14 @@ class TagWidget extends HTMLElement {
         this.innerHTML = this.template
         const addBtn = this.querySelector("button")
         this.querySelector(".tagInput").addEventListener("beforeinput",event=>{
-            if([' ',',',null].includes(event.data)) {
+            //Enter or other line break actions.  Note not to overrule TAB for accessibility reasons.
+            if(event.inputType === "insertLineBreak"){
+                event.preventDefault()
+                addBtn.click()
+                return false
+            }
+            //Assuming comma means 'add so I can do another'.  Should any other key cause this?
+            if([','].includes(event.data)) {
                 event.preventDefault()
                 addBtn.click()
                 return false
@@ -297,7 +304,14 @@ class ThemeWidget extends HTMLElement {
         this.innerHTML = this.template
         const addBtn = this.querySelector("button")
         this.querySelector(".themeInput").addEventListener("beforeinput",event=>{
-            if([' ',',',null].includes(event.data)) {
+            //Enter or other line break actions.  Note not to overrule TAB for accessibility reasons.
+            if(event.inputType === "insertLineBreak"){
+                event.preventDefault()
+                addBtn.click()
+                return false
+            }
+            //Assuming comma means 'add so I can do another'.  Should any other key cause this?
+            if([','].includes(event.data)) {
                 event.preventDefault()
                 addBtn.click()
                 return false

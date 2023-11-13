@@ -33,7 +33,7 @@ function setWitnessFormDefaults(){
     // For when we test
     //form.querySelector("input[deer-key='creator']").value = "MultiplicityTest"
     
-    const labelElem = form.querySelector("input[deer-key='label']")
+    const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
     labelElem.setAttribute("value", "")
     labelElem.removeAttribute("deer-source")

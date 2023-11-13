@@ -2,6 +2,8 @@
   * Process a T-PEN Manifest URI (Presentation API 2.1 only) for its transcription text.
   * Generate the UI around canvases (pages) and text (lines) so that a user can select text.
   * Store that text selection as a URI Fragment using #char.  It may be an array that spans multiple lines.
+  * 
+  * Automatically move around <marks> in the selection idea: https://stackoverflow.com/questions/47836227/how-to-disable-selecting-some-of-the-text-in-div
 */
 class TpenLineSelector extends HTMLElement {
     template = `
@@ -256,7 +258,7 @@ class TpenLineSelector extends HTMLElement {
 
             // Generate a programmatic label and set the label input on the form
             let witnessLabel = selectedText.slice(0, 16)
-            const labelElem = document.querySelector("input[deer-key='label']")
+            const labelElem = document.querySelector("input[deer-key='title']")
             const shelfmark = document.querySelector("input[deer-key='identifier']").value
             if(witnessLabel){
                 if(shelfmark){
