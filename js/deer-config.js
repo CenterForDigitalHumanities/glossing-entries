@@ -189,6 +189,7 @@ export default {
                                 }
                             }
                         })
+                        if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
                         li += `>
                             <a href="${options.link}${glossID}">
                                 <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
@@ -289,7 +290,6 @@ export default {
                         for(const prop in query){
                             if(li.hasAttribute(`data-${prop}`)){
                                 const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
-
                                 elem.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                 // If it is showing, no need to check other properties for filtering.
@@ -418,6 +418,7 @@ export default {
                                 }
                             }
                         })
+                        if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
                         li += `>
                             ${inclusionBtn}
                             <a target="_blank" href="${options.link}${glossID}">
@@ -642,6 +643,8 @@ export default {
                             }
                         }
                     })
+
+                    if(!li.hasAttribute("data-title")) li.setAttribute("data-title", "[ unlabeled ]")
 
                     if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")

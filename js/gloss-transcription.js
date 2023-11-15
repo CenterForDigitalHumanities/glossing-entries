@@ -151,7 +151,7 @@ function setWitnessFormDefaults(){
         t.removeAttribute("deer-source")
     })
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "BugBustingDay"
+    form.querySelector("input[deer-key='creator']").value = "BryanBugz"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -445,9 +445,11 @@ function preselectLines(linesArr, form, togglePages) {
 
     function quickDecode(html) {
         // This helps with detecting the persists mark and knowing not to write over it.
-        var txt = document.createElement("textarea")
+        const txt = document.createElement("textarea")
         txt.innerHTML = html
-        return txt.value
+        const val = txt.value
+        txt.remove()
+        return val
     }
 
     const source = linesArr.source ?? null
@@ -811,14 +813,27 @@ function getAllWitnesses(event){
  */ 
 function unmarkTPENLineElement(lineElem){
     let remark_map = {}
+    let persistent_map = {}
     const lineid = lineElem.getAttribute("tpen-line-id")
+    if(lineid.includes("104722433")){
+        console.log("FUNKY TIME")
+    }
     remark_map[lineid] = []
+    persistent_map[lineid] = []
     for(const mark of lineElem.querySelectorAll(".pre-select")){
        remark_map[lineid].push(mark.textContent)
     }
+    for(const mark of lineElem.querySelectorAll(".persists")){
+        persistent_map[lineElem.getAttribute("tpen-line-id")].push(mark.textContent)
+    }
     const unmarkup = new Mark(lineElem)
     unmarkup.unmark({"className" : "pre-select"})
-    return remark_map
+    unmarkup.unmark({"className" : "persists"})
+    const o = {
+        "pre-select" : remark_map,
+        "persists" : persistent_map
+    }
+    return o
 }
 
 /**
@@ -828,14 +843,21 @@ function unmarkTPENLineElement(lineElem){
 function unmarkTPENLineElements(startEl, stopEl){
     let unmarkup = new Mark(startEl)
     let remark_map = {}
+    let persistent_map = {}
     const stopID = stopEl.getAttribute("tpen-line-id")
     // Upstream from this the selection in startEl is checked for a <mark>.  We know it does not have a <mark> here.
     remark_map[startEl.getAttribute("tpen-line-id")] = []
+    persistent_map[startEl.getAttribute("tpen-line-id")] = []
     for(const mark of startEl.querySelectorAll(".pre-select")){
         // For each thing you want to unmark, grab the text so we can remark it
         remark_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
     }
+     for(const mark of startEl.querySelectorAll(".persists")){
+        // For each thing you want to unmark, grab the text so we can remark it
+        persistent_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
+    }
     unmarkup.unmark({"className" : "pre-select"})
+    unmarkup.unmark({"className" : "persists"})
     if(stopID !== startEl.getAttribute("tpen-line-id")){
         // The selection happened over multiple lines.  Any of those lines may contain a <mark>.  If they do, it is an invalid selection.
         let nextEl = startEl.nextElementSibling
@@ -862,8 +884,12 @@ function unmarkTPENLineElements(startEl, stopEl){
             for(const mark of nextEl.querySelectorAll(".pre-select")){
                 remark_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
             }
+            for(const mark of nextEl.querySelectorAll(".persists")){
+                persistent_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
+            }
             unmarkup = new Mark(nextEl)
             unmarkup.unmark({"className" : "pre-select"})
+            unmarkup.unmark({"className" : "persists"})
         }
         // Upstream from this the selection in stopEl is checked for a <mark>.  We know it does not have a <mark> here.
         remark_map[stopEl.getAttribute("tpen-line-id")] = []
@@ -871,10 +897,19 @@ function unmarkTPENLineElements(startEl, stopEl){
             // For each thing you want to unmark, grab the text so we can remark it
             remark_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
         }
+        for(const mark of stopEl.querySelectorAll(".persists")){
+            // For each thing you want to unmark, grab the text so we can remark it
+            persistent_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
+        }
         unmarkup = new Mark(stopEl)
         unmarkup.unmark({"className" : "pre-select"})
+        unmarkup.unmark({"className" : "persists"})
     }
-    return remark_map
+    const o = {
+        "pre-select" : remark_map,
+        "persists" : persistent_map
+    }
+    return o
 }
 
 /**
@@ -884,15 +919,35 @@ function unmarkTPENLineElements(startEl, stopEl){
  */ 
 function remarkTPENLineElements(markData){
     // restore the marks that were there before the user did the selection
-    for(const id in markData){
+    for(const id in markData["pre-select"]){
+        if(id.includes("104722433")){
+            console.log("FUNKY TIME SPECIAL")
+        }
         const restoreMarkElem = document.querySelector(`div[tpen-line-id="${id}"]`)
         const markit = new Mark(restoreMarkElem)
-        const strings = markData[id]
+        const strings = markData["pre-select"][id]
         strings.forEach(str => {
             markit.mark(str, {
                 diacritics : true,
                 separateWordSearch : false,
                 className : "pre-select",
+                acrossElements : true,
+                accuracy: "complimentary"
+            })    
+        })
+    }
+    for(const id in markData.persists){
+        if(id.includes("104722433")){
+            console.log("FUNKY TIME SPECIAL")
+        }
+        const restoreMarkElem = document.querySelector(`div[tpen-line-id="${id}"]`)
+        const markit = new Mark(restoreMarkElem)
+        const strings = markData.persists[id]
+        strings.forEach(str => {
+            markit.mark(str, {
+                diacritics : true,
+                separateWordSearch : false,
+                className : "persists",
                 acrossElements : true,
                 accuracy: "complimentary"
             })    
