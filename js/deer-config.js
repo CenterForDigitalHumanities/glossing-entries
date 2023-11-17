@@ -160,7 +160,7 @@ export default {
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
             let total = 0
-            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
+            const filterPresent = deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
@@ -377,7 +377,7 @@ export default {
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
             let total = 0
-            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
+            const filterPresent = deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
@@ -620,10 +620,10 @@ export default {
                     let a = document.createElement("a")
                     let span = document.createElement("span")
                     span.classList.add("serifText")
-                    const createScenario = !!elem.hasAttribute("create-scenario")
-                    const updateScenario = !!elem.hasAttribute("update-scenario")   
-                    const increaseTotal = !!((createScenario || updateScenario))
-                    const filterPresent = !!containingListElem.$contentState
+                    const createScenario = elem.hasAttribute("create-scenario")
+                    const updateScenario = elem.hasAttribute("update-scenario")   
+                    const increaseTotal = ((createScenario || updateScenario))
+                    const filterPresent = containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     a.setAttribute("href", options.link + obj['@id'])

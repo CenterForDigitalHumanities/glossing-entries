@@ -151,7 +151,7 @@ function setWitnessFormDefaults(){
         t.removeAttribute("deer-source")
     })
     // For when we test
-    form.querySelector("input[deer-key='creator']").value = "BryanBugz"
+    //form.querySelector("input[deer-key='creator']").value = "BryanBugz"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -902,11 +902,10 @@ function unmarkTPENLineElements(startEl, stopEl){
         unmarkup.unmark({"className" : "pre-select"})
         unmarkup.unmark({"className" : "persists"})
     }
-    const o = {
+    return {
         "pre-select" : remark_map,
         "persists" : persistent_map
     }
-    return o
 }
 
 /**
