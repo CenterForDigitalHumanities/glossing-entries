@@ -1,7 +1,7 @@
 {
-    "ngCollection" : "https://devstore.rerum.io/v1/id/610c54deffce846a83e70625",
-    "msCollection" : "https://devstore.rerum.io/v1/id/610ad6f1ffce846a83e70613",
-    "generator" : "http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90",
-    "tiny" : "https://lived-religion-dev.rerum.io/deer-lr/",
-    "rerum" : "https://devstore.rerum.io/v1"
+    "ngCollection" : "https://store.rerum.io/v1/id/610c54deffce846a83e70625",
+    "msCollection" : "https://store.rerum.io/v1/id/610ad6f1ffce846a83e70613",
+    "generator" : "http://store.rerum.io/v1/id/61043ad4ffce846a83e700dd",
+    "tiny" : "https://lived-religion.rerum.io/deer-lr/",
+    "rerum" : "https://store.rerum.io/v1"
 }
