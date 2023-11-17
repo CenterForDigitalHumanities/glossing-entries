@@ -516,14 +516,11 @@ class ReferencesBrowser extends HTMLElement {
                             const existing_li = existing.closest("li")
                             existing_li.setAttribute("count", parseInt(existing_li.getAttribute("count")) + 1)
                             existing_li.setAttribute("appearances", existing_li.getAttribute("appearances")+`__${witnessURI}`)
-                            //existing_li.removeEventListener("click", witnessForGloss)
-                            existing_li.addEventListener("click", activateWitnessModal, false)
                             return
                         }
                         li.setAttribute("source-uri", sourceURI)
                         li.setAttribute("count", "1")
                         li.setAttribute("appearances", witnessURI)
-                        li.addEventListener("click", witnessForGloss, false)
                         a.classList.add("deer-view")
                         a.setAttribute("deer-template", "shelfmark")
                         a.setAttribute("deer-id", witnessURI)

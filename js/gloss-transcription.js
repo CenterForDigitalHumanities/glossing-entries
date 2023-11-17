@@ -815,9 +815,6 @@ function unmarkTPENLineElement(lineElem){
     let remark_map = {}
     let persistent_map = {}
     const lineid = lineElem.getAttribute("tpen-line-id")
-    if(lineid.includes("104722433")){
-        console.log("FUNKY TIME")
-    }
     remark_map[lineid] = []
     persistent_map[lineid] = []
     for(const mark of lineElem.querySelectorAll(".pre-select")){
@@ -920,9 +917,6 @@ function unmarkTPENLineElements(startEl, stopEl){
 function remarkTPENLineElements(markData){
     // restore the marks that were there before the user did the selection
     for(const id in markData["pre-select"]){
-        if(id.includes("104722433")){
-            console.log("FUNKY TIME SPECIAL")
-        }
         const restoreMarkElem = document.querySelector(`div[tpen-line-id="${id}"]`)
         const markit = new Mark(restoreMarkElem)
         const strings = markData["pre-select"][id]
@@ -937,9 +931,6 @@ function remarkTPENLineElements(markData){
         })
     }
     for(const id in markData.persists){
-        if(id.includes("104722433")){
-            console.log("FUNKY TIME SPECIAL")
-        }
         const restoreMarkElem = document.querySelector(`div[tpen-line-id="${id}"]`)
         const markit = new Mark(restoreMarkElem)
         const strings = markData.persists[id]
