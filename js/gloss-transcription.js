@@ -690,8 +690,8 @@ function addButton(event) {
     if(template_container.getAttribute("deer-template") !== "filterableListItem") return
     const obj = event.detail
     const gloss_li = template_container.firstElementChild
-    const createScenario = !!template_container.hasAttribute("create-scenario")
-    const updateScenario = !!template_container.hasAttribute("update-scenario")
+    const createScenario = template_container.hasAttribute("create-scenario")
+    const updateScenario = template_container.hasAttribute("update-scenario")
     // A new Gloss has been introduced and is done being cached.
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")
