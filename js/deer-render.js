@@ -1068,9 +1068,9 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
             <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
         </div>`
-        let managedListCache = localStorage.getItem("managedListCache") ? new Map(Object.entries(JSON.parse(localStorage.getItem("managedListCache")))) : new Map();
+        let managedListCache = localStorage.getItem("managedListCache") ? new Map(Object.entries(JSON.parse(localStorage.getItem("managedListCache")))) : new Map()
         
-        let numloaded = 0; 
+        let numloaded = 0
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
         const total = obj[options.list].length
@@ -1078,15 +1078,15 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
         const filterObj = filterPresent ? decodeContentState(UTILS.getURLParameter("gog-filter").trim()) : {}
     
         if (options.list) {
-            html += `<ul>`;
+            html += `<ul>`
             const hide = filterPresent ? "is-hidden" : ""
             obj[options.list].forEach((val, index) => {
                     // Define buttons outside the if-else scope
-                    const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`;
+                    const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`
                     const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`;
                     const glossID = val["@id"].replace(/^https?:/, 'http:')
                     if(managedListCache.get(glossID)){
-                        const cachedObj = managedListCache.get(glossID);
+                        const cachedObj = managedListCache.get(glossID)
                         let filteringProps = Object.keys(cachedObj)
                         // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
                         let li = `<li class="${hide}" deer-id="${val["@id"]}" data-expanded="true" `
@@ -1109,7 +1109,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                                 <span>${UTILS.getLabel(cachedObj) ? UTILS.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                             ${removeBtn}
-                        </li>`;
+                        </li>`
                         html += li
                         numloaded++
                     } else {
@@ -1124,11 +1124,11 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                                 </a>
                                 ${removeBtn}
                             </li>
-                        </div>`;
+                        </div>`
                     }
                 }
-            );
-            html += `</ul>`;
+            )
+            html += `</ul>`
         } else {
             console.log("There are no items in this list to draw.")
             console.log(obj)
@@ -1229,10 +1229,14 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         window.history.replaceState(null, null, url)
                     }
                 }
-                fetch(elem.getAttribute("deer-listing")).then(r => r.json())
+                let url = new URL(elem.getAttribute("deer-listing"));
+                url.searchParams.set('nocache', Date.now());
+                fetch(url).then(r => r.json())
                 .then(list => {
                     elem.listCache = new Set()
+                    
                     list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
+                    
                     for (const a of document.querySelectorAll('.togglePublic')) {
                         const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
                         a.classList[include]("is-included")
@@ -1248,7 +1252,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     }))
                     document.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
                         ev.preventDefault()
-                        ev.stopPropagation()
+                        ev.stopPropagation()                       
                         const uri = a.getAttribute("href")
                         const included = elem.listCache.has(uri)
                         a.classList[included ? "remove" : "add"]("is-included")
@@ -1260,18 +1264,17 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
 
                 function overwriteList() {
                     let mss = []
-                    
                     elem.listCache.forEach(uri => {
-                        let label;
-                        if (document.querySelector(`li[deer-id='${uri}'] span`)) {
-                            label = document.querySelector(`li[deer-id='${uri}'] span`).textContent.trim()
-                        }else {
-                            label = document.querySelector(`div[deer-id='${uri}'] span`).textContent.trim()
+                        let labelElement = document.querySelector(`li[deer-id='${uri}'] span`) || document.querySelector(`div[deer-id='${uri}'] span`)
+                        if (labelElement) {
+                            let label = labelElement.textContent.trim()
+                            mss.push({
+                                label: label,
+                                '@id': uri
+                            })
+                        } else {
+                            console.log(`Element with deer-id '${uri}' not found.`)
                         }
-                        mss.push({
-                            label: label,
-                            '@id': uri
-                        })
                     })
 
                     const list = {

@@ -704,37 +704,47 @@ export default {
                     removeBtn.setAttribute("data-type", type)
                     removeBtn.className = "removeCollectionItem"
                     removeBtn.title = "Delete This Entry"
-                    removeBtn.innerHTML = "&#x274C;"
+                    removeBtn.innerHTML = " &#x274C;"
                     removeBtn.addEventListener('click', function(event) {
                         event.preventDefault()
                         removeFromCollectionAndDelete(glossID, type)
-                    });
+                    })
 
                     // Create the visibility button
                     let visibilityBtn = document.createElement("a")
                     visibilityBtn.className = "togglePublic"
                     visibilityBtn.setAttribute("href", glossID)
                     visibilityBtn.title = "Toggle public visibility"
-                    visibilityBtn.innerHTML = "👁"
+                    visibilityBtn.innerHTML = " 👁 "
                     visibilityBtn.addEventListener('click', function(event) {
                         event.preventDefault()
                         toggleVisibility(glossID)
                     })
 
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
-                    const include = listCache.has(glossID) ? "add" : "remove"
-                    visibilityBtn.classList[include]("is-included")
+                    const included = listCache.has(glossID) ? "add" : "remove"
+                    a.classList[included ? "remove" : "add"]("is-included")
+                    visibilityBtn.classList[included]("is-included")
 
-                    async function toggleVisibility(id) { 
+                    async function toggleVisibility(id) {
                         const element = document.querySelector(`a.togglePublic[href='${id}']`)
                         if (element) {
-                            element.classList.toggle("is-included");
-                        }
+                            element.classList.toggle("is-included")
+                            
+                            const isIncluded = element.classList.contains("is-included")
                     
-                        const saveList = document.getElementById("saveList")
-                        if (saveList) {
-                            saveList.style.visibility = "visible"
+                            const saveList = document.getElementById("saveList")
+                            if (saveList) {
+                                saveList.style.visibility = "visible"
+                            }
+                            
+                            if (isIncluded) {
+                                listCache.add(id)
+                            } else {
+                                listCache.delete(id)
+                            }
                         }
+
                     }
 
                     async function removeFromCollectionAndDelete(id, type) {
