@@ -1168,7 +1168,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     }
                     debounce(filterGlosses(filterQuery))
                 })
-
+                
                 if(numloaded === total){
                     cachedNotice.classList.remove("is-hidden")
                     progressArea.classList.add("is-hidden")
@@ -1229,6 +1229,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         window.history.replaceState(null, null, url)
                     }
                 }
+                let isLoading = false;
                 let url = new URL(elem.getAttribute("deer-listing"));
                 url.searchParams.set('nocache', Date.now());
                 fetch(url).then(r => r.json())
@@ -1259,11 +1260,13 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         elem.listCache[included ? "delete" : "add"](uri)
                         saveList.style.visibility = "visible"
                     }))
+                    isLoading = false;
                     saveList.addEventListener('click', overwriteList)
                 })
-
+                
                 function overwriteList() {
                     let mss = []
+                    let missing = false
                     elem.listCache.forEach(uri => {
                         let labelElement = document.querySelector(`li[deer-id='${uri}'] span`) || document.querySelector(`div[deer-id='${uri}'] span`)
                         if (labelElement) {
@@ -1274,8 +1277,15 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                             })
                         } else {
                             console.log(`Element with deer-id '${uri}' not found.`)
+                            missing = true
                         }
                     })
+                    
+                    if (missing) {
+                        console.warn("Cannot overwrite list while glosses are still loading.")
+                        alert("Cannot overwrite list while glosses are still loading. Please wait until all glosses are loaded.")
+                        return
+                    }
 
                     const list = {
                         '@id': elem.getAttribute("deer-listing"),
@@ -1286,8 +1296,6 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         itemListElement: mss
                     }
                     
-                    console.log("mss", mss)
-                    console.log("list", list)
 
                     fetch(DEER.URLS.OVERWRITE, {
                         method: "PUT",
