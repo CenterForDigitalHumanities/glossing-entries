@@ -1282,7 +1282,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     })
                     
                     if (missing) {
-                        deerUtils.globalFeedbackBlip(ev, `Cannot overwrite list while glosses are still loading. Please wait until all glosses are loaded.`, false)
+                        UTILS.globalFeedbackBlip(ev, `Cannot overwrite list while glosses are still loading. Please wait until all glosses are loaded.`, false)
                         return
                     }
 
@@ -1314,12 +1314,12 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     })
                     .then(data => {
                         const ev = new CustomEvent("Gloss Visibility Update")
-                        deerUtils.globalFeedbackBlip(ev, `Save Successful.`, true)
+                        UTILS.globalFeedbackBlip(ev, `Save Successful.`, true)
                         console.log("Saved data:", data)
                     })
                     .catch(err => {
                         const ev = new CustomEvent("Gloss Visibility Update")
-                        deerUtils.globalFeedbackBlip(ev, `Failed to save: ${err.message}`, false)
+                        UTILS.globalFeedbackBlip(ev, `Failed to save: ${err.message}`, false)
                         console.error(err)
                     });
                 }
