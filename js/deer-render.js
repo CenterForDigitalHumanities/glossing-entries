@@ -1305,8 +1305,22 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         "Content-Type": "application/json; charset=utf-8",
                         "Authorization": `Bearer ${window.GOG_USER.authorization}`
                         }
-                    }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                        .catch(err => alert(`Failed to save: ${err}`))
+                    })
+                    .then(r => {
+                        if (r.ok) {
+                            return r.json();
+                        } else {
+                            throw new Error('Failed to save');
+                        }
+                    })
+                    .then(data => {
+                        alert("Save successful!");
+                        console.log("Saved data:", data); 
+                    })
+                    .catch(err => {
+                        alert(`Failed to save: ${err.message}`);
+                        console.error(err); 
+                    });
                 }
 
                 /**
