@@ -117,7 +117,9 @@ class GlossModal extends HTMLElement {
             }
             .modal{
                 position: relative;
-                top: 3em;
+                top: 0;
+                max-height: 95%; 
+                overflow-y: auto;
             }
             .modal form{
 
