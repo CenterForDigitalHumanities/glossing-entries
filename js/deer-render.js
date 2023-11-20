@@ -1073,14 +1073,16 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
         let numloaded = 0
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
-        const total = obj[options.list].length
+        let total = obj[options.list].length
         const filterPresent = !!UTILS.getURLParameter("gog-filter")
         const filterObj = filterPresent ? decodeContentState(UTILS.getURLParameter("gog-filter").trim()) : {}
     
         if (options.list) {
             html += `<ul>`
             const hide = filterPresent ? "is-hidden" : ""
-            obj[options.list].forEach((val, index) => {
+            const deduplicatedList = UTILS.removeDuplicates(obj[options.list], '@id')
+            total = deduplicatedList.length
+            deduplicatedList.forEach((val, index) => {
                     // Define buttons outside the if-else scope
                     const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`
                     const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`;
@@ -1229,9 +1231,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         window.history.replaceState(null, null, url)
                     }
                 }
-                let isLoading = false;
-                let url = new URL(elem.getAttribute("deer-listing"));
-                url.searchParams.set('nocache', Date.now());
+                let url = new URL(elem.getAttribute("deer-listing"))
+                url.searchParams.set('nocache', Date.now())
                 fetch(url).then(r => r.json())
                 .then(list => {
                     elem.listCache = new Set()
@@ -1260,7 +1261,6 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         elem.listCache[included ? "delete" : "add"](uri)
                         saveList.style.visibility = "visible"
                     }))
-                    isLoading = false;
                     saveList.addEventListener('click', overwriteList)
                 })
                 
@@ -1282,8 +1282,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     })
                     
                     if (missing) {
-                        console.warn("Cannot overwrite list while glosses are still loading.")
-                        alert("Cannot overwrite list while glosses are still loading. Please wait until all glosses are loaded.")
+                        deerUtils.globalFeedbackBlip(ev, `Cannot overwrite list while glosses are still loading. Please wait until all glosses are loaded.`, false)
                         return
                     }
 
@@ -1308,18 +1307,20 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     })
                     .then(r => {
                         if (r.ok) {
-                            return r.json();
+                            return r.json()
                         } else {
-                            throw new Error('Failed to save');
+                            throw new Error('Failed to save')
                         }
                     })
                     .then(data => {
-                        alert("Save successful!");
-                        console.log("Saved data:", data); 
+                        const ev = new CustomEvent("Gloss Visibility Update")
+                        deerUtils.globalFeedbackBlip(ev, `Save Successful.`, true)
+                        console.log("Saved data:", data)
                     })
                     .catch(err => {
-                        alert(`Failed to save: ${err.message}`);
-                        console.error(err); 
+                        const ev = new CustomEvent("Gloss Visibility Update")
+                        deerUtils.globalFeedbackBlip(ev, `Failed to save: ${err.message}`, false)
+                        console.error(err)
                     });
                 }
 

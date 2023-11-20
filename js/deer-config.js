@@ -381,9 +381,10 @@ export default {
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
+                const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                 html += `<ul>`
-                const hide = filterPresent ? "is-hidden" : ""
-                obj[options.list].forEach((val, index) => {
+                const hide = filterPresent ? "is-hidden" : ""   
+                deduplicatedList.forEach((val, index) => {
                     let inclusionBtn = null
                     const glossID = val['@id'].replace(/^https?:/, 'https:')
                     let already = witnessesObj?.referencedGlosses?.has(glossID) ? "attached-to-source" : ""
@@ -419,7 +420,7 @@ export default {
                         if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
                         li += `>
                             ${inclusionBtn}
-                            <a target="_blank" href="${options.link}${glossID}">
+                            <a target="_blank" href="${deduplicatedList.link}${glossID}">
                                 <span class="serifText">${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                         </li>`
@@ -432,7 +433,7 @@ export default {
                         html += 
                         `<div deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${glossID}">
                             <li>
-                                <a target="_blank" href="${options.link}${glossID}">
+                                <a target="_blank" href="${deduplicatedList.link}${glossID}">
                                     <span>Loading Gloss #${index + 1}...</span>
                                 </a>
                             </li>
