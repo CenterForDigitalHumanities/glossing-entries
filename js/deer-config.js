@@ -160,8 +160,8 @@ export default {
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
-            const total = obj[options.list].length
-            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
+            let total = 0
+            const filterPresent = deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
@@ -188,6 +188,7 @@ export default {
                                 }
                             }
                         })
+                        if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
                         li += `>
                             <a href="${options.link}${glossID}">
                                 <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
@@ -288,7 +289,6 @@ export default {
                         for(const prop in query){
                             if(li.hasAttribute(`data-${prop}`)){
                                 const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
-
                                 elem.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                 // If it is showing, no need to check other properties for filtering.
@@ -377,7 +377,7 @@ export default {
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
             const total = obj[options.list].length
-            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
+            const filterPresent = deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
@@ -416,6 +416,7 @@ export default {
                                 }
                             }
                         })
+                        if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
                         li += `>
                             ${inclusionBtn}
                             <a target="_blank" href="${options.link}${glossID}">
@@ -617,10 +618,10 @@ export default {
                     let a = document.createElement("a")
                     let span = document.createElement("span")
                     span.classList.add("serifText")
-                    const createScenario = !!elem.hasAttribute("create-scenario")
-                    const updateScenario = !!elem.hasAttribute("update-scenario")   
-                    const increaseTotal = !!((createScenario || updateScenario))
-                    const filterPresent = !!containingListElem.$contentState
+                    const createScenario = elem.hasAttribute("create-scenario")
+                    const updateScenario = elem.hasAttribute("update-scenario")   
+                    const increaseTotal = ((createScenario || updateScenario))
+                    const filterPresent = containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     a.setAttribute("href", options.link + obj['@id'])
@@ -640,6 +641,8 @@ export default {
                             }
                         }
                     })
+
+                    if(!li.hasAttribute("data-title")) li.setAttribute("data-title", "[ unlabeled ]")
 
                     if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")

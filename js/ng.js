@@ -3,11 +3,12 @@
  */ 
 window.onload = () => {
     const hash = window.location.hash.substring(1)
+    const glossForm = document.getElementById("named-gloss")
     if(hash) {
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
     }
-    const labelElem = document.querySelector('input[deer-key="title"]')
+    const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText
     const textListener = textElem.addEventListener('input', ev => {
         if (textElem.value?.length > 5) {
@@ -36,20 +37,20 @@ window.onload = () => {
     })
     if(!hash){
        // These items have default values that are dirty on fresh forms.
-        document.querySelector("select[custom-text-key='language']").$isDirty = true
-        document.querySelector("input[custom-text-key='format']").$isDirty = true
+        glossForm.querySelector("select[custom-text-key='language']").$isDirty = true
+        glossForm.querySelector("input[custom-text-key='format']").$isDirty = true
     }
     // mimic isDirty detection for these custom inputs
-    document.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
+    glossForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
         ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
+        glossForm.$isDirty = true
     })
-    document.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
+    glossForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
         ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
+        glossForm.$isDirty = true
     })
     // Note that this HTML element is a checkbox
-    document.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+    glossForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
         if(ev.target.checked){
             ev.target.value = "text/html"
             ev.target.setAttribute("value", "text/html")
@@ -59,7 +60,7 @@ window.onload = () => {
             ev.target.setAttribute("value", "text/plain")
         }
         ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
+        glossForm.$isDirty = true
     })
 }
 
