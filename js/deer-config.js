@@ -379,7 +379,7 @@ export default {
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
             let total = 0
-            const filterPresent = deerUtils.getURLParameter("gog-filter")
+            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
@@ -650,7 +650,7 @@ export default {
 
                     if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
-                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'http:'), obj)
+                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     a.appendChild(span)
@@ -696,13 +696,13 @@ export default {
             return {
                 html: ``,
                 then: (elem) => {
-                    let cachedFilterableEntities = localStorage.getItem("managedListCache") ? new Map(Object.entries(JSON.parse(localStorage.getItem("managedListCache")))) : new Map()
+                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view")
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
-                    const glossID = obj["@id"].replace(/^https?:/, 'http:')
+                    const glossID = obj["@id"].replace(/^https?:/, 'https:')
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
                     // Create the remove button
@@ -923,7 +923,7 @@ export default {
                     if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(glossID, obj)
-                    localStorage.setItem("managedListCache", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     a.appendChild(span)
                     li.appendChild(visibilityBtn)

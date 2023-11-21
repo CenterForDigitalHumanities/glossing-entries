@@ -1068,23 +1068,28 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
             <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
         </div>`
-        let managedListCache = localStorage.getItem("managedListCache") ? new Map(Object.entries(JSON.parse(localStorage.getItem("managedListCache")))) : new Map()
-        
+        let managedListCache = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+
         let numloaded = 0
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
-        const total = obj[options.list].length
+        let total = 0
         const filterPresent = !!UTILS.getURLParameter("gog-filter")
         const filterObj = filterPresent ? decodeContentState(UTILS.getURLParameter("gog-filter").trim()) : {}
     
         if (options.list) {
             tmpl += `<ul>`
             const hide = filterPresent ? "is-hidden" : ""
-            obj[options.list].forEach((val, index) => {
+            const deduplicatedList = UTILS.removeDuplicates(obj[options.list], '@id')
+            total = deduplicatedList.length                
+            deduplicatedList.forEach((val, index) => {
                     // Define buttons outside the if-else scope
+                    const glossID = val["@id"].replace(/^https?:/, 'https:')
+                    const glossHttpID = val["@id"].replace(/^https?:/, 'http:')
+                    
                     const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`
-                    const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`;
-                    const glossID = val["@id"].replace(/^https?:/, 'http:')
+                    const visibilityBtn = `<a class="togglePublic" href="${glossHttpID}" title="Toggle public visibility"> 👁 </a>`;
+
                     if(managedListCache.get(glossID)){
                         const cachedObj = managedListCache.get(glossID)
                         let filteringProps = Object.keys(cachedObj)
