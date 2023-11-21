@@ -391,6 +391,7 @@ export default {
                     let inclusionBtn = null
                     const glossID = val['@id'].replace(/^https?:/, 'https:')
                     let already = witnessesObj?.referencedGlosses?.has(glossID) ? "attached-to-source" : ""
+                    console.log("glossID from glossesSelectorForTextualWitness", glossID)
                     if(glossID === referencedGlossID){
                         inclusionBtn = `<input disabled type="button" class="toggleInclusion ${already} button success" data-id="${glossID}" title="This Gloss is already attached!" value="✓ attached"/>`
                     }
@@ -702,34 +703,36 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
+                    
                     const glossID = obj["@id"].replace(/^https?:/, 'https:')
+                    const glossHttpID = obj["@id"].replace(/^https?:/, 'http:')
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
                     // Create the remove button
                     let removeBtn = document.createElement("a")
-                    removeBtn.setAttribute("href", glossID)
+                    removeBtn.setAttribute("href", glossHttpID)
                     removeBtn.setAttribute("data-type", type)
                     removeBtn.className = "removeCollectionItem"
                     removeBtn.title = "Delete This Entry"
                     removeBtn.innerHTML = " &#x274C;"
                     removeBtn.addEventListener('click', function(event) {
                         event.preventDefault()
-                        removeFromCollectionAndDelete(glossID, type)
+                        removeFromCollectionAndDelete(glossHttpID, type)
                     })
 
                     // Create the visibility button
                     let visibilityBtn = document.createElement("a")
                     visibilityBtn.className = "togglePublic"
-                    visibilityBtn.setAttribute("href", glossID)
+                    visibilityBtn.setAttribute("href", glossHttpID)
                     visibilityBtn.title = "Toggle public visibility"
                     visibilityBtn.innerHTML = " 👁 "
                     visibilityBtn.addEventListener('click', function(event) {
                         event.preventDefault()
-                        toggleVisibility(glossID)
+                        toggleVisibility(glossHttpID)
                     })
 
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
-                    const included = listCache.has(glossID) ? "add" : "remove"
+                    const included = listCache.has(glossHttpID) ? "add" : "remove"
                     a.classList[included ? "remove" : "add"]("is-included")
                     visibilityBtn.classList[included]("is-included")
 
@@ -902,7 +905,7 @@ export default {
                     const filterPresent = !!containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
-                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("href", options.link + glossHttpID)
                     a.setAttribute("target", "_blank")
 
                     // Turn each property into an attribute for the <li> element

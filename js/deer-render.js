@@ -1069,7 +1069,6 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
         </div>`
         let managedListCache = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
-
         let numloaded = 0
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
@@ -1085,10 +1084,9 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             deduplicatedList.forEach((val, index) => {
                     // Define buttons outside the if-else scope
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
-                    const glossHttpID = val["@id"].replace(/^https?:/, 'http:')
                     
                     const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`
-                    const visibilityBtn = `<a class="togglePublic" href="${glossHttpID}" title="Toggle public visibility"> 👁 </a>`;
+                    const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`;
 
                     if(managedListCache.get(glossID)){
                         const cachedObj = managedListCache.get(glossID)
@@ -1121,7 +1119,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         // This object was not cached so we do not have its properties.
                         
                         tmpl += 
-                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${glossID}">
+                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
                             <li>
                                 ${visibilityBtn}
                                 <a href="${options.link}${val["@id"]}">
@@ -1234,7 +1232,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         window.history.replaceState(null, null, url)
                     }
                 }
-                let isLoading = false;
+
                 let url = new URL(elem.getAttribute("deer-listing"));
                 url.searchParams.set('nocache', Date.now());
                 fetch(url).then(r => r.json())
@@ -1265,7 +1263,6 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         elem.listCache[included ? "delete" : "add"](uri)
                         saveList.style.visibility = "visible"
                     }))
-                    isLoading = false;
                     saveList.addEventListener('click', overwriteList)
                 })
                 
