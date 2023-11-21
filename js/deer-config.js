@@ -160,14 +160,16 @@ export default {
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
-            const total = obj[options.list].length
+            let total = 0
             const filterPresent = deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
-                obj[options.list].forEach((val, index) => {
+                const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
+                total = deduplicatedList.length                
+                deduplicatedList.forEach((val, index) => {
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
                     if(cachedFilterableEntities.get(glossID)){
                         // We cached it in the past and are going to trust it right now.
@@ -376,12 +378,13 @@ export default {
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
-            const total = obj[options.list].length
+            let total = 0
             const filterPresent = deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
                 const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
+                total = deduplicatedList.length
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""   
                 deduplicatedList.forEach((val, index) => {
