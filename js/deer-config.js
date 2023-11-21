@@ -391,7 +391,6 @@ export default {
                     let inclusionBtn = null
                     const glossID = val['@id'].replace(/^https?:/, 'https:')
                     let already = witnessesObj?.referencedGlosses?.has(glossID) ? "attached-to-source" : ""
-                    console.log("glossID from glossesSelectorForTextualWitness", glossID)
                     if(glossID === referencedGlossID){
                         inclusionBtn = `<input disabled type="button" class="toggleInclusion ${already} button success" data-id="${glossID}" title="This Gloss is already attached!" value="✓ attached"/>`
                     }
@@ -424,7 +423,7 @@ export default {
                         if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
                         li += `>
                             ${inclusionBtn}
-                            <a target="_blank" href="${deduplicatedList.link}${glossID}">
+                            <a target="_blank" href="${options.link}${glossID}">
                                 <span class="serifText">${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
                         </li>`
@@ -437,7 +436,7 @@ export default {
                         html += 
                         `<div deer-template="filterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${glossID}">
                             <li>
-                                <a target="_blank" href="${deduplicatedList.link}${glossID}">
+                                <a target="_blank" href="${options.link}${glossID}">
                                     <span>Loading Gloss #${index + 1}...</span>
                                 </a>
                             </li>
@@ -866,7 +865,7 @@ export default {
                         
                         // In this case, we don't have to wait on these.  We can run this and the entity delete syncronously.
                         Promise.all(allAnnotations).then(success => {
-                            console.log("Connected Annotationss successfully removed.")
+                            console.log("Connected Annotations successfully removed.")
                         })
                         .catch(err => {
                             // OK they may be orphaned.  We will continue on towards deleting the entity.
