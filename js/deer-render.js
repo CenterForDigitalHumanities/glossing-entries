@@ -66,8 +66,8 @@ const RENDER = {}
 RENDER.element = function (elem, obj) {
 
     return UTILS.expand(obj).then(obj => {
-        let htmlName = elem.getAttribute(DEER.TEMPLATE) ?? (elem.getAttribute(DEER.COLLECTION) ? "list" : "json")
-        let template = DEER.TEMPLATES[htmlName] ?? DEER.TEMPLATES.json
+        let tmplName = elem.getAttribute(DEER.TEMPLATE) ?? (elem.getAttribute(DEER.COLLECTION) ? "list" : "json")
+        let template = DEER.TEMPLATES[tmplName] ?? DEER.TEMPLATES.json
         let options = {
             list: elem.getAttribute(DEER.LIST),
             link: elem.getAttribute(DEER.LINK),
@@ -1043,7 +1043,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
     try {
         // If the collection doesn't have a name, something has gone wrong.
         if(!obj.name) return
-        let html = ` 
+        let tmpl = ` 
         <style>
             .cachedNotice{
             margin-top: -1em;
@@ -1073,16 +1073,14 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
         let numloaded = 0
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
-        let total = obj[options.list].length
+        const total = obj[options.list].length
         const filterPresent = !!UTILS.getURLParameter("gog-filter")
         const filterObj = filterPresent ? decodeContentState(UTILS.getURLParameter("gog-filter").trim()) : {}
     
         if (options.list) {
-            html += `<ul>`
+            tmpl += `<ul>`
             const hide = filterPresent ? "is-hidden" : ""
-            const deduplicatedList = UTILS.removeDuplicates(obj[options.list], '@id')
-            total = deduplicatedList.length
-            deduplicatedList.forEach((val, index) => {
+            obj[options.list].forEach((val, index) => {
                     // Define buttons outside the if-else scope
                     const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`
                     const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`;
@@ -1112,12 +1110,12 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                             </a>
                             ${removeBtn}
                         </li>`
-                        html += li
+                        tmpl += li
                         numloaded++
                     } else {
                         // This object was not cached so we do not have its properties.
                         
-                        html += 
+                        tmpl += 
                         `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${glossID}">
                             <li>
                                 ${visibilityBtn}
@@ -1130,14 +1128,14 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     }
                 }
             )
-            html += `</ul>`
+            tmpl += `</ul>`
         } else {
             console.log("There are no items in this list to draw.")
             console.log(obj)
         }
         
         return {
-            html: html,
+            html: tmpl,
             then: async elem => {
                 elem.$contentState = ""
                 if (filterPresent) {
@@ -1231,8 +1229,9 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         window.history.replaceState(null, null, url)
                     }
                 }
-                let url = new URL(elem.getAttribute("deer-listing"))
-                url.searchParams.set('nocache', Date.now())
+                let isLoading = false;
+                let url = new URL(elem.getAttribute("deer-listing"));
+                url.searchParams.set('nocache', Date.now());
                 fetch(url).then(r => r.json())
                 .then(list => {
                     elem.listCache = new Set()
@@ -1261,6 +1260,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         elem.listCache[included ? "delete" : "add"](uri)
                         saveList.style.visibility = "visible"
                     }))
+                    isLoading = false;
                     saveList.addEventListener('click', overwriteList)
                 })
                 
@@ -1282,7 +1282,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     })
                     
                     if (missing) {
-                        UTILS.globalFeedbackBlip(ev, `Cannot overwrite list while glosses are still loading. Please wait until all glosses are loaded.`, false)
+                        console.warn("Cannot overwrite list while glosses are still loading.")
+                        alert("Cannot overwrite list while glosses are still loading. Please wait until all glosses are loaded.")
                         return
                     }
 
@@ -1307,20 +1308,18 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     })
                     .then(r => {
                         if (r.ok) {
-                            return r.json()
+                            return r.json();
                         } else {
-                            throw new Error('Failed to save')
+                            throw new Error('Failed to save');
                         }
                     })
                     .then(data => {
-                        const ev = new CustomEvent("Gloss Visibility Update")
-                        UTILS.globalFeedbackBlip(ev, `Save Successful.`, true)
-                        console.log("Saved data:", data)
+                        alert("Save successful!");
+                        console.log("Saved data:", data); 
                     })
                     .catch(err => {
-                        const ev = new CustomEvent("Gloss Visibility Update")
-                        UTILS.globalFeedbackBlip(ev, `Failed to save: ${err.message}`, false)
-                        console.error(err)
+                        alert(`Failed to save: ${err.message}`);
+                        console.error(err); 
                     });
                 }
 
@@ -1491,7 +1490,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
  * @param {Object} options additional properties to draw with the Entity
  */
 DEER.TEMPLATES.entity = function (obj, options = {}) {
-    let html = `<h2>${UTILS.getLabel(obj)}</h2>`
+    let tmpl = `<h2>${UTILS.getLabel(obj)}</h2>`
     let list = ``
 
     for (let key in obj) {
@@ -1531,21 +1530,21 @@ DEER.TEMPLATES.entity = function (obj, options = {}) {
             }
         }
     }
-    html += (list.includes("</dd>")) ? `<dl>${list}</dl>` : ``
-    return html
+    tmpl += (list.includes("</dd>")) ? `<dl>${list}</dl>` : ``
+    return tmpl
 }
 
 DEER.TEMPLATES.list = function (obj, options = {}) {
-    let html = `<h2>${UTILS.getLabel(obj)}</h2>`
+    let tmpl = `<h2>${UTILS.getLabel(obj)}</h2>`
     if (options.list) {
-        html += `<ul>`
+        tmpl += `<ul>`
         obj[options.list].forEach((val, index) => {
             let name = UTILS.getLabel(val, (val.type ?? val['@type'] ?? index))
-            html += (val["@id"] && options.link) ? `<li ${DEER.ID}="${val["@id"]}"><a href="${options.link}${val["@id"]}">${name}</a></li>` : `<li ${DEER.ID}="${val["@id"]}">${name}</li>`
+            tmpl += (val["@id"] && options.link) ? `<li ${DEER.ID}="${val["@id"]}"><a href="${options.link}${val["@id"]}">${name}</a></li>` : `<li ${DEER.ID}="${val["@id"]}">${name}</li>`
         })
-        html += `</ul>`
+        tmpl += `</ul>`
     }
-    return html
+    return tmpl
 }
 
 /**
@@ -1555,15 +1554,15 @@ DEER.TEMPLATES.list = function (obj, options = {}) {
  */
 DEER.TEMPLATES.person = function (obj, options = {}) {
     try {
-        let html = `<h2>${UTILS.getLabel(obj)}</h2>`
+        let tmpl = `<h2>${UTILS.getLabel(obj)}</h2>`
         let dob = DEER.TEMPLATES.prop(obj, { key: "birthDate", label: "Birth Date" }) ?? ``
         let dod = DEER.TEMPLATES.prop(obj, { key: "deathDate", label: "Death Date" }) ?? ``
         let famName = (obj.familyName && UTILS.getValue(obj.familyName)) ?? "[ unknown ]"
         let givenName = (obj.givenName && UTILS.getValue(obj.givenName)) ?? ""
-        html += (obj.familyName ?? obj.givenName) ? `<div>Name: ${famName}, ${givenName}</div>` : ``
-        html += dob + dod
-        html += `<a href="#${obj["@id"]}">JSON</a>`
-        return html
+        tmpl += (obj.familyName ?? obj.givenName) ? `<div>Name: ${famName}, ${givenName}</div>` : ``
+        tmpl += dob + dod
+        tmpl += `<a href="#${obj["@id"]}">JSON</a>`
+        return tmpl
     } catch (err) {
         return null
     }
@@ -1609,7 +1608,7 @@ DEER.TEMPLATES.pageRanges = function (obj, options = {}) {
 // DEER.TEMPLATES.canvasDropdown = function (obj, options = {}) {
 //     return null
 //     try {
-//         let html = `<form deer-type="Range" deer-context="http://iiif.io/api/image/3/context.json">
+//         let tmpl = `<form deer-type="Range" deer-context="http://iiif.io/api/image/3/context.json">
 //         <input type="hidden" deer-key="isPartOf" value="${obj['@id']}">
 //         <input type="hidden" deer-key="motivation" value="supplementing">
 
@@ -1626,7 +1625,7 @@ DEER.TEMPLATES.pageRanges = function (obj, options = {}) {
 //         <input type="submit">
 //         </form>`
 
-//         return html
+//         return tmpl
 //     } catch (err) {
 //         return null
 //     }
@@ -1641,8 +1640,8 @@ DEER.TEMPLATES.pageRanges = function (obj, options = {}) {
  */
 DEER.TEMPLATES.event = function (obj, options = {}) {
     try {
-        let html = `<h1>${UTILS.getLabel(obj)}</h1>`
-        return html
+        let tmpl = `<h1>${UTILS.getLabel(obj)}</h1>`
+        return tmpl
     } catch (err) {
         return null
     }
