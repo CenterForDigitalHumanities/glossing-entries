@@ -1043,70 +1043,251 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
     try {
         // If the collection doesn't have a name, something has gone wrong.
         if(!obj.name) return
-        let tmpl = ` `
+        let tmpl = ` 
+        <style>
+            .cachedNotice{
+            margin-top: -1em;
+            display: block;
+            }
+
+            .cachedNotice a{
+            cursor: pointer;
+            }
+
+            .totalsProgress{
+            text-align: center;
+            background-color: rgba(0, 0, 0, 0.1);
+            padding-top: 4px;
+            font-size: 13pt;
+            }
+        </style>
+        <h2> Glosses </h2>
+        <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+        <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText">
+        <div class="progressArea">
+            <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
+            <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
+        </div>`
+        let managedListCache = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+        let numloaded = 0
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
+        let total = 0
+        const filterPresent = !!UTILS.getURLParameter("gog-filter")
+        const filterObj = filterPresent ? decodeContentState(UTILS.getURLParameter("gog-filter").trim()) : {}
+    
         if (options.list) {
             tmpl += `<ul>`
-            obj[options.list].forEach((val, index) => {
-                const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C</a>`
-                const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`
-                tmpl += `<li>
-                ${visibilityBtn}
-                <a href="${options.link}${val['@id']}">
-                    <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
-                </a>
-                ${removeBtn}
-                </li>`
-            })
+            const hide = filterPresent ? "is-hidden" : ""
+            const deduplicatedList = UTILS.removeDuplicates(obj[options.list], '@id')
+            total = deduplicatedList.length                
+            deduplicatedList.forEach((val, index) => {
+                    // Define buttons outside the if-else scope
+                    const glossID = val["@id"].replace(/^https?:/, 'https:')
+                    
+                    const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`
+                    const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`
+
+                    if(managedListCache.get(glossID)){
+                        const cachedObj = managedListCache.get(glossID)
+                        let filteringProps = Object.keys(cachedObj)
+                        // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
+                        let li = `<li class="${hide}" deer-id="${val["@id"]}" data-expanded="true" `
+                        // Add all Gloss object properties to the <li> element as attributes to match on later
+                        filteringProps.forEach( (prop) => {
+                            // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
+                            if(typeof UTILS.getValue(cachedObj[prop]) === "string" || typeof UTILS.getValue(cachedObj[prop]) === "number") {
+                                const value = UTILS.getValue(cachedObj[prop])+"" //typecast to a string
+                                prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                                const attr = `data-${prop}`
+                                li += `${attr}="${value}" `
+                                if(value.includes(filterObj[prop])){
+                                    li = li.replace(hide, "")
+                                }
+                            }
+                        })
+                        li += `>
+                            ${visibilityBtn}
+                            <a href="${options.link}${val["@id"]}">
+                                <span>${UTILS.getLabel(cachedObj) ? UTILS.getLabel(cachedObj) : "Label Unprocessable"}</span>
+                            </a>
+                            ${removeBtn}
+                        </li>`
+                        tmpl += li
+                        numloaded++
+                    } else {
+                        // This object was not cached so we do not have its properties.
+                        
+                        tmpl += 
+                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
+                            <li>
+                                ${visibilityBtn}
+                                <a href="${options.link}${val["@id"]}">
+                                    <deer-view deer-id="${val["@id"]}" deer-template="label">Loading Gloss #${index + 1}</deer-view>
+                                </a>
+                                ${removeBtn}
+                            </li>
+                        </div>`
+                    }
+                }
+            )
             tmpl += `</ul>`
-        }
-        else {
+        } else {
             console.log("There are no items in this list to draw.")
             console.log(obj)
         }
+        
         return {
             html: tmpl,
-            then: elem => {
+            then: async elem => {
+                elem.$contentState = ""
+                if (filterPresent) {
+                    elem.querySelector(".filterNotice").classList.remove("is-hidden")
+                    elem.$contentState = UTILS.getURLParameter("gog-filter").trim()
+                }
+                const totalsProgress = elem.querySelector(".totalsProgress")
 
-                fetch(elem.getAttribute("deer-listing")).then(r => r.json())
-                    .then(list => {
-                        elem.listCache = new Set()
-                        list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
-                        for (const a of document.querySelectorAll('.togglePublic')) {
-                            const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
-                            a.classList[include]("is-included")
+                const filter = elem.querySelector('input')
+                const cachedNotice = elem.querySelector(".cachedNotice")
+                const progressArea = elem.querySelector(".progressArea")
+
+                totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
+                totalsProgress.setAttribute("total", total)
+                totalsProgress.setAttribute("count", numloaded)
+
+                elem.querySelector(".newcache").addEventListener("click", ev => {
+                    localStorage.clear()
+                    location.reload()
+                })
+ 
+                filter.addEventListener('input', ev =>{
+                    const val = ev?.target.value.trim()
+                    let filterQuery
+                    if(val){
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
+                    }
+                    else{
+                        filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
+                    }
+                    debounce(filterGlosses(filterQuery))
+                })
+                
+                if(numloaded === total){
+                    cachedNotice.classList.remove("is-hidden")
+                    progressArea.classList.add("is-hidden")
+                    elem.querySelectorAll("input[filter]").forEach(i => {
+                        // The filters that are used now need to be selected or take on the string or whatevs
+                        i.classList.remove("is-hidden")
+                        if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
+                            i.value = filterObj[i.getAttribute("filter")]
+                            i.setAttribute("value", filterObj[i.getAttribute("filter")])
+                        }
+                        i.dispatchEvent(new Event('input', { bubbles: true }))
+                    })
+                    if(filterPresent){
+                        debounce(filterGlosses(elem.$contentState))
+                    }
+                }
+                function debounce(func, timeout = 500) {
+                    let timer
+                    return (...args) => {
+                        clearTimeout(timer)
+                        timer = setTimeout(() => { func.apply(this, args) }, timeout)
+                    }
+                }
+                function filterGlosses(queryString = '') {
+                    const numloaded = parseInt(totalsProgress.getAttribute("count"))
+                    const total = parseInt(totalsProgress.getAttribute("total"))
+                    if (numloaded !== total) {
+                        const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
+                        UTILS.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
+                        return
+                    }
+                    queryString = queryString.trim()
+                    const query = decodeContentState(queryString)
+                    const items = elem.querySelectorAll('li')
+                    items.forEach(li => {
+                        const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
+                        const elem = templateContainer ?? li
+                        if (!elem.classList.contains("is-hidden")) {
+                            elem.classList.add("is-hidden")
+                        }
+                        for (const prop in query) {
+                            if (li.hasAttribute(`data-${prop}`)) {
+                                const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
+                                elem.classList[action](`is-hidden`, `un${action}-item`)
+                                setTimeout(() => elem.classList.remove(`un${action}-item`), 500)
+                                if (action === "remove") break
+                            }
                         }
                     })
-                    .then(() => {
-                        document.querySelectorAll(".removeCollectionItem").forEach(el => el.addEventListener('click', (ev) => {
-                            ev.preventDefault()
-                            ev.stopPropagation()
-                            const itemID = el.getAttribute("href")
-                            const itemType = el.getAttribute("data-type")
-                            removeFromCollectionAndDelete(itemID, itemType)
-                        }))
-                        document.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
-                            ev.preventDefault()
-                            ev.stopPropagation()
-                            const uri = a.getAttribute("href")
-                            const included = elem.listCache.has(uri)
-                            a.classList[included ? "remove" : "add"]("is-included")
-                            elem.listCache[included ? "delete" : "add"](uri)
-                            saveList.style.visibility = "visible"
-                        }))
-                        saveList.addEventListener('click', overwriteList)
-                    })
 
+                    const url = new URL(window.location.href)
+                    if(query.title){
+                        url.searchParams.set("gog-filter", queryString)
+                        window.history.replaceState(null, null, url)   
+                    }
+                    else{
+                        url.searchParams.delete("gog-filter")
+                        window.history.replaceState(null, null, url)
+                    }
+                }
 
+                let url = new URL(elem.getAttribute("deer-listing"))
+                url.searchParams.set('nocache', Date.now())
+                fetch(url).then(r => r.json())
+                .then(list => {
+                    elem.listCache = new Set()
+                    
+                    list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
+                    
+                    for (const a of document.querySelectorAll('.togglePublic')) {
+                        const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
+                        a.classList[include]("is-included")
+                    }
+                })
+                .then(() => {
+                    document.querySelectorAll(".removeCollectionItem").forEach(el => el.addEventListener('click', (ev) => {
+                        ev.preventDefault()
+                        ev.stopPropagation()
+                        const itemID = el.getAttribute("href")
+                        const itemType = el.getAttribute("data-type")
+                        removeFromCollectionAndDelete(itemID, itemType)
+                    }))
+                    document.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
+                        ev.preventDefault()
+                        ev.stopPropagation()                       
+                        const uri = a.getAttribute("href")
+                        const included = elem.listCache.has(uri)
+                        a.classList[included ? "remove" : "add"]("is-included")
+                        elem.listCache[included ? "delete" : "add"](uri)
+                        saveList.style.visibility = "visible"
+                    }))
+                    saveList.addEventListener('click', overwriteList)
+                })
+                
                 function overwriteList() {
                     let mss = []
+                    let missing = false
                     elem.listCache.forEach(uri => {
-                        mss.push({
-                            label: document.querySelector(`deer-view[deer-id='${uri}']`).textContent.trim(),
-                            '@id': uri
-                        })
+                        let labelElement = document.querySelector(`li[deer-id='${uri}'] span`) || document.querySelector(`div[deer-id='${uri}'] span`)
+                        if (labelElement) {
+                            let label = labelElement.textContent.trim()
+                            mss.push({
+                                label: label,
+                                '@id': uri
+                            })
+                        } else {
+                            console.log(`Element with deer-id '${uri}' not found.`)
+                            missing = true
+                        }
                     })
+                    
+                    if (missing) {
+                        console.warn("Cannot overwrite list while glosses are still loading.")
+                        alert("Cannot overwrite list while glosses are still loading. Please wait until all glosses are loaded.")
+                        return
+                    }
 
                     const list = {
                         '@id': elem.getAttribute("deer-listing"),
@@ -1116,6 +1297,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         numberOfItems: elem.listCache.size,
                         itemListElement: mss
                     }
+                    
 
                     fetch(DEER.URLS.OVERWRITE, {
                         method: "PUT",
@@ -1125,8 +1307,22 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         "Content-Type": "application/json; charset=utf-8",
                         "Authorization": `Bearer ${window.GOG_USER.authorization}`
                         }
-                    }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                        .catch(err => alert(`Failed to save: ${err}`))
+                    })
+                    .then(r => {
+                        if (r.ok) {
+                            return r.json()
+                        } else {
+                            throw new Error('Failed to save')
+                        }
+                    })
+                    .then(data => {
+                        alert("Save successful!")
+                        console.log("Saved data:", data)
+                    })
+                    .catch(err => {
+                        alert(`Failed to save: ${err.message}`)
+                        console.error(err)
+                    });
                 }
 
                 /**
