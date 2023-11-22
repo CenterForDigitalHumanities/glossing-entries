@@ -186,7 +186,7 @@ class TpenLineSelector extends HTMLElement {
             // Only if there is an actual text selection
             const selectedText = s.toString() ? s.toString() : ""
             if(!selectedText) return
-
+            const $form = lineElem.closest("form")
             // If the users selection contains a <mark>, it is an invalid selection.
             if(s.baseNode.parentElement.tagName === "MARK" || s.extentNode.parentElement.tagName === "MARK"){
                 const ev = new CustomEvent("Your selection contained text marked for another selection.  Make a different selection.")
@@ -247,11 +247,11 @@ class TpenLineSelector extends HTMLElement {
             if(customKey.value !== selections.join("__")){
                 customKey.value = selections.join("__") 
                 customKey.$isDirty = true
-                $this.closest("form").$isDirty = true
+                $form.$isDirty = true
             }
 
             // Set the Text input on the form
-            const textInput = document.querySelector("textarea[custom-text-key='text']")
+            const textInput = $form.querySelector("textarea[custom-text-key='text']")
             textInput.setAttribute("value", selectedText.trim())
             textInput.value = selectedText.trim()
             textInput.dispatchEvent(new Event('input', { bubbles: true }))

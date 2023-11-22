@@ -25,8 +25,21 @@
                 Click the '❌' symbol to delete a Gloss -- This cannot be undone.<br>
                 Click any title to be taken to the Gloss Detail page for that entry.
             </p>
+
+            <!-- A stub for the future "facet selector" to inform our filtering "state" technique -->
+            <section id="facetFilter" class="is-hidden">
+                <ul>
+                    <li>Type of Resource</li>
+                    <facet data-facet="resource-type" data-label="Manuscript document" data-count="76" class="">Manuscript document</facet>
+                    <facet data-facet="resource-type" data-label="Manuscript book" data-count="31">Manuscript book</facet>
+                    <li>Genre</li>
+                    <facet data-facet="genre" data-label="Legal document" data-count="51" class="">Legal document</facet>
+                    <facet data-facet="genre" data-label="Narrative" data-count="13" class="">Narrative</facet>
+                </ul>
+            </section>
+
             <deer-view class="bg-basic" id="collectionList" deer-listing 
-                deer-collection="GoG-Named-Glosses" deer-link="ng.html#" >
+                deer-collection="GoG-Named-Glosses" deer-template="managedlist" deer-link="ng.html#" >
                 Getting the Gallery of Glosses Gloss Collection&hellip;
             </deer-view>
         </div>
@@ -40,7 +53,6 @@
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()
-            collectionList.setAttribute("deer-template", "managedlist")
         }
     </script>
 </body>
