@@ -17,6 +17,20 @@ export default {
         if (!id.startsWith("http")) return justArray ? [ id ] : id
         if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
         return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
+    }, 
+    /**
+     * Removes duplicate elements from the input list based on the specified unique property
+     * for each element and keeping only the first occurrence of each unique value.
+     * @param list {Array} The input list from which duplicates will be removed.
+     * @param uniqueProp {String} The name of the property used to identify uniqueness among elements in the list.
+     * @return {Array} A new array containing only the unique elements from the input list based on the specified property.
+     */
+    removeDuplicates: function(list, uniqueProp) {
+        return list.filter((item, index, self) =>
+            index === self.findIndex((t) => (
+                t[uniqueProp] === item[uniqueProp]
+            ))
+        )
     },
     globalFeedbackBlip: function(event, message, success) {
         globalFeedback.innerText = message
@@ -610,5 +624,30 @@ export default {
             }
         }
         return filters
+    },
+    handleErrorBlip(response){
+        const ev = new CustomEvent("RERUM error")
+        switch (response.status) {
+            case 400:
+                globalFeedbackBlip(ev, `Bad request to RERUM. Please check your entry and try again.(${response.status})`, false)
+                break
+            case 401:
+                globalFeedbackBlip(ev, `This request to RERUM is unauthorized. (${response.status})`, false)
+                break
+            case 403:
+                globalFeedbackBlip(ev, `You are forbidden to make this request to RERUM. (${response.status})`, false)
+                break
+            case 404:
+                globalFeedbackBlip(ev, `Failed to establish a connection to RERUM. Please try again later. (${response.status})`, false)
+                break
+            case 500:
+                globalFeedbackBlip(ev, `There was an internal server error. Please try again later. (${response.status})`, false)
+                break
+            case 503:
+                globalFeedbackBlip(ev, `There is currently server downtime. Please try again later. (${response.status})`, false)
+                break
+            default:
+                globalFeedbackBlip(ev, `There was an issue with RERUM. Please try again later. (Error code ${response.status})`, false)
+        }
     }
 }

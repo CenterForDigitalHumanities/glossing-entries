@@ -117,7 +117,9 @@ class GlossModal extends HTMLElement {
             }
             .modal{
                 position: relative;
-                top: 3em;
+                top: 0;
+                max-height: 95%; 
+                overflow-y: auto;
             }
             .modal form{
 
@@ -279,12 +281,11 @@ class GlossModal extends HTMLElement {
 
         // Typically called by an event listener for 'gloss-modal-saved'.  Resets the modal so it is ready to create a new Gloss.
         this.reset = () => {
-            const form = $this.querySelector("form")
-            form.removeAttribute("deer-source")
-            form.removeAttribute("deer-id")
-            form.$isDirty = false
+            $form.removeAttribute("deer-source")
+            $form.removeAttribute("deer-id")
+            $form.$isDirty = false
 
-            form.querySelectorAll("input[deer-key]").forEach(el => {
+            $form.querySelectorAll("input[deer-key]").forEach(el => {
                 el.removeAttribute("deer-source")
                 if(el.getAttribute("type") !== "hidden"){
                     el.removeAttribute("value")
@@ -300,7 +301,7 @@ class GlossModal extends HTMLElement {
                 }
             })
 
-            form.querySelectorAll("textarea").forEach(el => {
+            $form.querySelectorAll("textarea").forEach(el => {
                 el.removeAttribute("deer-source")
                 el.removeAttribute("value")
                 el.value = ""
@@ -311,11 +312,11 @@ class GlossModal extends HTMLElement {
             textLangElem.setAttribute("value","la")
             textLangElem.value = "la"
 
-            form.querySelectorAll(".selectedEntities").forEach(el => {
+            $form.querySelectorAll(".selectedEntities").forEach(el => {
                 el.innerHTML = ""
             })
 
-            form.querySelector(".glossResult").innerHTML = ""
+            $form.querySelector(".glossResult").innerHTML = ""
             console.log("GLOSS FORM RESET")
         }
 
@@ -328,11 +329,11 @@ class GlossModal extends HTMLElement {
         // mimic isDirty detection for these custom inputs
         $form.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
             ev.target.$isDirty = true
-            ev.target.closest("form").$isDirty = true
+            $form.$isDirty = true
         })
         $form.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
             ev.target.$isDirty = true
-            ev.target.closest("form").$isDirty = true
+            $form.$isDirty = true
         })
         // Note that this HTML element is a checkbox
         $form.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
@@ -345,7 +346,7 @@ class GlossModal extends HTMLElement {
                 ev.target.setAttribute("value", "text/plain")
             }
             ev.target.$isDirty = true
-            ev.target.closest("form").$isDirty = true
+            $form.$isDirty = true
         })
             
         const labelElem = this.querySelector('input[deer-key="title"]')
@@ -369,6 +370,7 @@ class GlossModal extends HTMLElement {
             if (!textElem.value.startsWith(labelElem.value)) {
                 textElem.removeEventListener('input', textListener)
             }
+            labelElem.$isDirty = true
         })
 
         //textElem.addEventListener('blur', ev => checkForGlossesBtn.click())
@@ -380,7 +382,7 @@ class GlossModal extends HTMLElement {
             })
         })
 
-        utils.broadcast(undefined, "deer-form", this, { set: [this.querySelector("form")] })
+        utils.broadcast(undefined, "deer-form", this, { set: [$form] })
     }
 }
 

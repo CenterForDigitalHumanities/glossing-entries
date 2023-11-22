@@ -136,7 +136,7 @@ class WitnessTextSelector extends HTMLElement {
                 textInput.dispatchEvent(new Event('input', { bubbles: true }))
 
                 let witnessLabel = selectedText.slice(0, 16)
-                const labelElem = document.querySelector("input[deer-key='label']")
+                const labelElem = document.querySelector("input[deer-key='title']")
                 const shelfmark = document.querySelector("input[deer-key='identifier']").value
                 // Generate a programmatic label
                 if(witnessLabel){

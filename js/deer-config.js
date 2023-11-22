@@ -160,14 +160,16 @@ export default {
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
-            const total = obj[options.list].length
-            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
+            let total = 0
+            const filterPresent = deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
-                obj[options.list].forEach((val, index) => {
+                const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
+                total = deduplicatedList.length                
+                deduplicatedList.forEach((val, index) => {
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
                     if(cachedFilterableEntities.get(glossID)){
                         // We cached it in the past and are going to trust it right now.
@@ -188,6 +190,7 @@ export default {
                                 }
                             }
                         })
+                        if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
                         li += `>
                             <a href="${options.link}${glossID}">
                                 <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
@@ -288,7 +291,6 @@ export default {
                         for(const prop in query){
                             if(li.hasAttribute(`data-${prop}`)){
                                 const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
-
                                 elem.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                 // If it is showing, no need to check other properties for filtering.
@@ -358,7 +360,7 @@ export default {
             <input type="hidden" custom-key="references" />
             <div class="col">
                 <h2 class="nomargin">Attach Gloss</h2>
-                <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag-is-small">click here</a>. </small>
+                <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
                 <p class="filterInstructions is-hidden"> 
                     Use the filter to narrow down your options.  Select a single Gloss from the list to attach this witness to. 
                 </p>
@@ -376,17 +378,19 @@ export default {
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
-            const total = obj[options.list].length
-            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
+            let total = 0
+            const filterPresent = deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
+                const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
+                total = deduplicatedList.length
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
-                obj[options.list].forEach((val, index) => {
+                deduplicatedList.forEach((val, index) => {
                     let inclusionBtn = null
                     const glossID = val['@id'].replace(/^https?:/, 'https:')
-                    let already = witnessesObj?.referencedGlosses.has(glossID) ? "attached-to-source" : ""
+                    let already = witnessesObj?.referencedGlosses?.has(glossID) ? "attached-to-source" : ""
                     if(glossID === referencedGlossID){
                         inclusionBtn = `<input disabled type="button" class="toggleInclusion ${already} button success" data-id="${glossID}" title="This Gloss is already attached!" value="✓ attached"/>`
                     }
@@ -416,6 +420,7 @@ export default {
                                 }
                             }
                         })
+                        if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
                         li += `>
                             ${inclusionBtn}
                             <a target="_blank" href="${options.link}${glossID}">
@@ -616,10 +621,11 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
-                    const createScenario = !!elem.hasAttribute("create-scenario")
-                    const updateScenario = !!elem.hasAttribute("update-scenario")   
-                    const increaseTotal = !!((createScenario || updateScenario))
-                    const filterPresent = !!containingListElem.$contentState
+                    span.classList.add("serifText")
+                    const createScenario = elem.hasAttribute("create-scenario")
+                    const updateScenario = elem.hasAttribute("update-scenario")   
+                    const increaseTotal = ((createScenario || updateScenario))
+                    const filterPresent = containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     a.setAttribute("href", options.link + obj['@id'])
@@ -640,6 +646,8 @@ export default {
                         }
                     })
 
+                    if(!li.hasAttribute("data-title")) li.setAttribute("data-title", "[ unlabeled ]")
+
                     if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
@@ -647,6 +655,282 @@ export default {
 
                     a.appendChild(span)
                     li.appendChild(a)
+                    elem.appendChild(li)
+
+                    // Pagination for the progress indicator element
+                    const totalsProgress = containingListElem.querySelector(".totalsProgress")
+                    const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
+                    let total = parseInt(totalsProgress.getAttribute("total"))
+                    if(increaseTotal) total++
+                    const cachedNotice = containingListElem.querySelector(".cachedNotice")
+                    const progressArea = containingListElem.querySelector(".progressArea")
+                    const modalBtn = containingListElem.querySelector("gloss-modal-button")
+                    const filterInstructions = containingListElem.querySelector(".filterInstructions")
+                    totalsProgress.setAttribute("count", numloaded)
+                    totalsProgress.setAttribute("total", total)
+                    totalsProgress.innerHTML = `
+                        ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  
+                        You may click to select any Gloss loaded already.<br>
+                        A filter will become available when all items are loaded.`
+                    if(numloaded === total){
+                        cachedNotice.classList.remove("is-hidden")
+                        if(modalBtn) modalBtn.classList.remove("is-hidden")
+                        if(filterInstructions) filterInstructions.classList.remove("is-hidden")
+                        progressArea.classList.add("is-hidden")
+                        containingListElem.querySelectorAll("input[filter]").forEach(i => {
+                            // The filters that are used now need to be visible and selected / take on the string / etc.
+                            i.classList.remove("is-hidden")
+                            if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
+                                i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
+                                i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
+                                i.dispatchEvent(new Event('input', { bubbles: true }))
+                            }
+                        })
+                        containingListElem.setAttribute("ng-list-loaded", "true")
+                        deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
+                    }
+                }
+            }
+        },
+        managedFilterableListItem: function (obj, options = {}) {
+            return {
+                html: ``,
+                then: (elem) => {
+                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    const containingListElem = elem.closest("deer-view")
+                    let filteringProps = Object.keys(obj)
+                    let li = document.createElement("li")
+                    let a = document.createElement("a")
+                    let span = document.createElement("span")
+                    
+                    const glossID = obj["@id"].replace(/^https?:/, 'https:')
+                    const glossHttpID = obj["@id"].replace(/^https?:/, 'http:')
+                    const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
+
+                    // Create the remove button
+                    let removeBtn = document.createElement("a")
+                    removeBtn.setAttribute("href", glossHttpID)
+                    removeBtn.setAttribute("data-type", type)
+                    removeBtn.className = "removeCollectionItem"
+                    removeBtn.title = "Delete This Entry"
+                    removeBtn.innerHTML = " &#x274C;"
+                    removeBtn.addEventListener('click', function(event) {
+                        event.preventDefault()
+                        removeFromCollectionAndDelete(glossHttpID, type)
+                    })
+
+                    // Create the visibility button
+                    let visibilityBtn = document.createElement("a")
+                    visibilityBtn.className = "togglePublic"
+                    visibilityBtn.setAttribute("href", glossHttpID)
+                    visibilityBtn.title = "Toggle public visibility"
+                    visibilityBtn.innerHTML = " 👁 "
+                    visibilityBtn.addEventListener('click', function(event) {
+                        event.preventDefault()
+                        toggleVisibility(glossHttpID)
+                    })
+
+                    let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
+                    const included = listCache.has(glossHttpID) ? "add" : "remove"
+                    a.classList[included ? "remove" : "add"]("is-included")
+                    visibilityBtn.classList[included]("is-included")
+
+                    async function toggleVisibility(id) {
+                        const element = document.querySelector(`a.togglePublic[href='${id}']`)
+                        if (element) {
+                            element.classList.toggle("is-included")
+                            
+                            const isIncluded = element.classList.contains("is-included")
+                    
+                            const saveList = document.getElementById("saveList")
+                            if (saveList) {
+                                saveList.style.visibility = "visible"
+                            }
+                            
+                            if (isIncluded) {
+                                listCache.add(id)
+                            } else {
+                                listCache.delete(id)
+                            }
+                        }
+
+                    }
+
+                    async function removeFromCollectionAndDelete(id, type) {
+                        // This won't do 
+                        if(!id){
+                            alert(`No URI supplied for delete.  Cannot delete.`)
+                            return
+                        }
+                        const thing = 
+                            (type === "manuscript") ? "Manuscript" :
+                            (type === "named-gloss") ? "Gloss" :
+                            (type === "Range") ? "Gloss" : null
+    
+    
+                        // If it is an unexpected type, we probably shouldn't go through with the delete.
+                        if(thing === null){
+                            alert(`Not sure what a ${type} is.  Cannot delete.`)
+                            return
+                        }
+    
+                        // Confirm they want to do this
+                        if (!confirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
+    
+                        const historyWildcard = { "$exists": true, "$size": 0 }
+    
+                        /**
+                         * A customized delete functionality for manuscripts, since they have Annotations and Glosses.
+                         */ 
+                        if(type==="manuscript"){
+                            // Such as ' [ Pn ] Paris, BnF, lat. 17233 ''
+    
+                            const allGlossesOfManuscriptQueryObj = {
+                                "body.partOf.value": UTILS.httpsIdArray(id),
+                                "__rerum.generatedBy" : UTILS.httpsIdArray(DEER.GENERATOR),
+                                "__rerum.history.next" : historyWildcard
+                            }
+                            const allGlossIds = await UTILS.getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
+                            .then(annos => annos.map(anno => anno.target))
+                            .catch(err => {
+                                alert("Could not gather Glosses to delete.")
+                                console.log(err)
+                                return null
+                            })
+                            // This is bad enough to stop here, we will not continue on towards deleting the entity.
+                            if(allGlossIds === null) {return}
+    
+                            const allGlosses = allGlossIds.map(glossUri => {
+                                return fetch(config.URLS.DELETE, {
+                                    method: "DELETE",
+                                    body: JSON.stringify({"@id":glossUri.replace(/^https?:/,'https:')}),
+                                    headers: {
+                                        "Content-Type": "application/json; charset=utf-8",
+                                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                                    }
+                                })
+                                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                                .catch(err => { 
+                                    console.warn(`There was an issue removing a connected Gloss: ${glossUri}`)
+                                    console.log(err)
+                                    const ev = new CustomEvent("RERUM error")
+                                    globalFeedbackBlip(ev, `There was an issue removing a connected Gloss: ${glossUri}`, false)
+                                })
+                            })
+                            // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
+                            await Promise.all(allGlosses).then(success => {
+                                console.log("Connected Glosses successfully removed.")
+                            })
+                            .catch(err => {
+                                // OK they may be orphaned.  We will continue on towards deleting the entity.
+                                console.warn(`There was an issue removing Connected Glosses`)
+                                console.log(err)
+                                const ev = new CustomEvent("RERUM error")
+                                globalFeedbackBlip(ev, 'There was an issue removing Connected Glosses.', false)
+                            })
+                        }
+    
+                        // Get all Annotations throughout history targeting this object that were generated by this application.
+                        const allAnnotationsTargetingEntityQueryObj = {
+                            target: UTILS.httpsIdArray(id),
+                            "__rerum.generatedBy" : UTILS.httpsIdArray(DEER.GENERATOR)
+                        }
+                        const allAnnotationIds = await UTILS.getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
+                        .then(annos => annos.map(anno => anno["@id"]))
+                        .catch(err => {
+                            alert("Could not gather Annotations to delete.")
+                            console.log(err)
+                            return null
+                        })
+                        // This is bad enough to stop here, we will not continue on towards deleting the entity.
+                        if(allAnnotationIds === null) return
+    
+                        const allAnnotations = allAnnotationIds.map(annoUri => {
+                            return fetch(config.URLS.DELETE, {
+                                method: "DELETE",
+                                body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
+                                headers: {
+                                    "Content-Type": "application/json; charset=utf-8",
+                                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                                }
+                            })
+                            .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                            .catch(err => { 
+                                console.warn(`There was an issue removing an Annotation: ${annoUri}`)
+                                console.log(err)
+                                const ev = new CustomEvent("RERUM error")
+                                globalFeedbackBlip(ev, `There was an issue removing an Annotation: ${annoUri}`, false)
+                            })
+                        })
+                        
+                        // In this case, we don't have to wait on these.  We can run this and the entity delete syncronously.
+                        Promise.all(allAnnotations).then(success => {
+                            console.log("Connected Annotations successfully removed.")
+                        })
+                        .catch(err => {
+                            // OK they may be orphaned.  We will continue on towards deleting the entity.
+                            console.warn("There was an issue removing connected Annotations.")
+                            console.log(err)
+                        })
+    
+                        // Now the entity itself
+                        fetch(config.URLS.DELETE, {
+                            method: "DELETE",
+                            body: JSON.stringify({"@id":id}),
+                            headers: {
+                                "Content-Type": "application/json; charset=utf-8",
+                                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                            }
+                        })
+                        .then(r => {
+                            if(r.ok){
+                                document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
+                            }
+                            else{
+                                return Promise.reject(Error(r.text))
+                            }
+                        })
+                        .catch(err => { 
+                            alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
+                            console.log(err)
+                            const ev = new CustomEvent("RERUM error")
+                            globalFeedbackBlip(ev, `There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`, false)
+                        })
+                    }
+
+                    const createScenario = elem.hasAttribute("create-scenario")
+                    const updateScenario = elem.hasAttribute("update-scenario")   
+                    const increaseTotal = ((createScenario || updateScenario))
+                    const filterPresent = containingListElem.$contentState
+                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
+                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
+                    a.setAttribute("href", options.link + glossHttpID)
+                    a.setAttribute("target", "_blank")
+
+                    // Turn each property into an attribute for the <li> element
+                    let action = "add"
+                    filteringProps.forEach( (prop) => {
+                        // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
+                        if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            const val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`
+                            li.setAttribute(attr, val)
+                            if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
+                                action = "remove"
+                            }
+                        }
+                    })
+
+                    if(filterPresent) elem.classList[action]("is-hidden")
+                    li.setAttribute("data-expanded", "true")
+                    cachedFilterableEntities.set(glossID, obj)
+                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+
+                    a.appendChild(span)
+                    li.appendChild(visibilityBtn)
+                    li.appendChild(a)
+                    li.appendChild(removeBtn)
                     elem.appendChild(li)
 
                     // Pagination for the progress indicator element

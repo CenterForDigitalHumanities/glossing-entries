@@ -2,6 +2,8 @@
   * Process a T-PEN Manifest URI (Presentation API 2.1 only) for its transcription text.
   * Generate the UI around canvases (pages) and text (lines) so that a user can select text.
   * Store that text selection as a URI Fragment using #char.  It may be an array that spans multiple lines.
+  * 
+  * Automatically move around <marks> in the selection idea: https://stackoverflow.com/questions/47836227/how-to-disable-selecting-some-of-the-text-in-div
 */
 class TpenLineSelector extends HTMLElement {
     template = `
@@ -184,7 +186,7 @@ class TpenLineSelector extends HTMLElement {
             // Only if there is an actual text selection
             const selectedText = s.toString() ? s.toString() : ""
             if(!selectedText) return
-
+            const $form = lineElem.closest("form")
             // If the users selection contains a <mark>, it is an invalid selection.
             if(s.baseNode.parentElement.tagName === "MARK" || s.extentNode.parentElement.tagName === "MARK"){
                 const ev = new CustomEvent("Your selection contained text marked for another selection.  Make a different selection.")
@@ -245,18 +247,18 @@ class TpenLineSelector extends HTMLElement {
             if(customKey.value !== selections.join("__")){
                 customKey.value = selections.join("__") 
                 customKey.$isDirty = true
-                $this.closest("form").$isDirty = true
+                $form.$isDirty = true
             }
 
             // Set the Text input on the form
-            const textInput = document.querySelector("textarea[custom-text-key='text']")
+            const textInput = $form.querySelector("textarea[custom-text-key='text']")
             textInput.setAttribute("value", selectedText.trim())
             textInput.value = selectedText.trim()
             textInput.dispatchEvent(new Event('input', { bubbles: true }))
 
             // Generate a programmatic label and set the label input on the form
             let witnessLabel = selectedText.slice(0, 16)
-            const labelElem = document.querySelector("input[deer-key='label']")
+            const labelElem = document.querySelector("input[deer-key='title']")
             const shelfmark = document.querySelector("input[deer-key='identifier']").value
             if(witnessLabel){
                 if(shelfmark){

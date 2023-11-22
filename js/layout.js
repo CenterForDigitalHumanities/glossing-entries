@@ -34,15 +34,10 @@ customElements.define('gog-footer', GlossFooter)
 class GlossHeader extends HTMLElement {
     #template = new DOMParser().parseFromString(`<template id="headerTemplate">
     <header>
-    <link rel="stylesheet" href="css/gloss.css">
-    <button class="button primary" is="auth-button">login</button>
-    <img src="media/gog-logo.jpg" alt="banner">
-    <a href="/"><h1 class="title">
-        Gallery of Glosses
-    </h1></a>
-    <div class="tabs">
-    <slot name="tabs">
-    <style>
+        <style>
+        .headerimg{
+            pointer-events: none;
+        }
         :host {
             --bg-color: hsl(0, 0%, 100%);
             --bg-secondary-color: hsl(240, 14%, 96%);
@@ -81,6 +76,14 @@ class GlossHeader extends HTMLElement {
             color: var(--bg-color);
         }
     </style>
+    <link rel="stylesheet" href="css/gloss.css">
+    <button class="button primary" is="auth-button">login</button>
+    <img class="headerimg" src="media/gog-logo.jpg" alt="banner">
+    <a href="/"><h1 class="title">
+        Gallery of Glosses
+    </h1></a>
+    <div class="tabs">
+    <slot name="tabs">
         <a href="./glosses.html">✏️ Glosses</a>
         <a href="./ng.html">🆕 New gloss</a>
         <a href="./gloss-transcription.html">🔍 Detect glosses</a>
@@ -170,7 +173,14 @@ class TagWidget extends HTMLElement {
         this.innerHTML = this.template
         const addBtn = this.querySelector("button")
         this.querySelector(".tagInput").addEventListener("beforeinput",event=>{
-            if([' ',',',null].includes(event.data)) {
+            //Enter or other line break actions.  Note not to overrule TAB for accessibility reasons.
+            if(event.inputType === "insertLineBreak"){
+                event.preventDefault()
+                addBtn.click()
+                return false
+            }
+            //Assuming comma means 'add so I can do another'.  Should any other key cause this?
+            if([','].includes(event.data)) {
                 event.preventDefault()
                 addBtn.click()
                 return false
@@ -297,7 +307,14 @@ class ThemeWidget extends HTMLElement {
         this.innerHTML = this.template
         const addBtn = this.querySelector("button")
         this.querySelector(".themeInput").addEventListener("beforeinput",event=>{
-            if([' ',',',null].includes(event.data)) {
+            //Enter or other line break actions.  Note not to overrule TAB for accessibility reasons.
+            if(event.inputType === "insertLineBreak"){
+                event.preventDefault()
+                addBtn.click()
+                return false
+            }
+            //Assuming comma means 'add so I can do another'.  Should any other key cause this?
+            if([','].includes(event.data)) {
                 event.preventDefault()
                 addBtn.click()
                 return false
@@ -417,18 +434,6 @@ class ReferencesBrowser extends HTMLElement {
         const glossURI = this.getAttribute("gloss-uri") ? decodeURIComponent(this.getAttribute("gloss-uri")) : null
         if(!glossURI) return
 
-        function witnessForGloss(event){
-            const clicked_li = event.target.tagName === "SPAN" ? event.target.closest("li") : event.target
-            const source_uri = clicked_li.getAttribute("source-uri")
-            const witness_uri = clicked_li.getAttribute("appearances")
-            if(source_uri.includes("t-pen.org/TPEN/")){
-                window.open(`gloss-transcription.html#${witness_uri}`, "_blank")
-            }
-            else{
-                window.open(`gloss-witness.html#${witness_uri}`, "_blank")
-            }
-        }
-
         function activateWitnessModal(event){
             const witness_uris = clicked_li.getAttribute("appearances").split("__")
             if(witness_uris.length <= 1) return
@@ -477,7 +482,6 @@ class ReferencesBrowser extends HTMLElement {
                     const li = document.createElement("li")
                     li.setAttribute("count", "0")
                     const a = document.createElement("a")
-                    const span = document.createElement("span")
                     const witnessURI = gloss_witness_anno.target
                     const query2 = {
                         "body.source.value" : {"$exists":true},
@@ -512,21 +516,25 @@ class ReferencesBrowser extends HTMLElement {
                             const existing_li = existing.closest("li")
                             existing_li.setAttribute("count", parseInt(existing_li.getAttribute("count")) + 1)
                             existing_li.setAttribute("appearances", existing_li.getAttribute("appearances")+`__${witnessURI}`)
-                            existing_li.removeEventListener("click", witnessForGloss)
-                            existing_li.addEventListener("click", activateWitnessModal, false)
                             return
                         }
                         li.setAttribute("source-uri", sourceURI)
                         li.setAttribute("count", "1")
                         li.setAttribute("appearances", witnessURI)
-                        li.addEventListener("click", witnessForGloss, false)
-                        span.classList.add("deer-view")
-                        span.setAttribute("deer-template", "shelfmark")
-                        span.setAttribute("deer-id", witnessURI)
-                        span.innerHTML = "loading..." 
-                        li.appendChild(span)
+                        a.classList.add("deer-view")
+                        a.setAttribute("deer-template", "shelfmark")
+                        a.setAttribute("deer-id", witnessURI)
+                        a.setAttribute("target", "_blank")
+                        if(sourceURI.includes("t-pen.org/TPEN/")){
+                            a.setAttribute("href", `gloss-transcription.html#${witnessURI}`)
+                        }
+                        else{
+                            a.setAttribute("href",`gloss-witness.html#${witnessURI}`)
+                        }
+                        a.innerHTML = "loading..." 
+                        li.appendChild(a)
                         witnessList.appendChild(li)
-                        utils.broadcast(undefined, "deer-view", document, { set: [span] })    
+                        utils.broadcast(undefined, "deer-view", document, { set: [a] })    
                     })
                     .catch(err => {
                         return null

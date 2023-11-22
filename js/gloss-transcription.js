@@ -140,37 +140,37 @@ function setWitnessFormDefaults(){
     // Continue the session like normal if they had loaded up an existing witness and updated it.
     if(textWitnessID) return 
     
-    const form = witnessForm  
-    form.removeAttribute("deer-id")
-    form.removeAttribute("deer-source")    
+    const form = witnessForm
+    form.setAttribute("deer-id", "")
+    form.setAttribute("deer-source", "")
     form.$isDirty = true
-    form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
+    form.querySelectorAll("input[deer-source]").forEach(i => {
+        i.removeAttribute("deer-source")
+    })
+    form.querySelectorAll("textarea[deer-source]").forEach(t => {
+        t.removeAttribute("deer-source")
+    })
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "MultiplicityTest"
+    //form.querySelector("input[deer-key='creator']").value = "BryanBugz"
     
-    const labelElem = form.querySelector("input[deer-key='label']")
+    const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
     labelElem.setAttribute("value", "")
-    labelElem.removeAttribute("deer-source")
     labelElem.$isDirty = false
 
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
-    shelfmarkElem.removeAttribute("deer-source")
     shelfmarkElem.$isDirty = true
 
     const formatElem = form.querySelector("input[custom-text-key='format']")
-    formatElem.removeAttribute("deer-source")
     formatElem.checked = false
     formatElem.$isDirty = true
 
     const textElem = form.querySelector("textarea[custom-text-key='text']")
     textElem.value = ""
     textElem.setAttribute("value", "")
-    textElem.removeAttribute("deer-source")
     textElem.$isDirty = false
 
     const languageElem = form.querySelector("select[custom-text-key='language']")
-    languageElem.removeAttribute("deer-source")
     languageElem.setAttribute("value", "la")
     languageElem.value = "la"
     languageElem.$isDirty = true
@@ -178,18 +178,15 @@ function setWitnessFormDefaults(){
     const selectionsElem = form.querySelector("input[custom-key='selections']")
     selectionsElem.value = ""
     selectionsElem.setAttribute("value", "")
-    selectionsElem.removeAttribute("deer-source")
     selectionsElem.$isDirty = false
 
     const referencesElem = form.querySelector("input[custom-key='references']")
     referencesElem.value = ""
     referencesElem.setAttribute("value", "")
-    referencesElem.removeAttribute("deer-source")
     referencesElem.$isDirty = false
 
     // The source value not change and would need to be captured on the next submit.
     const sourceElem = form.querySelector("input[custom-key='source']")
-    sourceElem.removeAttribute("deer-source")
     sourceElem.$isDirty = true
 
     // reset the Glosses filter
@@ -445,6 +442,16 @@ function prefillReferences(referencesArr, form) {
  * @param togglePages - A flag for whether or not to fire the page toggling UI.  Happens when loading up a witness via the browser hash. 
  */
 function preselectLines(linesArr, form, togglePages) {
+
+    function quickDecode(html) {
+        // This helps with detecting the persists mark and knowing not to write over it.
+        const txt = document.createElement("textarea")
+        txt.innerHTML = html
+        const val = txt.value
+        txt.remove()
+        return val
+    }
+
     const source = linesArr.source ?? null
     if (linesArr === undefined) {
         console.warn("Cannot highlight lines in UI.  There is no data.")
@@ -468,6 +475,9 @@ function preselectLines(linesArr, form, togglePages) {
             const lineid = line.split("#")[0]
             const selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
             const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
+            // Do not accidentally overrule a .persists mark (the mark for #witnessURI).  It is both .persists and .pre-select, but .persists takes precedence. 
+            const checkInner = quickDecode(lineElem.innerHTML)
+            if(checkInner.indexOf('<mark data-markjs="true" class="persists">') === selection[0]) return
             if(togglePages) lineElem.parentElement.previousElementSibling.classList.add("has-selection")
             const remark_map = unmarkTPENLineElement(lineElem)
             lineElem.classList.add("has-selection")
@@ -477,7 +487,6 @@ function preselectLines(linesArr, form, togglePages) {
                 : (selection[1] - selection[0]) + 1
             const markup = new Mark(lineElem)
             let options = togglePages ? {className:"persists"} : {className:"pre-select"}
-            // Do not accidentally overrule a .persists mark (the mark for #witnessURI).  It is both .persists and .pre-select, but .persists takes precedence. 
             options.exclude = [".persists"]
             markup.markRanges([{
                 start: selection[0],
@@ -496,7 +505,6 @@ function preselectLines(linesArr, form, togglePages) {
             }
         })    
     }
-
 }
 
 /**
@@ -530,7 +538,6 @@ addEventListener('deer-updated', event => {
     // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
     event.preventDefault()
     event.stopPropagation()
-
     const entityID = event.detail["@id"]  
     // These promise are for all the simple array values ('references' and 'selections')
     let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
@@ -558,6 +565,10 @@ addEventListener('deer-updated', event => {
             })
             .then(res => res.json())
             .then(a => {
+                if(key === "references"){
+                    const glossURIs = el.value.split("__")
+                    paginateButtonsAfterSubmit(glossURIs)
+                }
                 el.setAttribute("deer-source", a["@id"])
             })
             .catch(err => {
@@ -641,15 +652,7 @@ addEventListener('gloss-modal-saved', event => {
     const list = view.querySelector("ul")
     const modal = event.target
     const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
-
-    const selectedBtn = document.querySelector(".toggleInclusion[disabled]")
-    if(selectedBtn){
-        selectedBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
-        selectedBtn.setAttribute("value", "❢ attach")
-        selectedBtn.setAttribute("class", "toggleInclusion attached-to-source button primary")
-        selectedBtn.removeAttribute("disabled")    
-    }
-
+    const glossURI = gloss["@id"].replace(/^https?:/, 'https:')
     modal.classList.add("is-hidden")
 
     const li = document.createElement("li")
@@ -662,7 +665,7 @@ addEventListener('gloss-modal-saved', event => {
     li.setAttribute("data-title", title)
     
     // We know the title already so this makes a handy placeholder :)
-    li.innerHTML = `<span><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
+    li.innerHTML = `<span class="serifText"><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
     // This helps filterableListItem know how to style the attach button, and also lets us know to change count/total loaded Glosses.
     if(textWitnessID){
         div.setAttribute("update-scenario", "true")
@@ -672,7 +675,6 @@ addEventListener('gloss-modal-saved', event => {
     }
     div.appendChild(li)
     list.appendChild(div)
-    
     setTimeout(function() {
         broadcast(undefined, "deer-view", div, { set: [div] })
     }, 1)
@@ -688,8 +690,8 @@ function addButton(event) {
     if(template_container.getAttribute("deer-template") !== "filterableListItem") return
     const obj = event.detail
     const gloss_li = template_container.firstElementChild
-    const createScenario = !!template_container.hasAttribute("create-scenario")
-    const updateScenario = !!template_container.hasAttribute("update-scenario")
+    const createScenario = template_container.hasAttribute("create-scenario")
+    const updateScenario = template_container.hasAttribute("update-scenario")
     // A new Gloss has been introduced and is done being cached.
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")
@@ -772,6 +774,35 @@ function addButton(event) {
     }
 }
 
+// Paginate the '➥ attach' and possibly '✓ attached' button(s) after a Witness submission.
+function paginateButtonsAfterSubmit(glossURIs){
+    const previouslyChosen = document.querySelector(".toggleInclusion.success")
+    glossURIs.forEach(glossURI => {
+        glossURI = glossURI.replace(/^https?:/, 'https:')
+        document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(inclusionBtn => {
+            inclusionBtn.classList.add("attached-to-source")
+            inclusionBtn.setAttribute("value", "❢ attach")
+            inclusionBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
+            if(previouslyChosen){
+                // If there is an '✓ attached' one on the page already, this is an update scenario.
+                // The '➥ attach' button that was clicked is now the chosen Gloss for the loaded Witness.
+                // The '✓ attached' one is no longer connected to this Witness or Source URL via this Witness.
+                inclusionBtn.setAttribute("disabled", "")
+                inclusionBtn.setAttribute("value", "✓ attached")
+                inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+                inclusionBtn.classList.remove("primary")
+                inclusionBtn.classList.add("success")
+                previouslyChosen.removeAttribute("disabled")
+                previouslyChosen.setAttribute("value", "➥ attach")
+                previouslyChosen.setAttribute("title", "Attach This Gloss and Save")
+                previouslyChosen.classList.add("primary")
+                previouslyChosen.classList.remove("success")
+                previouslyChosen.classList.remove("attached-to-source")
+            }
+        })    
+    })
+}
+
 function getAllWitnesses(event){
     getAllWitnessesOfSource(tpenProjectURI)
 }
@@ -782,14 +813,24 @@ function getAllWitnesses(event){
  */ 
 function unmarkTPENLineElement(lineElem){
     let remark_map = {}
+    let persistent_map = {}
     const lineid = lineElem.getAttribute("tpen-line-id")
     remark_map[lineid] = []
+    persistent_map[lineid] = []
     for(const mark of lineElem.querySelectorAll(".pre-select")){
        remark_map[lineid].push(mark.textContent)
     }
+    for(const mark of lineElem.querySelectorAll(".persists")){
+        persistent_map[lineElem.getAttribute("tpen-line-id")].push(mark.textContent)
+    }
     const unmarkup = new Mark(lineElem)
     unmarkup.unmark({"className" : "pre-select"})
-    return remark_map
+    unmarkup.unmark({"className" : "persists"})
+    const o = {
+        "pre-select" : remark_map,
+        "persists" : persistent_map
+    }
+    return o
 }
 
 /**
@@ -799,14 +840,21 @@ function unmarkTPENLineElement(lineElem){
 function unmarkTPENLineElements(startEl, stopEl){
     let unmarkup = new Mark(startEl)
     let remark_map = {}
+    let persistent_map = {}
     const stopID = stopEl.getAttribute("tpen-line-id")
     // Upstream from this the selection in startEl is checked for a <mark>.  We know it does not have a <mark> here.
     remark_map[startEl.getAttribute("tpen-line-id")] = []
+    persistent_map[startEl.getAttribute("tpen-line-id")] = []
     for(const mark of startEl.querySelectorAll(".pre-select")){
         // For each thing you want to unmark, grab the text so we can remark it
         remark_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
     }
+     for(const mark of startEl.querySelectorAll(".persists")){
+        // For each thing you want to unmark, grab the text so we can remark it
+        persistent_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
+    }
     unmarkup.unmark({"className" : "pre-select"})
+    unmarkup.unmark({"className" : "persists"})
     if(stopID !== startEl.getAttribute("tpen-line-id")){
         // The selection happened over multiple lines.  Any of those lines may contain a <mark>.  If they do, it is an invalid selection.
         let nextEl = startEl.nextElementSibling
@@ -833,8 +881,12 @@ function unmarkTPENLineElements(startEl, stopEl){
             for(const mark of nextEl.querySelectorAll(".pre-select")){
                 remark_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
             }
+            for(const mark of nextEl.querySelectorAll(".persists")){
+                persistent_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
+            }
             unmarkup = new Mark(nextEl)
             unmarkup.unmark({"className" : "pre-select"})
+            unmarkup.unmark({"className" : "persists"})
         }
         // Upstream from this the selection in stopEl is checked for a <mark>.  We know it does not have a <mark> here.
         remark_map[stopEl.getAttribute("tpen-line-id")] = []
@@ -842,10 +894,18 @@ function unmarkTPENLineElements(startEl, stopEl){
             // For each thing you want to unmark, grab the text so we can remark it
             remark_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
         }
+        for(const mark of stopEl.querySelectorAll(".persists")){
+            // For each thing you want to unmark, grab the text so we can remark it
+            persistent_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
+        }
         unmarkup = new Mark(stopEl)
         unmarkup.unmark({"className" : "pre-select"})
+        unmarkup.unmark({"className" : "persists"})
     }
-    return remark_map
+    return {
+        "pre-select" : remark_map,
+        "persists" : persistent_map
+    }
 }
 
 /**
@@ -855,15 +915,29 @@ function unmarkTPENLineElements(startEl, stopEl){
  */ 
 function remarkTPENLineElements(markData){
     // restore the marks that were there before the user did the selection
-    for(const id in markData){
+    for(const id in markData["pre-select"]){
         const restoreMarkElem = document.querySelector(`div[tpen-line-id="${id}"]`)
         const markit = new Mark(restoreMarkElem)
-        const strings = markData[id]
+        const strings = markData["pre-select"][id]
         strings.forEach(str => {
             markit.mark(str, {
                 diacritics : true,
                 separateWordSearch : false,
                 className : "pre-select",
+                acrossElements : true,
+                accuracy: "complimentary"
+            })    
+        })
+    }
+    for(const id in markData.persists){
+        const restoreMarkElem = document.querySelector(`div[tpen-line-id="${id}"]`)
+        const markit = new Mark(restoreMarkElem)
+        const strings = markData.persists[id]
+        strings.forEach(str => {
+            markit.mark(str, {
+                diacritics : true,
+                separateWordSearch : false,
+                className : "persists",
                 acrossElements : true,
                 accuracy: "complimentary"
             })    
