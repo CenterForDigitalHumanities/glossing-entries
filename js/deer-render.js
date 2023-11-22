@@ -1086,7 +1086,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
                     
                     const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`
-                    const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`;
+                    const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`
 
                     if(managedListCache.get(glossID)){
                         const cachedObj = managedListCache.get(glossID)
@@ -1233,8 +1233,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     }
                 }
 
-                let url = new URL(elem.getAttribute("deer-listing"));
-                url.searchParams.set('nocache', Date.now());
+                let url = new URL(elem.getAttribute("deer-listing"))
+                url.searchParams.set('nocache', Date.now())
                 fetch(url).then(r => r.json())
                 .then(list => {
                     elem.listCache = new Set()
@@ -1310,18 +1310,18 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     })
                     .then(r => {
                         if (r.ok) {
-                            return r.json();
+                            return r.json()
                         } else {
-                            throw new Error('Failed to save');
+                            throw new Error('Failed to save')
                         }
                     })
                     .then(data => {
-                        alert("Save successful!");
-                        console.log("Saved data:", data); 
+                        alert("Save successful!")
+                        console.log("Saved data:", data)
                     })
                     .catch(err => {
-                        alert(`Failed to save: ${err.message}`);
-                        console.error(err); 
+                        alert(`Failed to save: ${err.message}`)
+                        console.error(err)
                     });
                 }
 
