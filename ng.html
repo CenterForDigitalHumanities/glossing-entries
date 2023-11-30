@@ -5,6 +5,7 @@
     <title>Gallery of Glosses</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
     <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
@@ -21,15 +22,18 @@
         avoid creating a new one unless it does not already exist.
     </p>
     <gog-references-browser class="bg-light is-hidden"> </gog-references-browser>
-    <button class="addWitnessBtn button is-hidden" onclick="witnessForGloss(true)">Add a T-PEN Transcription Witness for this Gloss</button>
-    <button class="addWitnessBtn button is-hidden" onclick="witnessForGloss()">Add a Textual Witness for this Gloss</button>
+    <!-- Center & make a white background div with buttons inside, decide color later -->
+    <div style="display: flex; justify-content: center; background-color: white; padding: 10px; gap: 20px; flex-wrap: wrap;">
+        <button class="addWitnessBtn button is-hidden" onclick="witnessForGloss(true)" style="margin: 5px; padding: 10px; border: none; border-radius: 4px;">Add a T-PEN Transcription Witness for this Gloss</button>
+        <button class="addWitnessBtn button is-hidden" onclick="witnessForGloss()" style="margin: 5px; padding: 10px; border: none; border-radius: 4px;">Add a Textual Witness for this Gloss</button>
+    </div>
     <form id="named-gloss" deer-type="Gloss" deer-context="http://purl.org/dc/terms" hash-id>
         <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <div class="row">
-            <label class="col-3 col-2-md text-right">Gloss Text:</label>
+            <label class="col-3 col-2-md text-right">Gloss Text: <i class="fas fa-info-circle icon-help" title="Enter the content of the gloss here."></i></label>
             <textarea custom-text-key="text" id="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
-
+            
             <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
             <select custom-text-key="language" name="textLang" id="textLang" class="col-3 col-2-md">
                 <option value="la" selected>Latin</option>
@@ -43,26 +47,26 @@
             </label>
         </div>
         <div class="row">
-            <label class="col-3 col-2-md text-right">Description:</label>
+            <label class="col-3 col-2-md text-right">Description: <i title="Provide a brief description or summary of the gloss."></i></label>
             <input type="text" deer-key="description" placeholder="description" class="col-9 col-10-md">
-            <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
+            <label class="col-3 col-2-md text-right">Canonical Reference Locator: <i class="fas fa-info-circle icon-help" title="Enter a reference to the location in the source text, like 'Matthew 5:1'."></i></label>
             <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
             <button class="col-6" type="button" role="button" onclick="parseSections()">parse sections</button>
-            <label class="col-3 col-2-md text-right">Document:</label>
+            <label class="col-3 col-2-md text-right">Document: <i class="fas fa-info-circle icon-help" title="Specify the document or source from which the gloss is taken"></i></label>
             <input type="text" deer-key="_document" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Section:</label>
+            <label class="col-3 col-2-md text-right">Section: <i class="fas fa-info-circle icon-help" title="Indicate the specific chapter or section of the document."></i></label>
             <input type="text" deer-key="_section" placeholder="chapter" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Subsection(s):</label>
+            <label class="col-3 col-2-md text-right">Subsection(s): <i class="fas fa-info-circle icon-help" title="Mention the particular verse or subsections referred to in the gloss."></i></label>
             <input type="text" deer-key="_subsection" placeholder="verse" class="col-9 col-4-md">
         </div>
         <div class="row">
-            <label class="col-3 col-2-md text-right">Target Text:</label>
-            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text"></textarea>
-            <label class="col-3 col-2-md text-right">Label for display:</label>
+            <label class="col-3 col-2-md text-right">Target Text: <i class="fas fa-info-circle icon-help" title="Input the text that this gloss is aimed at or elaborates upon."></i></label>
+            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text" ></textarea>
+            <label class="col-3 col-2-md text-right">Label for display: <i class="fas fa-info-circle icon-help" title="Enter the Incipit or identifying label here"></i></label>
             <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
         </div>
         <div class="row">
-            <label class="col-3 col-2-md text-right">Notes</label>
+            <label class="col-3 col-2-md text-right">Notes: <i class="fas fa-info-circle icon-help" title="Add any internal notes or comments here for reference."></i></label>
             <input type="text" deer-key="_notes" placeholder="internal notes" class="col-9 col-10-md">
         </div>
         <div class="row">
@@ -73,6 +77,7 @@
             <div class="col">
                 <p> Before submitting you can check for existing Glosses that may already contain the text provided above. </p>
                 <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
+
                 <div id="glossResult"></div>
             </div>
         </div>
