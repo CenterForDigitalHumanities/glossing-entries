@@ -531,24 +531,20 @@ function undoBrowserSelection(s){
 function modalConfirm(message) {
     let userChoice = null
 
-    const dialog = document.getElementById('confirmModal') // grab the hidden confirm dialog box
+    const dialog = document.getElementsByTagName('confirm-modal')[0] // grab the hidden confirm dialog box
 
-    const dialogMessage = document.getElementById("confirm-message")
-    const h2 = document.createElement("h2") // create and add custom message to confirm box
-    h2.innerText = message
-    dialogMessage.appendChild(h2)
+    const dialogMessage = document.getElementById("confirm-message") // existing h2
+    dialogMessage.innerText = message // add message to the h2
 
     dialog.classList.remove('is-hidden')
 
     document.getElementById("confirmOK").onclick = function() {
         userChoice = true
-        console.log('user confirm true')
         dialog.classList.add('is-hidden')
     }
 
     document.getElementById("confirmCancel").onclick = function() {
         userChoice = false
-        console.log('user confirm false')
         dialog.classList.add('is-hidden')
     }
 

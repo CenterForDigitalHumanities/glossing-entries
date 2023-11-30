@@ -8,7 +8,7 @@ class ConfirmModal extends HTMLElement {
                 width: 100%;
                 top: 0;
                 left: 0;
-                position: absolute;
+                position: fixed;
                 background-color: rgba(0,0,0,0.5);
                 z-index: 4;
             }
@@ -39,16 +39,15 @@ class ConfirmModal extends HTMLElement {
                 margin-top: .5em;
             }
             #confirm-message {
-                color: black;
+                color: var(--color-primary);
                 font-weight: bold;
-                font-family: 'Calibri';
             }
         </style>
 
         <div id="confirm-full">
             <div id="confirm-dialog">
-                <div id="confirm-message">
-
+                <div id="confirm-message-container">
+                    <h2 id="confirm-message"></h2>
                 </div>
                 <div class="confirm-buttons">
                     <button id="confirmOK" class="confirmButton">OK</button>
@@ -63,8 +62,6 @@ class ConfirmModal extends HTMLElement {
 
     connectedCallback() {
         this.innerHTML = this.template
-        const $this = this
-        console.log('confirm modal added')
     }
    
 }
