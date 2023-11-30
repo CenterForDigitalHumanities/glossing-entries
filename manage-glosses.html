@@ -9,6 +9,7 @@
     <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
+    <script src="js/confirmModal.js" type="module"></script>
     <script src="js/shared.js"></script>
 </head>
 
@@ -45,6 +46,7 @@
         </div>
     </div>
     <gog-footer class="container"></gog-footer>
+    <confirm-modal class="is-hidden"></confirm-modal>
     <div id="globalFeedback" class="card is-center"></div>
     <script>
         checkAll.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.classList.has("is-included") ?? a.click()))

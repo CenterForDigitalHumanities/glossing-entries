@@ -1355,7 +1355,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     }
 
                     // Confirm they want to do this
-                    if (!confirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
+                    if (!modalConfirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
 
                     const historyWildcard = { "$exists": true, "$size": 0 }
 

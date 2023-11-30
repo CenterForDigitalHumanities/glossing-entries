@@ -72,7 +72,7 @@ window.onload = () => {
         ev.target.closest("form").$isDirty = true
     })
     deleteWitnessButton.addEventListener("click", ev => {
-        if(confirmation("The witness will be deleted.  This action cannot be undone.")){
+        if(modalConfirm("The witness will be deleted.  This action cannot be undone.")){
             deleteWitness()
         }
     })
@@ -743,7 +743,7 @@ function addButton(event) {
         const note = ev.target.classList.contains("attached-to-source") 
            ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
            : `Save this textual witness for Gloss '${glossIncipit}'?`
-        if((createScenario || updateScenario) || confirm(note)){
+        if((createScenario || updateScenario) || modalConfirm(note)){
             const customKey = form.querySelector("input[custom-key='references']")
             const uri = ev.target.getAttribute("data-id")
             if(customKey.value !== uri){

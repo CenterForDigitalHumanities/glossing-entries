@@ -85,7 +85,7 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
     }
 
     // Confirm they want to do this
-    if (!confirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
+    if (!modalConfirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
 
     const historyWildcard = { "$exists": true, "$size": 0 }
 
@@ -526,4 +526,31 @@ async function getAllWitnessesOfSource(source){
  */ 
 function undoBrowserSelection(s){
     s?.removeAllRanges?.() ?? s?.empty?.()
+}
+
+function modalConfirm(message) {
+    let userChoice = null
+
+    const dialog = document.getElementById('confirmModal') // grab the hidden confirm dialog box
+
+    const dialogMessage = document.getElementById("confirm-message")
+    const h2 = document.createElement("h2") // create and add custom message to confirm box
+    h2.innerText = message
+    dialogMessage.appendChild(h2)
+
+    dialog.classList.remove('is-hidden')
+
+    document.getElementById("confirmOK").onclick = function() {
+        userChoice = true
+        console.log('user confirm true')
+        dialog.classList.add('is-hidden')
+    }
+
+    document.getElementById("confirmCancel").onclick = function() {
+        userChoice = false
+        console.log('user confirm false')
+        dialog.classList.add('is-hidden')
+    }
+
+    return userChoice
 }
