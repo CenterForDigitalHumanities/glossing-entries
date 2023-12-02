@@ -41,13 +41,14 @@ class ConfirmModal extends HTMLElement {
             #confirm-message {
                 color: var(--color-primary);
                 font-weight: bold;
+                font-size: 1.5em;
             }
         </style>
 
         <div id="confirm-full">
             <div id="confirm-dialog">
                 <div id="confirm-message-container">
-                    <h2 id="confirm-message"></h2>
+                    <p id="confirm-message"></p>
                 </div>
                 <div class="confirm-buttons">
                     <button id="confirmOK" class="confirmButton">OK</button>

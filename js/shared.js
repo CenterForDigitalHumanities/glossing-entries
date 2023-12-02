@@ -533,8 +533,8 @@ function modalConfirm(message) {
 
     const dialog = document.getElementsByTagName('confirm-modal')[0] // grab the hidden confirm dialog box
 
-    const dialogMessage = document.getElementById("confirm-message") // existing h2
-    dialogMessage.innerText = message // add message to the h2
+    const dialogMessage = document.getElementById("confirm-message") // existing p
+    dialogMessage.innerText = message // add message to the p
 
     dialog.classList.remove('is-hidden')
 
