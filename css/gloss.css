@@ -1,6 +1,7 @@
 @import "https://unpkg.com/chota@latest";
 @import url('https://fonts.googleapis.com/css2?family=Eczar&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Volkhov&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css');
 
 :root {
   --bg-color: hsl(0, 0%, 100%);
@@ -481,6 +482,10 @@ line.selected.just {
   margin-bottom: 1em;
 }
 
+.addWitnessDiv{
+  margin-bottom: 1em;
+}
+
 form#ngForm
 {
   margin: 0.7em;
@@ -501,19 +506,4 @@ input#loadInput {
 
 .content.container {
   margin-left: -.001em;
-}
-
-.input-with-icon {
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.input-with-icon input {
-    width: calc(100% - 30px); 
-}
-
-.icon-help {
-    position: absolute;
-    right: 5px; 
 }
