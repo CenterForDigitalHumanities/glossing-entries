@@ -528,25 +528,40 @@ function undoBrowserSelection(s){
     s?.removeAllRanges?.() ?? s?.empty?.()
 }
 
-function modalConfirm(message) {
-    let userChoice = null
+/**
+ * modalConfirm replaces the browser's native confirm().
+ * @param {*} message A message for what you want the user to confirm.
+ * @returns {*} boolean True if user clicks 'OK', False if user clicks 'Cancel'
+ */
 
+var userChoice
+
+async function modalConfirm(message){
+    userChoice = null
     const dialog = document.getElementsByTagName('confirm-modal')[0] // grab the hidden confirm dialog box
 
     const dialogMessage = document.getElementById("confirm-message") // existing p
     dialogMessage.innerText = message // add message to the p
 
+    OKbtn = document.getElementById("confirmOK")
+    cancelBtn = document.getElementById("confirmCancel")
+
     dialog.classList.remove('is-hidden')
 
-    document.getElementById("confirmOK").onclick = function() {
+    OKbtn.addEventListener('click', function () {
         userChoice = true
         dialog.classList.add('is-hidden')
-    }
+    })
 
-    document.getElementById("confirmCancel").onclick = function() {
+    cancelBtn.addEventListener('click', function () {
         userChoice = false
         dialog.classList.add('is-hidden')
-    }
+    })
 
+    const waitForConfirm = (predFn) => {
+        const poll = (done) => (predFn() ? done() : setTimeout(() => poll(done), 500))
+        return new Promise(poll)
+    }
+    await waitForConfirm(() => {userChoice == true || userChoice == false})
     return userChoice
 }

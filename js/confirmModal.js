@@ -1,5 +1,10 @@
 import { default as utils } from './deer-utils.js'
 
+/**
+  * A focused pop up for confirming or denying a choice.
+  * This can be included on any HTML page.  This appears when a user attempts to do something such as deleting a gloss.
+*/
+
 class ConfirmModal extends HTMLElement {
     template = `
         <style>
