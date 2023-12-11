@@ -6,7 +6,9 @@ window.onload = () => {
     const glossForm = document.getElementById("named-gloss")
     if(hash) {
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
+        document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
+        
     }
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText
