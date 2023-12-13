@@ -151,7 +151,7 @@ function setWitnessFormDefaults(){
         t.removeAttribute("deer-source")
     })
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "BryanBugz"
+    //form.querySelector("input[deer-key='creator']").value = "ShowcasePatches"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -268,8 +268,9 @@ async function deleteWitness(){
         })
     )
     Promise.all(delete_calls).then(success => {
+        const glossID = document.querySelector("input[custom-key='references']").value
         addEventListener("globalFeedbackFinished", ev=> {
-            window.location = "ng.html#"
+            window.location = `ng.html#${glossID}`
         })
         const ev = new CustomEvent("Witness Deleted.  You will be redirected.")
         globalFeedbackBlip(ev, `Witness Deleted.  You will be redirected.`, true)
@@ -467,7 +468,7 @@ function preselectLines(linesArr, form, togglePages) {
     if(source?.citationSource){
         selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
     }
-    selectionsElem.value = linesArr.join("__")
+    if(textWitnessID) selectionsElem.value = linesArr.join("__")
 
     // Now Mark the lines
     linesArr.forEach(line => {

@@ -6,13 +6,13 @@ let witnessesObj = {}
 // For when we test, so we can easily find and blow away junk data
 // setTimeout(() => {
 //     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="BryanBugz"
-//         el.setAttribute("value", "BryanBugz")
+//         el.value="ShowcasePatches"
+//         el.setAttribute("value", "ShowcasePatches")
 //     })
 //     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "BryanBugz")
+//         el.setAttribute("deer-creator", "ShowcasePatches")
 //     })
-//     window.GOG_USER["http://store.rerum.io/agent"] = "BryanBugz"
+//     window.GOG_USER["http://store.rerum.io/agent"] = "ShowcasePatches"
 // }, 4000)
 
 let __constants = {}
