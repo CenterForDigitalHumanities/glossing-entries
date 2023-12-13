@@ -136,7 +136,7 @@ class GlossModal extends HTMLElement {
                         When you create this Gloss it will be attached to the T-PEN Transcription text selection and appear in the Gallery of Glosses Gloss Collection.
                     </p>
 
-                    <form name="gloss-modal-form" deer-type="GlossDemo" deer-context="http://purl.org/dc/terms">
+                    <form name="gloss-modal-form" deer-type="Gloss" deer-context="http://purl.org/dc/terms">
                         <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
                         <input is="auth-creator" type="hidden" deer-key="creator" />
                         <div class="row">
