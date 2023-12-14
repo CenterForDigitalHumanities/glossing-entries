@@ -977,6 +977,7 @@ export default {
                         if(modalBtn) modalBtn.classList.remove("is-hidden")
                         if(filterInstructions) filterInstructions.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
+                        containingListElem.querySelector(".facet-filters").classList.remove("is-hidden")
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be visible and selected / take on the string / etc.
                             i.classList.remove("is-hidden")

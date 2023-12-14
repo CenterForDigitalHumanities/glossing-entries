@@ -1184,16 +1184,19 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     location.reload()
                 })
 
+                // These particular ones are true/false flags, so their value is "true" and "false" not some other string to match on.
                 facetInputs.forEach(input => {
                     input.addEventListener('input', ev =>{
-                        const val = ev?.target.value.trim()
+                        const k = ev?.target.getAttribute("name")
                         const url = new URL(window.location.href)
+                        let filterQuery
                         let filters = url.searchParams.get("gog-filter") ? decodeContentState(url.searchParams.get("gog-filter")) : {}
-                        let encoded = ""
-                        if(val){
-                            filters[k] = v
-                            encoded = encodeContentState(filters)
+                        delete filters[k]
+                        if(ev?.target.checked){
+                            filters[k] = "true"
                         }
+                        if(Object.keys(filters).length === 0) filters.title = ""
+                        filterQuery = encodeContentState(JSON.stringify(filters))
                         debounce(filterGlosses(filterQuery))
                     })    
                 })
@@ -1213,6 +1216,7 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 if(numloaded === total){
                     cachedNotice.classList.remove("is-hidden")
                     progressArea.classList.add("is-hidden")
+                    elem.querySelector(".facet-filters").classList.remove("is-hidden")
                     elem.querySelectorAll("input[filter]").forEach(i => {
                         // The filters that are used now need to be selected or take on the string or whatevs
                         i.classList.remove("is-hidden")
@@ -1261,14 +1265,15 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     })
 
                     const url = new URL(window.location.href)
-                    if(query.title){
-                        url.searchParams.set("gog-filter", queryString)
-                        window.history.replaceState(null, null, url)   
-                    }
-                    else{
+                    if(Object.keys(query).length === 1 && query?.title === ""){
                         url.searchParams.delete("gog-filter")
                         window.history.replaceState(null, null, url)
                     }
+                    else{
+                        url.searchParams.set("gog-filter", queryString)
+                        window.history.replaceState(null, null, url)       
+                    }
+                        
                 }
 
                 let url = new URL(elem.getAttribute("deer-listing"))
