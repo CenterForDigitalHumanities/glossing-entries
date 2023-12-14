@@ -185,7 +185,8 @@ export default {
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
                                 if(prop === "title" && !value){
-                                    value = "[unlabeled]"
+                                    value = "[ unlabeled ]"
+                                    li += `data-unlabeled="true" `
                                 }
                                 li += `${attr}="${value}" `
                                 if(value.includes(filterObj[prop])){
@@ -193,7 +194,9 @@ export default {
                                 }
                             }
                         })
-                        if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
+                        if(!filteringProps.includes("title")) {
+                            li += `data-title="[ unlabeled ]" data-unlabeled="true" `
+                        }
                         li += `>
                             <a href="${options.link}${glossID}">
                                 <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
@@ -418,7 +421,8 @@ export default {
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
                                 if(prop === "title" && !value){
-                                    value = "[unlabeled]"
+                                    value = "[ unlabeled ]"
+                                    li += `data-unlabeled="true" `
                                 }
                                 li += `${attr}="${value}" `
                                 if(value.includes(filterObj[prop])){
@@ -426,7 +430,9 @@ export default {
                                 }
                             }
                         })
-                        if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
+                        if(!filteringProps.includes("title")) {
+                            li += `data-title="[ unlabeled ]" data-unlabeled="true" `
+                        }
                         li += `>
                             ${inclusionBtn}
                             <a target="_blank" href="${options.link}${glossID}">
@@ -646,7 +652,8 @@ export default {
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
                             if(prop === "title" && !value){
-                                value = "[unlabeled]"
+                                value = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
                             }
                             li.setAttribute(attr, val)
                             if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
@@ -655,7 +662,10 @@ export default {
                         }
                     })
 
-                    if(!li.hasAttribute("data-title")) li.setAttribute("data-title", "[ unlabeled ]")
+                    if(!li.hasAttribute("data-title")) {
+                        li.setAttribute("data-title", "[ unlabeled ]")
+                        li.setAttribute("data-unlabeled", "true")
+                    }
 
                     if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
@@ -742,6 +752,7 @@ export default {
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
                     const included = listCache.has(glossHttpID) ? "add" : "remove"
                     a.classList[included ? "remove" : "add"]("is-included")
+                    li.setAttribute("data-public", a.classList.has("is-included"))
                     visibilityBtn.classList[included]("is-included")
 
                     async function toggleVisibility(id) {
@@ -925,7 +936,8 @@ export default {
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
                             if(prop === "title" && !value){
-                                value = "[unlabeled]"
+                                value = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
                             }
                             li.setAttribute(attr, val)
                             if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {

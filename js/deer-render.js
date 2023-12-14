@@ -1107,9 +1107,6 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     if(managedListCache.get(glossID)){
                         const cachedObj = managedListCache.get(glossID)
                         let filteringProps = Object.keys(cachedObj)
-                        // extend this with statuses
-                        
-
                         // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
                         let li = `<li class="${hide}" deer-id="${val["@id"]}" data-expanded="true" `
                         // Add all Gloss object properties to the <li> element as attributes to match on later
@@ -1120,7 +1117,8 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
                                 if(prop === "title" && !value){
-                                    value = "[unlabeled]"
+                                    value = "[ unlabeled ]"
+                                    li += `data-unlabeled="true" `
                                 }
                                 li += `${attr}="${value}" `
                                 if(value.includes(filterObj[prop])){
@@ -1128,7 +1126,9 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                                 }
                             }
                         })
-                        if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
+                        if(!filteringProps.includes("title")) {
+                            li += `data-title="[ unlabeled ]" data-unlabeled="true"`
+                        }
                         li += `>
                             ${visibilityBtn}
                             <a href="${options.link}${val["@id"]}">
@@ -1276,9 +1276,7 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 fetch(url).then(r => r.json())
                 .then(list => {
                     elem.listCache = new Set()
-                    
                     list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
-                    
                     for (const a of document.querySelectorAll('.togglePublic')) {
                         const li = a.parentElement
                         const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
