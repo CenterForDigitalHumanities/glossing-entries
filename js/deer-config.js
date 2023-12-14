@@ -184,6 +184,9 @@ export default {
                                 const value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
+                                if(prop === "title" && !value){
+                                    value = "[unlabeled]"
+                                }
                                 li += `${attr}="${value}" `
                                 if(value.includes(filterObj[prop])){
                                     li = li.replace(hide, "")
@@ -414,6 +417,9 @@ export default {
                                 const value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
+                                if(prop === "title" && !value){
+                                    value = "[unlabeled]"
+                                }
                                 li += `${attr}="${value}" `
                                 if(value.includes(filterObj[prop])){
                                     li = li.replace(hide, "")
@@ -639,6 +645,9 @@ export default {
                             const val = deerUtils.getValue(obj[prop])+"" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
+                            if(prop === "title" && !value){
+                                value = "[unlabeled]"
+                            }
                             li.setAttribute(attr, val)
                             if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
                                 action = "remove"
@@ -915,13 +924,16 @@ export default {
                             const val = deerUtils.getValue(obj[prop])+"" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
+                            if(prop === "title" && !value){
+                                value = "[unlabeled]"
+                            }
                             li.setAttribute(attr, val)
                             if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
                                 action = "remove"
                             }
                         }
                     })
-
+                    if(!li.hasAttribute("data-title")) li.setAttribute("data-title", "[ unlabeled ]")
                     if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(glossID, obj)
