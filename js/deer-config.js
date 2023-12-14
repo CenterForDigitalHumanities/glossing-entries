@@ -358,10 +358,6 @@ export default {
                     border: 1px solid black;
                 }
 
-                h2.nomargin{
-                    margin: 0;
-                }
-
             </style>
             <input type="hidden" custom-key="references" />
             <div class="col">
@@ -752,9 +748,8 @@ export default {
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
                     const included = listCache.has(glossHttpID) ? "add" : "remove"
                     a.classList[included ? "remove" : "add"]("is-included")
-                    li.setAttribute("data-public", a.classList.has("is-included"))
                     visibilityBtn.classList[included]("is-included")
-
+                    li.setAttribute("data-public", visibilityBtn.classList.contains("is-included"))
                     async function toggleVisibility(id) {
                         const element = document.querySelector(`a.togglePublic[href='${id}']`)
                         if (element) {
@@ -978,6 +973,14 @@ export default {
                         if(filterInstructions) filterInstructions.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
                         containingListElem.querySelector(".facet-filters").classList.remove("is-hidden")
+                        // containingListElem.querySelectorAll("input[status-filter]").forEach(i => {
+                        //     if(filterObj.hasOwnProperty(i.getAttribute("status-filter"))){
+                        //         if(filterObj[i.getAttribute("status-filter")]==="true"){
+                        //             i.checked = true
+                        //             debounce(i.dispatchEvent(new Event('input', { bubbles: true })))
+                        //         }
+                        //     }       
+                        // })
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be visible and selected / take on the string / etc.
                             i.classList.remove("is-hidden")

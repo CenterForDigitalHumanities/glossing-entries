@@ -1049,35 +1049,37 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
         let tmpl = ` 
         <style>
             .cachedNotice{
-            margin-top: -1em;
-            display: block;
+                margin-top: -1em;
+                display: block;
             }
 
             .cachedNotice a{
-            cursor: pointer;
+                cursor: pointer;
             }
 
             .totalsProgress{
-            text-align: center;
-            background-color: rgba(0, 0, 0, 0.1);
-            padding-top: 4px;
-            font-size: 13pt;
+                text-align: center;
+                background-color: rgba(0, 0, 0, 0.1);
+                padding-top: 4px;
+                font-size: 13pt;
+            }
+            .statusFacets li{
+
             }
         </style>
-        <h2> Glosses </h2>
+        <h2 class="nomargin"> Glosses </h2>
         <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
-        <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText">
         <div class="is-hidden facet-filters">
-            <p> Use the area below to filter Glosses by a specific status. </p
-            <ul class="statusFacets">
-                <li>Public Status</li>
-                <input class="statusFacet" type="checkbox" name="public" /><label>Public</label>
-                <li>Glosses Without Labels</li>
-                <input class="statusFacet" type="checkbox" name="unlabeled" /><label>Untitled</label>
-                <li>Other Status</li>
-                <input class="statusFacet" type="checkbox" name="other" /><label>T.B.D.</label>
-            </ul>
+            <small> 
+                Select to filter Glosses by a specific status. Selected status act like "or" so are added to any existing filter.
+            </small>
+            <div class="statusFacets">
+                <input class="statusFacet" type="checkbox" status-filter="public" /><label>Public</label>
+                <input class="statusFacet" type="checkbox" status-filter="unlabeled" /><label>Untitled</label>
+                <input class="statusFacet" type="checkbox" status-filter="other" /><label>T.B.D.</label>
+            </div>
         </div>
+        <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText">
         <div class="progressArea">
             <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
             <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
@@ -1169,7 +1171,7 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 }
                 const totalsProgress = elem.querySelector(".totalsProgress")
 
-                const filter = elem.querySelector('input')
+                const filter = elem.querySelector('input[filter="title"]')
                 const facetFilter = elem.querySelector(".statusFacets")
                 const facetInputs = elem.querySelectorAll(".statusFacet")
                 const cachedNotice = elem.querySelector(".cachedNotice")
@@ -1187,7 +1189,7 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 // These particular ones are true/false flags, so their value is "true" and "false" not some other string to match on.
                 facetInputs.forEach(input => {
                     input.addEventListener('input', ev =>{
-                        const k = ev?.target.getAttribute("name")
+                        const k = ev?.target.getAttribute("status-filter")
                         const url = new URL(window.location.href)
                         let filterQuery
                         let filters = url.searchParams.get("gog-filter") ? decodeContentState(url.searchParams.get("gog-filter")) : {}
@@ -1216,7 +1218,14 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 if(numloaded === total){
                     cachedNotice.classList.remove("is-hidden")
                     progressArea.classList.add("is-hidden")
+
                     elem.querySelector(".facet-filters").classList.remove("is-hidden")
+                    // elem.querySelectorAll("input[status-filter]").forEach(i => {
+                    //     if(filterObj[i.getAttribute("status-filter")]==="true"){
+                    //         i.checked = true
+                    //         debounce(i.dispatchEvent(new Event('input', { bubbles: true })))
+                    //     }
+                    // })
                     elem.querySelectorAll("input[filter]").forEach(i => {
                         // The filters that are used now need to be selected or take on the string or whatevs
                         i.classList.remove("is-hidden")
@@ -1226,6 +1235,7 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                         }
                         i.dispatchEvent(new Event('input', { bubbles: true }))
                     })
+
                     if(filterPresent){
                         debounce(filterGlosses(elem.$contentState))
                     }
@@ -1264,16 +1274,15 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                         }
                     })
 
-                    const url = new URL(window.location.href)
-                    if(Object.keys(query).length === 1 && query?.title === ""){
-                        url.searchParams.delete("gog-filter")
-                        window.history.replaceState(null, null, url)
-                    }
-                    else{
-                        url.searchParams.set("gog-filter", queryString)
-                        window.history.replaceState(null, null, url)       
-                    }
-                        
+                    // const url = new URL(window.location.href)
+                    // if(Object.keys(query).length === 1 && query?.title === ""){
+                    //     url.searchParams.delete("gog-filter")
+                    //     window.history.replaceState(null, null, url)
+                    // }
+                    // else{
+                    //     url.searchParams.set("gog-filter", queryString)
+                    //     window.history.replaceState(null, null, url)       
+                    // }
                 }
 
                 let url = new URL(elem.getAttribute("deer-listing"))
@@ -1286,7 +1295,7 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                         const li = a.parentElement
                         const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
                         a.classList[include]("is-included")
-                        li.setAttribute("data-public", a.hasAttribute("is-included"))
+                        li.setAttribute("data-public", a.classList.contains("is-included"))
                     }
                 })
                 .then(() => {
