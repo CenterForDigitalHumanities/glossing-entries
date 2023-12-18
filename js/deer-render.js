@@ -1057,6 +1057,10 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 cursor: pointer;
             }
 
+            .galleryEntry{
+                cursor: alias;
+            }
+
             .totalsProgress{
                 text-align: center;
                 background-color: rgba(0, 0, 0, 0.1);
@@ -1071,6 +1075,10 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
             }
             small{
                 display: block;
+            }
+            .button.is-small{
+                font-size: .75em;
+                padding: 0.4rem;
             }
         </style>
         <h2 class="nomargin"> Manage Glosses </h2>
@@ -1117,8 +1125,11 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     // Define buttons outside the if-else scope
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
                     
-                    const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C;</a>`
-                    const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`
+                    const removeBtn = `<input type="button" value="delete" href="${val['@id']}" data-type="${type}" class="removeCollectionItem button is-small" title="Delete This Entry">`
+                    const visibilityBtn = `<input type="button" value="publish" class="togglePublic button is-small" href="${val['@id']}" title="Toggle public visibility"/>`
+                    const moreOptionsBtn = `<input type="button" value="more..." glossid="${val['@id']}" class="glossModalBtn button is-small" title="See detailed modal for this Gloss">`
+
+                    const publishedStatus = `<span glossid="${val['@id']}" class="pubStatus">??</span>`
 
                     if(managedListCache.get(glossID)){
                         const cachedObj = managedListCache.get(glossID)
@@ -1146,11 +1157,10 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                             li += `data-title="[ unlabeled ]" data-unlabeled="true"`
                         }
                         li += `>
-                            ${visibilityBtn}
-                            <a href="${options.link}${val["@id"]}">
+                            ${publishedStatus}
+                            <a class="galleryEntry" glossid="${val["@id"]}">
                                 <span>${UTILS.getLabel(cachedObj) ? UTILS.getLabel(cachedObj) : "Label Unprocessable"}</span>
                             </a>
-                            ${removeBtn}
                         </li>`
                         tmpl += li
                         numloaded++
@@ -1159,11 +1169,10 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                         tmpl += 
                         `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
                             <li>
-                                ${visibilityBtn}
-                                <a href="${options.link}${val["@id"]}">
+                                ${publishedStatus}
+                                <a class="galleryEntry" glossid="${val["@id"]}">
                                     <deer-view deer-id="${val["@id"]}" deer-template="label">Loading Gloss #${index + 1}</deer-view>
                                 </a>
-                                ${removeBtn}
                             </li>
                         </div>`
                     }
@@ -1277,22 +1286,27 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 .then(list => {
                     elem.listCache = new Set()
                     list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
-                    for (const a of document.querySelectorAll('.togglePublic')) {
-                        const li = a.parentElement
-                        const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
-                        a.classList[include]("is-included")
-                        li.setAttribute("data-public", a.classList.contains("is-included"))
+                    for (const span of document.querySelectorAll('.pubStatus')) {
+                        const li = span.parentElement
+                        if(elem.listCache.has(span.getAttribute("glossid"))){
+                            span.innerHTML = "✓"
+                            li.setAttribute("data-public", "true")
+                        }
+                        else{
+                            span.innerHTML = "❌"
+                            li.setAttribute("data-public", "false")
+                        }
                     }
                 })
                 .then(() => {
-                    document.querySelectorAll(".removeCollectionItem").forEach(el => el.addEventListener('click', (ev) => {
+                    elem.querySelectorAll(".removeCollectionItem").forEach(el => el.addEventListener('click', (ev) => {
                         ev.preventDefault()
                         ev.stopPropagation()
                         const itemID = el.getAttribute("href")
                         const itemType = el.getAttribute("data-type")
                         removeFromCollectionAndDelete(itemID, itemType)
                     }))
-                    document.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
+                    elem.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
                         ev.preventDefault()
                         ev.stopPropagation()                       
                         const uri = a.getAttribute("href")
@@ -1301,8 +1315,19 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                         elem.listCache[included ? "delete" : "add"](uri)
                         saveList.style.visibility = "visible"
                     }))
+                    elem.querySelectorAll(".galleryEntry").forEach(el => el.addEventListener('click', (ev) => {
+                        ev.preventDefault()
+                        ev.stopPropagation()
+                        const itemID = el.getAttribute("glossid")
+                        openGlossOptionsModal(itemID)
+                    }))
                     saveList.addEventListener('click', overwriteList)
                 })
+
+                function openGlossOptionsModal(glossID){
+                    const ev = new CustomEvent("Not Ready")
+                    globalFeedbackBlip(ev, `Gloss Management Options Under Construction :(`, false)
+                }
                 
                 function overwriteList() {
                     let mss = []
