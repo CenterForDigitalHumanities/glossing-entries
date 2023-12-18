@@ -1077,8 +1077,13 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 display: block;
             }
             .button.is-small{
-                font-size: .75em;
-                padding: 0.4rem;
+                padding: 0.4em;
+                font-size: 0.95em;
+            }
+            .pubStatus{
+                display: inline-block;
+                width: 20px;
+                text-align: center;
             }
         </style>
         <h2 class="nomargin"> Manage Glosses </h2>
@@ -1101,11 +1106,26 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="serifText">
             </div>
         </div>
-        <div class="progressArea">
-            <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
-            <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
+        <div class="progressArea row">
+            <div class="col">
+                <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
+                <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
+            </div>
         </div>
-        
+        <div class="manageModal container is-hidden">
+            <div class="card">
+                <header>
+                    <h4>Gloss Title</h4>
+                </header>
+                <p>Check below for available statuses and actions for this Gloss.</p>
+                <footer>
+                    <a class="button" href="#">Review</a>
+                    <input type="button" class="button" value="Publish"/>
+                    <input type="button" class="button" value="More..."/>
+                    <input type="button" class="button" value="Delete"/>
+                </footer>
+            </div>
+        </div>
         `
         let managedListCache = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
         let numloaded = 0
@@ -1124,11 +1144,6 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
             deduplicatedList.forEach((val, index) => {
                     // Define buttons outside the if-else scope
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
-                    
-                    const removeBtn = `<input type="button" value="delete" href="${val['@id']}" data-type="${type}" class="removeCollectionItem button is-small" title="Delete This Entry">`
-                    const visibilityBtn = `<input type="button" value="publish" class="togglePublic button is-small" href="${val['@id']}" title="Toggle public visibility"/>`
-                    const moreOptionsBtn = `<input type="button" value="more..." glossid="${val['@id']}" class="glossModalBtn button is-small" title="See detailed modal for this Gloss">`
-
                     const publishedStatus = `<span glossid="${val['@id']}" class="pubStatus">??</span>`
 
                     if(managedListCache.get(glossID)){
@@ -1286,15 +1301,18 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 .then(list => {
                     elem.listCache = new Set()
                     list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
-                    for (const span of document.querySelectorAll('.pubStatus')) {
+                    for (const span of elem.querySelectorAll('.pubStatus')) {
                         const li = span.parentElement
+                        const a = li.querySelector("a")
                         if(elem.listCache.has(span.getAttribute("glossid"))){
                             span.innerHTML = "✓"
                             li.setAttribute("data-public", "true")
+                            a.setAttribute("data-public", "true")
                         }
                         else{
                             span.innerHTML = "❌"
                             li.setAttribute("data-public", "false")
+                            a.setAttribute("data-public", "false")
                         }
                     }
                 })
@@ -1318,22 +1336,37 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     elem.querySelectorAll(".galleryEntry").forEach(el => el.addEventListener('click', (ev) => {
                         ev.preventDefault()
                         ev.stopPropagation()
-                        const itemID = el.getAttribute("glossid")
-                        openGlossOptionsModal(itemID)
+                        openGlossOptionsModal(el)
                     }))
                     saveList.addEventListener('click', overwriteList)
                 })
 
-                function openGlossOptionsModal(glossID){
-                    const ev = new CustomEvent("Not Ready")
-                    globalFeedbackBlip(ev, `Gloss Management Options Under Construction :(`, false)
+                function openGlossOptionsModal(glossElem){
+                    // const ev = new CustomEvent("Not Ready")
+                    // globalFeedbackBlip(ev, `Gloss Management Options Under Construction :(`, false)
+                    // return
+                    //esc to close?
+                    const glossID = glossElem.getAttribute("glossid")
+                    const glossTitle = glossElem.querySelector(`span`).innerText
+                    const published = glossElem.getAttribute("data-public") === "true" ? true : false
+                    const removeBtn = `<input type="button" value="delete" href="${glossID}" data-type="named-gloss" class="removeCollectionItem button is-small" title="Delete This Entry">`
+                    const visibilityBtn = `<input type="button" value="publish" class="togglePublic button is-small" href="${glossID}" title="Toggle public visibility"/>`
+                    const moreOptionsBtn = `<input type="button" value="more..." glossid="${glossID}" class="glossModalBtn button is-small" title="See detailed modal for this Gloss">`
+                    const reviewBtn = `<a class="button is-small" href="ng.html#${glossID}">review</a>`
+                    
+                    const modal = elem.querySelector(".manageModal")
+                    modal.querySelector("a").setAttribute("href", `ng.html#${glossID}`)
+                    modal.querySelector("h4").innerText = glossTitle
+                    modal.querySelector("p").innerText += ""
+                    modal.querySelector("footer").innerHTML = reviewBtn + visibilityBtn + moreOptionsBtn + removeBtn
+                    modal.classList.remove("is-hidden")
                 }
                 
                 function overwriteList() {
                     let mss = []
                     let missing = false
                     elem.listCache.forEach(uri => {
-                        let labelElement = document.querySelector(`li[deer-id='${uri}'] span`) || document.querySelector(`div[deer-id='${uri}'] span`)
+                        let labelElement = document.querySelector(`li[deer-id='${uri}'] span`)
                         if (labelElement) {
                             let label = labelElement.textContent.trim()
                             mss.push({
