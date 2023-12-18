@@ -1063,23 +1063,36 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 padding-top: 4px;
                 font-size: 13pt;
             }
+            .facet-filters{
+                border-bottom: 1px solid black;
+            }
             .statusFacets li{
 
             }
+            small{
+                display: block;
+            }
         </style>
-        <h2 class="nomargin"> Glosses </h2>
+        <h2 class="nomargin"> Manage Glosses </h2>
         <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
-        <div class="is-hidden facet-filters">
-            <small> 
-                Select to filter Glosses by a specific status. Selected status act like "or" so are added to any existing filter.
-            </small>
-            <div class="statusFacets">
-                <input class="statusFacet" type="checkbox" status-filter="public" /><label>Public</label>
-                <input class="statusFacet" type="checkbox" status-filter="unlabeled" /><label>Untitled</label>
-                <input class="statusFacet" type="checkbox" status-filter="other" /><label>T.B.D.</label>
+        <div class="row is-hidden facet-filters">
+            <div class="col-4 is-hidden">
+                <div class="statusFacets">
+                    <small> 
+                        Check to see Glosses with the status.
+                    </small>
+                    <input class="statusFacet" type="checkbox" status-filter="public" /><label>Public</label>
+                    <input class="statusFacet" type="checkbox" status-filter="unlabeled" /><label>Untitled</label>
+                    <input class="statusFacet" type="checkbox" status-filter="other" /><label>T.B.D.</label>
+                </div>
+            </div>
+            <div class="col-12">
+                <small> 
+                    Find Glosses by text
+                </small>
+                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="serifText">
             </div>
         </div>
-        <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText">
         <div class="progressArea">
             <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
             <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
@@ -1261,16 +1274,14 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     items.forEach(li => {
                         const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
                         const elem = templateContainer ?? li
-                        if (!elem.classList.contains("is-hidden")) {
-                            elem.classList.add("is-hidden")
-                        }
+                        let action = "add"
                         for (const prop in query) {
                             if (li.hasAttribute(`data-${prop}`)) {
-                                const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
-                                elem.classList[action](`is-hidden`, `un${action}-item`)
-                                setTimeout(() => elem.classList.remove(`un${action}-item`), 500)
-                                if (action === "remove") break
+                                action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
                             }
+                            elem.classList[action](`is-hidden`, `un${action}-item`)
+                            setTimeout(() => elem.classList.remove(`un${action}-item`), 500)
+                            if (action === "remove") break
                         }
                     })
 
