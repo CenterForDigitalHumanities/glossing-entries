@@ -1104,7 +1104,8 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
         const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
 
         let total = 0
-        const filterPresent = !!UTILS.getURLParameter("gog-filter")
+        // TODO clean this stuff out.  We do not use or support gog-filter on this page.  
+        const filterPresent = false
         const filterObj = filterPresent ? decodeContentState(UTILS.getURLParameter("gog-filter").trim()) : {}
     
         if (options.list) {
@@ -1205,8 +1206,8 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                         const k = ev?.target.getAttribute("status-filter")
                         const url = new URL(window.location.href)
                         let filterQuery
-                        let filters = url.searchParams.get("gog-filter") ? decodeContentState(url.searchParams.get("gog-filter")) : {}
-                        delete filters[k]
+                        let filters = {}
+                        // TODO need the build this filter based on every checked status and typed text to match on.
                         if(ev?.target.checked){
                             filters[k] = "true"
                         }
@@ -1215,7 +1216,8 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                         debounce(filterGlosses(filterQuery))
                     })    
                 })
- 
+                
+                // This is a freeform filter to match on text.  TODO It will need to take the statuses into account.
                 filter.addEventListener('input', ev =>{
                     const val = ev?.target.value.trim()
                     let filterQuery
@@ -1231,27 +1233,10 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 if(numloaded === total){
                     cachedNotice.classList.remove("is-hidden")
                     progressArea.classList.add("is-hidden")
-
                     elem.querySelector(".facet-filters").classList.remove("is-hidden")
-                    // elem.querySelectorAll("input[status-filter]").forEach(i => {
-                    //     if(filterObj[i.getAttribute("status-filter")]==="true"){
-                    //         i.checked = true
-                    //         debounce(i.dispatchEvent(new Event('input', { bubbles: true })))
-                    //     }
-                    // })
                     elem.querySelectorAll("input[filter]").forEach(i => {
-                        // The filters that are used now need to be selected or take on the string or whatevs
                         i.classList.remove("is-hidden")
-                        if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
-                            i.value = filterObj[i.getAttribute("filter")]
-                            i.setAttribute("value", filterObj[i.getAttribute("filter")])
-                        }
-                        i.dispatchEvent(new Event('input', { bubbles: true }))
                     })
-
-                    if(filterPresent){
-                        debounce(filterGlosses(elem.$contentState))
-                    }
                 }
                 function debounce(func, timeout = 500) {
                     let timer
@@ -1284,16 +1269,6 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                             if (action === "remove") break
                         }
                     })
-
-                    // const url = new URL(window.location.href)
-                    // if(Object.keys(query).length === 1 && query?.title === ""){
-                    //     url.searchParams.delete("gog-filter")
-                    //     window.history.replaceState(null, null, url)
-                    // }
-                    // else{
-                    //     url.searchParams.set("gog-filter", queryString)
-                    //     window.history.replaceState(null, null, url)       
-                    // }
                 }
 
                 let url = new URL(elem.getAttribute("deer-listing"))
