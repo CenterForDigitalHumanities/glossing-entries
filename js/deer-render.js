@@ -1051,6 +1051,7 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
             .cachedNotice{
                 margin-top: -1em;
                 display: block;
+                margin-bottom: 0.55em;
             }
 
             .cachedNotice a{
@@ -1084,6 +1085,10 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 display: inline-block;
                 width: 20px;
                 text-align: center;
+                cursor: default;
+            }
+            input[filter="title"]{
+                border: 2px solid var(--color-primary);
             }
         </style>
         <h2 class="nomargin"> Manage Glosses </h2>
@@ -1154,6 +1159,10 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
+                            if(prop === "text"){
+                                const t = cachedObj[prop]?.value?.textValue ?? ""
+                                cachedObj[prop].value = t
+                            }
                             if(typeof UTILS.getValue(cachedObj[prop]) === "string" || typeof UTILS.getValue(cachedObj[prop]) === "number") {
                                 const value = UTILS.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
@@ -1349,10 +1358,11 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     const glossID = glossElem.getAttribute("glossid")
                     const glossTitle = glossElem.querySelector(`span`).innerText
                     const published = glossElem.getAttribute("data-public") === "true" ? true : false
+                    const glossText = glossElem.getAttribute("data-text")
                     const removeBtn = `<input type="button" value="delete" href="${glossID}" data-type="named-gloss" class="removeCollectionItem button is-small" title="Delete This Entry">`
                     const visibilityBtn = `<input type="button" value="publish" class="togglePublic button is-small" href="${glossID}" title="Toggle public visibility"/>`
                     const moreOptionsBtn = `<input type="button" value="more..." glossid="${glossID}" class="glossModalBtn button is-small" title="See detailed modal for this Gloss">`
-                    const reviewBtn = `<a class="button is-small" href="ng.html#${glossID}">review</a>`
+                    const reviewBtn = `<a class="button is-small" href="${options.link}${glossID}">review</a>`
                     
                     const modal = elem.querySelector(".manageModal")
                     modal.querySelector("a").setAttribute("href", `ng.html#${glossID}`)
@@ -1666,7 +1676,7 @@ DEER.TEMPLATES.managedlist_old = function (obj, options = {}) {
                         // This object was not cached so we do not have its properties.
                         
                         tmpl += 
-                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
+                        `<div deer-template="managedFilterableListItem" deer-link="${options.link}" class="${hide} deer-view" deer-id="${val["@id"]}">
                             <li>
                                 ${visibilityBtn}
                                 <a href="${options.link}${val["@id"]}">
