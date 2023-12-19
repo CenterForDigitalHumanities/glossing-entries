@@ -1090,6 +1090,20 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
             input[filter="title"]{
                 border: 2px solid var(--color-primary);
             }
+            .manageModal{
+                position: relative;
+                display: block;
+                top: 15vh;
+                z-index: 2;
+            }
+            .window-shadow{
+                position: fixed;
+                background-color: rgba(0,0,0,0.5);
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+            }
         </style>
         <h2 class="nomargin"> Manage Glosses </h2>
         <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
@@ -1117,18 +1131,23 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
             </div>
         </div>
-        <div class="manageModal container is-hidden">
-            <div class="card">
-                <header>
-                    <h4>Gloss Title</h4>
-                </header>
-                <p>Check below for available statuses and actions for this Gloss.</p>
-                <footer>
-                    <a class="button" href="#">Review</a>
-                    <input type="button" class="button" value="Publish"/>
-                    <input type="button" class="button" value="More..."/>
-                    <input type="button" class="button" value="Delete"/>
-                </footer>
+        <div class="window-shadow is-hidden"> 
+            <div class="manageModal container">
+                <div class="card">
+                    <header>
+                        <h4>Gloss Title</h4>
+                    </header>
+                    <p>Check below for available statuses and actions for this Gloss.</p>
+                    <footer>
+                        <a class="button" href="#">Review</a>
+                        <input type="button" class="button" value="Publish"/>
+                        <input type="button" class="button" value="More..."/>
+                        <input type="button" class="button" value="Delete"/>
+                    </footer>
+                    <div class="is-right">
+                        <input type="button" class="button closeModal" value="Close"/>
+                    </div>
+                </div>
             </div>
         </div>
         `
@@ -1231,6 +1250,10 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 elem.querySelector(".newcache").addEventListener("click", ev => {
                     localStorage.clear()
                     location.reload()
+                })
+
+                elem.querySelector(".closeModal").addEventListener("click", ev => {
+                    ev.target.closest(".window-shadow").classList.add("is-hidden")
                 })
 
                 // These particular ones are true/false flags, so their value is "true" and "false" not some other string to match on.
@@ -1358,7 +1381,7 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     const glossID = glossElem.getAttribute("glossid")
                     const glossTitle = glossElem.querySelector(`span`).innerText
                     const published = glossElem.getAttribute("data-public") === "true" ? true : false
-                    const glossText = glossElem.getAttribute("data-text")
+                    const glossText = glossElem.parentElement?.getAttribute("data-text") ? glossElem.parentElement.getAttribute("data-text") : ""
                     const removeBtn = `<input type="button" value="delete" href="${glossID}" data-type="named-gloss" class="removeCollectionItem button is-small" title="Delete This Entry">`
                     const visibilityBtn = `<input type="button" value="publish" class="togglePublic button is-small" href="${glossID}" title="Toggle public visibility"/>`
                     const moreOptionsBtn = `<input type="button" value="more..." glossid="${glossID}" class="glossModalBtn button is-small" title="See detailed modal for this Gloss">`
@@ -1367,9 +1390,11 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     const modal = elem.querySelector(".manageModal")
                     modal.querySelector("a").setAttribute("href", `ng.html#${glossID}`)
                     modal.querySelector("h4").innerText = glossTitle
-                    modal.querySelector("p").innerText += ""
+                    modal.querySelector("p").innerText = glossText
                     modal.querySelector("footer").innerHTML = reviewBtn + visibilityBtn + moreOptionsBtn + removeBtn
-                    modal.classList.remove("is-hidden")
+
+                    const modalContainer = modal.parentElement
+                    modalContainer.classList.remove("is-hidden")
                 }
                 
                 function overwriteList() {
