@@ -1038,7 +1038,7 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
     }
 }
 
-DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
+DEER.TEMPLATES.managedlist = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses managers.</h4>` }
     try {
         // If the collection doesn't have a name, something has gone wrong.
@@ -1109,10 +1109,8 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
             const deduplicatedList = UTILS.removeDuplicates(obj[options.list], '@id')
             total = deduplicatedList.length                
             deduplicatedList.forEach((val, index) => {
-                    // Define buttons outside the if-else scope
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
                     const publishedStatus = `<span glossid="${val['@id']}" class="pubStatus">??</span>`
-
                     if(managedListCache.get(glossID)){
                         const cachedObj = managedListCache.get(glossID)
                         let filteringProps = Object.keys(cachedObj)

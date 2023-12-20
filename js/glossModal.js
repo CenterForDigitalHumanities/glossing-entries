@@ -1,5 +1,3 @@
-
-
 import { default as utils } from './deer-utils.js'
 
 /**

@@ -716,7 +716,7 @@ export default {
                     const glossID = obj["@id"].replace(/^https?:/, 'https:')
                     const glossHttpID = obj["@id"].replace(/^https?:/, 'http:')
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
-                    let listCache = elem.closest("deer-view[deer-template='managedlist_updated']").listCache
+                    let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
                     const included = listCache.has(glossHttpID)
 
                     const publishedStatus = document.createElement("span")

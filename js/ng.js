@@ -327,12 +327,16 @@ function witnessForGloss(tpen){
     }
 }
 
+
+
 /**
  * An Gloss entity is being deleted.  
  * Delete the Gloss, the Annotations targeting the Gloss, the Witnesses of the Gloss, and the Witnesses' Annotations.
+ * Remove this Gloss from the public list.
+ * Paginate by redirecting to glosses.html.
  * 
- * @param event {Event} A button/link click event
- * @param type {String} The archtype object's type or @type.
+ * @param id {String} The Gloss IRI.
+ * @param thing {String} The archtype object's type or @type.
  */
 async function removeFromCollectionAndDelete(id=glossHashID, thing) {
     const ev = new CustomEvent("Not ready")

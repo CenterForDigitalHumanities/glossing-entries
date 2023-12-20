@@ -1,10 +1,8 @@
-
-
 import { default as deerUtils } from './deer-utils.js'
 
 /**
-  * A focused pop up containing the Gloss deer-form, similar to the form on ng.html.
-  * It can be included on any HTML page.  It fires events for when the DEER form contained within has been saved.
+  * A focused pop up containing Gloss statuses and management options.
+  * Specifically designed for manage-glosses.html
 */
 class ManageGlossModal extends HTMLElement {
     template = `
@@ -72,6 +70,8 @@ class ManageGlossModal extends HTMLElement {
         this.close = () => {
             $this.classList.add("is-hidden")
         }
+
+        // Create the modal dynamically from the chosen glosses data, provided as the parameter here.
         this.open = (glossData) => {
             // TODO esc to close?
             if(!glossData || !glossData["@id"]){
@@ -94,12 +94,14 @@ class ManageGlossModal extends HTMLElement {
             $this.querySelector("p").innerText = glossText
             $this.querySelector("footer").innerHTML = reviewBtn + visibilityBtn + moreOptionsBtn + removeBtn
 
+            // 'Close' functionality
             $this.querySelector(".closeModal").addEventListener('click', ev => {
                 ev.preventDefault()
                 ev.stopPropagation()
                 $this.close()     
             })                 
 
+            // 'delete' functionality
             $this.querySelector(".removeCollectionItem").addEventListener('click', ev => {
                 ev.preventDefault()
                 ev.stopPropagation()
@@ -113,15 +115,16 @@ class ManageGlossModal extends HTMLElement {
                 removeFromCollectionAndDelete(itemID)
             })
 
+            // 'publish' and 'unpublish' functionality
             $this.querySelector(".togglePublic").addEventListener('click', ev => {
                 ev.preventDefault()
                 ev.stopPropagation()                       
                 const uri = ev.target.getAttribute("glossid")
-                let listCache = document.querySelector("deer-view[deer-template='managedlist_updated']")?.listCache
+                let listCache = document.querySelector("deer-view[deer-template='managedlist']")?.listCache
                 const included = listCache.has(uri)
                 const statusElem = document.querySelector(`.pubStatus[glossid="${uri}"]`)
                 const titleStatus = ev.target.closest(".manageModal").querySelector("h4")
-                ev.target.classList[included ? "remove" : "add"]("is-included")
+                //ev.target.classList[included ? "remove" : "add"]("is-included")
                 listCache[included ? "delete" : "add"](uri)
                 if(included){
                     statusElem.innerText = "❌"
@@ -142,6 +145,7 @@ class ManageGlossModal extends HTMLElement {
                 globalFeedbackBlip(shout, `This Gloss is now marked to be ${included ? "removed from" : "added to"} the public list.  Don't forget to submit your changes.`, true)
             })
 
+            // Other functionality, TBD.
             $this.querySelector(".otherModalBtn").addEventListener('click', ev => {
                 ev.preventDefault()
                 ev.stopPropagation()
@@ -157,7 +161,15 @@ class ManageGlossModal extends HTMLElement {
             $this.classList.remove("is-hidden")
         }
 
+        /**
+         * An Gloss entity is being deleted.  
+         * Delete the Gloss, the Annotations targeting the Gloss, the Witnesses of the Gloss, and the Witnesses' Annotations.
+         * Remove this Gloss from the public list.
+         * Paginate the list on screen and remove this entry.
+         * @param id {String} The archtype object's IRI.
+         */
         async function removeFromCollectionAndDelete(id) {
+            // New Gloss data structure requires a new delete function.  It is not ready at this time.
             const ev = new CustomEvent("Not ready")
             globalFeedbackBlip(ev, `Under construction at this time :(`, false)
             return
@@ -240,8 +252,15 @@ class ManageGlossModal extends HTMLElement {
                 const ev = new CustomEvent("RERUM error")
                 globalFeedbackBlip(ev, `There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`, false)
             })
+
+            // TODO Make sure this Gloss is not in the public list.  overwrite the list if necessary.
+
         }
 
+        /**
+         * Delete a Witness (Text) (of a Gloss) and all of the Witness's Annotations.
+         * This occurs when deleting a Gloss.  This must be called for each of its Witnesses. 
+         */ 
         async function deleteWitness(textWitnessID){
             if(!textWitnessID) return
             // No extra clicks while you await.
