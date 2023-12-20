@@ -78,14 +78,14 @@ class ManageGlossModal extends HTMLElement {
                 UTILS.globalFeedbackBlip(ev, `Cannot open management widget.  No gloss data.`, false)
             }
             const glossID = glossData["@id"]
-            const glossTitle = glossData.title
             const published = glossData.published
             const glossText = glossData.text
+            const glossTitle = `${published ? "✓" : "❌"}  ${glossData.title}`
 
-            const removeBtn = `<input type="button" value="delete" glossid="${glossID}" data-type="named-gloss" class="removeCollectionItem button is-small" title="Delete This Entry">`
-            const visibilityBtn = `<input type="button" value="${published ? "unpublish" : "publish"}" class="togglePublic button is-small" glossid="${glossID}" title="Toggle public visibility"/>`
-            const moreOptionsBtn = `<input type="button" value="more..." glossid="${glossID}" class="otherModalBtn button is-small" title="See detailed modal for this Gloss">`
-            const reviewBtn = `<a class="button is-small" href="ng.html#${glossID}">review</a>`
+            const removeBtn = `<input type="button" value="delete" glossid="${glossID}" data-type="named-gloss" class="removeCollectionItem button error is-small" title="Delete This Entry">`
+            const visibilityBtn = `<input type="button" value="${published ? "unpublish" : "publish"}" class="togglePublic button ${published ? "error" : "success"} is-small" glossid="${glossID}" title="Toggle public visibility"/>`
+            const moreOptionsBtn = `<input type="button" value="more..." glossid="${glossID}" class="otherModalBtn button primary is-small" title="See detailed modal for this Gloss">`
+            const reviewBtn = `<a class="button secondary is-small" href="ng.html#${glossID}">review</a>`
 
             $this.querySelector("a").setAttribute("href", `ng.html#${glossID}`)
             $this.querySelector("h4").innerText = glossTitle

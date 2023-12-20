@@ -1292,7 +1292,7 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                         const parentDataElem = ev.target.closest("li")
                         const glossID = parentDataElem.getAttribute("deer-id") ? parentDataElem.getAttribute("deer-id") : ""
                         const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
-                        const published = parentDataElem.getAttribute("data-published") === "true" ? true : false
+                        const published = parentDataElem.getAttribute("data-public") === "true" ? true : false
                         const glossText = parentDataElem.getAttribute("data-text") ? parentDataElem.getAttribute("data-text") : ""
                         const glossData = {
                             "@id": glossID,
