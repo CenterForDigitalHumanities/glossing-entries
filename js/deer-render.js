@@ -1053,7 +1053,6 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 display: block;
                 margin-bottom: 0.55em;
             }
-
             .cachedNotice a{
                 cursor: pointer;
             }
@@ -1061,7 +1060,6 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
             .galleryEntry{
                 cursor: alias;
             }
-
             .totalsProgress{
                 text-align: center;
                 background-color: rgba(0, 0, 0, 0.1);
@@ -1073,36 +1071,6 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
             }
             .statusFacets li{
 
-            }
-            small{
-                display: block;
-            }
-            .button.is-small{
-                padding: 0.4em;
-                font-size: 0.95em;
-            }
-            .pubStatus{
-                display: inline-block;
-                width: 20px;
-                text-align: center;
-                cursor: default;
-            }
-            input[filter="title"]{
-                border: 2px solid var(--color-primary);
-            }
-            .manageModal{
-                position: relative;
-                display: block;
-                top: 15vh;
-                z-index: 2;
-            }
-            .window-shadow{
-                position: fixed;
-                background-color: rgba(0,0,0,0.5);
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
             }
         </style>
         <h2 class="nomargin"> Manage Glosses </h2>
@@ -1131,38 +1099,15 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                 <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
             </div>
         </div>
-        <div class="window-shadow is-hidden"> 
-            <div class="manageModal container">
-                <div class="card">
-                    <header>
-                        <h4>Gloss Title</h4>
-                    </header>
-                    <p>Check below for available statuses and actions for this Gloss.</p>
-                    <footer>
-                        <a class="button" href="#">Review</a>
-                        <input type="button" class="button" value="Publish"/>
-                        <input type="button" class="button" value="More..."/>
-                        <input type="button" class="button" value="Delete"/>
-                    </footer>
-                    <div class="is-right">
-                        <input type="button" class="button closeModal" value="Close"/>
-                    </div>
-                </div>
-            </div>
-        </div>
         `
         let managedListCache = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
         let numloaded = 0
-        const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
-
         let total = 0
-        // TODO clean this stuff out.  We do not use or support gog-filter on this page.  
-        const filterPresent = false
-        const filterObj = filterPresent ? decodeContentState(UTILS.getURLParameter("gog-filter").trim()) : {}
+        const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
+        const filterObj = {}
     
         if (options.list) {
             tmpl += `<ul>`
-            const hide = filterPresent ? "is-hidden" : ""
             const deduplicatedList = UTILS.removeDuplicates(obj[options.list], '@id')
             total = deduplicatedList.length                
             deduplicatedList.forEach((val, index) => {
@@ -1174,7 +1119,7 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                         const cachedObj = managedListCache.get(glossID)
                         let filteringProps = Object.keys(cachedObj)
                         // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
-                        let li = `<li class="${hide}" deer-id="${val["@id"]}" data-expanded="true" `
+                        let li = `<li deer-id="${val["@id"]}" data-expanded="true" `
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
@@ -1191,9 +1136,6 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                                     li += `data-unlabeled="true" `
                                 }
                                 li += `${attr}="${value}" `
-                                if(value.includes(filterObj[prop])){
-                                    li = li.replace(hide, "")
-                                }
                             }
                         })
                         if(!filteringProps.includes("title")) {
@@ -1210,7 +1152,7 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     } else {
                         // This object was not cached so we do not have its properties.
                         tmpl += 
-                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="${hide} deer-view" deer-id="${val["@id"]}">
+                        `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="deer-view" deer-id="${val["@id"]}">
                             <li>
                                 ${publishedStatus}
                                 <a class="galleryEntry" glossid="${val["@id"]}">
@@ -1231,10 +1173,6 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
             html: tmpl,
             then: async elem => {
                 elem.$contentState = ""
-                if (filterPresent) {
-                    elem.querySelector(".filterNotice").classList.remove("is-hidden")
-                    elem.$contentState = UTILS.getURLParameter("gog-filter").trim()
-                }
                 const totalsProgress = elem.querySelector(".totalsProgress")
 
                 const filter = elem.querySelector('input[filter="title"]')
@@ -1252,11 +1190,8 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     location.reload()
                 })
 
-                elem.querySelector(".closeModal").addEventListener("click", ev => {
-                    ev.target.closest(".window-shadow").classList.add("is-hidden")
-                })
-
                 // These particular ones are true/false flags, so their value is "true" and "false" not some other string to match on.
+                // TODO work with other filters.  Will it be $AND or $OR?
                 facetInputs.forEach(input => {
                     input.addEventListener('input', ev =>{
                         const k = ev?.target.getAttribute("status-filter")
@@ -1273,7 +1208,8 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     })    
                 })
                 
-                // This is a freeform filter to match on text.  TODO It will need to take the statuses into account.
+                // This is a freeform filter to match on text.  
+                // TODO It will need to take the statuses into account.  Will it be $AND or $OR?
                 filter.addEventListener('input', ev =>{
                     const val = ev?.target.value.trim()
                     let filterQuery
@@ -1349,54 +1285,25 @@ DEER.TEMPLATES.managedlist_updated = function (obj, options = {}) {
                     }
                 })
                 .then(() => {
-                    elem.querySelectorAll(".removeCollectionItem").forEach(el => el.addEventListener('click', (ev) => {
-                        ev.preventDefault()
-                        ev.stopPropagation()
-                        const itemID = el.getAttribute("href")
-                        const itemType = el.getAttribute("data-type")
-                        removeFromCollectionAndDelete(itemID, itemType)
-                    }))
-                    elem.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
-                        ev.preventDefault()
-                        ev.stopPropagation()                       
-                        const uri = a.getAttribute("href")
-                        const included = elem.listCache.has(uri)
-                        a.classList[included ? "remove" : "add"]("is-included")
-                        elem.listCache[included ? "delete" : "add"](uri)
-                        saveList.style.visibility = "visible"
-                    }))
                     elem.querySelectorAll(".galleryEntry").forEach(el => el.addEventListener('click', (ev) => {
                         ev.preventDefault()
                         ev.stopPropagation()
-                        openGlossOptionsModal(el)
+                        // This <li> will have all the processed data-stuff that we will want to use upstream.
+                        const parentDataElem = ev.target.closest("li")
+                        const glossID = parentDataElem.getAttribute("deer-id") ? parentDataElem.getAttribute("deer-id") : ""
+                        const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
+                        const published = parentDataElem.getAttribute("data-published") === "true" ? true : false
+                        const glossText = parentDataElem.getAttribute("data-text") ? parentDataElem.getAttribute("data-text") : ""
+                        const glossData = {
+                            "@id": glossID,
+                            "title": glossTitle,
+                            "text" : glossText,
+                            "published": published
+                        }
+                        document.querySelector("manage-gloss-modal").open(glossData)
                     }))
-                    saveList.addEventListener('click', overwriteList)
                 })
-
-                function openGlossOptionsModal(glossElem){
-                    // const ev = new CustomEvent("Not Ready")
-                    // globalFeedbackBlip(ev, `Gloss Management Options Under Construction :(`, false)
-                    // return
-                    //esc to close?
-                    const glossID = glossElem.getAttribute("glossid")
-                    const glossTitle = glossElem.querySelector(`span`).innerText
-                    const published = glossElem.getAttribute("data-public") === "true" ? true : false
-                    const glossText = glossElem.parentElement?.getAttribute("data-text") ? glossElem.parentElement.getAttribute("data-text") : ""
-                    const removeBtn = `<input type="button" value="delete" href="${glossID}" data-type="named-gloss" class="removeCollectionItem button is-small" title="Delete This Entry">`
-                    const visibilityBtn = `<input type="button" value="publish" class="togglePublic button is-small" href="${glossID}" title="Toggle public visibility"/>`
-                    const moreOptionsBtn = `<input type="button" value="more..." glossid="${glossID}" class="glossModalBtn button is-small" title="See detailed modal for this Gloss">`
-                    const reviewBtn = `<a class="button is-small" href="${options.link}${glossID}">review</a>`
-                    
-                    const modal = elem.querySelector(".manageModal")
-                    modal.querySelector("a").setAttribute("href", `ng.html#${glossID}`)
-                    modal.querySelector("h4").innerText = glossTitle
-                    modal.querySelector("p").innerText = glossText
-                    modal.querySelector("footer").innerHTML = reviewBtn + visibilityBtn + moreOptionsBtn + removeBtn
-
-                    const modalContainer = modal.parentElement
-                    modalContainer.classList.remove("is-hidden")
-                }
-                
+                                
                 function overwriteList() {
                     let mss = []
                     let missing = false
