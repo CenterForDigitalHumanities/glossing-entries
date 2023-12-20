@@ -18,7 +18,8 @@ class ManageGlossModal extends HTMLElement {
             }
             .pubStatus{
                 display: inline-block;
-                width: 1.5em;
+                position: relative;
+                width: 1.75em;
                 text-align: center;
                 cursor: default;
             }
@@ -100,12 +101,13 @@ class ManageGlossModal extends HTMLElement {
             })                 
 
             $this.querySelector(".removeCollectionItem").addEventListener('click', ev => {
-                addEventListener("globalFeedbackFinished", fin => {
-                    ev.target.closest(".window-shadow").classList.add("is-hidden")
-                    removeEventListener("globalFeedbackFinished")
-                })
                 ev.preventDefault()
                 ev.stopPropagation()
+                const fn = () => {
+                    $this.classList.add("is-hidden")
+                    removeEventListener("globalFeedbackFinished", fn)
+                }
+                addEventListener("globalFeedbackFinished", fn)
                 const itemID = ev.target.getAttribute("glossid")
                 const itemType = ev.target.getAttribute("data-type")
                 removeFromCollectionAndDelete(itemID)
@@ -115,17 +117,25 @@ class ManageGlossModal extends HTMLElement {
                 ev.preventDefault()
                 ev.stopPropagation()                       
                 const uri = ev.target.getAttribute("glossid")
-                const included = elem.listCache.has(uri)
+                let listCache = document.querySelector("deer-view[deer-template='managedlist_updated']")?.listCache
+                const included = listCache.has(uri)
                 const statusElem = document.querySelector(`.pubStatus[glossid="${uri}"]`)
+                const titleStatus = ev.target.closest(".manageModal").querySelector("h4")
                 ev.target.classList[included ? "remove" : "add"]("is-included")
-                elem.listCache[included ? "delete" : "add"](uri)
+                listCache[included ? "delete" : "add"](uri)
                 if(included){
-                    statusElem.innerHTML = "❌"
+                    statusElem.innerText = "❌"
+                    titleStatus.innerText = titleStatus.innerText.replace("✓", "❌")    
                     ev.target.value = "publish"
+                    ev.target.classList.remove("error")
+                    ev.target.classList.add("success")
                 }
                 else{
-                    statusElem.innerHTML = "✓"
+                    statusElem.innerText = "✓"
+                    titleStatus.innerText = titleStatus.innerText.replace("❌", "✓")  
                     ev.target.value = "unpublish"
+                    ev.target.classList.remove("success")
+                    ev.target.classList.add("error")
                 }
                 saveList.removeAttribute("disabled")
                 const shout = new CustomEvent("Gloss Publication Mark")
@@ -133,6 +143,8 @@ class ManageGlossModal extends HTMLElement {
             })
 
             $this.querySelector(".otherModalBtn").addEventListener('click', ev => {
+                ev.preventDefault()
+                ev.stopPropagation()
                 const fn = () => {
                     $this.classList.add("is-hidden")
                     removeEventListener("globalFeedbackFinished", fn)
@@ -144,6 +156,7 @@ class ManageGlossModal extends HTMLElement {
 
             $this.classList.remove("is-hidden")
         }
+
         async function removeFromCollectionAndDelete(id) {
             const ev = new CustomEvent("Not ready")
             globalFeedbackBlip(ev, `Under construction at this time :(`, false)

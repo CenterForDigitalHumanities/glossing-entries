@@ -20,8 +20,9 @@
             <p class="bg-basic"> 
                 The '✓' symbol indicates a Gloss is already public or that it has been chosen to become public.<br>
                 The '❌' symbol indicates a Gloss is not available to the public or that it has been chosen to be removed from the public list.<br>
-                Click any Gloss title to view statuses and management options for that Gloss.<br><br>
-                <button id="saveList" class="button primary" role="button" disabled>Submit Change to Public Glosses</button>
+                Click any Gloss title to view statuses and management options for that Gloss.<br>
+                If the button below is active, you have unsaved changes to the list.  Make sure to save your changes.<br><br>
+                <button id="saveList" class="button primary" role="button" disabled>Submit Change of Public Glosses</button>
             </p>
             <!--     
                 <button id="checkAll" class="button" role="button">Check All</button>
@@ -38,10 +39,7 @@
     <div id="globalFeedback" class="card is-center"></div>
     <manage-gloss-modal class="is-hidden"></manage-gloss-modal>
 
-    <script>
-        // checkAll.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.classList.contains("is-included") ?? a.click()))
-        // checkInvert.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.click()))
-        
+    <script> 
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()
