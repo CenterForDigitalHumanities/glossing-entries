@@ -327,8 +327,6 @@ function witnessForGloss(tpen){
     }
 }
 
-
-
 /**
  * An Gloss entity is being deleted.  
  * Delete the Gloss, the Annotations targeting the Gloss, the Witnesses of the Gloss, and the Witnesses' Annotations.
