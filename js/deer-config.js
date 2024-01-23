@@ -647,8 +647,8 @@ export default {
                             const val = deerUtils.getValue(obj[prop])+"" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
-                            if(prop === "title" && !value){
-                                value = "[ unlabeled ]"
+                            if(prop === "title" && !val){
+                                val = "[ unlabeled ]"
                                 li.setAttribute("data-unlabeled", "true")
                             }
                             li.setAttribute(attr, val)
