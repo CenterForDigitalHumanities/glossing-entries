@@ -507,3 +507,7 @@ input#loadInput {
 .content.container {
   margin-left: -.001em;
 }
+
+.nomargin{
+  margin: 0;
+}

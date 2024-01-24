@@ -10,34 +10,20 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/shared.js"></script>
+    <script src="js/manageGlossModal.js" type="module"></script>
 </head>
 
 <body class="container">
     <gog-header class="container"></gog-header>
-    <h1 class="text-primary"> Managing Glosses </h1>
-    <button id="checkAll" class="button" role="button">Check All</button>
-    <button id="checkInvert" class="button" role="button">Invert Selection</button>
-    <button id="saveList" style="visibility: hidden;" class="button primary" role="button">Save List</button>
     <div class="row">
         <div class="column is-full-width">
             <p class="bg-basic"> 
-                Click the '👁' symbol to toggle public visibility.<br>
-                Click the '❌' symbol to delete a Gloss -- This cannot be undone.<br>
-                Click any title to be taken to the Gloss Detail page for that entry.
+                The '✓' symbol indicates a Gloss is already public or that it has been chosen to become public.<br>
+                The '❌' symbol indicates a Gloss is not available to the public or that it has been chosen to be removed from the public list.<br>
+                Click any Gloss title to view statuses and management options for that Gloss.<br>
+                If the button below is active, you have unsaved changes to the list.  Make sure to save your changes.<br><br>
+                <button id="saveList" class="button primary" role="button" disabled>Submit Change of Public Glosses</button>
             </p>
-
-            <!-- A stub for the future "facet selector" to inform our filtering "state" technique -->
-            <section id="facetFilter" class="is-hidden">
-                <ul>
-                    <li>Type of Resource</li>
-                    <facet data-facet="resource-type" data-label="Manuscript document" data-count="76" class="">Manuscript document</facet>
-                    <facet data-facet="resource-type" data-label="Manuscript book" data-count="31">Manuscript book</facet>
-                    <li>Genre</li>
-                    <facet data-facet="genre" data-label="Legal document" data-count="51" class="">Legal document</facet>
-                    <facet data-facet="genre" data-label="Narrative" data-count="13" class="">Narrative</facet>
-                </ul>
-            </section>
-
             <deer-view class="bg-basic" id="collectionList" deer-listing 
                 deer-collection="GoG-Named-Glosses" deer-template="managedlist" deer-link="ng.html#" >
                 Getting the Gallery of Glosses Gloss Collection&hellip;
@@ -46,10 +32,9 @@
     </div>
     <gog-footer class="container"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
-    <script>
-        checkAll.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.classList.has("is-included") ?? a.click()))
-        checkInvert.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.click()))
-        
+    <manage-gloss-modal class="is-hidden"></manage-gloss-modal>
+
+    <script> 
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()

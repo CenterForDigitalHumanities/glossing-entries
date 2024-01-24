@@ -184,13 +184,19 @@ export default {
                                 const value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
+                                if(prop === "title" && !value){
+                                    value = "[ unlabeled ]"
+                                    li += `data-unlabeled="true" `
+                                }
                                 li += `${attr}="${value}" `
                                 if(value.includes(filterObj[prop])){
                                     li = li.replace(hide, "")
                                 }
                             }
                         })
-                        if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
+                        if(!filteringProps.includes("title")) {
+                            li += `data-title="[ unlabeled ]" data-unlabeled="true" `
+                        }
                         li += `>
                             <a href="${options.link}${glossID}">
                                 <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
@@ -352,10 +358,6 @@ export default {
                     border: 1px solid black;
                 }
 
-                h2.nomargin{
-                    margin: 0;
-                }
-
             </style>
             <input type="hidden" custom-key="references" />
             <div class="col">
@@ -414,13 +416,19 @@ export default {
                                 const value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
+                                if(prop === "title" && !value){
+                                    value = "[ unlabeled ]"
+                                    li += `data-unlabeled="true" `
+                                }
                                 li += `${attr}="${value}" `
                                 if(value.includes(filterObj[prop])){
                                     li = li.replace(hide, "")
                                 }
                             }
                         })
-                        if(!filteringProps.includes("title")) li += `data-title="[ unlabeled ]"`
+                        if(!filteringProps.includes("title")) {
+                            li += `data-title="[ unlabeled ]" data-unlabeled="true" `
+                        }
                         li += `>
                             ${inclusionBtn}
                             <a target="_blank" href="${options.link}${glossID}">
@@ -636,9 +644,13 @@ export default {
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                         if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
-                            const val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
+                            if(prop === "title" && !val){
+                                val = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
+                            }
                             li.setAttribute(attr, val)
                             if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
                                 action = "remove"
@@ -646,7 +658,10 @@ export default {
                         }
                     })
 
-                    if(!li.hasAttribute("data-title")) li.setAttribute("data-title", "[ unlabeled ]")
+                    if(!li.hasAttribute("data-title")) {
+                        li.setAttribute("data-title", "[ unlabeled ]")
+                        li.setAttribute("data-unlabeled", "true")
+                    }
 
                     if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
@@ -698,246 +713,79 @@ export default {
                 then: (elem) => {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view")
-                    let filteringProps = Object.keys(obj)
-                    let li = document.createElement("li")
-                    let a = document.createElement("a")
-                    let span = document.createElement("span")
-                    
                     const glossID = obj["@id"].replace(/^https?:/, 'https:')
                     const glossHttpID = obj["@id"].replace(/^https?:/, 'http:')
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
-
-                    // Create the remove button
-                    let removeBtn = document.createElement("a")
-                    removeBtn.setAttribute("href", glossHttpID)
-                    removeBtn.setAttribute("data-type", type)
-                    removeBtn.className = "removeCollectionItem"
-                    removeBtn.title = "Delete This Entry"
-                    removeBtn.innerHTML = " &#x274C;"
-                    removeBtn.addEventListener('click', function(event) {
-                        event.preventDefault()
-                        removeFromCollectionAndDelete(glossHttpID, type)
-                    })
-
-                    // Create the visibility button
-                    let visibilityBtn = document.createElement("a")
-                    visibilityBtn.className = "togglePublic"
-                    visibilityBtn.setAttribute("href", glossHttpID)
-                    visibilityBtn.title = "Toggle public visibility"
-                    visibilityBtn.innerHTML = " 👁 "
-                    visibilityBtn.addEventListener('click', function(event) {
-                        event.preventDefault()
-                        toggleVisibility(glossHttpID)
-                    })
-
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
-                    const included = listCache.has(glossHttpID) ? "add" : "remove"
-                    a.classList[included ? "remove" : "add"]("is-included")
-                    visibilityBtn.classList[included]("is-included")
+                    const included = listCache.has(glossHttpID)
 
-                    async function toggleVisibility(id) {
-                        const element = document.querySelector(`a.togglePublic[href='${id}']`)
-                        if (element) {
-                            element.classList.toggle("is-included")
-                            
-                            const isIncluded = element.classList.contains("is-included")
-                    
-                            const saveList = document.getElementById("saveList")
-                            if (saveList) {
-                                saveList.style.visibility = "visible"
-                            }
-                            
-                            if (isIncluded) {
-                                listCache.add(id)
-                            } else {
-                                listCache.delete(id)
-                            }
+                    const publishedStatus = document.createElement("span")
+                    publishedStatus.setAttribute("glossid", glossID)
+                    publishedStatus.classList.add("pubStatus")
+                    publishedStatus.innerText = included ? "✓" : "❌"
+                    let filteringProps = Object.keys(obj)
+                    let li = document.createElement("li")
+                    li.setAttribute("data-public", included ? "true" : "false" )
+                    let a = document.createElement("a")
+                    a.classList.add("galleryEntry")
+                    a.setAttribute("glossid", glossID)
+                    a.setAttribute("data-public", included ? "true" : "false" )
+                    a.addEventListener('click', (ev) => {
+                        ev.preventDefault()
+                        ev.stopPropagation()
+                        // This <li> will have all the processed data-stuff that we will want to use upstream.
+                        const parentDataElem = ev.target.closest("li")
+                        const glossID = parentDataElem.getAttribute("data-id") ? parentDataElem.getAttribute("data-id") : ""
+                        const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
+                        const published = parentDataElem.getAttribute("data-public") === "true" ? true : false
+                        const glossText = parentDataElem.getAttribute("data-text") ? parentDataElem.getAttribute("data-text") : ""
+                        const glossData = {
+                            "@id": glossID,
+                            "title": glossTitle,
+                            "text" : glossText,
+                            "published": published
                         }
+                        document.querySelector("manage-gloss-modal").open(glossData)
+                    })
 
-                    }
-
-                    async function removeFromCollectionAndDelete(id, type) {
-                        // This won't do 
-                        if(!id){
-                            alert(`No URI supplied for delete.  Cannot delete.`)
-                            return
-                        }
-                        const thing = 
-                            (type === "manuscript") ? "Manuscript" :
-                            (type === "named-gloss") ? "Gloss" :
-                            (type === "Range") ? "Gloss" : null
-    
-    
-                        // If it is an unexpected type, we probably shouldn't go through with the delete.
-                        if(thing === null){
-                            alert(`Not sure what a ${type} is.  Cannot delete.`)
-                            return
-                        }
-    
-                        // Confirm they want to do this
-                        if (!confirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
-    
-                        const historyWildcard = { "$exists": true, "$size": 0 }
-    
-                        /**
-                         * A customized delete functionality for manuscripts, since they have Annotations and Glosses.
-                         */ 
-                        if(type==="manuscript"){
-                            // Such as ' [ Pn ] Paris, BnF, lat. 17233 ''
-    
-                            const allGlossesOfManuscriptQueryObj = {
-                                "body.partOf.value": UTILS.httpsIdArray(id),
-                                "__rerum.generatedBy" : UTILS.httpsIdArray(DEER.GENERATOR),
-                                "__rerum.history.next" : historyWildcard
-                            }
-                            const allGlossIds = await UTILS.getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
-                            .then(annos => annos.map(anno => anno.target))
-                            .catch(err => {
-                                alert("Could not gather Glosses to delete.")
-                                console.log(err)
-                                return null
-                            })
-                            // This is bad enough to stop here, we will not continue on towards deleting the entity.
-                            if(allGlossIds === null) {return}
-    
-                            const allGlosses = allGlossIds.map(glossUri => {
-                                return fetch(config.URLS.DELETE, {
-                                    method: "DELETE",
-                                    body: JSON.stringify({"@id":glossUri.replace(/^https?:/,'https:')}),
-                                    headers: {
-                                        "Content-Type": "application/json; charset=utf-8",
-                                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                                    }
-                                })
-                                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                                .catch(err => { 
-                                    console.warn(`There was an issue removing a connected Gloss: ${glossUri}`)
-                                    console.log(err)
-                                    const ev = new CustomEvent("RERUM error")
-                                    globalFeedbackBlip(ev, `There was an issue removing a connected Gloss: ${glossUri}`, false)
-                                })
-                            })
-                            // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
-                            await Promise.all(allGlosses).then(success => {
-                                console.log("Connected Glosses successfully removed.")
-                            })
-                            .catch(err => {
-                                // OK they may be orphaned.  We will continue on towards deleting the entity.
-                                console.warn(`There was an issue removing Connected Glosses`)
-                                console.log(err)
-                                const ev = new CustomEvent("RERUM error")
-                                globalFeedbackBlip(ev, 'There was an issue removing Connected Glosses.', false)
-                            })
-                        }
-    
-                        // Get all Annotations throughout history targeting this object that were generated by this application.
-                        const allAnnotationsTargetingEntityQueryObj = {
-                            target: UTILS.httpsIdArray(id),
-                            "__rerum.generatedBy" : UTILS.httpsIdArray(DEER.GENERATOR)
-                        }
-                        const allAnnotationIds = await UTILS.getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
-                        .then(annos => annos.map(anno => anno["@id"]))
-                        .catch(err => {
-                            alert("Could not gather Annotations to delete.")
-                            console.log(err)
-                            return null
-                        })
-                        // This is bad enough to stop here, we will not continue on towards deleting the entity.
-                        if(allAnnotationIds === null) return
-    
-                        const allAnnotations = allAnnotationIds.map(annoUri => {
-                            return fetch(config.URLS.DELETE, {
-                                method: "DELETE",
-                                body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
-                                headers: {
-                                    "Content-Type": "application/json; charset=utf-8",
-                                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                                }
-                            })
-                            .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                            .catch(err => { 
-                                console.warn(`There was an issue removing an Annotation: ${annoUri}`)
-                                console.log(err)
-                                const ev = new CustomEvent("RERUM error")
-                                globalFeedbackBlip(ev, `There was an issue removing an Annotation: ${annoUri}`, false)
-                            })
-                        })
-                        
-                        // In this case, we don't have to wait on these.  We can run this and the entity delete syncronously.
-                        Promise.all(allAnnotations).then(success => {
-                            console.log("Connected Annotations successfully removed.")
-                        })
-                        .catch(err => {
-                            // OK they may be orphaned.  We will continue on towards deleting the entity.
-                            console.warn("There was an issue removing connected Annotations.")
-                            console.log(err)
-                        })
-    
-                        // Now the entity itself
-                        fetch(config.URLS.DELETE, {
-                            method: "DELETE",
-                            body: JSON.stringify({"@id":id}),
-                            headers: {
-                                "Content-Type": "application/json; charset=utf-8",
-                                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                            }
-                        })
-                        .then(r => {
-                            if(r.ok){
-                                document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
-                            }
-                            else{
-                                return Promise.reject(Error(r.text))
-                            }
-                        })
-                        .catch(err => { 
-                            alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
-                            console.log(err)
-                            const ev = new CustomEvent("RERUM error")
-                            globalFeedbackBlip(ev, `There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`, false)
-                        })
-                    }
-
-                    const createScenario = elem.hasAttribute("create-scenario")
-                    const updateScenario = elem.hasAttribute("update-scenario")   
-                    const increaseTotal = ((createScenario || updateScenario))
-                    const filterPresent = containingListElem.$contentState
-                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
-                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
-                    a.setAttribute("href", options.link + glossHttpID)
-                    a.setAttribute("target", "_blank")
+                    let label = document.createElement("span")
+                    label.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
 
                     // Turn each property into an attribute for the <li> element
-                    let action = "add"
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                        if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
-                            const val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                        if(prop === "text"){
+                            const t = obj[prop]?.value?.textValue ?? ""
+                            li.setAttribute("data-text", t) 
+                        }
+                        else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
-                            li.setAttribute(attr, val)
-                            if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
-                                action = "remove"
+                            if(prop === "title" && !val){
+                                val = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
                             }
+                            li.setAttribute(attr, val)
                         }
                     })
-
-                    if(filterPresent) elem.classList[action]("is-hidden")
+                    if(!filteringProps.includes("title")) {
+                        li.setAttribute("data-title", "[ unlabeled ]")
+                        li.setAttribute("data-unlabeled", "true")
+                    }
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(glossID, obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
-                    a.appendChild(span)
-                    li.appendChild(visibilityBtn)
+                    a.appendChild(label)
+                    li.appendChild(publishedStatus)
                     li.appendChild(a)
-                    li.appendChild(removeBtn)
                     elem.appendChild(li)
 
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
                     let total = parseInt(totalsProgress.getAttribute("total"))
-                    if(increaseTotal) total++
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
                     const modalBtn = containingListElem.querySelector("gloss-modal-button")
@@ -953,6 +801,15 @@ export default {
                         if(modalBtn) modalBtn.classList.remove("is-hidden")
                         if(filterInstructions) filterInstructions.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
+                        containingListElem.querySelector(".facet-filters").classList.remove("is-hidden")
+                        // containingListElem.querySelectorAll("input[status-filter]").forEach(i => {
+                        //     if(filterObj.hasOwnProperty(i.getAttribute("status-filter"))){
+                        //         if(filterObj[i.getAttribute("status-filter")]==="true"){
+                        //             i.checked = true
+                        //             debounce(i.dispatchEvent(new Event('input', { bubbles: true })))
+                        //         }
+                        //     }       
+                        // })
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be visible and selected / take on the string / etc.
                             i.classList.remove("is-hidden")
