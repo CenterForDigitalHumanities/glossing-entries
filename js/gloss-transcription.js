@@ -3,7 +3,12 @@ let tpenProjectURI = textWitnessID ? false : getURLParameter("tpen-project") ? d
 let referencedGlossID = null
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("tpen-lines-error", function(event){
-    document.querySelector(".tpenProjectLines").innerHTML = `<b class="text-error"> Could not get T-PEN project ${tpenProjectURI} </b>`
+    const ev = new CustomEvent("TPEN Lines Error")
+    look.classList.add("text-error")
+    look.innerText=`Could not get T-PEN project ${tpenProjectURI}`
+    witnessForm.remove()
+    loading.classList.add("is-hidden")
+    globalFeedbackBlip(ev, `Error loading TPEN project '${tpenProjectURI}'`, false)
 })
 
 // Make the text in the Gloss modal form the same as the one in the Witness form
@@ -13,6 +18,21 @@ document.addEventListener("gloss-modal-visible", function(event){
     glossTextElem.value = text
     glossTextElem.setAttribute("value", text)
     glossTextElem.dispatchEvent(new Event('input', { bubbles: true }))
+})
+
+/**
+ * The DEER announcement for when there is an error expanding for a URI.
+ * Note there is more information in event.detail.error
+ * Note the troublesome URI is in event.detail.uri
+ */ 
+addEventListener('expandError', event => {
+    const uri = event.detail.uri
+    const ev = new CustomEvent("Transcription Witness Details Error")
+    look.classList.add("text-error")
+    look.innerText = "Could not get Transcription Witness information."
+    witnessForm.remove()
+    loading.classList.add("is-hidden")
+    globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
 
 /**
@@ -151,7 +171,7 @@ function setWitnessFormDefaults(){
         t.removeAttribute("deer-source")
     })
     // For when we test
-    form.querySelector("input[deer-key='creator']").value = "BryanManageGlosses"
+    //form.querySelector("input[deer-key='creator']").value = "BryanManageGlosses"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""

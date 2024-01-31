@@ -181,7 +181,7 @@ export default {
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                             if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
-                                const value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
+                                let value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
                                 if(prop === "title" && !value){
@@ -413,7 +413,7 @@ export default {
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                             if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
-                                const value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
+                                let value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
                                 if(prop === "title" && !value){

@@ -5,13 +5,22 @@ const glossHashID = window.location.hash.substring(1)
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
  */ 
 window.onload = () => {
-    const hash = window.location.hash.substring(1)
+    let hash = window.location.hash
+    if(hash.startsWith("#")){
+        hash = window.location.hash.substring(1)
+        if(!(hash.startsWith("http:") || hash.startsWith("https:"))){
+            // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+            let e = new CustomEvent("expandError", { detail: {"uri":hash}, bubbles:true})
+            document.dispatchEvent(e)
+            return
+        }
+    }
+    
     const glossForm = document.getElementById("named-gloss")
     if(hash) {
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
         document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
-        
     }
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText
@@ -171,6 +180,21 @@ addEventListener('deer-updated', event => {
             console.error(err)
         })
     }
+})
+
+/**
+ * The DEER announcement for when there is an error expanding for a URI.
+ * Note there is more information in event.detail.error
+ * Note the troublesome URI is in event.detail.uri
+ */ 
+addEventListener('expandError', event => {
+    const uri = event.detail.uri
+    const ev = new CustomEvent("Gloss Details Error")
+    document.getElementById("named-gloss").classList.add("is-hidden")
+    look.classList.add("text-error")
+    look.innerText = "Could not get Witness information."
+    document.querySelector(".addWitnessDiv").classList.add("is-hidden")
+    globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
 
 /**
