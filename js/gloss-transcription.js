@@ -3,7 +3,9 @@ let tpenProjectURI = textWitnessID ? false : getURLParameter("tpen-project") ? d
 let referencedGlossID = null
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("tpen-lines-error", function(event){
-    document.querySelector(".tpenProjectLines").innerHTML = `<b class="text-error"> Could not get T-PEN project ${tpenProjectURI} </b>`
+    witnessForm.classList.add("is-hideen")
+    document.getElementById("look").classList.add("text-error")
+    document.getElementById("look").innerText=`Could not get T-PEN project ${tpenProjectURI}`
 })
 
 // Make the text in the Gloss modal form the same as the one in the Witness form
