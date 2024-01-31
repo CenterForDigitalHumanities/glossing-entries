@@ -183,8 +183,8 @@ addEventListener('expandError', event => {
     console.log(`EXPAND ERROR ON '${uri}'`)
     const ev = new CustomEvent("Gloss Details Error")
     document.getElementById("named-gloss").classList.add("is-hidden")
-    document.getElementById("look").classList.add("text-error")
-    document.getElementById("look").innerText = "Could not get Witness information."
+    look.classList.add("text-error")
+    look.innerText = "Could not get Witness information."
     document.querySelector(".addWitnessDiv").classList.add("is-hidden")
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
