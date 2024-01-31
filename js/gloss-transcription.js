@@ -27,10 +27,9 @@ document.addEventListener("gloss-modal-visible", function(event){
  */ 
 addEventListener('expandError', event => {
     const uri = event.detail.uri
-    console.log(`EXPAND ERROR ON '${uri}'`)
-    const ev = new CustomEvent("Gloss Details Error")
+    const ev = new CustomEvent("Transcription Witness Details Error")
     look.classList.add("text-error")
-    look.innerText = "Could not get Gloss information."
+    look.innerText = "Could not get Transcription Witness information."
     witnessForm.remove()
     loading.classList.add("is-hidden")
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)

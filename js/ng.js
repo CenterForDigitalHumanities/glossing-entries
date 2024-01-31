@@ -180,7 +180,6 @@ addEventListener('deer-updated', event => {
  */ 
 addEventListener('expandError', event => {
     const uri = event.detail.uri
-    console.log(`EXPAND ERROR ON '${uri}'`)
     const ev = new CustomEvent("Gloss Details Error")
     document.getElementById("named-gloss").classList.add("is-hidden")
     look.classList.add("text-error")
