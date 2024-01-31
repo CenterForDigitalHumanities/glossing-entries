@@ -174,6 +174,22 @@ addEventListener('deer-updated', event => {
 })
 
 /**
+ * The DEER announcement for when there is an error expanding for a URI.
+ * Note there is more information in event.detail.error
+ * Note the troublesome URI is in event.detail.uri
+ */ 
+addEventListener('expandError', event => {
+    const uri = event.detail.uri
+    console.log(`EXPAND ERROR ON '${uri}'`)
+    const ev = new CustomEvent("Gloss Details Error")
+    document.getElementById("named-gloss").classList.add("is-hidden")
+    document.getElementById("look").classList.add("text-error")
+    document.getElementById("look").innerText = "Could not get Witness information."
+    document.querySelector(".addWitnessDiv").classList.add("is-hidden")
+    globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
+})
+
+/**
  * Take the value of the canonical reference locator and parse its pieces to populate
  * _document, _section, and _subsection.  Note that this does not affect the $isDirty state
  * or the value of the canonicalReference input.

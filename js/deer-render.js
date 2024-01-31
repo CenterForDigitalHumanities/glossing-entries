@@ -1124,7 +1124,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                                 cachedObj[prop].value = t
                             }
                             if(typeof UTILS.getValue(cachedObj[prop]) === "string" || typeof UTILS.getValue(cachedObj[prop]) === "number") {
-                                const value = UTILS.getValue(cachedObj[prop])+"" //typecast to a string
+                                let value = UTILS.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
                                 if(prop === "title" && !value){

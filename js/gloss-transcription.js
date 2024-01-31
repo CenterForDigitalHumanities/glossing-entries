@@ -16,6 +16,20 @@ document.addEventListener("gloss-modal-visible", function(event){
 })
 
 /**
+ * The DEER announcement for when there is an error expanding for a URI.
+ * Note there is more information in event.detail.error
+ * Note the troublesome URI is in event.detail.uri
+ */ 
+addEventListener('expandError', event => {
+    const uri = event.detail.uri
+    console.log(`EXPAND ERROR ON '${uri}'`)
+    const ev = new CustomEvent("Gloss Details Error")
+    document.getElementById("look").classList.add("text-error")
+    document.getElementById("look").innerText = "Could not get Gloss information."
+    globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
+})
+
+/**
  * Attach all the event handlers to the custom key areas.
  * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
  * Set fixed value fields and make those inputs dirty.
