@@ -9,7 +9,7 @@ window.onload = () => {
     if(hash.startsWith("#")){
         hash = window.location.hash.substring(1)
         if(!(hash.startsWith("http:") || hash.startsWith("https:"))){
-            // DEER will not even attempt to expand this.  We need to mock the expand error.
+            // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
             let e = new CustomEvent("expandError", { detail: {"uri":hash}, bubbles:true})
             document.dispatchEvent(e)
             return
