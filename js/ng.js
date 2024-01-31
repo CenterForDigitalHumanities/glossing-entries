@@ -336,7 +336,7 @@ function witnessForGloss(tpen){
  * @param id {String} The Gloss IRI.
  * @param thing {String} The archtype object's type or @type.
  */
-async function removeFromCollectionAndDelete(id=glossHashID, thing) {
+async function removeFromCollectionAndDelete(id=glossHashID) {
     const ev = new CustomEvent("Not ready")
     globalFeedbackBlip(ev, `Under construction at this time :(`, false)
     return
