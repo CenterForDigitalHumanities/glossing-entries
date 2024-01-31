@@ -5,13 +5,22 @@ const glossHashID = window.location.hash.substring(1)
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
  */ 
 window.onload = () => {
-    const hash = window.location.hash.substring(1)
+    let hash = window.location.hash
+    if(hash.startsWith("#")){
+        hash = window.location.hash.substring(1)
+        if(!(hash.startsWith("http:") || hash.startsWith("https:"))){
+            // DEER will not even attempt to expand this.  We need to mock the expand error.
+            let e = new CustomEvent("expandError", { detail: {"uri":hash}, bubbles:true})
+            document.dispatchEvent(e)
+            return
+        }
+    }
+    
     const glossForm = document.getElementById("named-gloss")
     if(hash) {
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
         document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
-        
     }
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText
