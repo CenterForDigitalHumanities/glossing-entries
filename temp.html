@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Gallery of Glosses - Glosses</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/gloss.css">
+    <script src="js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/layout.js" type="module"></script>
+    <script src="js/shared.js"></script>
+    <script src="js/temp.js" type="module"></script>
+
+    <!-- Main Quill library -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
+
+    <!-- Theme included stylesheets -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <link href="https://cdn.quilljs.com/1.3.6/quill.core.css" rel="stylesheet">
+
+</head>
+
+<body class="container">
+    <gog-header class="container"></gog-header>
+
+    <!-- bibliographicCitation Form -->
+    <form id="bibliographicCitationForm" deer-type="BibliographicResource" deer-context="http://purl.org/dc/terms">
+        <div class="row">
+            <label for="bibliographicCitation" class="col-12 text-left">Bibliographic Citation: &#10082;</label>
+            
+        </div>
+        <div class="row">
+            <div id="bibliographicCitationEditor" class="col-12 required"></div>
+        </div>
+
+        
+        <div class="row">
+            <input type="hidden" deer-key="reference" id="documentReference" value="URL or URI of the referenced document">
+            <input class="button primary" type="submit" value="Submit Citation"/>
+        </div>
+        
+    </form>
+
+    <gog-footer class="container"></gog-footer>
+    <div id="globalFeedback" class="card is-center"></div>
+    <manage-gloss-modal class="is-hidden"></manage-gloss-modal>
+
+    <script> 
+        document.getElementById('bibliographicCitationForm').onsubmit = function() {
+
+        var htmlContent = quill.root.innerHTML
+        console.log(htmlContent)
+        // TODO: Validate and process the form data
+
+        // Prevent the form from submitting normally
+        return false
+        }
+    </script>
+</body>
+
+</html>

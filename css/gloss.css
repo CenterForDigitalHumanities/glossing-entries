@@ -486,7 +486,8 @@ line.selected.just {
   margin-bottom: 1em;
 }
 
-form#ngForm
+form#ngForm,
+form#bibliographicCitationForm
 {
   margin: 0.7em;
   margin-left: auto;
