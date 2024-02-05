@@ -755,8 +755,13 @@ export default {
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                         if(prop === "text"){
-                            const t = obj[prop]?.value?.textValue ?? ""
-                            li.setAttribute("data-text", t) 
+                            let t = obj[prop]
+                            if (typeof t === "object") {
+                                t = JSON.stringify(t)
+                            } else {
+                                t = t?.value?.t ?? ""
+                            }
+                            li.setAttribute("data-text", t)
                         }
                         else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
                             let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
