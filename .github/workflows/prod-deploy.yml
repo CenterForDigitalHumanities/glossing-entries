@@ -1,0 +1,25 @@
+name: Build and Deploy with Properties File Rename
+
+on:
+    push:
+        branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    concurrency: ci-${{ github.ref }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout ️
+        uses: actions/checkout@v3
+
+      - name: Rename prod-properties.json to properties.json
+        run: mv prod-properties.json properties.json
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: .
