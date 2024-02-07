@@ -1,4 +1,4 @@
-name: Build and Deploy with Properties File Rename
+name: Prod deployment
 
 on:
     push:
