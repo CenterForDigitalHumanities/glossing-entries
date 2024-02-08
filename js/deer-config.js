@@ -754,6 +754,7 @@ export default {
                         if(prop === "text"){
                             const t = cachedObj[prop]?.value?.textValue ?? ""
                             cachedObj[prop].value = t
+                            li.setAttribute("data-text", t)
                         }
                         if(typeof UTILS.getValue(cachedObj[prop]) === "string" || typeof UTILS.getValue(cachedObj[prop]) === "number") {
                             let value = UTILS.getValue(cachedObj[prop])+"" //typecast to a string
