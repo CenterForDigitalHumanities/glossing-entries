@@ -643,15 +643,9 @@ export default {
                     // Turn each property into an attribute for the <li> element
                     let action = "add"
                     filteringProps.forEach( (prop) => {
-                        if (prop === "text") {
-                            const textString = obj[prop]?.value?.textValue ?? ""
-                            obj[prop].value = textString
-                            prop = "data-text"
-                            li.setAttribute(prop, textString);
-                        }
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                        if (typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
-                            let val = deerUtils.getValue(obj[prop])+""; // typecast to a string
+                        if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
                             if(prop === "title" && !val){
@@ -763,9 +757,9 @@ export default {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                         if(prop === "text"){
                             const t = obj[prop]?.value?.textValue ?? ""
-                            li.setAttribute("data-text", t)
+                            li.setAttribute("data-text", t) 
                         }
-                        else if (typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                        else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
                             let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
