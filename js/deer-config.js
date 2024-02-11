@@ -178,9 +178,12 @@ export default {
                         let li = `<li class="${hide}" deer-id="${glossID}" data-expanded="true" `
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
-                            let value = typeof deerUtils.getValue(cachedObj[prop]) === 'object' ?
-                                JSON.stringify(deerUtils.getValue(cachedObj[prop])) :
-                                deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
+                            let value = ['string', 'number'].includes(typeof deerUtils.getValue(cachedObj[prop])) ?
+                                deerUtils.getValue(cachedObj[prop])+"" : //typecast to a string
+                                typeof deerUtils.getValue(cachedObj[prop]) === 'object' && 'textValue' in deerUtils.getValue(cachedObj[prop]) ?
+                                deerUtils.getValue(cachedObj[prop])['textValue'] :
+                                ''
+                            console.log(deerUtils.getValue(cachedObj[prop]))
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
                             if(prop === "title" && !value){
@@ -410,8 +413,7 @@ export default {
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                            if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number" ||
-                            (typeof deerUtils.getValue(cachedObj[prop]) === "object" && 'format' in deerUtils.getValue(cachedObj[prop]) && deerUtils.getValue(cachedObj[prop])['format'] === 'text/plain')) {
+                            if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
                                 let value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
