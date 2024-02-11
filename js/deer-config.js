@@ -156,7 +156,7 @@ export default {
                 <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                 <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
             </div>`
-
+            
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
