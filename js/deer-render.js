@@ -67,6 +67,7 @@ RENDER.element = function (elem, obj) {
 
     return UTILS.expand(obj).then(obj => {
         let tmplName = elem.getAttribute(DEER.TEMPLATE) ?? (elem.getAttribute(DEER.COLLECTION) ? "list" : "json")
+        console.log(tmplName)
         let template = DEER.TEMPLATES[tmplName] ?? DEER.TEMPLATES.json
         let options = {
             list: elem.getAttribute(DEER.LIST),
@@ -1251,6 +1252,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         for (const prop in query) {
                             if (li.hasAttribute(`data-${prop}`)) {
                                 action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
+                                console.log(li.getAttribute(`data-${prop}`))
                             }
                             elem.classList[action](`is-hidden`, `un${action}-item`)
                             setTimeout(() => elem.classList.remove(`un${action}-item`), 500)

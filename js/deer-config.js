@@ -156,7 +156,6 @@ export default {
                 <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                 <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
             </div>`
-            
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
@@ -179,23 +178,22 @@ export default {
                         let li = `<li class="${hide}" deer-id="${glossID}" data-expanded="true" `
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
-                            // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                            if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
-                                let value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
-                                prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
-                                const attr = `data-${prop}`
-                                if(prop === "title" && !value){
-                                    value = "[ unlabeled ]"
-                                    li += `data-unlabeled="true" `
-                                }
-                                li += `${attr}="${value}" `
-                                if(value.includes(filterObj[prop])){
-                                    li = li.replace(hide, "")
-                                }
+                            let value = typeof deerUtils.getValue(cachedObj[prop]) === 'object' ?
+                                JSON.stringify(deerUtils.getValue(cachedObj[prop])) :
+                                deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
+                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`
+                            if(prop === "title" && !value){
+                                value = "[ unlabeled ]"
+                                li += `data-unlabeled="true" `
+                            }
+                            li += `${attr}="${value}" `
+                            if(value.includes(filterObj[prop])){
+                                li = li.replace(hide, "")
                             }
                         })
                         if(!filteringProps.includes("title")) {
-                            li += `data-title="[ unlabeled ]" data-unlabeled="true" `
+                            li += `data-title="[ unlabeled ]" data-unlabeled="true"`
                         }
                         li += `>
                             <a href="${options.link}${glossID}">
@@ -412,13 +410,14 @@ export default {
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                            if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
+                            if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number" ||
+                            (typeof deerUtils.getValue(cachedObj[prop]) === "object" && 'format' in deerUtils.getValue(cachedObj[prop]) && deerUtils.getValue(cachedObj[prop])['format'] === 'text/plain')) {
                                 let value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
                                 if(prop === "title" && !value){
                                     value = "[ unlabeled ]"
-                                    li += `data-unlabeled="true" `
+                                    li += `data-unlabeled="true"`
                                 }
                                 li += `${attr}="${value}" `
                                 if(value.includes(filterObj[prop])){
@@ -642,16 +641,25 @@ export default {
                     // Turn each property into an attribute for the <li> element
                     let action = "add"
                     filteringProps.forEach( (prop) => {
+                        if (prop === "text") {
+                            const textString = obj[prop]?.value?.textValue ?? ""
+                            obj[prop].value = textString
+                            prop = "data-text"
+                            li.setAttribute(prop, textString);
+                        }
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                        if(typeof UTILS.getValue(cachedObj[prop]) === "string" || typeof UTILS.getValue(cachedObj[prop]) === "number") {
-                            let value = UTILS.getValue(cachedObj[prop])+"" //typecast to a string
-                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
-                            const attr = `data-${prop}`
-                            if(prop === "title" && !value){
-                                value = "[ unlabeled ]"
-                                li += `data-unlabeled="true" `
+                        else if (typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            let val = deerUtils.getValue(obj[prop]) + ""; // Typecast to a string
+                            prop = prop.replaceAll("@", ""); // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`;
+                            if (prop === "title" && !val) {
+                                val = "[ unlabeled ]";
+                                li.setAttribute("data-unlabeled", "true");
                             }
-                            li += `${attr}="${value}" `
+                            li.setAttribute(attr, val)
+                            if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
+                                action = "remove"
+                            }
                         }
                     })
 
@@ -751,24 +759,24 @@ export default {
                     // Turn each property into an attribute for the <li> element
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                        if(prop === "text"){
-                            const t = cachedObj[prop]?.value?.textValue ?? ""
-                            cachedObj[prop].value = t
-                            li.setAttribute("data-text", t)
+                        if (prop === "text"){
+                            const textString = cachedObj[prop]?.value?.textValue ?? ""
+                            li += `data-text="${textString}" `
                         }
-                        if(typeof UTILS.getValue(cachedObj[prop]) === "string" || typeof UTILS.getValue(cachedObj[prop]) === "number") {
-                            let value = UTILS.getValue(cachedObj[prop])+"" //typecast to a string
+                        else if (typeof UTILS.getValue(cachedObj[prop]) === "string" || typeof UTILS.getValue(cachedObj[prop]) === "number") {
+                            let value = UTILS.getValue(cachedObj[prop]) + "" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
-                            if(prop === "title" && !value){
-                                value = "[ unlabeled ]"
-                                li += `data-unlabeled="true" `
+                            if(prop === "title" && !val){
+                                val = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
                             }
-                            li += `${attr}="${value}" `
+                            li.setAttribute(attr, val)
                         }
                     })
                     if(!filteringProps.includes("title")) {
-                        li += `data-title="[ unlabeled ]" data-unlabeled="true"`
+                        li.setAttribute("data-title", "[ unlabeled ]")
+                        li.setAttribute("data-unlabeled", "true")
                     }
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(glossID, obj)
