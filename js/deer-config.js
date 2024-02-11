@@ -184,7 +184,6 @@ export default {
                                 typeof deerUtils.getValue(cachedObj[prop]) === 'object' && 'textValue' in deerUtils.getValue(cachedObj[prop]) ?
                                 deerUtils.getValue(cachedObj[prop])['textValue'] :
                                 ''
-                            console.log(deerUtils.getValue(cachedObj[prop]))
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
                             if(prop === "title" && !value){
