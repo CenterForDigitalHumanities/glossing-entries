@@ -12,6 +12,8 @@
     <script src="js/tpen-line-selector.js" type="module"></script>
     <script src="js/glossModal.js" type="module"></script>
     <script src="js/shared.js"></script>
+    <script src="js/mark.min.js"></script>
+
     <style>
        input.required, textarea.required{
             border: 1px solid black;
@@ -30,12 +32,12 @@
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2 class="bg-basic"> Gloss Transcription Witness </h2>
-    <p class="bg-basic"> Provide a T-PEN manifest URI.  The transcription text from that Manifest will load and can be selected.  Selected text can then be attached to a new or existing Gloss.  Note that a text selection and Shelfmark are required.</p>
+    <p id="look" class="bg-basic"> Provide a T-PEN manifest URI.  The transcription text from that Manifest will load and can be selected.  Selected text can then be attached to a new or existing Gloss.  Note that a text selection and Shelfmark are required.</p>
     <div id="needs" class="row bg-basic">
         <p class="howTo"> 
             It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  
-            <input id="resourceURI" type="text" placeholder="TPEN Manifest URI"/>
-            <input id="loadInput" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
+            <input id="resourceURI" type="text" placeholder="Enter T-PEN Manifest URI or 4 digit TPEN code"/>
+            <input id="loadInput" class="button primary" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
         </p>
     </div>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
@@ -49,7 +51,7 @@
         <input type="hidden" custom-key="source">
         <div class="row">
             <label class="col-3 col-2-md text-right is-hidden">Label:</label>
-            <input type="text" deer-key="label" placeholder="Label" class="col-9 col-10-md is-hidden">
+            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
 
             <label class="col-3 col-2-md text-right">Shelfmark: &#10082;</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required">
@@ -82,7 +84,7 @@
         <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
         <div class="row">
             <tpen-line-selector class="lineSelector tpen-needed is-hidden col-7-md col-6-sm"> </tpen-line-selector>
-            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-listing deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
             Loading&hellip;
             </deer-view>  
         </div>

@@ -1,13 +1,28 @@
+
+const glossHashID = window.location.hash.substring(1)
+
 /**
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
  */ 
 window.onload = () => {
-    const hash = window.location.hash.substring(1)
+    let hash = window.location.hash
+    if(hash.startsWith("#")){
+        hash = window.location.hash.substring(1)
+        if(!(hash.startsWith("http:") || hash.startsWith("https:"))){
+            // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+            let e = new CustomEvent("expandError", { detail: {"uri":hash}, bubbles:true})
+            document.dispatchEvent(e)
+            return
+        }
+    }
+    
+    const glossForm = document.getElementById("named-gloss")
     if(hash) {
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
+        document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
     }
-    const labelElem = document.querySelector('input[deer-key="title"]')
+    const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText
     const textListener = textElem.addEventListener('input', ev => {
         if (textElem.value?.length > 5) {
@@ -17,12 +32,14 @@ window.onload = () => {
                 label += words.shift() + " "
             }
             labelElem.value = label.trim()
+            labelElem.dispatchEvent(new Event('input', { bubbles: true }))
         }
     })
     labelElem.addEventListener('input', ev => {
         if (!textElem.value.startsWith(labelElem.value)) {
             textElem.removeEventListener('input', textListener)
         }
+        labelElem.$isDirty = true
     })
     //textElem.addEventListener('blur', ev => checkForGlossesBtn.click())
     checkForGlossesBtn.addEventListener('click', async ev => {
@@ -34,20 +51,20 @@ window.onload = () => {
     })
     if(!hash){
        // These items have default values that are dirty on fresh forms.
-        document.querySelector("select[custom-text-key='language']").$isDirty = true
-        document.querySelector("input[custom-text-key='format']").$isDirty = true
+        glossForm.querySelector("select[custom-text-key='language']").$isDirty = true
+        glossForm.querySelector("input[custom-text-key='format']").$isDirty = true
     }
     // mimic isDirty detection for these custom inputs
-    document.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
+    glossForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
         ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
+        glossForm.$isDirty = true
     })
-    document.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
+    glossForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
         ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
+        glossForm.$isDirty = true
     })
     // Note that this HTML element is a checkbox
-    document.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+    glossForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
         if(ev.target.checked){
             ev.target.value = "text/html"
             ev.target.setAttribute("value", "text/html")
@@ -57,9 +74,10 @@ window.onload = () => {
             ev.target.setAttribute("value", "text/plain")
         }
         ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
+        glossForm.$isDirty = true
     })
 }
+
 
 /**
  * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
@@ -76,8 +94,11 @@ addEventListener('deer-form-rendered', event => {
             prefillTagsArea(annotationData["tags"], event.target)
             prefillThemesArea(annotationData["themes"], event.target)
             prefillText(annotationData["text"], event.target)
-            if(event.detail.targetChapter && !event.detail.section) {
-                document.querySelector('[deer-key="canonicalReference"]').value = `Matthew ${event.detail.targetChapter.value}:${event.detail.targetVerse.value}`
+            if(event.detail.targetChapter && !event.detail["_section"]) {
+                // This conditional is solely to support Glossing Matthew data and accession it into the new encoding.
+                const canonRef = document.querySelector('[deer-key="canonicalReference"]')
+                canonRef.value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
+                canonRef.dispatchEvent(new Event('input', { bubbles: true }))
                 parseSections()
             }
             break
@@ -161,19 +182,62 @@ addEventListener('deer-updated', event => {
     }
 })
 
+/**
+ * The DEER announcement for when there is an error expanding for a URI.
+ * Note there is more information in event.detail.error
+ * Note the troublesome URI is in event.detail.uri
+ */ 
+addEventListener('expandError', event => {
+    const uri = event.detail.uri
+    const ev = new CustomEvent("Gloss Details Error")
+    document.getElementById("named-gloss").classList.add("is-hidden")
+    look.classList.add("text-error")
+    look.innerText = "Could not get Witness information."
+    document.querySelector(".addWitnessDiv").classList.add("is-hidden")
+    globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
+})
+
+/**
+ * Take the value of the canonical reference locator and parse its pieces to populate
+ * _document, _section, and _subsection.  Note that this does not affect the $isDirty state
+ * or the value of the canonicalReference input.
+ */ 
 function parseSections() {
+    // Get the Canonical Reference Locator value
     const canonValue = document.querySelector('input[deer-key="canonicalReference"]')?.value
     const _document = document.querySelector('input[deer-key="_document"]')
     const _section = document.querySelector('input[deer-key="_section"]')
     const _subsection = document.querySelector('input[deer-key="_subsection"]')
-    const elemSet = [_document, _section, _subsection]
-    if (elemSet.includes(null) || !canonValue?.length) { throw new Error(`Missing elements in ${elemSet.join(', ')}`) }
 
+    // Create an array of the input fields
+    const elemSet = [_document, _section, _subsection]
+
+    // Check if any of the input fields are missing or if the Canonical Reference Locator is empty
+    if (elemSet.includes(null) || !canonValue?.length) {
+        throw new Error(`Missing elements in ${elemSet.join(', ')}`)
+    }
+
+    // Split the Canonical Reference Locator value using a regex pattern
     const canonSplit = canonValue.split(/[\s\:\.,;\|#§]/)
-    elemSet.forEach((el, index) => el.value = canonSplit[index])
+
+    // Iterate through the input fields and populate them with corresponding parts of the split value
+    elemSet.forEach((el, index) => {
+        if (index < canonSplit.length) {
+            // Check if the split part is not "undefined" or the undefined primitive before assignment
+            if (canonSplit[index] !== "undefined" && canonSplit[index]) {
+                el.value = canonSplit[index]
+            } else {
+                el.value = '' // Set to an empty string if the split part is "undefined" or missing
+            }
+        } else {
+            el.value = '' // Set to an empty string if there's no corresponding part
+        }
+        el.dispatchEvent(new Event('input', { bubbles: true }))
+    })
+    
 }
 
-function prefillTagsArea(tagData, form = document.getElementById("named-glosses")) {
+function prefillTagsArea(tagData, form = document.getElementById("named-gloss")) {
     if (tagData === undefined) {
         console.warn("Cannot set value for tags and build UI.  There is no data.")
         return false
@@ -199,7 +263,7 @@ function prefillTagsArea(tagData, form = document.getElementById("named-glosses"
     selectedTagsArea.innerHTML = tags
 }
 
-function prefillThemesArea(themeData, form = document.getElementById("named-glosses")) {
+function prefillThemesArea(themeData, form = document.getElementById("named-gloss")) {
     if (themeData === undefined) {
         console.warn("Cannot set value for themes and build UI.  There is no data.")
         return false
@@ -285,4 +349,102 @@ function witnessForGloss(tpen){
         //window.location = `gloss-witness.html?gog-filter=${encodedFilter}`
         window.open(`gloss-witness.html?gog-filter=${encodedFilter}`, "_blank")
     }
+}
+
+/**
+ * An Gloss entity is being deleted.  
+ * Delete the Gloss, the Annotations targeting the Gloss, the Witnesses of the Gloss, and the Witnesses' Annotations.
+ * Remove this Gloss from the public list.
+ * Paginate by redirecting to glosses.html.
+ * 
+ * @param id {String} The Gloss IRI.
+ * @param thing {String} The archtype object's type or @type.
+ */
+async function removeFromCollectionAndDelete(id=glossHashID) {
+    const ev = new CustomEvent("Not ready")
+    globalFeedbackBlip(ev, `Under construction at this time :(`, false)
+    return
+    // This won't do    
+    if (id === null) {
+        alert(`No URI supplied for delete.  Cannot delete.`)
+        return
+    }    
+    const thing = "Gloss"
+    const redirect = "./glosses.html"
+
+    // If it is an unexpected type, we probably shouldn't go through with the delete.
+    if (thing === null) {
+        alert(`Not sure what a ${type} is.  Cannot delete.`)
+        return
+    }
+
+    // Confirm they want to do this
+    if (!confirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
+
+    const historyWildcard = { "$exists": true, "$size": 0 }
+
+    // Get all Annotations throughout history targeting this object that were generated by this application.
+    const allAnnotationsTargetingEntityQueryObj = {
+        target: httpsIdArray(id),
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    const allAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
+        .then(annos => annos.map(anno => anno["@id"]))
+        .catch(err => {
+            alert("Could not gather Annotations to delete.")
+            console.log(err)
+            return null
+        })
+    // This is bad enough to stop here, we will not continue on towards deleting the entity.
+    if (allAnnotationIds === null) return
+
+    const allAnnotations = allAnnotationIds.map(annoUri => {
+        return fetch(`${__constants.tiny}/delete`, {
+            method: "DELETE",
+            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            }
+        })
+        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+        .catch(err => {
+            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
+            console.log(err)
+        })
+    })
+
+    // TODO Get all the Witnesses of this Gloss use deleteWitness() on each Witness.
+
+    // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
+    await Promise.all(allAnnotations).then(success => {
+        console.log("Connected Annotationss successfully removed.")
+    })
+    .catch(err => {
+        // OK they may be orphaned.  We will continue on towards deleting the entity.
+        console.warn("There was an issue removing connected Annotations.")
+        console.log(err)
+    })
+
+    // Now the entity itself
+    fetch(`${__constants.tiny}/delete`, {
+        method: "DELETE",
+        body: JSON.stringify({ "@id": id }),
+        headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": `Bearer ${window.GOG_USER.authorization}`
+        }
+    })
+    .then(r => {
+        if (r.ok) {
+            location.href = redirect
+        }
+        else {
+            return Promise.reject(Error(r.text))
+        }
+    })
+    .catch(err => {
+        alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
+        console.log(err)
+    })
 }

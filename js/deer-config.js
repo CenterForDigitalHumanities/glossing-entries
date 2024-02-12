@@ -160,14 +160,16 @@ export default {
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
-            const total = obj[options.list].length
-            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
+            let total = 0
+            const filterPresent = deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
-                obj[options.list].forEach((val, index) => {
+                const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
+                total = deduplicatedList.length                
+                deduplicatedList.forEach((val, index) => {
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
                     if(cachedFilterableEntities.get(glossID)){
                         // We cached it in the past and are going to trust it right now.
@@ -179,15 +181,22 @@ export default {
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                             if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
-                                const value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
+                                let value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
+                                if(prop === "title" && !value){
+                                    value = "[ unlabeled ]"
+                                    li += `data-unlabeled="true" `
+                                }
                                 li += `${attr}="${value}" `
                                 if(value.includes(filterObj[prop])){
                                     li = li.replace(hide, "")
                                 }
                             }
                         })
+                        if(!filteringProps.includes("title")) {
+                            li += `data-title="[ unlabeled ]" data-unlabeled="true" `
+                        }
                         li += `>
                             <a href="${options.link}${glossID}">
                                 <span>${deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"}</span>
@@ -288,7 +297,6 @@ export default {
                         for(const prop in query){
                             if(li.hasAttribute(`data-${prop}`)){
                                 const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
-
                                 elem.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                 // If it is showing, no need to check other properties for filtering.
@@ -341,17 +349,20 @@ export default {
                     padding: 3px !important;
                     font-size: 10pt !important;
                     margin-right: 0.5em;
+                    width: 6em;
                 }
 
-                h2.nomargin{
-                    margin: 0;
+                .attached-to-source.primary{
+                    background-color: mark;
+                    color: black;
+                    border: 1px solid black;
                 }
 
             </style>
             <input type="hidden" custom-key="references" />
             <div class="col">
                 <h2 class="nomargin">Attach Gloss</h2>
-                <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag-is-small">click here</a>. </small>
+                <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
                 <p class="filterInstructions is-hidden"> 
                     Use the filter to narrow down your options.  Select a single Gloss from the list to attach this witness to. 
                 </p>
@@ -369,21 +380,28 @@ export default {
             // Grab the cached expanded entities from localStorage.  Note that there is nothing to check on "staleness"
             const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             let numloaded = 0
-            const total = obj[options.list].length
-            const filterPresent = !!deerUtils.getURLParameter("gog-filter")
+            let total = 0
+            const filterPresent = deerUtils.getURLParameter("gog-filter")
             const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
             if (options.list) {
                 // Then obj[options.list] is the entire GoG-Named-Glosses collection, URIs only.
+                const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
+                total = deduplicatedList.length
                 html += `<ul>`
                 const hide = filterPresent ? "is-hidden" : ""
-                obj[options.list].forEach((val, index) => {
+                deduplicatedList.forEach((val, index) => {
                     let inclusionBtn = null
                     const glossID = val['@id'].replace(/^https?:/, 'https:')
+                    let already = witnessesObj?.referencedGlosses?.has(glossID) ? "attached-to-source" : ""
                     if(glossID === referencedGlossID){
-                        inclusionBtn = `<input disabled type="button" class="toggleInclusion button success" data-id="${glossID}" title="This Gloss is already attached!" value="✓ attached"/>`
+                        inclusionBtn = `<input disabled type="button" class="toggleInclusion ${already} button success" data-id="${glossID}" title="This Gloss is already attached!" value="✓ attached"/>`
                     }
                     else{
-                        inclusionBtn = `<input type="button" class="toggleInclusion button primary" data-id="${glossID}" title="Attach this Gloss and Save" value="➥ attach"/>`
+                        inclusionBtn = `
+                            <input type="button" class="toggleInclusion ${already} button primary" data-id="${glossID}" 
+                            title="${already ? "This gloss was attached in the past.  Be sure before you attach it."  : "Attach this Gloss and Save" }" 
+                            value="${already ? "❢" : "➥"} attach"
+                            />`
                     }
                     if(cachedFilterableEntities.get(glossID)){
                         // We cached it in the past and are going to trust it right now.
@@ -395,15 +413,22 @@ export default {
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                             if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
-                                const value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
+                                let value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
                                 prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                                 const attr = `data-${prop}`
+                                if(prop === "title" && !value){
+                                    value = "[ unlabeled ]"
+                                    li += `data-unlabeled="true" `
+                                }
                                 li += `${attr}="${value}" `
                                 if(value.includes(filterObj[prop])){
                                     li = li.replace(hide, "")
                                 }
                             }
                         })
+                        if(!filteringProps.includes("title")) {
+                            li += `data-title="[ unlabeled ]" data-unlabeled="true" `
+                        }
                         li += `>
                             ${inclusionBtn}
                             <a target="_blank" href="${options.link}${glossID}">
@@ -478,7 +503,10 @@ export default {
                         return   
                     }
                     const glossIncipit = ev.target.closest("li").getAttribute("data-title")
-                    if(confirm(`Save this textual witness for Gloss '${glossIncipit}'?`)){
+                    const note = ev.target.classList.contains("attached-to-source") 
+                       ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
+                       : `Save this textual witness for Gloss '${glossIncipit}'?`
+                    if(confirm(note)){
                         const customKey = elem.querySelector("input[custom-key='references']")
                         const uri = btn.getAttribute("data-id")
                         if(customKey.value !== uri){
@@ -601,10 +629,11 @@ export default {
                     let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
-                    const createScenario = !!elem.hasAttribute("create-scenario")
-                    const updateScenario = !!elem.hasAttribute("update-scenario")   
-                    const increaseTotal = !!((createScenario || updateScenario))
-                    const filterPresent = !!containingListElem.$contentState
+                    span.classList.add("serifText")
+                    const createScenario = elem.hasAttribute("create-scenario")
+                    const updateScenario = elem.hasAttribute("update-scenario")   
+                    const increaseTotal = ((createScenario || updateScenario))
+                    const filterPresent = containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     a.setAttribute("href", options.link + obj['@id'])
@@ -615,15 +644,24 @@ export default {
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                         if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
-                            const val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
+                            if(prop === "title" && !val){
+                                val = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
+                            }
                             li.setAttribute(attr, val)
                             if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
                                 action = "remove"
                             }
                         }
                     })
+
+                    if(!li.hasAttribute("data-title")) {
+                        li.setAttribute("data-title", "[ unlabeled ]")
+                        li.setAttribute("data-unlabeled", "true")
+                    }
 
                     if(filterPresent) elem.classList[action]("is-hidden")
                     li.setAttribute("data-expanded", "true")
@@ -654,6 +692,124 @@ export default {
                         if(modalBtn) modalBtn.classList.remove("is-hidden")
                         if(filterInstructions) filterInstructions.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
+                        containingListElem.querySelectorAll("input[filter]").forEach(i => {
+                            // The filters that are used now need to be visible and selected / take on the string / etc.
+                            i.classList.remove("is-hidden")
+                            if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
+                                i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
+                                i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
+                                i.dispatchEvent(new Event('input', { bubbles: true }))
+                            }
+                        })
+                        containingListElem.setAttribute("ng-list-loaded", "true")
+                        deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
+                    }
+                }
+            }
+        },
+        managedFilterableListItem: function (obj, options = {}) {
+            return {
+                html: ``,
+                then: (elem) => {
+                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    const containingListElem = elem.closest("deer-view")
+                    const glossID = obj["@id"].replace(/^https?:/, 'https:')
+                    const glossHttpID = obj["@id"].replace(/^https?:/, 'http:')
+                    const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
+                    let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
+                    const included = listCache.has(glossHttpID)
+
+                    const publishedStatus = document.createElement("span")
+                    publishedStatus.setAttribute("glossid", glossID)
+                    publishedStatus.classList.add("pubStatus")
+                    publishedStatus.innerText = included ? "✓" : "❌"
+                    let filteringProps = Object.keys(obj)
+                    let li = document.createElement("li")
+                    li.setAttribute("data-public", included ? "true" : "false" )
+                    let a = document.createElement("a")
+                    a.classList.add("galleryEntry")
+                    a.setAttribute("glossid", glossID)
+                    a.setAttribute("data-public", included ? "true" : "false" )
+                    a.addEventListener('click', (ev) => {
+                        ev.preventDefault()
+                        ev.stopPropagation()
+                        // This <li> will have all the processed data-stuff that we will want to use upstream.
+                        const parentDataElem = ev.target.closest("li")
+                        const glossID = parentDataElem.getAttribute("data-id") ? parentDataElem.getAttribute("data-id") : ""
+                        const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
+                        const published = parentDataElem.getAttribute("data-public") === "true" ? true : false
+                        const glossText = parentDataElem.getAttribute("data-text") ? parentDataElem.getAttribute("data-text") : ""
+                        const glossData = {
+                            "@id": glossID,
+                            "title": glossTitle,
+                            "text" : glossText,
+                            "published": published
+                        }
+                        document.querySelector("manage-gloss-modal").open(glossData)
+                    })
+
+                    let label = document.createElement("span")
+                    label.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
+
+                    // Turn each property into an attribute for the <li> element
+                    filteringProps.forEach( (prop) => {
+                        // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
+                        if(prop === "text"){
+                            const t = obj[prop]?.value?.textValue ?? ""
+                            li.setAttribute("data-text", t) 
+                        }
+                        else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`
+                            if(prop === "title" && !val){
+                                val = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
+                            }
+                            li.setAttribute(attr, val)
+                        }
+                    })
+                    if(!filteringProps.includes("title")) {
+                        li.setAttribute("data-title", "[ unlabeled ]")
+                        li.setAttribute("data-unlabeled", "true")
+                    }
+                    li.setAttribute("data-expanded", "true")
+                    cachedFilterableEntities.set(glossID, obj)
+                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+
+                    a.appendChild(label)
+                    li.appendChild(publishedStatus)
+                    li.appendChild(a)
+                    elem.appendChild(li)
+
+                    // Pagination for the progress indicator element
+                    const totalsProgress = containingListElem.querySelector(".totalsProgress")
+                    const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
+                    let total = parseInt(totalsProgress.getAttribute("total"))
+                    const cachedNotice = containingListElem.querySelector(".cachedNotice")
+                    const progressArea = containingListElem.querySelector(".progressArea")
+                    const modalBtn = containingListElem.querySelector("gloss-modal-button")
+                    const filterInstructions = containingListElem.querySelector(".filterInstructions")
+                    totalsProgress.setAttribute("count", numloaded)
+                    totalsProgress.setAttribute("total", total)
+                    totalsProgress.innerHTML = `
+                        ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  
+                        You may click to select any Gloss loaded already.<br>
+                        A filter will become available when all items are loaded.`
+                    if(numloaded === total){
+                        cachedNotice.classList.remove("is-hidden")
+                        if(modalBtn) modalBtn.classList.remove("is-hidden")
+                        if(filterInstructions) filterInstructions.classList.remove("is-hidden")
+                        progressArea.classList.add("is-hidden")
+                        containingListElem.querySelector(".facet-filters").classList.remove("is-hidden")
+                        // containingListElem.querySelectorAll("input[status-filter]").forEach(i => {
+                        //     if(filterObj.hasOwnProperty(i.getAttribute("status-filter"))){
+                        //         if(filterObj[i.getAttribute("status-filter")]==="true"){
+                        //             i.checked = true
+                        //             debounce(i.dispatchEvent(new Event('input', { bubbles: true })))
+                        //         }
+                        //     }       
+                        // })
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be visible and selected / take on the string / etc.
                             i.classList.remove("is-hidden")

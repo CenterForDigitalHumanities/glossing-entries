@@ -117,7 +117,7 @@ class WitnessTextSelector extends HTMLElement {
         plaintext.onmouseup = function(e) {
             const s = document.getSelection()
             const filter = document.querySelector("input[filter]")
-            const selectedText = document.getSelection() ? document.getSelection().toString().trim() : ""
+            const selectedText = document.getSelection() ? document.getSelection().toString() : ""
             const firstword = selectedText.split(" ")[0]
             let selections = []
             if(selectedText){
@@ -136,7 +136,7 @@ class WitnessTextSelector extends HTMLElement {
                 textInput.dispatchEvent(new Event('input', { bubbles: true }))
 
                 let witnessLabel = selectedText.slice(0, 16)
-                const labelElem = document.querySelector("input[deer-key='label']")
+                const labelElem = document.querySelector("input[deer-key='title']")
                 const shelfmark = document.querySelector("input[deer-key='identifier']").value
                 // Generate a programmatic label
                 if(witnessLabel){

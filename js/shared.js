@@ -1,17 +1,18 @@
 /**
  * Shared front end functionality across the HTML pages.
  */
+let witnessesObj = {}
 
-// For when we test, so we can easily find and blow away junk data
+//For when we test, so we can easily find and blow away junk data
 // setTimeout(() => {
 //     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="BasicWitnessTest"
-//         el.setAttribute("value", "BasicWitnessTest")
+//         el.value="BryanManageGlosses"
+//         el.setAttribute("value", "BryanManageGlosses")
 //     })
 //     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "BasicWitnessTest")
+//         el.setAttribute("deer-creator", "BryanManageGlosses")
 //     })
-//     window.GOG_USER["http://store.rerum.io/agent"] = "BasicWitnessTest"
+//     window.GOG_USER["http://store.rerum.io/agent"] = "BryanManageGlosses"
 // }, 4000)
 
 let __constants = {}
@@ -24,7 +25,8 @@ async function setConstants(){
 /**
  * Use this on page load to find all the deer-views that should be showing a public collection.
  */ 
-function setPublicCollections() {
+async function setPublicCollections() {
+    if(!__constants?.ngCollection) await setConstants()
     document.querySelectorAll("deer-view[public-collection]").forEach(elem => {
         if(elem.getAttribute("public-collection") === "GoG-Named-Glosses"){
             elem.setAttribute("deer-id", __constants.ngCollection)    
@@ -38,7 +40,8 @@ function setPublicCollections() {
 /**
  * Use this on page load to find all the deer-views that should be showing a managed collection.
  */
-function setListings(){
+async function setListings(){
+    if(!__constants?.ngCollection) await setConstants()
     document.querySelectorAll("deer-view[deer-listing]").forEach(elem => {
         if(elem.getAttribute("deer-collection") === "GoG-Named-Glosses"){
             elem.setAttribute("deer-listing", __constants.ngCollection)    
@@ -47,154 +50,6 @@ function setListings(){
             elem.setAttribute("deer-listing", __constants.msCollection)
         }
     })    
-}
-
-/**
- * An archetype entity is being deleted.  Delete it and some choice Annotations connected to it.
- * 
- * @param event {Event} A button/link click event
- * @param type {String} The archtype object's type or @type.
- */
-async function removeFromCollectionAndDelete(event, type, id = null) {
-    event.preventDefault()
-
-    // The URI for the item itself from the location hash, or null b/c it isn't available.
-    if (!id) id = location.hash ? location.hash.substr(1) : null
-    const thing =
-        (type === "manuscript") ? "Manuscript" :
-            (type === "named-gloss") ? "Gloss" :
-                (type === "Range") ? "Gloss" : null
-    const redirect =
-        (type === "manuscript") ? "./manuscripts.html" :
-            (type === "named-gloss") ? "./glosses.html" :
-                (type === "Range") ? "./manage-glosses.html" : null
-
-    // This won't do    
-    if (id === null) {
-        alert(`No URI supplied for delete.  Cannot delete.`)
-        return
-    }
-
-    // If it is an unexpected type, we probably shouldn't go through with the delete.
-    if (thing === null) {
-        alert(`Not sure what a ${type} is.  Cannot delete.`)
-        return
-    }
-
-    // Confirm they want to do this
-    if (!confirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
-
-    const historyWildcard = { "$exists": true, "$size": 0 }
-
-    /**
-     * A customized delete functionality for manuscripts, since they have Annotations and Glosses.
-     */
-    if (type === "manuscript") {
-        // Such as ' [ Pn ] Paris, BnF, lat. 17233 ''
-
-        const allGlossesOfManuscriptQueryObj = {
-            "body.partOf.value": httpsIdArray(id),
-            "__rerum.generatedBy" : httpsIdArray(__constants.generator),
-            "__rerum.history.next" : historyWildcard
-        }
-        const allGlossIds = await getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
-            .then(annos => annos.map(anno => anno.target))
-            .catch(err => {
-                alert("Could not gather Glosses to delete.")
-                console.log(err)
-                return null
-            })
-        // This is bad enough to stop here, we will not continue on towards deleting the entity.
-        if (allGlossIds === null) { return }
-
-        const allGlosses = allGlossIds.map(glossUri => {
-            return fetch(`${__constants.tiny}/delete`, {
-                method: "DELETE",
-                body: JSON.stringify({ "@id": glossUri.replace(/^https?:/, 'https:') }),
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                }
-            })
-                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                .catch(err => {
-                    console.warn(`There was an issue removing a connected Gloss: ${glossUri}`)
-                    console.log(err)
-                })
-        })
-        // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
-        await Promise.all(allGlosses).then(success => {
-            console.log("Connected Glosses successfully removed.")
-        })
-            .catch(err => {
-                // OK they may be orphaned.  We will continue on towards deleting the entity.
-                console.warn(`There was an issue removing Connected Glosses`)
-                console.log(err)
-            })
-    }
-
-    // Get all Annotations throughout history targeting this object that were generated by this application.
-    const allAnnotationsTargetingEntityQueryObj = {
-        target: httpsIdArray(id),
-        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-    }
-    const allAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
-        .then(annos => annos.map(anno => anno["@id"]))
-        .catch(err => {
-            alert("Could not gather Annotations to delete.")
-            console.log(err)
-            return null
-        })
-    // This is bad enough to stop here, we will not continue on towards deleting the entity.
-    if (allAnnotationIds === null) return
-
-    const allAnnotations = allAnnotationIds.map(annoUri => {
-        return fetch(`${__constants.tiny}/delete`, {
-            method: "DELETE",
-            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            }
-        })
-            .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-            .catch(err => {
-                console.warn(`There was an issue removing an Annotation: ${annoUri}`)
-                console.log(err)
-            })
-    })
-
-    // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
-    await Promise.all(allAnnotations).then(success => {
-        console.log("Connected Annotationss successfully removed.")
-    })
-        .catch(err => {
-            // OK they may be orphaned.  We will continue on towards deleting the entity.
-            console.warn("There was an issue removing connected Annotations.")
-            console.log(err)
-        })
-
-    // Now the entity itself
-    fetch(`${__constants.tiny}/delete`, {
-        method: "DELETE",
-        body: JSON.stringify({ "@id": id }),
-        headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Authorization": `Bearer ${window.GOG_USER.authorization}`
-        }
-    })
-        .then(r => {
-            if (r.ok) {
-                location.href = redirect
-            }
-            else {
-                return Promise.reject(Error(r.text))
-            }
-        })
-        .catch(err => {
-            alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
-            console.log(err)
-        })
 }
 
 function getURLParameter(variable) {
@@ -348,7 +203,8 @@ async function findMatchingIncipits(incipit, titleStart) {
         }, {
             "body.text.textValue": incipit
         }],
-        "__rerum.history.next": historyWildcard
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
     return fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
         method: "POST",
@@ -373,4 +229,153 @@ async function findMatchingIncipits(incipit, titleStart) {
             console.error(err)
             return Promise.resolve([])
         })
+}
+
+/**
+ * @param source A String that is either a text body or a URI to a text resource.
+ */ 
+async function getAllWitnessesOfSource(source){
+    if(!document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
+        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
+    }
+    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
+    if(Object.keys(witnessesObj).length > 0){
+        for(const witnessInfo in Object.values(witnessesObj)){
+            witnessInfo.glosses.forEach(glossURI => {
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
+                    btn.classList.add("attached-to-source")
+                })    
+            })
+            preselectLines(witnessInfo.selections, witnessForm, false)
+        }
+        return
+    }
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    const isURI = (urlString) => {
+          try { 
+            return Boolean(new URL(urlString))
+          }
+          catch(e){ 
+            return false
+          }
+      }
+
+    // Each source annotation targets a Witness.
+    // Get all the source annotations whose value is this source string (URI or text string)
+    const sourceAnnosQuery = {
+        "body.source.value": httpsIdArray(source),
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    const witnessUriSet = await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+        method: "POST",
+        mode: 'cors',
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify(sourceAnnosQuery)
+    })
+    .then(response => response.json())
+    .then(annos => {
+        return new Set(annos.map(anno => anno.target))
+    })
+    .catch(err => {
+        console.error(err)
+        return Promise.reject([])
+    })
+
+    let glossUriSet = new Set()
+    // Each witness has Gloss and Selections
+    
+    let all = []
+    for (const witnessURI of witnessUriSet){
+        // Each Witness has an Annotation whose body.value references [a Gloss]
+        const referencesAnnosQuery = {
+            "target" : httpsIdArray(witnessURI),
+            "body.references.value": { $exists:true },
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        // It also has selections we need to highlight
+        const selectionsAnnosQuery = {
+            "target" : httpsIdArray(witnessURI),
+            "body.selections.value": { $exists:true },
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(referencesAnnosQuery)
+        })
+        .then(response => response.json())
+        .then(annos => {
+            if(!witnessesObj.hasOwnProperty(witnessURI)) witnessesObj[witnessURI] = {}
+            witnessesObj[witnessURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
+            glossUriSet = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
+            return Promise.resolve(witnessesObj)
+        })
+        .catch(err => {
+            console.error(err)
+            return Promise.reject([])
+        }))
+
+        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(selectionsAnnosQuery)
+        })
+        .then(response => response.json())
+        .then(annos => {
+            if(!witnessesObj.hasOwnProperty(witnessURI)) witnessesObj[witnessURI] = {}
+            const existingSelections = witnessesObj[witnessURI].selections ? witnessesObj[witnessURI].selections : []
+            witnessesObj[witnessURI].selections = [...existingSelections, ...annos.map(anno => anno.body.selections.value).flat()]
+            return Promise.resolve(witnessesObj)
+        })
+        .catch(err => {
+            console.error(err)
+            return Promise.reject([])
+        })
+        )
+    }
+
+    // This has the asyncronous behavior necessary to build witnessesObj.
+    Promise.all(all)
+    .then(success => {
+        witnessesObj.referencedGlosses = glossUriSet
+        for(const witnessURI in witnessesObj){
+            if(witnessURI === "referencedGlosses") continue
+            const witnessInfo = witnessesObj[witnessURI]
+            witnessInfo.glosses.forEach(glossURI => {
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
+                    btn.classList.add("attached-to-source")
+                })    
+            })
+            preselectLines(witnessInfo.selections, witnessForm, false)
+        }
+    })
+    .catch(err => {
+        console.error("Witnesses Object Error")
+        console.error(err)
+        const ev = new CustomEvent("Witnesses Object Error")
+        globalFeedbackBlip(ev, `Witnesses Object Error`, false)
+    })
+    
+}
+
+/**
+ * Undo a manual user selection of text on the page.  Mainly just a UI trick.
+ * 
+ * @param s The Browser Selection object
+ */ 
+function undoBrowserSelection(s){
+    s?.removeAllRanges?.() ?? s?.empty?.()
 }

@@ -10,31 +10,34 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/shared.js"></script>
+    <script src="js/manageGlossModal.js" type="module"></script>
 </head>
 
 <body class="container">
     <gog-header class="container"></gog-header>
-    <h1 class="text-primary"> Managing Glosses </h1>
-    <input is="auth-creator" type="hidden" deer-key="creator" />
-    <button id="checkAll" class="button" role="button">Check All</button>
-    <button id="checkInvert" class="button" role="button">Invert Selection</button>
-    <button id="saveList" style="visibility: hidden;" class="button primary" role="button">Save List</button>
     <div class="row">
-        <deer-view id="collectionList"
-            deer-collection="GoG-Named-Glosses" deer-listing deer-link="ms.html#" deer-template="managedlist">
-            Loading&hellip;
-        </deer-view>
+        <div class="column is-full-width">
+            <p class="bg-basic"> 
+                The '✓' symbol indicates a Gloss is already public or that it has been chosen to become public.<br>
+                The '❌' symbol indicates a Gloss is not available to the public or that it has been chosen to be removed from the public list.<br>
+                Click any Gloss title to view statuses and management options for that Gloss.<br>
+                If the button below is active, you have unsaved changes to the list.  Make sure to save your changes.<br><br>
+                <button id="saveList" class="button primary" role="button" disabled>Submit Change of Public Glosses</button>
+            </p>
+            <deer-view class="bg-basic" id="collectionList" deer-listing 
+                deer-collection="GoG-Named-Glosses" deer-template="managedlist" deer-link="ng.html#" >
+                Getting the Gallery of Glosses Gloss Collection&hellip;
+            </deer-view>
+        </div>
     </div>
-    <gog-footer class="container">
-
-    </gog-footer>
+    <gog-footer class="container"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
-    <script>
-        checkAll.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.classList.has("is-included") ?? a.click()))
-        checkInvert.addEventListener('click', ev => document.querySelectorAll('.togglePublic').forEach(a => a.click()))
-        window.onload = () => { 
-            setPublicCollections() 
-            setListings()
+    <manage-gloss-modal class="is-hidden"></manage-gloss-modal>
+
+    <script> 
+        window.onload = async () => { 
+            await setPublicCollections() 
+            await setListings()
         }
     </script>
 </body>
