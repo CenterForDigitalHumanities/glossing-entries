@@ -64,6 +64,16 @@
             <label class="col-3 col-2-md text-right">Label for display: <i class="fas fa-info-circle icon-help" title="Enter the incipit or identifying label."></i></label>
             <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
         </div>
+		<div class="row">
+			<label for="_glossFormat" class="col-3 col-2-md text-right">Gloss format:</label>
+			<select custom-text-key="_glossFormat" name="_glossFormat" id="_glossFormat" class="col-3 col-2-md">
+				<option value="none" selected>None</option>
+				<option value="marginal">Marginal</option>
+				<option value="interlinear">Interlinear</option>
+				<option value="appendix">Appendix</option>
+				<option value="other">Other</option>
+			</select>
+		</div>
         <div class="row">
             <label class="col-3 col-2-md text-right">Notes: <i class="fas fa-info-circle icon-help" title="Enter internal notes or comments about this gloss."></i></label>
             <input type="text" deer-key="_notes" placeholder="internal notes" class="col-9 col-10-md">
