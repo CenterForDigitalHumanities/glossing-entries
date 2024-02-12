@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>Gallery of Glosses - Glosses</title>
+    <title>Custom Rich Text Editor</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="css/gloss.css">
@@ -10,16 +10,6 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/shared.js"></script>
-    <script src="js/temp.js" type="module"></script>
-
-    <!-- Main Quill library -->
-    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/quill-image-resize-module@3.0.0/image-resize.min.js"></script>
-
-    <!-- Theme included stylesheets -->
-    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-    <link href="https://cdn.quilljs.com/1.3.6/quill.core.css" rel="stylesheet">
-
 </head>
 
 <body class="container">
@@ -28,19 +18,26 @@
     <!-- bibliographicCitation Form -->
     <form id="bibliographicCitationForm" deer-type="BibliographicResource" deer-context="http://purl.org/dc/terms">
         <div class="row">
-            <label for="bibliographicCitation" class="col-12 text-left">Bibliographic Citation: &#10082;</label>
-            
-        </div>
-        <div class="row">
-            <div id="bibliographicCitationEditor" class="col-12 required"></div>
+            <label for="bibliographicCitationEditor" class="col-12 text-left">Bibliographic Citation: &#10082;</label>
         </div>
 
+        <div class="bibliographicCitation-container">
+            <div class="row" id="bibliographicCitationtoolbar">
+                <button type="button" class="toolbar-item" id="boldBtn" data-command="bold">Bold</button>
+                <button type="button" class="toolbar-item" id="italicBtn" data-command="italic">Italics</button>
+                <button type="button" class="toolbar-item" id="underlineBtn" data-command="underline">Underline</button>
+                <button type="button" class="toolbar-item" id="linkBtn">Link</button>
+            </div>
         
+            <div class="row">
+                <div id="bibliographicCitationEditor" class="col-12 required" contenteditable="true"></div>
+            </div>
+        </div>
+
         <div class="row">
             <input type="hidden" deer-key="reference" id="documentReference" value="URL or URI of the referenced document">
-            <input class="button primary" type="submit" value="Submit Citation"/>
+            <input class="button primary" type="submit" value="Add Citation"/>
         </div>
-        
     </form>
 
     <gog-footer class="container"></gog-footer>
@@ -48,15 +45,89 @@
     <manage-gloss-modal class="is-hidden"></manage-gloss-modal>
 
     <script> 
-        document.getElementById('bibliographicCitationForm').onsubmit = function() {
 
-        var htmlContent = quill.root.innerHTML
-        console.log(htmlContent)
-        // TODO: Validate and process the form data
+        document.addEventListener('DOMContentLoaded', () => {
+            // ID from the URL
+            function extractIdFromURI() {
+                const pathArray = window.location.pathname.split('/')
+                const idIndex = pathArray.indexOf('id')
+                if (idIndex !== -1 && pathArray.length > idIndex) {
+                    return pathArray[idIndex + 1]
+                }
+                return null
+            }
 
-        // Prevent the form from submitting normally
-        return false
-        }
+            const pageId = extractIdFromURI()
+            if (pageId) {
+                document.getElementById('documentReference').value = pageId
+            }
+        })
+
+        document.getElementById('bibliographicCitationForm').addEventListener('submit', function(event) {
+            const documentReferenceInput = document.getElementById('documentReference')
+            const uri = documentReferenceInput.value
+
+            // if null
+            if (!uri) {
+                event.preventDefault()
+                globalFeedbackBlip(ev, 'Please provide a valid URL.', false)
+                return false
+            }
+
+            // If the URI is valid... do something
+        })
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const editor = document.getElementById('bibliographicCitationEditor')
+            const buttons = document.querySelectorAll('.toolbar-item')
+
+            function format(command) {
+                document.execCommand(command, false, null)
+                updateButtonStates()
+            }
+
+            function insertLink() {
+                var url = prompt("Enter the URL:")
+                if (url) {
+                    document.execCommand('createLink', false, url)
+                }
+                updateButtonStates()
+            }
+
+            const updateButtonStates = () => {
+                buttons.forEach(button => {
+                    const command = button.dataset.command
+                    if (document.queryCommandState(command)) {
+                        button.classList.add('active')
+                    } else {
+                        button.classList.remove('active')
+                    }
+                })
+            }
+
+            document.getElementById('boldBtn').addEventListener('click', (e) => {
+                e.preventDefault()
+                format('bold')
+            })
+            document.getElementById('italicBtn').addEventListener('click', (e) => {
+                e.preventDefault()
+                format('italic')
+            })
+            document.getElementById('underlineBtn').addEventListener('click', (e) => {
+                e.preventDefault()
+                format('underline')
+            })
+            document.getElementById('linkBtn').addEventListener('click', () => {
+                insertLink()
+            })
+
+            editor.addEventListener('keyup', updateButtonStates)
+            editor.addEventListener('mouseup', updateButtonStates)
+
+            updateButtonStates()
+
+        })
+
     </script>
 </body>
 
