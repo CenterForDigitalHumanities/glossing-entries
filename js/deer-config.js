@@ -277,6 +277,7 @@ export default {
                  * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
                  */ 
                 function filterGlosses(queryString=''){
+                    console.log("hello")
                     const numloaded = parseInt(totalsProgress.getAttribute("count"))
                     const total = parseInt(totalsProgress.getAttribute("total"))
                     if(numloaded !== total){
@@ -285,7 +286,7 @@ export default {
                         deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
                         return
                     }
-                    queryString = queryString.trim()
+                    queryString = queryString.trim().replaceAll(/\s\s+/g, ' ')
                     const query = decodeContentState(queryString)
                     const items = elem.querySelectorAll('li')
                     items.forEach(li=>{
@@ -296,7 +297,7 @@ export default {
                         }
                         for(const prop in query){
                             if(li.hasAttribute(`data-${prop}`)){
-                                const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
+                                const action = li.getAttribute(`data-${prop}`).trim().toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
                                 elem.classList[action](`is-hidden`,`un${action}-item`)
                                 setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                 // If it is showing, no need to check other properties for filtering.
