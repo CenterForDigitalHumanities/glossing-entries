@@ -641,24 +641,23 @@ export default {
                     a.setAttribute("target", "_blank")
 
                     // Turn each property into an attribute for the <li> element
+                    // Turn each property into an attribute for the <li> element
                     let action = "add"
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                        let value = ['string', 'number'].includes(typeof deerUtils.getValue(cachedObj[prop])) ?
-                                deerUtils.getValue(cachedObj[prop])+"" : //typecast to a string
-                                typeof deerUtils.getValue(cachedObj[prop]) === 'object' && 'textValue' in deerUtils.getValue(cachedObj[prop]) ?
-                                deerUtils.getValue(cachedObj[prop])['textValue'] :
-                                ''
+                        if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
-                            if(prop === "title" && !value){
-                                value = "[ unlabeled ]"
-                                li += `data-unlabeled="true" `
+                            if(prop === "title" && !val){
+                                val = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
                             }
                             li.setAttribute(attr, val)
                             if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
                                 action = "remove"
                             }
+                        }
                     })
 
                     if(!li.hasAttribute("data-title")) {
