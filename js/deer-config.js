@@ -413,18 +413,20 @@ export default {
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
                             // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                            if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
-                                let value = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
-                                prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
-                                const attr = `data-${prop}`
-                                if(prop === "title" && !value){
-                                    value = "[ unlabeled ]"
-                                    li += `data-unlabeled="true" `
-                                }
-                                li += `${attr}="${value}" `
-                                if(value.includes(filterObj[prop])){
-                                    li = li.replace(hide, "")
-                                }
+                            let value = ['string', 'number'].includes(typeof deerUtils.getValue(cachedObj[prop])) ?
+                                deerUtils.getValue(cachedObj[prop])+"" : //typecast to a string
+                                typeof deerUtils.getValue(cachedObj[prop]) === 'object' && 'textValue' in deerUtils.getValue(cachedObj[prop]) ?
+                                deerUtils.getValue(cachedObj[prop])['textValue'] :
+                                ''
+                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`
+                            if(prop === "title" && !value){
+                                value = "[ unlabeled ]"
+                                li += `data-unlabeled="true" `
+                            }
+                            li += `${attr}="${value}" `
+                            if(value.includes(filterObj[prop])){
+                                li = li.replace(hide, "")
                             }
                         })
                         if(!filteringProps.includes("title")) {
@@ -644,20 +646,22 @@ export default {
                     let action = "add"
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                        if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
-                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                        let value = ['string', 'number'].includes(typeof deerUtils.getValue(cachedObj[prop])) ?
+                                deerUtils.getValue(cachedObj[prop])+"" : //typecast to a string
+                                typeof deerUtils.getValue(cachedObj[prop]) === 'object' && 'textValue' in deerUtils.getValue(cachedObj[prop]) ?
+                                deerUtils.getValue(cachedObj[prop])['textValue'] :
+                                ''
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
-                            if(prop === "title" && !val){
-                                val = "[ unlabeled ]"
-                                li.setAttribute("data-unlabeled", "true")
+                            if(prop === "title" && !value){
+                                value = "[ unlabeled ]"
+                                li += `data-unlabeled="true" `
                             }
-                            li.setAttribute(attr, val)
-                            if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
-                                action = "remove"
+                            li += `${attr}="${value}" `
+                            if(value.includes(filterObj[prop])){
+                                li = li.replace(hide, "")
                             }
-                        }
-                    })
+                        })
 
                     if(!li.hasAttribute("data-title")) {
                         li.setAttribute("data-title", "[ unlabeled ]")
@@ -755,21 +759,22 @@ export default {
                     // Turn each property into an attribute for the <li> element
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                        if(prop === "text"){
-                            const t = obj[prop]?.value?.textValue ?? ""
-                            li.setAttribute("data-text", t) 
-                        }
-                        else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
-                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                        let value = ['string', 'number'].includes(typeof deerUtils.getValue(cachedObj[prop])) ?
+                                deerUtils.getValue(cachedObj[prop])+"" : //typecast to a string
+                                typeof deerUtils.getValue(cachedObj[prop]) === 'object' && 'textValue' in deerUtils.getValue(cachedObj[prop]) ?
+                                deerUtils.getValue(cachedObj[prop])['textValue'] :
+                                ''
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
-                            if(prop === "title" && !val){
-                                val = "[ unlabeled ]"
-                                li.setAttribute("data-unlabeled", "true")
+                            if(prop === "title" && !value){
+                                value = "[ unlabeled ]"
+                                li += `data-unlabeled="true" `
                             }
-                            li.setAttribute(attr, val)
-                        }
-                    })
+                            li += `${attr}="${value}" `
+                            if(value.includes(filterObj[prop])){
+                                li = li.replace(hide, "")
+                            }
+                        })
                     if(!filteringProps.includes("title")) {
                         li.setAttribute("data-title", "[ unlabeled ]")
                         li.setAttribute("data-unlabeled", "true")
