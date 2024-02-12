@@ -655,11 +655,11 @@ export default {
                                 value = "[ unlabeled ]"
                                 li += `data-unlabeled="true" `
                             }
-                            li += `${attr}="${value}" `
-                            if(value.includes(filterObj[prop])){
-                                li = li.replace(hide, "")
+                            li.setAttribute(attr, val)
+                            if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
+                                action = "remove"
                             }
-                        })
+                    })
 
                     if(!li.hasAttribute("data-title")) {
                         li.setAttribute("data-title", "[ unlabeled ]")
