@@ -27,6 +27,8 @@
                 <button type="button" class="toolbar-item" id="italicBtn" data-command="italic">Italics</button>
                 <button type="button" class="toolbar-item" id="underlineBtn" data-command="underline">Underline</button>
                 <button type="button" class="toolbar-item" id="linkBtn">Link</button>
+                <button type="button" class="toolbar-item" id="subscriptBtn" data-command="subscript">Subscript</button>
+                <button type="button" class="toolbar-item" id="superscriptBtn" data-command="superscript">Superscript</button>
             </div>
         
             <div class="row">
@@ -35,7 +37,7 @@
         </div>
 
         <div class="row">
-            <input type="hidden" deer-key="reference" id="documentReference" value="URL or URI of the referenced document">
+            <input type="hidden" deer-key="reference" id="documentReference">
             <input class="button primary" type="submit" value="Add Citation"/>
         </div>
     </form>
@@ -63,14 +65,17 @@
             }
         })
 
-        document.getElementById('bibliographicCitationForm').addEventListener('submit', function(event) {
+        document.getElementById('bibliographicCitationForm').addEventListener('submit', function(e) {
+            e.preventDefault()
             const documentReferenceInput = document.getElementById('documentReference')
             const uri = documentReferenceInput.value
+            console.log("uri", uri)
 
             // if null
             if (!uri) {
-                event.preventDefault()
-                globalFeedbackBlip(ev, 'Please provide a valid URL.', false)
+                e.preventDefault()
+                const ev = new CustomEvent("Invalid URI.")
+                globalFeedbackBlip(e, 'Invalid URI.', false)
                 return false
             }
 
@@ -120,6 +125,15 @@
             document.getElementById('linkBtn').addEventListener('click', () => {
                 insertLink()
             })
+            document.getElementById('subscriptBtn').addEventListener('click', (e) => {
+                e.preventDefault()
+                format('subscript')
+            });
+
+            document.getElementById('superscriptBtn').addEventListener('click', (e) => {
+                e.preventDefault()
+                format('superscript')
+            });
 
             editor.addEventListener('keyup', updateButtonStates)
             editor.addEventListener('mouseup', updateButtonStates)
