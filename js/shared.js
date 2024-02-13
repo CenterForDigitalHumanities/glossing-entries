@@ -197,6 +197,8 @@ async function findMatchingIncipits(incipit, titleStart) {
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
     titleStart ??= /\s/.test(incipit) ? incipit.split(' ')[0] : incipit
+
+    // nah nah this needs to be fuzzier, getting 0 matches for each witness that can't be correct.
     const queryObj = {
         $or: [{
             "body.title.value": titleStart

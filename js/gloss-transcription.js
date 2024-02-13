@@ -171,7 +171,7 @@ function setWitnessFormDefaults(){
         t.removeAttribute("deer-source")
     })
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "BryanManageGlosses"
+    form.querySelector("input[deer-key='creator']").value = "BryanManageGlosses"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
