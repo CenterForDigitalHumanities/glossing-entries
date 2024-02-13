@@ -197,7 +197,6 @@ async function findMatchingIncipits(incipit, titleStart) {
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
     titleStart ??= /\s/.test(incipit) ? incipit.split(' ')[0] : incipit
-
     const queryObj = {
         $or: [{
             "body.title.value": titleStart
