@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Gallery of Glosses</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/layout.js" type="module"></script>
+    <script src="js/shared.js"></script>
+    <style> 
+        a.button{
+            margin: 1em 3px auto;
+            width: 25em;
+        }
+
+        .button+.button {
+            margin-left: 0rem;
+        }
+
+        p{
+            position: relative;
+            z-index: 2;
+        }
+
+        .options{
+            text-align: center;
+            position: relative;
+        }
+
+    </style>
+</head>
+
+<body class="container">
+    <gog-header class="container"></gog-header>
+    <div class="content container">
+        <p>
+            Welcome to the Gallery of Glosses data entry & management portal.  Here you can study gloss transcriptions from T-PEN, generate and connect Glosses and decorate Glosses with descriptive metadata.  See the ways to get started below.
+        </p>
+        <p>
+            Note if you are not here for data entry or data management, you may be looking for the public site.  <a href="https://gallery-of-glosses.vercel.app/">Go there now!</a>
+        </p>
+        <div class="options">
+            <a href="./gloss-transcription.html" class="button primary">Detect Glosses in T-PEN Transcriptions</a>
+            <a href="./ng.html" class="button primary">Create a New Gloss</a>
+            <a href="./glosses.html" class="button primary">Browse Gloss Collection</a>
+            <a href="./themes.html" class="button primary">Browse Themes</a>
+            <a href="./manage-glosses.html" class="button primary">Manage Gloss Collection</a>
+        </div>
+    </div>
+    <gog-footer class="container"></gog-footer>
+    <os-notice></os-notice>
+</body>
+
+</html>
