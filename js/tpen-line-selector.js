@@ -113,6 +113,12 @@ class TpenLineSelector extends HTMLElement {
                 ms.sequences[0].canvases.forEach((canvas, index) => {
                     const pageContainer = document.createElement("div")
                     pageContainer.classList.add("pageContainer")
+                    pageContainer.addEventListener('mousedown', e => {e.preventDefault(); e.target.closest("div[tpen-line-id]").dispatchEvent(
+                        new MouseEvent('mousedown', {bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY})
+                    )})
+                    pageContainer.addEventListener('mouseup', e => {e.preventDefault; e.target.closest("div[tpen-line-id]").dispatchEvent(
+                        new MouseEvent('mouseup', {bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY})
+                    )})
                     const pageHeader = document.createElement("h4")
                     const pageToggle = document.createElement("div")
                     pageToggle.classList.add("togglePage")
