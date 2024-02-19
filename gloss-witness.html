@@ -140,4 +140,18 @@
     <gloss-modal class="is-hidden"></gloss-modal>
     <script src="js/gloss-witness.js"></script>
 </body>
+<script>
+    /**
+     * Make sure DEER forms do not submit when a user hits "Enter".
+     */ 
+    document.querySelectorAll("form[deer-type]").forEach(form => {
+        form.addEventListener("keydown", (e)=> {
+            if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+                if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                    e.preventDefault()
+                }
+            }
+        }, true)
+    })
+</script>
 </html>

@@ -486,11 +486,50 @@ line.selected.just {
   margin-bottom: 1em;
 }
 
-form#ngForm
+form#ngForm,
+form#bibliographicCitationForm
 {
   margin: 0.7em;
   margin-left: auto;
   margin-right: auto;
+}
+
+#bibliographicCitation-container {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+#bibliographicCitationtoolbar {
+    display: flex;
+    background-color: #f3f3f3;
+    border-bottom: 1px solid #ccc;
+    padding: 5px;
+}
+
+.toolbar-item {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 16px;
+    border-radius: 4px;
+}
+
+.toolbar-item:hover {
+    background-color: #e7e7e7;
+}
+
+.toolbar-item.active {
+    background-color: #e7e7e7; 
+    box-shadow: inset 0 0 3px #666; 
+}
+
+#bibliographicCitationEditor {
+    padding: 10px;
+    min-height: 200px;
 }
 
 p.bg-light {
