@@ -379,3 +379,46 @@ async function getAllWitnessesOfSource(source){
 function undoBrowserSelection(s){
     s?.removeAllRanges?.() ?? s?.empty?.()
 }
+
+/** 
+ * Confirm the shelfmark's inclusion in "GoG-manuscripts" dynamic collection. 
+ * @see {@link findShelfmark #113} to verify shelfmark is appropriate. 
+ *
+ * @async
+ * @function addManuscriptToGoG
+ * @param { string } shelfmark Identifier to include.
+ */ 
+async function addManuscriptToGoG(shelfmark) {
+    try {
+        // wash shelfmark (maybe this should be extracted from #113 
+        // TODO: clean shelfmark?
+        const cleanShelfmark = findShelfmark(shelfmark) 
+  
+        // check for existing annotation
+        // TODO: find annotation by shelfmark
+        const existingAnnotations = findAnnotationsByShelfmark(cleanShelfmark, "GoG-manuscripts")
+
+        if(existingAnnotations.length > 0){
+            const ev = new CustomEvent("Annotation already exists.")
+            globalFeedbackBlip(ev, 'Annotation already exists for this shelfmark.', false)
+            return
+        }
+    
+        // save new if none exists
+        const annotation = {
+            "@context": "webanno context",
+            "type": "Annotation",
+            "target": `Shelfmark, identifier ${cleanShelfmark}`,
+            "body": { "targetCollection": "GoG-manuscripts" }
+        }
+        // TODO: save new annotation
+    
+        //  success
+        const successEvent = new CustomEvent("Manuscript added successfully.")
+        globalFeedbackBlip(successEvent, 'Manuscript added successfully to GoG-manuscripts.', true)
+    } catch (error) {
+        //  errors
+        const errorEvent = new CustomEvent("Failed to add manuscript.")
+        globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
+    }
+}
