@@ -1038,6 +1038,332 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
     }
 }
 
+DEER.TEMPLATES.managedlist_refactored = function (obj, options = {}) {
+    return{
+        html: ` 
+            <style>
+                .cachedNotice{
+                    margin-top: -1em;
+                    display: block;
+                    margin-bottom: 0.55em;
+                }
+                .cachedNotice a{
+                    cursor: pointer;
+                }
+
+                .galleryEntry{
+                    cursor: alias;
+                }
+                .totalsProgress{
+                    text-align: center;
+                    background-color: rgba(0, 0, 0, 0.1);
+                    padding-top: 4px;
+                    font-size: 13pt;
+                }
+                .facet-filters{
+                    border-bottom: 1px solid black;
+                }
+                ul{
+                    list-style-type: none;
+                    padding-left: 1em;
+                }
+            </style>
+            <h2 class="nomargin"> Manage Glosses </h2>
+            <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+            <div class="row is-hidden facet-filters">
+                <div class="col-4 is-hidden">
+                    <div class="statusFacets">
+                        <small> 
+                            Check to see Glosses with the status.
+                        </small>
+                        <input class="statusFacet" type="checkbox" status-filter="public" /><label>Public</label>
+                        <input class="statusFacet" type="checkbox" status-filter="unlabeled" /><label>Untitled</label>
+                        <input class="statusFacet" type="checkbox" status-filter="other" /><label>T.B.D.</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <small> 
+                        Find Glosses by text
+                    </small>
+                    <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="serifText">
+                </div>
+            </div>
+            <div class="progressArea row">
+                <div class="col">
+                    <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
+                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
+                </div>
+            </div>
+        `,
+        then: (elem) => {
+            let managedListCache = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+            let numloaded = 0
+            let total = 0
+            const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
+            const filterObj = {}
+            if (options.list) {
+                let ul = document.createElement("ul")
+                const deduplicatedList = UTILS.removeDuplicates(obj[options.list], '@id')
+                total = deduplicatedList.length                
+                deduplicatedList.forEach((val, index) => {
+                    const glossID = val["@id"].replace(/^https?:/, 'https:')
+                    const publishedStatus = document.createElement("span")
+                    publishedStatus.classList.add("pubStatus")
+                    publishedStatus.setAttribute("glossid", val['@id'])
+                    publishedStatus.innerText = "??"
+                    let li = document.createElement("li")
+                    li.setAttribute("deer-id", glossID)
+                    li.classList.add("galleryEntry")
+                    let a = document.createElement("a")
+                    a.setAttribute("href", options.link+glossID)
+                    let span = document.createElement("span")
+                    if(managedListCache.get(glossID)){
+                        // We cached it in the past and are going to trust it right now.
+                        const cachedObj = managedListCache.get(glossID)
+                        let filteringProps = Object.keys(cachedObj)
+                        // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
+                        li.setAttribute("data-expanded", "true")
+                        // Add all Gloss object properties to the <li> element as attributes to match on later
+                        filteringProps.forEach( (prop) => {
+                            let value = ['string', 'number'].includes(typeof UTILS.getValue(cachedObj[prop])) ?
+                            UTILS.getValue(cachedObj[prop])+"" : //typecast to a string
+                            typeof UTILS.getValue(cachedObj[prop]) === 'object' && 'textValue' in UTILS.getValue(cachedObj[prop]) ?
+                            UTILS.getValue(cachedObj[prop])['textValue'] :
+                            ''
+                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`
+                            if(prop === "title" && !value){
+                                value = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
+                            }
+                            li.setAttribute(attr, value)
+                            if(value.includes(filterObj[prop])){
+                                li.classList.remove("is-hidden")
+                            }
+                        })
+                        if(!filteringProps.includes("title")) {
+                            li.setAttribute("data-title", "[ unlabeled ]")
+                            li.setAttribute("data-unlabeled", "true")
+                        }
+                        span.innerText = UTILS.getLabel(cachedObj) ? UTILS.getLabel(cachedObj) : "Label Unprocessable"
+                        numloaded++
+                    }
+                    else{
+                        // This object was not cached so we do not have its properties.
+                        // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
+                        let div = document.createElement("div")
+                        div.setAttribute("deer-template", "managedFilterableListItem")
+                        div.setAttribute("deer-id", glossID)
+                        div.classList.add("deer-view")
+                    }
+                    a.appendChild(span)
+                    li.appendChild(publishedStatus)
+                    li.appendChild(a)
+                    ul.appendChild(li)
+                })
+                elem.appendChild(ul)
+            }
+            else{
+                console.log("There are no items in this list to draw.")
+                console.log(obj)
+                return
+            }
+            elem.$contentState = ""
+            const totalsProgress = elem.querySelector(".totalsProgress")
+
+            const filter = elem.querySelector('input[filter="title"]')
+            const facetFilter = elem.querySelector(".statusFacets")
+            const facetInputs = elem.querySelectorAll(".statusFacet")
+            const cachedNotice = elem.querySelector(".cachedNotice")
+            const progressArea = elem.querySelector(".progressArea")
+
+            totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
+            totalsProgress.setAttribute("total", total)
+            totalsProgress.setAttribute("count", numloaded)
+
+            elem.querySelector(".newcache").addEventListener("click", ev => {
+                localStorage.clear()
+                location.reload()
+            })
+
+            // These particular ones are true/false flags, so their value is "true" and "false" not some other string to match on.
+            // TODO work with other filters.  Will it be $AND or $OR?
+            facetInputs.forEach(input => {
+                input.addEventListener('input', ev =>{
+                    const k = ev?.target.getAttribute("status-filter")
+                    const url = new URL(window.location.href)
+                    let filterQuery
+                    let filters = {}
+                    // TODO need the build this filter based on every checked status and typed text to match on.
+                    if(ev?.target.checked){
+                        filters[k] = "true"
+                    }
+                    if(Object.keys(filters).length === 0) filters.title = ""
+                    filterQuery = encodeContentState(JSON.stringify(filters))
+                    debounce(filterGlosses(filterQuery))
+                })    
+            })
+            
+            // This is a freeform filter to match on text.  
+            // TODO It will need to take the statuses into account.  Will it be $AND or $OR?
+            filter.addEventListener('input', ev =>{
+                const val = ev?.target.value.trim()
+                let filterQuery
+                if(val){
+                    filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
+                }
+                else{
+                    filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
+                }
+                debounce(filterGlosses(filterQuery))
+            })
+            
+            if(numloaded === total){
+                cachedNotice.classList.remove("is-hidden")
+                progressArea.classList.add("is-hidden")
+                elem.querySelector(".facet-filters").classList.remove("is-hidden")
+                elem.querySelectorAll("input[filter]").forEach(i => {
+                    i.classList.remove("is-hidden")
+                })
+            }
+            function debounce(func, timeout = 500) {
+                let timer
+                return (...args) => {
+                    clearTimeout(timer)
+                    timer = setTimeout(() => { func.apply(this, args) }, timeout)
+                }
+            }
+            function filterGlosses(queryString = '') {
+                const numloaded = parseInt(totalsProgress.getAttribute("count"))
+                const total = parseInt(totalsProgress.getAttribute("total"))
+                if (numloaded !== total) {
+                    const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
+                    UTILS.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
+                    return
+                }
+                queryString = queryString.trim()
+                const query = decodeContentState(queryString)
+                const items = elem.querySelectorAll('li')
+                items.forEach(li => {
+                    const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
+                    const elem = templateContainer ?? li
+                    let action = "add"
+                    for (const prop in query) {
+                        if (li.hasAttribute(`data-${prop}`)) {
+                            action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
+                        }
+                        elem.classList[action](`is-hidden`, `un${action}-item`)
+                        setTimeout(() => elem.classList.remove(`un${action}-item`), 500)
+                        if (action === "remove") break
+                    }
+                })
+            }
+
+            let url = new URL(elem.getAttribute("deer-listing"))
+            url.searchParams.set('nocache', Date.now())
+            fetch(url).then(r => r.json())
+            .then(list => {
+                elem.listCache = new Set()
+                list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
+                for (const span of elem.querySelectorAll('.pubStatus')) {
+                    const li = span.parentElement
+                    const a = li.querySelector("a")
+                    if(elem.listCache.has(span.getAttribute("glossid"))){
+                        span.innerHTML = "✓"
+                        li.setAttribute("data-public", "true")
+                        a.setAttribute("data-public", "true")
+                    }
+                    else{
+                        span.innerHTML = "❌"
+                        li.setAttribute("data-public", "false")
+                        a.setAttribute("data-public", "false")
+                    }
+                }
+            })
+            .then(() => {
+                elem.querySelectorAll(".galleryEntry").forEach(el => el.addEventListener('click', (ev) => {
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    // This <li> will have all the processed data-stuff that we will want to use upstream.
+                    const parentDataElem = ev.target.closest("li")
+                    const glossID = parentDataElem.getAttribute("deer-id") ? parentDataElem.getAttribute("deer-id") : ""
+                    const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
+                    const published = parentDataElem.getAttribute("data-public") === "true" ? true : false
+                    const glossText = parentDataElem.getAttribute("data-text") ? parentDataElem.getAttribute("data-text") : ""
+                    const glossData = {
+                        "@id": glossID,
+                        "title": glossTitle,
+                        "text" : glossText,
+                        "published": published
+                    }
+                    document.querySelector("manage-gloss-modal").open(glossData)
+                }))
+                saveList.addEventListener('click', overwriteList)
+            })
+                            
+            function overwriteList() {
+                let mss = []
+                let missing = false
+                elem.listCache.forEach(uri => {
+                    let labelElement = document.querySelector(`li[deer-id='${uri}'] span`)
+                    if (labelElement) {
+                        let label = labelElement.textContent.trim()
+                        mss.push({
+                            label: label,
+                            '@id': uri
+                        })
+                    } else {
+                        console.log(`Element with deer-id '${uri}' not found.`)
+                        missing = true
+                    }
+                })
+                
+                if (missing) {
+                    console.warn("Cannot overwrite list while glosses are still loading.")
+                    alert("Cannot overwrite list while glosses are still loading. Please wait until all glosses are loaded.")
+                    return
+                }
+
+                const list = {
+                    '@id': elem.getAttribute("deer-listing"),
+                    '@context': 'https://schema.org/',
+                    '@type': "ItemList",
+                    name: elem.getAttribute("deer-listing") ?? "Gallery of Glosses",
+                    numberOfItems: elem.listCache.size,
+                    itemListElement: mss
+                }
+                
+                fetch(DEER.URLS.OVERWRITE, {
+                    method: "PUT",
+                    mode: 'cors',
+                    body: JSON.stringify(list),
+                    headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    }
+                })
+                .then(r => {
+                    if (r.ok) {
+                        return r.json()
+                    } else {
+                        throw new Error('Failed to save')
+                    }
+                })
+                .then(data => {
+                    const ev = new CustomEvent("Public List Updated")
+                    UTILS.globalFeedbackBlip(ev, `Public Glosses Updated Successfully.`, true)
+                    saveList.setAttribute("disabled", "true")
+                })
+                .catch(err => {
+                    const ev = new CustomEvent("Public List Update Failed")
+                    UTILS.globalFeedbackBlip(ev, `There was an error.  The public list may not be updated.`, true)
+                    console.error(err)
+                })
+            }
+        }
+    }
+}
+
 DEER.TEMPLATES.managedlist = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses managers.</h4>` }
     try {
@@ -1146,6 +1472,15 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         tmpl += li
                         numloaded++
                     } else {
+                        // This object was not cached so we do not have its properties.
+                        // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
+                        let div = document.createElement("div")
+                        div.setAttribute("deer-link", "ng.html#")
+                        div.setAttribute("deer-template", "managedFilterableListItem")
+                        div.setAttribute("deer-id", glossID)
+                        if(filterPresent) div.classList.add("is-hidden")
+                        div.classList.add("deer-view")
+                        span.innerText = `Loading Gloss #${index + 1}...`
                         // This object was not cached so we do not have its properties.
                         tmpl += 
                         `<div deer-template="managedFilterableListItem" deer-link="ng.html#" class="deer-view" deer-id="${val["@id"]}">

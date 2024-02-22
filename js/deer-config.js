@@ -218,6 +218,7 @@ export default {
                                 // This object was not cached so we do not have its properties.
                                 // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
                                 let div = document.createElement("div")
+                                div.setAttribute("deer-link", "ng.html#")
                                 div.setAttribute("deer-template", "filterableListItem")
                                 div.setAttribute("deer-id", glossID)
                                 if(filterPresent) div.classList.add("is-hidden")
