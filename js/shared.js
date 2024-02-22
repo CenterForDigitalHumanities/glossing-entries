@@ -390,13 +390,28 @@ function undoBrowserSelection(s){
  */ 
 async function addManuscriptToGoG(shelfmark) {
     try {
-        // wash shelfmark (maybe this should be extracted from #113 
-        // TODO: clean shelfmark?
-        const cleanShelfmark = findShelfmark(shelfmark) 
+        // wash shelfmark
+        const cleanShelfmark = shelfmark.replace(/[@$%*?]+/g, '') // Remove specific special characters
+        .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
+        .trim(); // Trim trailing and leading whitespace
   
         // check for existing annotation
-        // TODO: find annotation by shelfmark
-        const existingAnnotations = findAnnotationsByShelfmark(cleanShelfmark, "GoG-manuscripts")
+        const query = {
+            "body": {
+                "targetCollection": "GoG-manuscripts",
+                "value": cleanShelfmark
+            },
+            "__rerum.history.next": { "$exists": false }
+        };
+        const response = await fetch(`${config.URLS.QUERY}`, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(query)
+        });
+        if (!response.ok) throw new Error('Network response was not ok.');
 
         if(existingAnnotations.length > 0){
             const ev = new CustomEvent("Annotation already exists.")
@@ -411,7 +426,17 @@ async function addManuscriptToGoG(shelfmark) {
             "target": `Shelfmark, identifier ${cleanShelfmark}`,
             "body": { "targetCollection": "GoG-manuscripts" }
         }
-        // TODO: save new annotation
+        const saveResponse = await fetch(`${config.URLS.CREATE}`, { 
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+            body: JSON.stringify(annotation)
+        });
+
+        if (!saveResponse.ok) throw new Error('Failed to save the new annotation.');
     
         //  success
         const successEvent = new CustomEvent("Manuscript added successfully.")
