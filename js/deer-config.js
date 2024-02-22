@@ -130,7 +130,206 @@ export default {
             }
             return { html, then }
         },
+        ngListFilterable_refactored: function (obj, options = {}) {
+            return{
+                html: `
+                <style>
+                    .cachedNotice{
+                      margin-top: -1em;
+                      display: block;
+                    }
+
+                    .cachedNotice a{
+                      cursor: pointer;
+                    }
+
+                    .totalsProgress{
+                      text-align: center;
+                      background-color: rgba(0, 0, 0, 0.1);
+                      padding-top: 4px;
+                      font-size: 13pt;
+                    }
+                </style>
+                <h2> Glosses </h2>
+                <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText">
+                <div class="progressArea">
+                    <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
+                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
+                </div>
+                `,
+                then: (elem) => {
+                    const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    let numloaded = 0
+                    let total = 0
+                    const filterPresent = deerUtils.getURLParameter("gog-filter")
+                    const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
+                    if (options.list) {
+                        let ul = document.createElement("ul")
+                        const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
+                        total = deduplicatedList.length                
+                        deduplicatedList.forEach((val, index) => {
+                            const glossID = val["@id"].replace(/^https?:/, 'https:')
+                            let li = document.createElement("li")
+                            li.setAttribute("deer-id", glossID)
+                            let a = document.createElement("a")
+                            a.setAttribute("href", options.link+glossID)
+                            let span = document.createElement("span")
+                            if(cachedFilterableEntities.get(glossID)){
+                                // We cached it in the past and are going to trust it right now.
+                                const cachedObj = cachedFilterableEntities.get(glossID)
+                                let filteringProps = Object.keys(cachedObj)
+                                // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
+                                if(filterPresent){
+                                    li.classList.add("is-hidden")
+                                }
+                                
+                                li.setAttribute("data-expanded", "true")
+                                // Add all Gloss object properties to the <li> element as attributes to match on later
+                                filteringProps.forEach( (prop) => {
+                                    let value = ['string', 'number'].includes(typeof deerUtils.getValue(cachedObj[prop])) ?
+                                    deerUtils.getValue(cachedObj[prop])+"" : //typecast to a string
+                                    typeof deerUtils.getValue(cachedObj[prop]) === 'object' && 'textValue' in deerUtils.getValue(cachedObj[prop]) ?
+                                    deerUtils.getValue(cachedObj[prop])['textValue'] :
+                                    ''
+                                    prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                                    const attr = `data-${prop}`
+                                    if(prop === "title" && !value){
+                                        value = "[ unlabeled ]"
+                                        li.setAttribute("data-unlabeled", "true")
+                                    }
+                                    li.setAttribute(attr, value)
+                                    if(value.includes(filterObj[prop])){
+                                        li.classList.remove("is-hidden")
+                                    }
+                                })
+                                if(!filteringProps.includes("title")) {
+                                    li.setAttribute("data-title", "[ unlabeled ]")
+                                    li.setAttribute("data-unlabeled", "true")
+                                }
+                                span.innerText = deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"
+                                
+                                numloaded++
+                            }
+                            else{
+                                // This object was not cached so we do not have its properties.
+                                // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
+                                let div = document.createElement("div")
+                                div.setAttribute("deer-template", "filterableListItem")
+                                div.setAttribute("deer-id", glossID)
+                                if(filterPresent) div.classList.add("is-hidden")
+                                div.classList.add("deer-view")
+                                span.innerText = `Loading Gloss #${index + 1}...`
+                            }
+                            li.appendChild(a)
+                            li.appendChild(span)
+                            ul.appendChild(li)
+                        })
+                        elem.appendChild(ul)
+                    }
+
+                    elem.$contentState = ""
+                    if(filterPresent){
+                        elem.querySelector(".filterNotice").classList.remove("is-hidden")
+                        elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
+                    }
+                    const totalsProgress = elem.querySelector(".totalsProgress")
+                    // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
+                    const filter = elem.querySelector('input')
+                    const cachedNotice = elem.querySelector(".cachedNotice")
+                    const progressArea = elem.querySelector(".progressArea")
+                    // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
+                    totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
+                    totalsProgress.setAttribute("total", total)
+                    totalsProgress.setAttribute("count", numloaded)
+
+                    // FIXME this can be improved.  We need to update localStorage, not completely refresh it.
+                    elem.querySelector(".newcache").addEventListener("click", ev => {
+                        localStorage.clear()
+                        location.reload()
+                    })
+
+                    // Filter the list of glosses as users type their query against 'title'
+                    filter.addEventListener('input', ev =>{
+                        const val = ev?.target.value.trim()
+                        let filterQuery
+                        if(val){
+                            filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
+                        }
+                        else{
+                            filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
+                        }
+                        debounce(filterGlosses(filterQuery))
+                    })
+
+                    if(numloaded === total){
+                        cachedNotice.classList.remove("is-hidden")
+                        progressArea.classList.add("is-hidden")
+                        elem.querySelectorAll("input[filter]").forEach(i => {
+                            // The filters that are used now need to be selected or take on the string or whatevs
+                            i.classList.remove("is-hidden")
+                            if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
+                                i.value = filterObj[i.getAttribute("filter")]
+                                i.setAttribute("value", filterObj[i.getAttribute("filter")])
+                            }
+                            i.dispatchEvent(new Event('input', { bubbles: true }))
+                        })
+                        if(filterPresent){
+                            debounce(filterGlosses(elem.$contentState))
+                        }
+                    }
+
+                    /** 
+                     * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
+                     * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
+                     */ 
+                    function filterGlosses(queryString=''){
+                        const numloaded = parseInt(totalsProgress.getAttribute("count"))
+                        const total = parseInt(totalsProgress.getAttribute("total"))
+                        if(numloaded !== total){
+                            //alert("All data must be loaded to use this filter.  Please wait.")
+                            const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
+                            deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
+                            return
+                        }
+                        queryString = queryString.trim()
+                        const query = decodeContentState(queryString)
+                        const items = elem.querySelectorAll('li')
+                        items.forEach(li=>{
+                            const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
+                            const elem = templateContainer ?? li
+                            if(!elem.classList.contains("is-hidden")){
+                                elem.classList.add("is-hidden")
+                            }
+                            for(const prop in query){
+                                if(li.hasAttribute(`data-${prop}`)){
+                                    const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
+                                    elem.classList[action](`is-hidden`,`un${action}-item`)
+                                    setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
+                                    // If it is showing, no need to check other properties for filtering.
+                                    if(action === "remove") break
+                                }
+                            }
+                        })
+
+                        // This query was applied.  Make this the encoded query in the URL, but don't cause a page reload.
+                        const url = new URL(window.location.href)
+                        if(query.title){
+                            url.searchParams.set("gog-filter", queryString)
+                            window.history.replaceState(null, null, url)   
+                        }
+                        else{
+                            url.searchParams.delete("gog-filter")
+                            window.history.replaceState(null, null, url)
+                        }
+                    }
+                }
+            }
+        },
         ngListFilterable: function (obj, options = {}) {
+            // const style = document.createElement("style")
+            // style.textContent = "h1 { background-color: red; }"
+            // document.head.appendChild(style)
             let html = `
             <style>
                 .cachedNotice{
