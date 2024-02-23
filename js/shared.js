@@ -390,19 +390,23 @@ function undoBrowserSelection(s){
  */ 
 async function addManuscriptToGoG(shelfmark) {
     try {
-        // wash shelfmark
-        const cleanShelfmark = shelfmark.replace(/[@$%*?]+/g, '') // Remove specific special characters
-        .replace(/\s+/g, ' ') // Replace multiple spaces with a single space
-        .trim(); // Trim trailing and leading whitespace
-  
-        // check for existing annotation
+        /** Wash shelfmark by 
+         * Removing specific special characters @ $ % * ?
+         * Replace multiple spaces with a single space
+         * Removing trailing or leading whitespace
+         * */
+        const cleanShelfmark = shelfmark.replace(/[@$%*?]+/g, '') 
+        .replace(/\s+/g, ' ') 
+        .trim() 
+
+        // check for existing annotation with cleaned shelfmark
         const query = {
             "body": {
                 "targetCollection": "GoG-manuscripts",
                 "value": cleanShelfmark
             },
             "__rerum.history.next": { "$exists": false }
-        };
+        }
         const response = await fetch(`${config.URLS.QUERY}`, {
             method: 'POST',
             mode: 'cors',
@@ -410,8 +414,8 @@ async function addManuscriptToGoG(shelfmark) {
                 "Content-Type": "application/json;charset=utf-8"
             },
             body: JSON.stringify(query)
-        });
-        if (!response.ok) throw new Error('Network response was not ok.');
+        })
+        if (!response.ok) throw new Error('Network response was not ok.')
 
         if(existingAnnotations.length > 0){
             const ev = new CustomEvent("Annotation already exists.")
@@ -419,7 +423,7 @@ async function addManuscriptToGoG(shelfmark) {
             return
         }
     
-        // save new if none exists
+        // save new annotation with shelfmark if none exists
         const annotation = {
             "@context": "webanno context",
             "type": "Annotation",
@@ -434,15 +438,15 @@ async function addManuscriptToGoG(shelfmark) {
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
             },
             body: JSON.stringify(annotation)
-        });
+        })
 
-        if (!saveResponse.ok) throw new Error('Failed to save the new annotation.');
+        if (!saveResponse.ok) throw new Error('Failed to save the new annotation.')
     
-        //  success
+        //  success blip if annotation is saved
         const successEvent = new CustomEvent("Manuscript added successfully.")
         globalFeedbackBlip(successEvent, 'Manuscript added successfully to GoG-manuscripts.', true)
     } catch (error) {
-        //  errors
+        //  error bblip if annootation did not save
         const errorEvent = new CustomEvent("Failed to add manuscript.")
         globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
     }
