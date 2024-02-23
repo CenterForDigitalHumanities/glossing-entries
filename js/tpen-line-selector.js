@@ -113,6 +113,21 @@ class TpenLineSelector extends HTMLElement {
                 ms.sequences[0].canvases.forEach((canvas, index) => {
                     const pageContainer = document.createElement("div")
                     pageContainer.classList.add("pageContainer")
+					for (const eventName of ['mousedown', 'mouseup'])
+						pageContainer.addEventListener(eventName, e => {
+							let nearestChild = null, minDistance = Infinity
+							for (const child of e.target.children) {
+								const rect = child.getBoundingClientRect()
+								const distance = Math.hypot(e.clientX - rect.left, e.clientY - rect.top)
+								if (distance < minDistance) {
+									minDistance = distance
+									nearestChild = child
+								}
+							}
+							nearestChild?.dispatchEvent(
+								new MouseEvent(eventName, {bubbles: true, cancelable: true, clientX: e.clientX, clientY: e.clientY})
+							)
+						})
                     const pageHeader = document.createElement("h4")
                     const pageToggle = document.createElement("div")
                     pageToggle.classList.add("togglePage")
