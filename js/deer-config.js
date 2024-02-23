@@ -751,12 +751,12 @@ export default {
                 then: (elem) => {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view")
+                    // Be careful.  The publish list stores items via http://, but everything else is https://.  Beware the false mismatch.
                     const glossID = obj["@id"].replace(/^https?:/, 'https:')
                     const glossHttpID = obj["@id"].replace(/^https?:/, 'http:')
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
                     const included = listCache.has(glossHttpID)
-
                     const publishedStatus = document.createElement("span")
                     publishedStatus.setAttribute("glossid", glossHttpID)
                     publishedStatus.classList.add("pubStatus")
