@@ -213,6 +213,9 @@ export default {
                                 }
                                 span.innerText = deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"
                                 numloaded++
+                                a.appendChild(span)
+                                li.appendChild(a)
+                                ul.appendChild(li)
                             }
                             else{
                                 // This object was not cached so we do not have its properties.
@@ -224,10 +227,11 @@ export default {
                                 if(filterPresent) div.classList.add("is-hidden")
                                 div.classList.add("deer-view")
                                 span.innerText = `Loading Gloss #${index + 1}...`
+                                a.appendChild(span)
+                                li.appendChild(a)
+                                div.appendChild(li)
+                                ul.appendChild(div)
                             }
-                            a.appendChild(span)
-                            li.appendChild(a)
-                            ul.appendChild(li)
                         })
                         elem.appendChild(ul)
                     }
@@ -412,7 +416,7 @@ export default {
                             if(glossID === referencedGlossID){
                                 inclusionBtn.setAttribute("disabled","")
                                 inclusionBtn.setAttribute("title","This Gloss is already attached!")
-                                inclustionBtn.setAttribute("value", "✓ attached")
+                                inclusionBtn.setAttribute("value", "✓ attached")
                                 inclusionBtn.classList.add("success")
                             }
                             else{
@@ -459,6 +463,10 @@ export default {
                                 }
                                 span.innerText = deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"
                                 numloaded++
+                                a.appendChild(span)
+                                li.appendChild(inclusionBtn)
+                                li.appendChild(a)
+                                ul.appendChild(li)
                             }
                             else{
                                 // This object was not cached so we do not have its properties.
@@ -469,11 +477,11 @@ export default {
                                 if(filterPresent) div.classList.add("is-hidden")
                                 div.classList.add("deer-view")
                                 span.innerText = `Loading Gloss #${index + 1}...`
+                                a.appendChild(span)
+                                li.appendChild(a)
+                                div.appendChild(li)
+                                ul.appendChild(div)
                             }
-                            a.appendChild(span)
-                            li.appendChild(inclusionBtn)
-                            li.appendChild(a)
-                            ul.appendChild(li)
                         })
                         elem.querySelector(".glossPicker").appendChild(ul)
                     }
@@ -750,7 +758,7 @@ export default {
                     const included = listCache.has(glossHttpID)
 
                     const publishedStatus = document.createElement("span")
-                    publishedStatus.setAttribute("glossid", glossID)
+                    publishedStatus.setAttribute("glossid", glossHttpID)
                     publishedStatus.classList.add("pubStatus")
                     publishedStatus.innerText = included ? "✓" : "❌"
                     let filteringProps = Object.keys(obj)
@@ -765,7 +773,13 @@ export default {
                         ev.stopPropagation()
                         // This <li> will have all the processed data-stuff that we will want to use upstream.
                         const parentDataElem = ev.target.closest("li")
-                        const glossID = parentDataElem.getAttribute("data-id") ? parentDataElem.getAttribute("data-id") : ""
+                        if(!parentDataElem.getAttribute("data-type")){
+                            // Don't have enough info to manage yet
+                            const wait = new CustomEvent("Please wait for this Gloss information to load.")
+                            deerUtils.globalFeedbackBlip(wait, `Please wait for this Gloss information to load.`, false)
+                            return
+                        }
+                        const glossID = parentDataElem.getAttribute("data-id") ? parentDataElem.getAttribute("data-id").replace(/^https?:/, 'http:') : ""
                         const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
                         const published = parentDataElem.getAttribute("data-public") === "true" ? true : false
                         const glossText = parentDataElem.getAttribute("data-text") ? parentDataElem.getAttribute("data-text") : ""
@@ -828,6 +842,7 @@ export default {
                         A filter will become available when all items are loaded.`
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
+                        saveList.classList.remove("is-hidden")
                         if(modalBtn) modalBtn.classList.remove("is-hidden")
                         if(filterInstructions) filterInstructions.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")

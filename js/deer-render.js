@@ -1117,6 +1117,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     let a = document.createElement("a")
                     a.setAttribute("href", options.link+glossID)
                     let span = document.createElement("span")
+
                     if(managedListCache.get(glossID)){
                         // We cached it in the past and are going to trust it right now.
                         const cachedObj = managedListCache.get(glossID)
@@ -1147,6 +1148,10 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         }
                         span.innerText = UTILS.getLabel(cachedObj) ? UTILS.getLabel(cachedObj) : "Label Unprocessable"
                         numloaded++
+                        a.appendChild(span)
+                        li.appendChild(publishedStatus)
+                        li.appendChild(a)
+                        ul.appendChild(li)
                     }
                     else{
                         // This object was not cached so we do not have its properties.
@@ -1155,11 +1160,13 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         div.setAttribute("deer-template", "managedFilterableListItem")
                         div.setAttribute("deer-id", glossID)
                         div.classList.add("deer-view")
+                        span.innerText = `Loading Gloss #${index + 1}...`
+                        a.appendChild(span)
+                        li.appendChild(publishedStatus)
+                        li.appendChild(a)
+                        div.appendChild(li)
+                        ul.appendChild(div)
                     }
-                    a.appendChild(span)
-                    li.appendChild(publishedStatus)
-                    li.appendChild(a)
-                    ul.appendChild(li)
                 })
                 elem.appendChild(ul)
             }
@@ -1220,6 +1227,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             
             if(numloaded === total){
                 cachedNotice.classList.remove("is-hidden")
+                saveList.classList.remove("is-hidden")
                 progressArea.classList.add("is-hidden")
                 elem.querySelector(".facet-filters").classList.remove("is-hidden")
                 elem.querySelectorAll("input[filter]").forEach(i => {
@@ -1286,6 +1294,12 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     ev.stopPropagation()
                     // This <li> will have all the processed data-stuff that we will want to use upstream.
                     const parentDataElem = ev.target.closest("li")
+                    if(!parentDataElem.getAttribute("data-type")){
+                        // Don't have enough info to manage yet
+                        const wait = new CustomEvent("Please wait for this Gloss information to load.")
+                        UTILS.globalFeedbackBlip(wait, `Please wait for this Gloss information to load.`, false)
+                        return
+                    }
                     const glossID = parentDataElem.getAttribute("deer-id") ? parentDataElem.getAttribute("deer-id") : ""
                     const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
                     const published = parentDataElem.getAttribute("data-public") === "true" ? true : false
@@ -1305,7 +1319,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 let mss = []
                 let missing = false
                 elem.listCache.forEach(uri => {
-                    let labelElement = document.querySelector(`li[deer-id='${uri}'] span`)
+                    let labelElement = document.querySelector(`li[deer-id='${uri.replace("http:", "https:")}'] a span`)
                     if (labelElement) {
                         let label = labelElement.textContent.trim()
                         mss.push({
