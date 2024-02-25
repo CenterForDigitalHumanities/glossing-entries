@@ -260,7 +260,6 @@ export default {
                     elem.querySelector(".newcache").addEventListener("click", ev => {
                         localStorage.clear()
                         location.reload()
-
                     })
 
                     // Filter the list of glosses as users type their query against 'title'
@@ -313,71 +312,6 @@ export default {
                                 query[prop] = query[prop].trim()
                             }
                         }
-                        const items = elem.querySelectorAll('li')
-                        items.forEach(li=>{
-                            const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
-                            const elem = templateContainer ?? li
-                            if(!elem.classList.contains("is-hidden")){
-                                elem.classList.add("is-hidden")
-                            }
-                            for(const prop in query){
-                                if(li.hasAttribute(`data-${prop}`)){
-                                    const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
-                                    elem.classList[action](`is-hidden`,`un${action}-item`)
-                                    setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
-                                    // If it is showing, no need to check other properties for filtering.
-                                    if(action === "remove") break
-                                }
-                            }
-                        })
-
-                    })
-
-                    // Filter the list of glosses as users type their query against 'title'
-                    filter.addEventListener('input', ev =>{
-                        const val = ev?.target.value.trim()
-                        let filterQuery
-                        if(val){
-                            filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
-                        }
-                        else{
-                            filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
-                        }
-                        debounce(filterGlosses(filterQuery))
-                    })
-
-                    if(numloaded === total){
-                        cachedNotice.classList.remove("is-hidden")
-                        progressArea.classList.add("is-hidden")
-                        elem.querySelectorAll("input[filter]").forEach(i => {
-                            // The filters that are used now need to be selected or take on the string or whatevs
-                            i.classList.remove("is-hidden")
-                            if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
-                                i.value = filterObj[i.getAttribute("filter")]
-                                i.setAttribute("value", filterObj[i.getAttribute("filter")])
-                            }
-                            i.dispatchEvent(new Event('input', { bubbles: true }))
-                        })
-                        if(filterPresent){
-                            debounce(filterGlosses(elem.$contentState))
-                        }
-                    }
-
-                    /** 
-                     * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
-                     * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
-                     */ 
-                    function filterGlosses(queryString=''){
-                        const numloaded = parseInt(totalsProgress.getAttribute("count"))
-                        const total = parseInt(totalsProgress.getAttribute("total"))
-                        if(numloaded !== total){
-                            //alert("All data must be loaded to use this filter.  Please wait.")
-                            const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
-                            deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
-                            return
-                        }
-                        queryString = queryString.trim()
-                        const query = decodeContentState(queryString)
                         const items = elem.querySelectorAll('li')
                         items.forEach(li=>{
                             const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
@@ -689,13 +623,6 @@ export default {
                                 query[prop] = query[prop].trim()
                             }
                         }
-                        const items = elem.querySelectorAll('li')
-                        items.forEach(li=>{
-                            const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
-                            const elem = templateContainer ?? li
-                            if(!elem.classList.contains("is-hidden")){
-                                elem.classList.add("is-hidden")
-                            }
                         const items = elem.querySelectorAll('li')
                         items.forEach(li=>{
                             const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
