@@ -276,7 +276,6 @@ export default {
                     })
 
                     if(numloaded === total){
-						document.getElementById('search-submit').classList.remove("is-hidden")
                         cachedNotice.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
                         elem.querySelectorAll("input[filter]").forEach(i => {
@@ -291,6 +290,15 @@ export default {
                         if(filterPresent){
                             debounce(filterGlosses(elem.$contentState))
                         }
+						const searchSubmit = document.getElementById('search-submit')
+						searchSubmit.classList.remove("is-hidden")
+						searchSubmit.addEventListener("keydown", (e)=> {
+							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+									e.preventDefault()
+								}
+							}
+						}, true)
                     }
 
                     /** 
@@ -589,6 +597,15 @@ export default {
                             }
                             i.dispatchEvent(new Event('input', { bubbles: true }))
                         })
+						const searchSubmit = document.getElementById('search-submit')
+						searchSubmit.classList.remove("is-hidden")
+						searchSubmit.addEventListener("keydown", (e)=> {
+							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+									e.preventDefault()
+								}
+							}
+						}, true)
                     }
 
                     function debounce(func,timeout = 500) {
@@ -740,6 +757,15 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
+						const searchSubmit = document.getElementById('search-submit')
+						searchSubmit.classList.remove("is-hidden")
+						searchSubmit.addEventListener("keydown", (e)=> {
+							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+									e.preventDefault()
+								}
+							}
+						}, true)
                     }
                 }
             }
@@ -872,6 +898,15 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
+						const searchSubmit = document.getElementById('search-submit')
+						searchSubmit.classList.remove("is-hidden")
+						searchSubmit.addEventListener("keydown", (e)=> {
+							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+									e.preventDefault()
+								}
+							}
+						}, true)
                     }
                 }
             }
