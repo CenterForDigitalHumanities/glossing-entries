@@ -368,7 +368,6 @@ async function getAllWitnessesOfSource(source){
         const ev = new CustomEvent("Witnesses Object Error")
         globalFeedbackBlip(ev, `Witnesses Object Error`, false)
     })
-    
 }
 
 /**
@@ -401,13 +400,9 @@ async function addManuscriptToGoG(shelfmark) {
 
         // check for existing annotation with cleaned shelfmark
         const query = {
-            "body": {
-                "targetCollection": "GoG-manuscripts",
-                "value": cleanShelfmark
-            },
-            "__rerum.history.next": { "$exists": false }
+            "target": `${cleanShelfmark}`,
         }
-        const response = await fetch(`${config.URLS.QUERY}`, {
+        const response = await fetch(`${__constants.tiny+"/query"}`, {
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -417,20 +412,23 @@ async function addManuscriptToGoG(shelfmark) {
         })
         if (!response.ok) throw new Error('Network response was not ok.')
 
+        const existingAnnotations = await response.json();
+
+        console.log(existingAnnotations)       
         if(existingAnnotations.length > 0){
             const ev = new CustomEvent("Annotation already exists.")
             globalFeedbackBlip(ev, 'Annotation already exists for this shelfmark.', false)
             return
         }
-    
+
         // save new annotation with shelfmark if none exists
         const annotation = {
-            "@context": "webanno context",
-            "type": "Annotation",
-            "target": `Shelfmark, identifier ${cleanShelfmark}`,
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "@type": "Annotation",
+            "target": `${cleanShelfmark}`,
             "body": { "targetCollection": "GoG-manuscripts" }
         }
-        const saveResponse = await fetch(`${config.URLS.CREATE}`, { 
+        const saveResponse = await fetch(`${__constants.tiny+"/create"}`, { 
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -446,7 +444,7 @@ async function addManuscriptToGoG(shelfmark) {
         const successEvent = new CustomEvent("Manuscript added successfully.")
         globalFeedbackBlip(successEvent, 'Manuscript added successfully to GoG-manuscripts.', true)
     } catch (error) {
-        //  error bblip if annootation did not save
+        //  error blip if annotation did not save
         const errorEvent = new CustomEvent("Failed to add manuscript.")
         globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
     }
