@@ -403,7 +403,8 @@ async function addManuscriptToGoG(shelfmark) {
             "target": cleanShelfmark,
             "__rerum.generatedBy" : __constants.generators
         }
-        const response = await fetch(`${__constants.tiny+"/query"}`, {
+
+        const existingAnnotations = await await fetch(`${__constants.tiny+"/query"}`, {
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -411,14 +412,21 @@ async function addManuscriptToGoG(shelfmark) {
             },
             body: JSON.stringify(query)
         })
-        if (!response.ok) throw new Error('Network response was not ok.')
+        .then(resp => resp.json())
+        .catch(err => {
+            console.error(err)
+            return null
+        })
 
-        const existingAnnotations = await response.json();
-   
-        if(existingAnnotations.length > 0){
+        if(existingAnnotations === null){
+            const qryFail = new CustomEvent("Failed to query RERUM.")
+            globalFeedbackBlip(qryFail, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
+            return
+        }
+        else if(existingAnnotations.length > 0){
             const ev = new CustomEvent("Annotation already exists.")
             globalFeedbackBlip(ev, 'Annotation already exists for this shelfmark.', false)
-            return null
+            return
         }
 
         // save new annotation with shelfmark if none exists
@@ -428,7 +436,7 @@ async function addManuscriptToGoG(shelfmark) {
             "target": cleanShelfmark,
             "body": { "targetCollection": "GoG-manuscripts" }
         }
-        const saveResponse = await fetch(`${__constants.tiny+"/create"}`, { 
+        const savedAnnotation = await fetch(`${__constants.tiny+"/create"}`, { 
             method: 'POST',
             mode: 'cors',
             headers: {
@@ -437,20 +445,28 @@ async function addManuscriptToGoG(shelfmark) {
             },
             body: JSON.stringify(annotation)
         })
+        .then(resp => resp.json())
+        .catch(err => {
+            console.error(err)
+            return null
+        })
 
-        if (!saveResponse.ok) throw new Error('Failed to save the new annotation.')
-    
-        //  success blip if annotation is saved
-        const savedAnnotation = await saveResponse.json()
-        const successEvent = new CustomEvent("Manuscript added successfully.")
-        globalFeedbackBlip(successEvent, 'Manuscript added successfully to GoG-manuscripts.', true)
-        return savedAnnotation
-
-    } catch (error) {
+        if(savedAnnotation && savedAnnotation.hasOwnProperty("@id")){
+            //  success blip if annotation is saved
+            const successEvent = new CustomEvent("Manuscript added successfully.")
+            globalFeedbackBlip(successEvent, 'Manuscript added successfully to GoG-manuscripts.', true)
+            return savedAnnotation    
+        }
+        else{
+            console.error('Error adding manuscript:', error)
+            const errorEvent = new CustomEvent("Failed to add manuscript.")
+            globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
+        }
+    } 
+    catch (error) {
         //  error blip if annotation did not save
         console.error('Error adding manuscript:', error)
         const errorEvent = new CustomEvent("Failed to add manuscript.")
         globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
-        return null
     }
 }
