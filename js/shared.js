@@ -417,7 +417,7 @@ async function addManuscriptToGoG(shelfmark) {
             "__rerum.generatedBy" : __constants.generator
         }
 
-        const existingAnnotations = await await fetch(`${__constants.tiny+"/query"}`, {
+        const existingAnnotations = await fetch(`${__constants.tiny+"/query"}`, {
             method: 'POST',
             mode: 'cors',
             headers: {
