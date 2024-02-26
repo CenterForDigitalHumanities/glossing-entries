@@ -386,7 +386,7 @@ function undoBrowserSelection(s){
  * @async
  * @function addManuscriptToGoG
  * @param { string } shelfmark Identifier to include.
- */ 
+ */ c
 async function addManuscriptToGoG(shelfmark) {
     try {
         /** Wash shelfmark by 
@@ -394,6 +394,12 @@ async function addManuscriptToGoG(shelfmark) {
          * Replace multiple spaces with a single space
          * Removing trailing or leading whitespace
          * */
+        if (typeof shelfmark !== 'string' || shelfmark.trim().length === 0) {
+            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark input.")
+            globalFeedbackBlip(invalidInputEvent, 'Failed to add manuscript to GoG-manuscripts:' + error.message, false)
+            return
+        }
+
         const cleanShelfmark = shelfmark.replace(/[@$%*?]+/g, '') 
         .replace(/\s+/g, ' ') 
         .trim() 
@@ -415,7 +421,7 @@ async function addManuscriptToGoG(shelfmark) {
         .then(resp => resp.json())
         .catch(err => {
             console.error(err)
-            return null
+            return
         })
 
         if(existingAnnotations === null){
@@ -448,7 +454,7 @@ async function addManuscriptToGoG(shelfmark) {
         .then(resp => resp.json())
         .catch(err => {
             console.error(err)
-            return null
+            return
         })
 
         if(savedAnnotation && savedAnnotation.hasOwnProperty("@id")){
