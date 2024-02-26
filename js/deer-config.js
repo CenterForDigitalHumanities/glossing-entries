@@ -160,7 +160,7 @@ export default {
 					<input filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText col">
 					<input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
 					<input is="auth-creator" type="hidden" deer-key="creator" />
-					<input filter="title" type="submit" value="New Gloss" class="is-hidden serifText col">
+					<input id="search-submit" type="submit" value="New Gloss" class="is-hidden serifText col">
 				</form>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
@@ -276,6 +276,7 @@ export default {
                     })
 
                     if(numloaded === total){
+						document.getElementById('search-submit').classList.remove("is-hidden")
                         cachedNotice.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
                         elem.querySelectorAll("input[filter]").forEach(i => {
