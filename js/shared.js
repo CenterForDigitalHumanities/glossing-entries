@@ -394,7 +394,7 @@ async function addManuscriptToGoG(shelfmark) {
          * Replace multiple spaces with a single space
          * Removing trailing or leading whitespace
          * */
-        if (typeof shelfmark !== 'string' || shelfmark.trim().length === 0) {
+        if (typeof shelfmark !== 'string') {
             const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark input.")
             globalFeedbackBlip(invalidInputEvent, 'Failed to add manuscript to GoG-manuscripts:' + error.message, false)
             return
@@ -403,6 +403,12 @@ async function addManuscriptToGoG(shelfmark) {
         const cleanShelfmark = shelfmark.replace(/[@$%*?]+/g, '') 
         .replace(/\s+/g, ' ') 
         .trim() 
+
+        if (cleanShelfmark.length === 0) {
+            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark input.")
+            globalFeedbackBlip(invalidInputEvent, 'Failed to add manuscript to GoG-manuscripts:' + error.message, false)
+            return
+        }
 
         // check for existing annotation with cleaned shelfmark
         const query = {
@@ -421,7 +427,7 @@ async function addManuscriptToGoG(shelfmark) {
         .then(resp => resp.json())
         .catch(err => {
             console.error(err)
-            return
+            return null
         })
 
         if(existingAnnotations === null){
