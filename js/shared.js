@@ -400,7 +400,8 @@ async function addManuscriptToGoG(shelfmark) {
 
         // check for existing annotation with cleaned shelfmark
         const query = {
-            "target": `${cleanShelfmark}`,
+            "target": cleanShelfmark,
+            "__rerum.generatedBy" : __constants.generators
         }
         const response = await fetch(`${__constants.tiny+"/query"}`, {
             method: 'POST',
@@ -413,19 +414,18 @@ async function addManuscriptToGoG(shelfmark) {
         if (!response.ok) throw new Error('Network response was not ok.')
 
         const existingAnnotations = await response.json();
-
-        console.log(existingAnnotations)       
+   
         if(existingAnnotations.length > 0){
             const ev = new CustomEvent("Annotation already exists.")
             globalFeedbackBlip(ev, 'Annotation already exists for this shelfmark.', false)
-            return
+            return null
         }
 
         // save new annotation with shelfmark if none exists
         const annotation = {
             "@context": "http://www.w3.org/ns/anno.jsonld",
             "@type": "Annotation",
-            "target": `${cleanShelfmark}`,
+            "target": cleanShelfmark,
             "body": { "targetCollection": "GoG-manuscripts" }
         }
         const saveResponse = await fetch(`${__constants.tiny+"/create"}`, { 
@@ -441,11 +441,16 @@ async function addManuscriptToGoG(shelfmark) {
         if (!saveResponse.ok) throw new Error('Failed to save the new annotation.')
     
         //  success blip if annotation is saved
+        const savedAnnotation = await saveResponse.json()
         const successEvent = new CustomEvent("Manuscript added successfully.")
         globalFeedbackBlip(successEvent, 'Manuscript added successfully to GoG-manuscripts.', true)
+        return savedAnnotation
+
     } catch (error) {
         //  error blip if annotation did not save
+        console.error('Error adding manuscript:', error)
         const errorEvent = new CustomEvent("Failed to add manuscript.")
         globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
+        return null
     }
 }
