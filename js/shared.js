@@ -414,7 +414,7 @@ async function addManuscriptToGoG(shelfmark) {
         // check for existing annotation with cleaned shelfmark
         const query = {
             "target": cleanShelfmark,
-            "__rerum.generatedBy" : __constants.generators
+            "__rerum.generatedBy" : __constants.generator
         }
 
         const existingAnnotations = await await fetch(`${__constants.tiny+"/query"}`, {
@@ -433,7 +433,7 @@ async function addManuscriptToGoG(shelfmark) {
 
         if(existingAnnotations === null){
             const qryFail = new CustomEvent("Failed to query RERUM.")
-            globalFeedbackBlip(qryFail, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
+            globalFeedbackBlip(qryFail, 'Failed to add manuscript to GoG-manuscripts.', false)
             return
         }
         else if(existingAnnotations.length > 0){
@@ -471,13 +471,13 @@ async function addManuscriptToGoG(shelfmark) {
             return savedAnnotation    
         }
         else{
-            console.error('Error adding manuscript:', error)
+            console.error('Error adding manuscript')
             const errorEvent = new CustomEvent("Failed to add manuscript.")
-            globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
+            globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts.', false)
         }
     } 
     catch (error) {
-        //  error blip if annotation did not save
+        // For anything weird we may not have specifically caught.
         console.error('Error adding manuscript:', error)
         const errorEvent = new CustomEvent("Failed to add manuscript.")
         globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
