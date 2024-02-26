@@ -1251,6 +1251,11 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 }
                 queryString = queryString.trim()
                 const query = decodeContentState(queryString)
+                for (const prop in query) {
+                    if (typeof query[prop] === 'string') {
+                        query[prop] = query[prop].trim()
+                    }
+                }
                 const items = elem.querySelectorAll('li')
                 items.forEach(li => {
                     const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
