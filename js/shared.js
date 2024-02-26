@@ -386,7 +386,7 @@ function undoBrowserSelection(s){
  * @async
  * @function addManuscriptToGoG
  * @param { string } shelfmark Identifier to include.
- */ c
+ */
 async function addManuscriptToGoG(shelfmark) {
     try {
         /** Wash shelfmark by 
@@ -394,9 +394,10 @@ async function addManuscriptToGoG(shelfmark) {
          * Replace multiple spaces with a single space
          * Removing trailing or leading whitespace
          * */
+
         if (typeof shelfmark !== 'string') {
             const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark input.")
-            globalFeedbackBlip(invalidInputEvent, 'Failed to add manuscript to GoG-manuscripts:' + error.message, false)
+            globalFeedbackBlip(invalidInputEvent, 'Failed to add manuscript to GoG-manuscripts: Attempted to add a non string.', false)
             return
         }
 
@@ -406,7 +407,7 @@ async function addManuscriptToGoG(shelfmark) {
 
         if (cleanShelfmark.length === 0) {
             const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark input.")
-            globalFeedbackBlip(invalidInputEvent, 'Failed to add manuscript to GoG-manuscripts:' + error.message, false)
+            globalFeedbackBlip(invalidInputEvent, 'Failed to add manuscript to GoG-manuscripts: Attempted to add an empty string.', false)
             return
         }
 
