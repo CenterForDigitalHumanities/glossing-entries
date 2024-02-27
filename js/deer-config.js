@@ -685,9 +685,7 @@ export default {
 
                     // Turn each property into an attribute for the <li> element
                     let action = "add"
-                    if(filterPresent) {
-                        elem.classList[action]("is-hidden")
-                    }
+                    if(filterPresent) elem.classList[action]("is-hidden")
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                         if(prop === "text"){
