@@ -165,7 +165,7 @@ export default {
 					<input id="search-bar" filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText col">
 					<input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
 					<input is="auth-creator" type="hidden" deer-key="creator" />
-					<input id="search-submit" type="submit" value="Add NG : Title Only" class="is-hidden serifText col">
+					<input id="search-submit" type="submit" value="Add NG : Title Only" class="is-hidden serifText col" disabled>
 				</form>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
@@ -295,13 +295,15 @@ export default {
                         if(filterPresent){
                             debounce(filterGlosses(elem.$contentState))
                         }
-						document.getElementById('search-submit').classList.remove("is-hidden")
+						const searchSubmit = document.getElementById('search-submit')
+						searchSubmit.classList.remove("is-hidden")
 						document.getElementById('search-bar').addEventListener("keydown", (e)=> {
 							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
 								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
 									e.preventDefault()
 								}
 							}
+							searchSubmit.disabled = e.target.value.length === 0
 						}, true)
                     }
 
@@ -606,13 +608,15 @@ export default {
                             }
                             i.dispatchEvent(new Event('input', { bubbles: true }))
                         })
-						document.getElementById('search-submit').classList.remove("is-hidden")
+						const searchSubmit = document.getElementById('search-submit')
+						searchSubmit.classList.remove("is-hidden")
 						document.getElementById('search-bar').addEventListener("keydown", (e)=> {
 							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
 								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
 									e.preventDefault()
 								}
 							}
+							searchSubmit.disabled = e.target.value.length === 0
 						}, true)
                     }
 
@@ -770,13 +774,15 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
-						document.getElementById('search-submit').classList.remove("is-hidden")
+						const searchSubmit = document.getElementById('search-submit')
+						searchSubmit.classList.remove("is-hidden")
 						document.getElementById('search-bar').addEventListener("keydown", (e)=> {
 							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
 								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
 									e.preventDefault()
 								}
 							}
+							searchSubmit.disabled = e.target.value.length === 0
 						}, true)
                     }
                 }
@@ -910,13 +916,15 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
-						document.getElementById('search-submit').classList.remove("is-hidden")
+						const searchSubmit = document.getElementById('search-submit')
+						searchSubmit.classList.remove("is-hidden")
 						document.getElementById('search-bar').addEventListener("keydown", (e)=> {
 							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
 								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
 									e.preventDefault()
 								}
 							}
+							searchSubmit.disabled = e.target.value.length === 0
 						}, true)
                     }
                 }
