@@ -689,7 +689,11 @@ export default {
                     let action = "add"
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                        if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                        if(prop === "text"){
+                            const t = obj[prop]?.value?.textValue ?? ""
+                            li.setAttribute("data-text", t) 
+                        }
+                        else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
                             let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
                             prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
                             const attr = `data-${prop}`
@@ -698,12 +702,9 @@ export default {
                                 li.setAttribute("data-unlabeled", "true")
                             }
                             li.setAttribute(attr, val)
-                            if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) {
-                                action = "remove"
-                            }
                         }
                     })
-
+                    
                     if(!li.hasAttribute("data-title")) {
                         li.setAttribute("data-title", "[ unlabeled ]")
                         li.setAttribute("data-unlabeled", "true")

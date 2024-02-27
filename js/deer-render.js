@@ -1126,20 +1126,22 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         li.setAttribute("data-expanded", "true")
                         // Add all Gloss object properties to the <li> element as attributes to match on later
                         filteringProps.forEach( (prop) => {
-                            let value = ['string', 'number'].includes(typeof UTILS.getValue(cachedObj[prop])) ?
-                            UTILS.getValue(cachedObj[prop])+"" : //typecast to a string
-                            typeof UTILS.getValue(cachedObj[prop]) === 'object' && 'textValue' in UTILS.getValue(cachedObj[prop]) ?
-                            UTILS.getValue(cachedObj[prop])['textValue'] :
-                            ''
-                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
-                            const attr = `data-${prop}`
-                            if(prop === "title" && !value){
-                                value = "[ unlabeled ]"
-                                li.setAttribute("data-unlabeled", "true")
+                            if(prop === "text"){
+                                const t = cachedObj[prop]?.value?.textValue ?? ""
+                                li.setAttribute("data-text", t) 
                             }
-                            li.setAttribute(attr, value)
-                            if(value.includes(filterObj[prop])){
-                                li.classList.remove("is-hidden")
+                            else if(typeof UTILS.getValue(cachedObj[prop]) === "string" || typeof UTILS.getValue(cachedObj[prop]) === "number") {
+                                let value = UTILS.getValue(cachedObj[prop])+""
+                                prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                                const attr = `data-${prop}`
+                                if(prop === "title" && !value){
+                                    value = "[ unlabeled ]"
+                                    li.setAttribute("data-unlabeled", "true")
+                                }
+                                li.setAttribute(attr, value)
+                                if(value.includes(filterObj[prop])){
+                                    li.classList.remove("is-hidden")
+                                }
                             }
                         })
                         if(!filteringProps.includes("title")) {
@@ -1241,6 +1243,10 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     timer = setTimeout(() => { func.apply(this, args) }, timeout)
                 }
             }
+
+            /** 
+             * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
+             */ 
             function filterGlosses(queryString = '') {
                 const numloaded = parseInt(totalsProgress.getAttribute("count"))
                 const total = parseInt(totalsProgress.getAttribute("total"))
@@ -1257,17 +1263,20 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     }
                 }
                 const items = elem.querySelectorAll('li')
-                items.forEach(li => {
+                items.forEach(li=>{
                     const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
                     const elem = templateContainer ?? li
-                    let action = "add"
-                    for (const prop in query) {
-                        if (li.hasAttribute(`data-${prop}`)) {
-                            action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
+                    if(!elem.classList.contains("is-hidden")){
+                        elem.classList.add("is-hidden")
+                    }
+                    for(const prop in query){
+                        if(li.hasAttribute(`data-${prop}`)){
+                            const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
+                            elem.classList[action](`is-hidden`,`un${action}-item`)
+                            setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
+                            // If it is showing, no need to check other properties for filtering.
+                            if(action === "remove") break
                         }
-                        elem.classList[action](`is-hidden`, `un${action}-item`)
-                        setTimeout(() => elem.classList.remove(`un${action}-item`), 500)
-                        if (action === "remove") break
                     }
                 })
             }
