@@ -297,14 +297,15 @@ export default {
                         }
 						const searchSubmit = document.getElementById('search-submit')
 						searchSubmit.classList.remove("is-hidden")
-						document.getElementById('search-bar').addEventListener("keydown", (e)=> {
+						const searchBar = document.getElementById('search-bar')
+						searchBar.addEventListener("keydown", (e)=> {
 							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
 								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
 									e.preventDefault()
 								}
 							}
-							searchSubmit.disabled = e.target.value.length === 0
 						}, true)
+						searchBar.addEventListener('input', e => searchSubmit.disabled = e.target.value.trim().length === 0, true)
                     }
 
                     /** 
@@ -610,14 +611,15 @@ export default {
                         })
 						const searchSubmit = document.getElementById('search-submit')
 						searchSubmit.classList.remove("is-hidden")
-						document.getElementById('search-bar').addEventListener("keydown", (e)=> {
+						const searchBar = document.getElementById('search-bar')
+						searchBar.addEventListener("keydown", (e)=> {
 							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
 								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
 									e.preventDefault()
 								}
 							}
-							searchSubmit.disabled = e.target.value.length === 0
 						}, true)
+						searchBar.addEventListener('input', e => searchSubmit.disabled = e.target.value.trim().length === 0, true)
                     }
 
                     function debounce(func,timeout = 500) {
@@ -776,14 +778,15 @@ export default {
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
 						const searchSubmit = document.getElementById('search-submit')
 						searchSubmit.classList.remove("is-hidden")
-						document.getElementById('search-bar').addEventListener("keydown", (e)=> {
+						const searchBar = document.getElementById('search-bar')
+						searchBar.addEventListener("keydown", (e)=> {
 							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
 								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
 									e.preventDefault()
 								}
 							}
-							searchSubmit.disabled = e.target.value.length === 0
 						}, true)
+						searchBar.addEventListener('input', e => searchSubmit.disabled = e.target.value.trim().length === 0, true)
                     }
                 }
             }
@@ -918,14 +921,15 @@ export default {
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
 						const searchSubmit = document.getElementById('search-submit')
 						searchSubmit.classList.remove("is-hidden")
-						document.getElementById('search-bar').addEventListener("keydown", (e)=> {
+						const searchBar = document.getElementById('search-bar')
+						searchBar.addEventListener("keydown", (e)=> {
 							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
 								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
 									e.preventDefault()
 								}
 							}
-							searchSubmit.disabled = e.target.value.length === 0
 						}, true)
+						searchBar.addEventListener('input', e => searchSubmit.disabled = e.target.value.trim().length === 0, true)
                     }
                 }
             }
