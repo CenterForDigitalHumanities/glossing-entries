@@ -139,26 +139,6 @@ img.thumbnail {
   height: 0em;
 }
 
-#collectionList li.is-hidden.unadd-item, #collectionList li.is-hidden.unremove-item {
-  display: block !important;
-}
-
-#collectionList li.is-hidden {
-  height: 0em;
-  opacity: 0;
-}
-
-#collectionList li {
-  transition: all 500ms;
-  opacity: 1;
-  height:1.6em;
-}
-
-#collectionList li.unadd-item {
-  opacity: 0;
-  height: 0em;
-}
-
 #ngCollectionList div[deer-template="filterableListItem"].is-hidden.unadd-item, #ngCollectionList div[deer-template="filterableListItem"].is-hidden.unremove-item {
   display: block !important;
 }
@@ -179,22 +159,22 @@ img.thumbnail {
   height: 0em;
 }
 
-#collectionList div[deer-template="filterableListItem"].is-hidden.unadd-item, #collectionList div[deer-template="filterableListItem"].is-hidden.unremove-item {
+#ngCollectionList div[deer-template="managedFilterableListItem"].is-hidden.unadd-item, #ngCollectionList div[deer-template="managedFilterableListItem"].is-hidden.unremove-item {
   display: block !important;
 }
 
-#collectionList div[deer-template="filterableListItem"].is-hidden {
+#ngCollectionList div[deer-template="managedFilterableListItem"].is-hidden {
   height: 0em;
   opacity: 0;
 }
 
-#collectionList div[deer-template="filterableListItem"] {
+#ngCollectionList div[deer-template="managedFilterableListItem"] {
   transition: all 500ms;
   opacity: 1;
   height:1.6em;
 }
 
-#collectionList div[deer-template="filterableListItem"].unadd-item {
+#ngCollectionList div[deer-template="managedFilterableListItem"].unadd-item {
   opacity: 0;
   height: 0em;
 }
