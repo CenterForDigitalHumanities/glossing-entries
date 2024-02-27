@@ -43,9 +43,9 @@
         }
 
         document.addEventListener('deer-created', event => {
-            let e = new CustomEvent("deer-view", { detail: { set: [collectionList] }, bubbles: true })
+			let e = new CustomEvent("deer-view", { detail: { set: [collectionList] }, bubbles: true })
             document.dispatchEvent(e)
-            setTimeout(() => location.href = "", 3000)
+            setTimeout(() => location.href = `ng.html#${event.detail['@id']}`, 3000)
         })
 
     </script>
