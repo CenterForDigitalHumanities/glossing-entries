@@ -183,6 +183,7 @@ export default {
                             li.setAttribute("deer-id", glossID)
                             let a = document.createElement("a")
                             a.setAttribute("href", options.link+glossID)
+                            a.setAttribute("target", "_blank")
                             let span = document.createElement("span")
                             if(cachedFilterableEntities.get(glossID)){
                                 // We cached it in the past and are going to trust it right now.
@@ -438,6 +439,7 @@ export default {
                             li.setAttribute("deer-id", glossID)
                             let a = document.createElement("a")
                             a.setAttribute("href", options.link+glossID)
+                            a.setAttribute("target", "_blank")
                             let span = document.createElement("span")
                             if(cachedFilterableEntities.get(glossID)){
                                 // We cached it in the past and are going to trust it right now.
@@ -682,7 +684,6 @@ export default {
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     a.setAttribute("href", options.link + obj['@id'])
                     a.setAttribute("target", "_blank")
-
                     // Turn each property into an attribute for the <li> element
                     let action = "add"
                     if(filterPresent) elem.classList[action]("is-hidden")
@@ -782,6 +783,8 @@ export default {
                     li.setAttribute("data-public", included ? "true" : "false" )
                     let a = document.createElement("a")
                     a.classList.add("galleryEntry")
+                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("target", "_blank")
                     a.setAttribute("glossid", glossID)
                     a.setAttribute("data-public", included ? "true" : "false" )
                     a.addEventListener('click', (ev) => {
