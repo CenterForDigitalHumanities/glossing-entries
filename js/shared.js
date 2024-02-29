@@ -268,15 +268,8 @@ async function getAllWitnessesOfSource(source){
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
-    const witnessUriSet = await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-        method: "POST",
-        mode: 'cors',
-        headers: {
-            "Content-Type": "application/json;charset=utf-8"
-        },
-        body: JSON.stringify(sourceAnnosQuery)
-    })
-    .then(response => response.json())
+
+    const witnessUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
     .then(annos => {
         return new Set(annos.map(anno => anno.target))
     })
