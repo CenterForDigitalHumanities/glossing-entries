@@ -77,24 +77,38 @@
 </body>
 <script>
     addEventListener('DOMContentLoaded', () => {
-        checkURI.addEventListener('click',ev => {
-            try {
-                fetch(externalURI.value, {
-                    method: 'HEAD',
-                    mode: 'cors',
-                    cache: 'no-cache'
-                }).then(res => {
-                    if (!res.ok) { throw new Error('The resource at this URI does not exist or is not accessible.') }
-                    externalURI.classList.remove('bd-error')
-                    externalURI.classList.add('bd-success')
-                    externalURI.title = 'This URI is valid'
-                })
-            } catch (err) {
+
+        checkURI.addEventListener('click', ev => {
+            function* spinners(){
+                while(true){
+                    for(const char of ['⢎⡰', '⢎⡡', '⢎⡑', '⢎⠱', '⠎⡱', '⢊⡱', '⢌⡱', '⢆⡱']){
+                        yield char
+                    }
+                }
+            }
+            let char
+            const spinning = setInterval(() => {
+                checkURI.innerText = spinners().next().value
+            },
+                100)
+            fetch(externalURI.value, {
+                method: 'HEAD',
+                mode: 'cors',
+                cache: 'no-cache'
+            }).then(res => {
+                if (!res.ok) { throw new Error('The resource at this URI does not exist or is not accessible.') }
+                externalURI.classList.remove('bd-error')
+                externalURI.classList.add('bd-success')
+                externalURI.title = 'This URI is valid'
+            }).catch(err => {
                 externalURI.classList.remove('bd-success')
                 externalURI.classList.add('bd-error')
                 externalURI.title = 'This URI is invalid'
                 externalURI.dataset.error = err.message
-            }
+            }).finally(() => {
+                clearInterval(spinning)
+                checkURI.innerText = 'Check'
+            })
         })
         /**
          * Make sure DEER forms do not submit when a user hits "Enter".
