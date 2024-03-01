@@ -61,6 +61,11 @@ window.onload = () => {
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
         witnessForm.setAttribute("deer-id", textWitnessID)
+        deleteWitnessButton.addEventListener("click", ev => {
+            if(confirm("The witness will be deleted.  This action cannot be undone.")){
+                deleteWitness(textWitnessID, true)
+            }
+        })
     }
     else{
         // These items have default values that are dirty on fresh forms.
@@ -90,11 +95,6 @@ window.onload = () => {
         }
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
-    })
-    deleteWitnessButton.addEventListener("click", ev => {
-        if(confirm("The witness will be deleted.  This action cannot be undone.")){
-            deleteWitness()
-        }
     })
 }
 
@@ -171,7 +171,7 @@ function setWitnessFormDefaults(){
         t.removeAttribute("deer-source")
     })
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "BryanRefactor"
+    form.querySelector("input[deer-key='creator']").value = "BryanDelete"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -226,82 +226,6 @@ function setWitnessFormDefaults(){
     })
 
     console.log("WITNESS FORM RESET")
-}
-
-/**
- *  Delete a Witness of a Gloss.  
- *  This will delete the entity itself and its Annotations.  It will no longer appear as a Witness to the Gloss in any UI.
-*/
-async function deleteWitness(){
-    if(!textWitnessID) return
-    // No extra clicks while you await.
-    const deleteWitnessButton = document.querySelector(".deleteWitness")
-    deleteWitnessButton.setAttribute("disabled", "true")
-    const annos_query = {
-        "target" : httpsIdArray(textWitnessID),
-        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-    }
-    let anno_ids =
-        await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-            method: "POST",
-            mode: "cors",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8"                },
-            body: JSON.stringify(annos_query)
-        })
-        .then(resp => resp.json()) 
-        .then(annos => annos.map(anno => anno["@id"]))
-        .catch(err => {
-            return []
-        })
-    let delete_calls = anno_ids.map(annoUri => {
-        return fetch(`${__constants.tiny}/delete`, {
-            method: "DELETE",
-            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            }
-        })
-        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-        .catch(err => {
-            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
-            console.log(err)
-        })
-    })
-
-    delete_calls.push(
-        fetch(`${__constants.tiny}/delete`, {
-            method: "POST",
-            mode: "cors",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            },
-            body: JSON.stringify({"@id" : textWitnessID.replace(/^https?:/, 'https:')})
-        })
-        .then(resp => resp.json()) 
-        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-        .catch(err => {
-            console.warn(`There was an issue removing the Witness: ${textWitnessID}`)
-            console.log(err)
-        })
-    )
-    Promise.all(delete_calls).then(success => {
-        const glossID = document.querySelector("input[custom-key='references']").value
-        addEventListener("globalFeedbackFinished", ev=> {
-            window.location = `ng.html#${glossID}`
-        })
-        const ev = new CustomEvent("Witness Deleted.  You will be redirected.")
-        globalFeedbackBlip(ev, `Witness Deleted.  You will be redirected.`, true)
-    })
-    .catch(err => {
-        // OK they may be orphaned.  We will continue on towards deleting the entity.
-        console.warn("There was an issue removing connected Annotations.")
-        console.error(err)
-        const ev = new CustomEvent("Error Deleting Witness")
-        globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
-    })
 }
 
 /**
