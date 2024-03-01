@@ -1116,6 +1116,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     li.classList.add("galleryEntry")
                     let a = document.createElement("a")
                     a.setAttribute("href", options.link+glossID)
+                    a.setAttribute("target", "_blank")
                     let span = document.createElement("span")
 
                     if(managedListCache.get(glossID)){
