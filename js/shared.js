@@ -523,8 +523,11 @@ async function deleteWitness(witnessID, redirect){
         .then(resp => resp.json()) 
         .then(annos => annos.map(anno => anno["@id"]))
         .catch(err => {
-            return []
+            return null
         })
+
+    // This is bad enough to stop here, we will not continue on towards deleting the entity.
+    if(anno_ids === null) throw new Error("Cannot find Entity Annotations")
 
     let delete_calls = anno_ids.map(annoUri => {
         return fetch(`${__constants.tiny}/delete`, {
@@ -536,7 +539,7 @@ async function deleteWitness(witnessID, redirect){
             }
         })
         .then(r => {
-            if(!r.ok) Promise.reject(Error(r.text))
+            if(!r.ok) throw new Error(r.text)
         })
         .catch(err => {
             console.warn(`There was an issue removing an Annotation: ${annoUri}`)
@@ -554,7 +557,7 @@ async function deleteWitness(witnessID, redirect){
             },
         })
         .then(r => {
-            if(!r.ok) Promise.reject(Error(r.text))
+            if(!r.ok) throw new Error(r.text)
         })
         .catch(err => {
             console.warn(`There was an issue removing the Witness: ${witnessID}`)
@@ -578,7 +581,7 @@ async function deleteWitness(witnessID, redirect){
             const ev = new CustomEvent("Error Deleting Witness")
             globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
         })    
-        return []
+        return
     }
     else{
         return delete_calls

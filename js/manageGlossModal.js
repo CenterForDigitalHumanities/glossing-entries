@@ -162,17 +162,24 @@ class ManageGlossModal extends HTMLElement {
         }
 
         /**
-         * An Gloss entity is being deleted through the managed-glossts.html interface.  
+         * An Gloss entity is being deleted through the managed-glosses.html interface.  
          * Delete the Gloss, the Annotations targeting the Gloss, the Witnesses of the Gloss, and the Witnesses' Annotations.
-         * Remove this Gloss from the public list.
+         * Remove this Gloss from the public list if it is in the list.
          * Paginate by removing the Gloss from the Gloss list on screen.
          * 
          * @param id {String} The Gloss IRI.
          */
         async function deleteGloss(id=glossHashID) {
-
-            function removeGlossFromPublicList(glossURI, items){
-                items = items.filter(obj => obj["@id"].split().pop() !== glossURI.split().pop())
+            /**
+             * A specialized list overwrite.  
+             * Remove the itemListElement entry whose @id matches the provided parameter.
+             * Overwrite the list with this entry removed.
+             * @param {String} The IRI of Gloss to remove from the public list.
+             */ 
+            async function removeGlossFromPublicList(glossURI){
+                if(!glossURI) throw new Error("There was no gloss uri provided to delete.")
+                const publicList = await fetch(__constants.ngCollection).then(resp => resp.json()).catch(err => {return null})
+                let items = publicList.itemListElement.filter(obj => obj["@id"].split().pop() !== glossURI.split().pop())
                 const list = {
                     '@id': __constants.ngCollection,
                     '@context': 'https://schema.org/',
@@ -181,13 +188,13 @@ class ManageGlossModal extends HTMLElement {
                     numberOfItems: items.length,
                     itemListElement: items
                 }
-                fetch(DEER.URLS.OVERWRITE, {
+                fetch(`${__constants.tiny}/overwrite`, {
                     method: "PUT",
                     mode: 'cors',
                     body: JSON.stringify(list),
                     headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
                     }
                 })
                 .then(r => {
@@ -206,16 +213,16 @@ class ManageGlossModal extends HTMLElement {
                     UTILS.globalFeedbackBlip(ev, `The Gloss was not deleted correctly and it may still be in the public list.`, true)
                     console.error(err)
                 })
-            }    
-            
-            let confirmMessage = "Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)"
+            }
+
             if(!id){
                 alert(`No URI supplied for delete.  Cannot delete.`)
                 return
             }
+            let confirmMessage = "Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)"
             let overwriteList = false
             if(isPublicGloss(id)){
-                confirmMessage.prepend("This Gloss is public and will be removed from the public list.\n")
+                confirmMessage = `This Gloss is public and will be removed from the public list.\n${confirmMessage}`
                 overwriteList = true
             }
             if (!confirm(confirmMessage)) return
@@ -235,8 +242,9 @@ class ManageGlossModal extends HTMLElement {
                 console.log(err)
                 return null
             })
+            
             // This is bad enough to stop here, we will not continue on towards deleting the entity.
-            if(allEntityAnnotationIds === null) return
+            if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
 
             const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
                 return fetch(`${__constants.tiny}/delete`, {
@@ -248,7 +256,7 @@ class ManageGlossModal extends HTMLElement {
                     }
                 })
                 .then(r => {
-                    if(!r.ok) Promise.reject(Error(r.text))
+                    if(!r.ok) throw new Error(r.text)
                 })
                 .catch(err => { 
                     console.warn(`There was an issue removing an Annotation: ${annoUri}`)
@@ -295,7 +303,9 @@ class ManageGlossModal extends HTMLElement {
             .then(r => {
                 if(r.ok){
                     document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
+                    document.querySelector("deer-view[deer-template='managedlist']").listCache.delete(id.replace("https:", "http:"))
                     if(overwriteList){
+                        // If a Gloss that was on the public list was removed, then we need to change the public list still.
                         removeGlossFromPublicList(id)     
                     }
                     else{
@@ -304,7 +314,7 @@ class ManageGlossModal extends HTMLElement {
                     }
                 }
                 else{
-                    return Promise.reject(Error(r.text))
+                    throw new Error(r.text)
                 }
             })
             .catch(err => {

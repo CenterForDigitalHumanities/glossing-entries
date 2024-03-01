@@ -388,8 +388,9 @@ async function deleteGloss(id=glossHashID) {
         console.log(err)
         return null
     })
+    
     // This is bad enough to stop here, we will not continue on towards deleting the entity.
-    if(allEntityAnnotationIds === null) return
+    if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
 
     const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
         return fetch(`${__constants.tiny}/delete`, {
@@ -401,7 +402,7 @@ async function deleteGloss(id=glossHashID) {
             }
         })
         .then(r => {
-            if(!r.ok) Promise.reject(Error(r.text))
+            if(!r.ok) throw new Error(r.text)
         })
         .catch(err => { 
             console.warn(`There was an issue removing an Annotation: ${annoUri}`)
@@ -454,7 +455,7 @@ async function deleteGloss(id=glossHashID) {
             })
         }
         else{ 
-            Promise.reject(Error(r.text))
+            throw new Error(r.text)
         }
     })
     .catch(err => {
