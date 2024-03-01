@@ -21,6 +21,7 @@ window.onload = () => {
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
         document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
+        glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
     }
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText
@@ -364,7 +365,7 @@ async function deleteGloss(id=glossHashID) {
         alert(`No URI supplied for delete.  Cannot delete.`)
         return
     }
-    if(checkIfGlossIsPublic(id)){
+    if(!isPublicGloss(id)){
         const ev = new CustomEvent("Gloss is public")
         globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
         return

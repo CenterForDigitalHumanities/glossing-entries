@@ -593,7 +593,7 @@ async function deleteWitness(witnessID, redirect){
  * @param glossID A Gloss URI 
  * @return boolean true when a Gloss URI is in the public list
  */ 
-async function checkIfGlossIsPublic(glossID){
+async function isPublicGloss(glossID){
     const publicList = await fetch(__constants.ngCollection).then(resp => resp.json()).catch(err => {return null})
     if(!publicList || !publicList?.itemListElement){
         throw new Error("Unable to fetch public list to check against")

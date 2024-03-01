@@ -170,14 +170,54 @@ class ManageGlossModal extends HTMLElement {
          * @param id {String} The Gloss IRI.
          */
         async function deleteGloss(id=glossHashID) {
+
+            function removeGlossFromPublicList(glossURI, items){
+                items = items.filter(obj => obj["@id"].split().pop() !== glossURI.split().pop())
+                const list = {
+                    '@id': __constants.ngCollection,
+                    '@context': 'https://schema.org/',
+                    '@type': "ItemList",
+                    name: "Gallery of Glosses Public Glosses List",
+                    numberOfItems: items.length,
+                    itemListElement: items
+                }
+                fetch(DEER.URLS.OVERWRITE, {
+                    method: "PUT",
+                    mode: 'cors',
+                    body: JSON.stringify(list),
+                    headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    }
+                })
+                .then(r => {
+                    if (r.ok) {
+                        return r.json()
+                    } else {
+                        throw new Error('Failed to save')
+                    }
+                })
+                .then(data => {
+                    const ev = new CustomEvent("The Gloss has been deleted and removed from the public list.")
+                    globalFeedbackBlip(ev, `The Gloss has been deleted and removed from the public list.`, true)    
+                })
+                .catch(err => {
+                    const ev = new CustomEvent("Public List Update Failed")
+                    UTILS.globalFeedbackBlip(ev, `The Gloss was not deleted correctly and it may still be in the public list.`, true)
+                    console.error(err)
+                })
+            }    
+            
             let confirmMessage = "Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)"
             if(!id){
                 alert(`No URI supplied for delete.  Cannot delete.`)
                 return
             }
+            let overwriteList = false
             // Oh I think we have the public list cached in here and should get it that way.
-            if(checkIfGlossIsPublic(id)){
+            if(isPublicGloss(id)){
                 confirmMessage.prepend("This Gloss is public and will be removed from the public list.\n")
+                overwriteList = true
             }
             if (!confirm(confirmMessage)) return
 
@@ -256,8 +296,13 @@ class ManageGlossModal extends HTMLElement {
             .then(r => {
                 if(r.ok){
                     document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
-                    const ev = new CustomEvent("This Gloss has been deleted.")
-                    globalFeedbackBlip(ev, `Gloss Deleted.`, true)
+                    if(overwriteList){
+                        removeGlossFromPublicList(id)     
+                    }
+                    else{
+                        const ev = new CustomEvent("This Gloss has been deleted.")
+                        globalFeedbackBlip(ev, `Gloss Deleted.`, true)    
+                    }
                 }
                 else{
                     return Promise.reject(Error(r.text))

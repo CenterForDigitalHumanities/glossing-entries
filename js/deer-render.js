@@ -1353,10 +1353,10 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 }
 
                 const list = {
-                    '@id': elem.getAttribute("deer-listing"),
+                    '@id': __constants.ngCollection,
                     '@context': 'https://schema.org/',
                     '@type': "ItemList",
-                    name: elem.getAttribute("deer-listing") ?? "Gallery of Glosses",
+                    name: "Gallery of Glosses Public Glosses List",
                     numberOfItems: elem.listCache.size,
                     itemListElement: mss
                 }
