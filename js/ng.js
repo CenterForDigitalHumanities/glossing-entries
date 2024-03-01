@@ -388,7 +388,7 @@ async function deleteGloss(id=glossHashID) {
         console.log(err)
         return null
     })
-    
+
     // This is bad enough to stop here, we will not continue on towards deleting the entity.
     if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
 
@@ -412,10 +412,9 @@ async function deleteGloss(id=glossHashID) {
         })
     })
 
-    let allWitnessDeletes = []
-    for (const witnessURI of allWitnessesOfGloss){
-         allWitnessDeletes.push(deleteWitness(witnessURI, false))  
-    }
+    const allWitnessDeletes = allWitnessesOfGloss.map(witnessURI => {
+        return deleteWitness(witnessURI, false)
+    })
 
     // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
     await Promise.all(allEntityAnnotations).then(success => {
