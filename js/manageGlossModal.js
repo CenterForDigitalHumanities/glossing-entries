@@ -266,10 +266,9 @@ class ManageGlossModal extends HTMLElement {
                 })
             })
 
-            let allWitnessDeletes = []
-            for (const witnessURI of allWitnessesOfGloss){
-                 allWitnessDeletes.push(deleteWitness(witnessURI, false))  
-            }
+            const allWitnessDeletes = allWitnessesOfGloss.map(witnessURI => {
+                return deleteWitness(witnessURI, false)
+            })
 
             // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
             await Promise.all(allEntityAnnotations).then(success => {
