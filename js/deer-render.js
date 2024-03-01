@@ -1353,7 +1353,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 }
 
                 const list = {
-                    '@id': __constants.ngCollection,
+                    '@id': elem.getAttribute("deer-listing"),
                     '@context': 'https://schema.org/',
                     '@type': "ItemList",
                     name: "Gallery of Glosses Public Glosses List",
