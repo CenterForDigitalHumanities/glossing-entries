@@ -767,7 +767,7 @@ resourceFile.addEventListener("change", function(event){
     const allowed = [".txt"]
     const file_extension = (ext) => allowed.includes(`.${resourceFile.value.split(".").pop()}`)
     const file_type_allowed = allowed.some(file_extension)
-    if(!file_type_allowed){
+    if(false && !file_type_allowed){ // try anything once
         const ev = new CustomEvent(`'.${resourceFile.value.split(".").pop()}' is not a supported file type.`)
         globalFeedbackBlip(ev, `'.${resourceFile.value.split(".").pop()}' is not a supported file type.`, false)
         loadFile.classList.add("is-hidden")
