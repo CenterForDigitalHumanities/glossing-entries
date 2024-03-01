@@ -214,7 +214,6 @@ class ManageGlossModal extends HTMLElement {
                 return
             }
             let overwriteList = false
-            // Oh I think we have the public list cached in here and should get it that way.
             if(isPublicGloss(id)){
                 confirmMessage.prepend("This Gloss is public and will be removed from the public list.\n")
                 overwriteList = true

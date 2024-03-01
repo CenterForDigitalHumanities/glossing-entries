@@ -365,7 +365,7 @@ async function deleteGloss(id=glossHashID) {
         alert(`No URI supplied for delete.  Cannot delete.`)
         return
     }
-    if(!isPublicGloss(id)){
+    if(isPublicGloss(id)){
         const ev = new CustomEvent("Gloss is public")
         globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
         return
