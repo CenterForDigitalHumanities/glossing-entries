@@ -3,16 +3,16 @@
  */
 let witnessesObj = {}
 
-// For when we test, so we can easily find and blow away junk data
+//For when we test, so we can easily find and blow away junk data
 // setTimeout(() => {
 //     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="BryanBugz"
-//         el.setAttribute("value", "BryanBugz")
+//         el.value="BryanRefactor"
+//         el.setAttribute("value", "BryanRefactor")
 //     })
 //     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "BryanBugz")
+//         el.setAttribute("deer-creator", "BryanRefactor")
 //     })
-//     window.GOG_USER["http://store.rerum.io/agent"] = "BryanBugz"
+//     window.GOG_USER["http://store.rerum.io/agent"] = "BryanRefactor"
 // }, 4000)
 
 let __constants = {}
@@ -52,6 +52,7 @@ async function setListings(){
     })    
 }
 
+<<<<<<< HEAD
 /**
  * An archetype entity is being deleted.  Delete it and some choice Annotations connected to it.
  * 
@@ -200,6 +201,8 @@ async function removeFromCollectionAndDelete(event, type, id = null) {
         })
 }
 
+=======
+>>>>>>> main
 function getURLParameter(variable) {
     const query = window.location.search.substring(1)
     const vars = query.split("&")
@@ -416,15 +419,8 @@ async function getAllWitnessesOfSource(source){
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
-    const witnessUriSet = await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-        method: "POST",
-        mode: 'cors',
-        headers: {
-            "Content-Type": "application/json;charset=utf-8"
-        },
-        body: JSON.stringify(sourceAnnosQuery)
-    })
-    .then(response => response.json())
+
+    const witnessUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
     .then(annos => {
         return new Set(annos.map(anno => anno.target))
     })
@@ -516,7 +512,6 @@ async function getAllWitnessesOfSource(source){
         const ev = new CustomEvent("Witnesses Object Error")
         globalFeedbackBlip(ev, `Witnesses Object Error`, false)
     })
-    
 }
 
 /**
@@ -528,6 +523,7 @@ function undoBrowserSelection(s){
     s?.removeAllRanges?.() ?? s?.empty?.()
 }
 
+<<<<<<< HEAD
 /**
  * modalConfirm replaces the browser's native confirm().
  * @param {*} message A message for what you want the user to confirm.
@@ -565,3 +561,109 @@ async function modalConfirm(message){
     await waitForConfirm(() => {userChoice == true || userChoice == false})
     return userChoice
 }
+=======
+/** 
+ * Confirm the shelfmark's inclusion in "GoG-manuscripts" dynamic collection. 
+ * @see {@link findShelfmark #113} to verify shelfmark is appropriate. 
+ *
+ * @async
+ * @function addManuscriptToGoG
+ * @param { string } shelfmark Identifier to include.
+ */
+async function addManuscriptToGoG(shelfmark) {
+    try {
+        /** Wash shelfmark by 
+         * Removing specific special characters @ $ % * ?
+         * Replace multiple spaces with a single space
+         * Removing trailing or leading whitespace
+         * */
+
+        if (typeof shelfmark !== 'string') {
+            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark input.")
+            globalFeedbackBlip(invalidInputEvent, 'Failed to add manuscript to GoG-manuscripts: Attempted to add a non string.', false)
+            return
+        }
+
+        const cleanShelfmark = shelfmark.replace(/[@$%*?]+/g, '') 
+        .replace(/\s+/g, ' ') 
+        .trim() 
+
+        if (cleanShelfmark.length === 0) {
+            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark input.")
+            globalFeedbackBlip(invalidInputEvent, 'Failed to add manuscript to GoG-manuscripts: Attempted to add an empty string.', false)
+            return
+        }
+
+        // check for existing annotation with cleaned shelfmark
+        const query = {
+            "target": cleanShelfmark,
+            "__rerum.generatedBy" : __constants.generator
+        }
+
+        const existingAnnotations = await fetch(`${__constants.tiny+"/query"}`, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(query)
+        })
+        .then(resp => resp.json())
+        .catch(err => {
+            console.error(err)
+            return null
+        })
+
+        if(existingAnnotations === null){
+            const qryFail = new CustomEvent("Failed to query RERUM.")
+            globalFeedbackBlip(qryFail, 'Failed to add manuscript to GoG-manuscripts.', false)
+            return
+        }
+        else if(existingAnnotations.length > 0){
+            const ev = new CustomEvent("Annotation already exists.")
+            globalFeedbackBlip(ev, 'Annotation already exists for this shelfmark.', false)
+            return
+        }
+
+        // save new annotation with shelfmark if none exists
+        const annotation = {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "@type": "Annotation",
+            "target": cleanShelfmark,
+            "body": { "targetCollection": "GoG-manuscripts" }
+        }
+        const savedAnnotation = await fetch(`${__constants.tiny+"/create"}`, { 
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+            body: JSON.stringify(annotation)
+        })
+        .then(resp => resp.json())
+        .catch(err => {
+            console.error(err)
+            return
+        })
+
+        if(savedAnnotation && savedAnnotation.hasOwnProperty("@id")){
+            //  success blip if annotation is saved
+            const successEvent = new CustomEvent("Manuscript added successfully.")
+            globalFeedbackBlip(successEvent, 'Manuscript added successfully to GoG-manuscripts.', true)
+            return savedAnnotation    
+        }
+        else{
+            console.error('Error adding manuscript')
+            const errorEvent = new CustomEvent("Failed to add manuscript.")
+            globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts.', false)
+        }
+    } 
+    catch (error) {
+        // For anything weird we may not have specifically caught.
+        console.error('Error adding manuscript:', error)
+        const errorEvent = new CustomEvent("Failed to add manuscript.")
+        globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
+    }
+}
+>>>>>>> main

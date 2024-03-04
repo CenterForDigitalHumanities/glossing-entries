@@ -261,7 +261,9 @@ export default {
                     }
                     return obj
                 })).catch(err => {
-                    console.error("Error expanding object:" + err)
+                    broadcast(undefined, "expandError", document, { uri:findId, error:err, message: `Could not get details for '${findId}'` })
+                    console.error(`Error expanding object '${findId}'`)
+                    console.error(err)
                     return err
                 })
         /**

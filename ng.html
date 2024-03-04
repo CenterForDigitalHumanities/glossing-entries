@@ -17,7 +17,7 @@
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2> <span class="add-update">Add</span> Gloss </h2>
-    <p class="bg-light">
+    <p id="look" class="bg-light">
         NB: A Gloss is an important thing. Please describe it as well as possible and
         avoid creating a new one unless it does not already exist.
     </p>
@@ -82,7 +82,7 @@
             </div>
         </div>
         <input type="submit" value="Create" class="col add-update">
-        <a href="./glosses.html" onclick="removeFromCollectionAndDelete(event, 'named-gloss')"
+        <a href="./glosses.html" onclick="removeFromCollectionAndDelete(event)"
             class="text-error">Drop from collection</a>
     </form>
 
@@ -91,5 +91,20 @@
     <confirm-modal class="is-hidden"></confirm-modal>
     <witness-modal class="is-hidden"></witness-modal>
 </body>
+
+<script>
+    /**
+     * Make sure DEER forms do not submit when a user hits "Enter".
+     */ 
+    document.querySelectorAll("form[deer-type]").forEach(form => {
+        form.addEventListener("keydown", (e)=> {
+            if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+                if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                    e.preventDefault()
+                }
+            }
+        }, true)
+    })
+</script>
 
 </html>

@@ -32,7 +32,7 @@
         </ul>
     </section>
 
-    <deer-view id="collectionList" deer-collection="GoG-Named-Glosses"
+    <deer-view id="ngCollectionList" deer-collection="GoG-Named-Glosses"
         deer-link="ng.html#" deer-template="ngListFilterable" class="bg-basic">
         Loading&hellip;
     </deer-view>
@@ -49,12 +49,25 @@
         }
 
         document.addEventListener('deer-created', event => {
-            let e = new CustomEvent("deer-view", { detail: { set: [collectionList] }, bubbles: true })
+            let e = new CustomEvent("deer-view", { detail: { set: [ngCollectionList] }, bubbles: true })
             document.dispatchEvent(e)
             setTimeout(() => location.href = "", 3000)
         })
 
     </script>
 </body>
-
+<script>
+    /**
+     * Make sure DEER forms do not submit when a user hits "Enter".
+     */ 
+    document.querySelectorAll("form[deer-type]").forEach(form => {
+        form.addEventListener("keydown", (e)=> {
+            if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+                if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                    e.preventDefault()
+                }
+            }
+        }, true)
+    })
+</script>
 </html>
