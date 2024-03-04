@@ -373,6 +373,82 @@ function undoBrowserSelection(s){
 }
 
 /** 
+ * Discover proper identifier for manuscript or suggest new IRI. 
+ *
+ * @async
+ * @function findShelfmark
+ * @param { string } msid Identifier to match or validate.
+ * @param { boolean } [forceNew] True to skip search for collision. *risky*
+ * @returns Valid msid string or parent IRI
+ */ 
+async function findShelfmark(msid, forceNew) {
+    try {
+        // wash msid
+        if (typeof msid !== 'string') {
+            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark identifier input.")
+            globalFeedbackBlip(invalidInputEvent, 'Failed to query for Shelfmark: Attempted to add a non string.', false)
+            return
+        }
+
+        const cleanMsid = msid.replace(/[@$%*?]+/g, '') 
+        .replace(/\s+/g, ' ') 
+        .trim() 
+
+        if (cleanMsid.length === 0) {
+            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark identifier input.")
+            globalFeedbackBlip(invalidInputEvent, 'Failed to query for Shelfmark: Attempted to add an empty string.', false)
+            return
+        }
+
+        // return washed msid or parent msid
+        if (forceNew) {
+            return cleanMsid
+        }
+        else {
+            // check for parent msid
+            const query = {
+                "body": { 
+                    "alternateTitle": { 
+                        "value": cleanMsid 
+                    } 
+                },
+                "__rerum.generatedBy" : __constants.generator
+            }
+    
+            const annotation = await fetch(`${__constants.tiny+"/query"}`, {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    "Content-Type": "application/json;charset=utf-8"
+                },
+                body: JSON.stringify(query)
+            })
+            .then(resp => resp.json())
+            .catch(err => {
+                console.error(err)
+                return null
+            })
+    
+            if(annotation === null){
+                const qryFail = new CustomEvent("Failed to query RERUM.")
+                globalFeedbackBlip(qryFail, 'Failed to find annotation with Shelfmark identifier.', false)
+                return
+            }
+            else if(annotations.length > 0){
+                
+            }
+        }
+
+    }
+    catch (error) {
+        // For anything weird we may not have specifically caught.
+        console.error('Error Finding Shelfmark:', error)
+        const errorEvent = new CustomEvent("Failed to find Shelfmark.")
+        globalFeedbackBlip(errorEvent, 'Failed to find Shelfmark: ' + error.message, false)
+    }
+}
+
+/** 
  * Confirm the shelfmark's inclusion in "GoG-manuscripts" dynamic collection. 
  * @see {@link findShelfmark #113} to verify shelfmark is appropriate. 
  *
