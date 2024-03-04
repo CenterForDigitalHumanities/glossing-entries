@@ -474,7 +474,7 @@ async function findShelfmark(msid, forceNew) {
     try {
         // wash msid
         if (typeof msid !== 'string') {
-            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark identifier input.")
+            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid msid identifier input.")
             globalFeedbackBlip(invalidInputEvent, 'Failed to query for Shelfmark: Attempted to add a non string.', false)
             return
         }
@@ -484,7 +484,7 @@ async function findShelfmark(msid, forceNew) {
         .trim() 
 
         if (cleanMsid.length === 0) {
-            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark identifier input.")
+            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid msid identifier input.")
             globalFeedbackBlip(invalidInputEvent, 'Failed to query for Shelfmark: Attempted to add an empty string.', false)
             return
         }
@@ -520,7 +520,7 @@ async function findShelfmark(msid, forceNew) {
     
             if(annotation === null){
                 const qryFail = new CustomEvent("Failed to query RERUM.")
-                globalFeedbackBlip(qryFail, 'Failed to find annotation with Shelfmark identifier.', false)
+                globalFeedbackBlip(qryFail, 'Failed to find annotation with msid identifier.', false)
                 return
             }
             else if(annotations.length > 0){
