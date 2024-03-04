@@ -771,12 +771,11 @@ export default {
                     const containingListElem = elem.closest("deer-view")
                     // Be careful.  The publish list stores items via http://, but everything else is https://.  Beware the false mismatch.
                     const glossID = obj["@id"].replace(/^https?:/, 'https:')
-                    const glossHttpID = obj["@id"].replace(/^https?:/, 'http:')
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
-                    const included = listCache.has(glossHttpID)
+                    const included = listCache.has(glossID)
                     const publishedStatus = document.createElement("span")
-                    publishedStatus.setAttribute("glossid", glossHttpID)
+                    publishedStatus.setAttribute("glossid", glossID)
                     publishedStatus.classList.add("pubStatus")
                     publishedStatus.innerText = included ? "✓" : "❌"
                     let filteringProps = Object.keys(obj)
@@ -799,7 +798,7 @@ export default {
                             deerUtils.globalFeedbackBlip(wait, `Please wait for this Gloss information to load.`, false)
                             return
                         }
-                        const glossID = parentDataElem.getAttribute("data-id") ? parentDataElem.getAttribute("data-id").replace(/^https?:/, 'http:') : ""
+                        const glossID = parentDataElem.getAttribute("data-id") ? parentDataElem.getAttribute("data-id") : ""
                         const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
                         const published = parentDataElem.getAttribute("data-public") === "true" ? true : false
                         const glossText = parentDataElem.getAttribute("data-text") ? parentDataElem.getAttribute("data-text") : ""

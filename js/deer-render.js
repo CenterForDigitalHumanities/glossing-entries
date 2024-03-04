@@ -1109,7 +1109,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
                     const publishedStatus = document.createElement("span")
                     publishedStatus.classList.add("pubStatus")
-                    publishedStatus.setAttribute("glossid", val['@id'])
+                    publishedStatus.setAttribute("glossid", glossID)
                     publishedStatus.innerText = "??"
                     let li = document.createElement("li")
                     li.setAttribute("deer-id", glossID)
@@ -1334,7 +1334,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 let mss = []
                 let missing = false
                 elem.listCache.forEach(uri => {
-                    let labelElement = document.querySelector(`li[deer-id='${uri.replace("http:", "https:")}'] a span`)
+                    let labelElement = document.querySelector(`li[deer-id='${uri}'] a span`)
                     if (labelElement) {
                         let label = labelElement.textContent.trim()
                         mss.push({

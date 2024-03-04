@@ -79,13 +79,13 @@ class ManageGlossModal extends HTMLElement {
                 deerUtils.globalFeedbackBlip(ev, `Please wait for this Gloss to load.`, false)
                 return
             }
-            const glossID = glossData["@id"]
+            const glossID = glossData["@id"].replace(/^https?:/, 'https:')
             const published = glossData.published
             const glossText = glossData.text
             const glossTitle = `${published ? "✓" : "❌"}  ${glossData.title}`
 
             const removeBtn = `<input type="button" value="delete" glossid="${glossID}" data-type="named-gloss" class="removeCollectionItem button error is-small" title="Delete This Entry">`
-            const visibilityBtn = `<input type="button" value="${published ? "unpublish" : "publish"}" class="togglePublic button ${published ? "error" : "success"} is-small" glossid="${glossID.replace(/^https?:/, 'http:')}" title="Toggle public visibility"/>`
+            const visibilityBtn = `<input type="button" value="${published ? "unpublish" : "publish"}" class="togglePublic button ${published ? "error" : "success"} is-small" glossid="${glossID}" title="Toggle public visibility"/>`
             const moreOptionsBtn = `<input type="button" value="more..." glossid="${glossID}" class="otherModalBtn button primary is-small" title="See detailed modal for this Gloss">`
             const reviewBtn = `<a class="button secondary is-small" href="ng.html#${glossID}">review</a>`
 
@@ -179,7 +179,7 @@ class ManageGlossModal extends HTMLElement {
             async function removeGlossFromPublicList(glossURI){
                 if(!glossURI) throw new Error("There was no gloss uri provided to delete.")
                 const publicList = await fetch(__constants.ngCollection).then(resp => resp.json()).catch(err => {return null})
-                let items = publicList.itemListElement.filter(obj => obj["@id"].split().pop() !== glossURI.split().pop())
+                const items = publicList.itemListElement.filter(obj => obj["@id"].split().pop() !== glossURI.split().pop())
                 const list = {
                     '@id': __constants.ngCollection,
                     '@context': 'https://schema.org/',
@@ -242,14 +242,14 @@ class ManageGlossModal extends HTMLElement {
                 console.log(err)
                 return null
             })
-            
+
             // This is bad enough to stop here, we will not continue on towards deleting the entity.
             if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
 
             const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
                 return fetch(`${__constants.tiny}/delete`, {
                     method: "DELETE",
-                    body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
+                    body: JSON.stringify({"@id":annoUri}),
                     headers: {
                         "Content-Type": "application/json; charset=utf-8",
                         "Authorization": `Bearer ${window.GOG_USER.authorization}`
@@ -302,7 +302,7 @@ class ManageGlossModal extends HTMLElement {
             .then(r => {
                 if(r.ok){
                     document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
-                    document.querySelector("deer-view[deer-template='managedlist']").listCache.delete(id.replace("https:", "http:"))
+                    document.querySelector("deer-view[deer-template='managedlist']").listCache.delete(id)
                     if(overwriteList){
                         // If a Gloss that was on the public list was removed, then we need to change the public list still.
                         removeGlossFromPublicList(id)     
