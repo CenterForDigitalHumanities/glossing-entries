@@ -781,6 +781,7 @@ export default {
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("li")
                     li.setAttribute("data-public", included ? "true" : "false" )
+                    li.setAttribute("deer-id", glossID)
                     let a = document.createElement("a")
                     a.classList.add("galleryEntry")
                     a.setAttribute("href", options.link + obj['@id'])
@@ -798,7 +799,7 @@ export default {
                             deerUtils.globalFeedbackBlip(wait, `Please wait for this Gloss information to load.`, false)
                             return
                         }
-                        const glossID = parentDataElem.getAttribute("data-id") ? parentDataElem.getAttribute("data-id") : ""
+                        const glossID = parentDataElem.getAttribute("deer-id") ? parentDataElem.getAttribute("deer-id") : ""
                         const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
                         const published = parentDataElem.getAttribute("data-public") === "true" ? true : false
                         const glossText = parentDataElem.getAttribute("data-text") ? parentDataElem.getAttribute("data-text") : ""

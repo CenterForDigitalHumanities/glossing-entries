@@ -1287,7 +1287,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             fetch(url).then(r => r.json())
             .then(list => {
                 elem.listCache = new Set()
-                list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
+                list.itemListElement?.forEach(item => elem.listCache.add(item['@id'].replace(/^https?:/, 'https:')))
                 for (const span of elem.querySelectorAll('.pubStatus')) {
                     const li = span.parentElement
                     const a = li.querySelector("a")
@@ -1334,6 +1334,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 let mss = []
                 let missing = false
                 elem.listCache.forEach(uri => {
+                    uri = uri.replace(/^https?:/,'https:')
                     let labelElement = document.querySelector(`li[deer-id='${uri}'] a span`)
                     if (labelElement) {
                         let label = labelElement.textContent.trim()
@@ -1348,8 +1349,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 })
                 
                 if (missing) {
-                    console.warn("Cannot overwrite list while glosses are still loading.")
-                    alert("Cannot overwrite list while glosses are still loading. Please wait until all glosses are loaded.")
+                    const ev = new CustomEvent("Not Ready")
+                    UTILS.globalFeedbackBlip(ev, `Cannot overwrite list while glosses are still loading.`, false)
                     return
                 }
 
@@ -1367,8 +1368,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     mode: 'cors',
                     body: JSON.stringify(list),
                     headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
                     }
                 })
                 .then(r => {

@@ -369,7 +369,7 @@ async function getAllWitnessesOfSource(source){
  */ 
 async function getAllWitnessesOfGloss(glossURI){
     const gloss_witness_annos_query = {
-        "body.references.value" : glossURI,
+        "body.references.value" : httpsIdArray(glossURI),
         '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
@@ -501,8 +501,12 @@ async function addManuscriptToGoG(shelfmark) {
 }
 
 /**
- *  Delete a Witness of a Gloss.  
- *  This will delete the entity itself and its Annotations.  It will no longer appear as a Witness to the Gloss in any UI.
+ *  Delete a Witness of a Gloss through gloss-transcription.html, gloss-witness.html or manage-glosses.html.  
+ *  This will delete the Witness entity itself and its Annotations.  
+ *  It will no longer appear as a Witness to the Gloss in any UI.
+ * 
+ *  @param {String} witnessID - The IRI of a Witness Entity
+ *  @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
 */
 async function deleteWitness(witnessID, redirect){
     if(!witnessID) return

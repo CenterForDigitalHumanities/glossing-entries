@@ -353,7 +353,7 @@ function witnessForGloss(tpen){
 }
 
 /**
- * An Gloss entity is being deleted through the ng.html interface.  
+ * A Gloss entity is being deleted through the ng.html interface.  
  * Delete the Gloss, the Annotations targeting the Gloss, the Witnesses of the Gloss, and the Witnesses' Annotations.
  * Remove this Gloss from the public list.
  * Paginate by redirecting to glosses.html.
@@ -365,12 +365,13 @@ async function deleteGloss(id=glossHashID) {
         alert(`No URI supplied for delete.  Cannot delete.`)
         return
     }
-    if(isPublicGloss(id)){
+    if(await isPublicGloss(id)){
         const ev = new CustomEvent("Gloss is public")
         globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
         return
     }
-    const allWitnessesOfGloss = await getAllWitnessesOfGloss(id)
+    let allWitnessesOfGloss = await getAllWitnessesOfGloss(id)
+    allWitnessesOfGloss = Array.from(allWitnessesOfGloss)
     // Confirm they want to do this
     if (!confirm(`Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)`)) return
 
