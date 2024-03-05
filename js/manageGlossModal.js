@@ -79,13 +79,13 @@ class ManageGlossModal extends HTMLElement {
                 deerUtils.globalFeedbackBlip(ev, `Please wait for this Gloss to load.`, false)
                 return
             }
-            const glossID = glossData["@id"]
+            const glossID = glossData["@id"].replace(/^https?:/, 'https:')
             const published = glossData.published
             const glossText = glossData.text
             const glossTitle = `${published ? "✓" : "❌"}  ${glossData.title}`
 
             const removeBtn = `<input type="button" value="delete" glossid="${glossID}" data-type="named-gloss" class="removeCollectionItem button error is-small" title="Delete This Entry">`
-            const visibilityBtn = `<input type="button" value="${published ? "unpublish" : "publish"}" class="togglePublic button ${published ? "error" : "success"} is-small" glossid="${glossID.replace(/^https?:/, 'http:')}" title="Toggle public visibility"/>`
+            const visibilityBtn = `<input type="button" value="${published ? "unpublish" : "publish"}" class="togglePublic button ${published ? "error" : "success"} is-small" glossid="${glossID}" title="Toggle public visibility"/>`
             const moreOptionsBtn = `<input type="button" value="more..." glossid="${glossID}" class="otherModalBtn button primary is-small" title="See detailed modal for this Gloss">`
             const reviewBtn = `<a class="button secondary is-small" href="ng.html#${glossID}">review</a>`
 
@@ -112,7 +112,7 @@ class ManageGlossModal extends HTMLElement {
                 addEventListener("globalFeedbackFinished", fn)
                 const itemID = ev.target.getAttribute("glossid")
                 const itemType = ev.target.getAttribute("data-type")
-                removeFromCollectionAndDelete(itemID)
+                deleteGloss(itemID)
             })
 
             // 'publish' and 'unpublish' functionality
@@ -162,53 +162,103 @@ class ManageGlossModal extends HTMLElement {
         }
 
         /**
-         * An Gloss entity is being deleted.  
+         * A Gloss entity is being deleted through the managed-glosses.html interface.  
          * Delete the Gloss, the Annotations targeting the Gloss, the Witnesses of the Gloss, and the Witnesses' Annotations.
-         * Remove this Gloss from the public list.
-         * Paginate the list on screen and remove this entry.
-         * @param id {String} The archtype object's IRI.
+         * Remove this Gloss from the public list if it is in the list.
+         * Paginate by removing the Gloss from the Gloss list on screen.
+         * 
+         * @param id {String} The Gloss IRI.
          */
-        async function removeFromCollectionAndDelete(id) {
-            // New Gloss data structure requires a new delete function.  It is not ready at this time.
-            const ev = new CustomEvent("Not ready")
-            globalFeedbackBlip(ev, `Under construction at this time :(`, false)
-            return
+        async function deleteGloss(id=glossHashID) {
+            /**
+             * A specialized list overwrite.  
+             * Remove the itemListElement entry whose @id matches the provided parameter.
+             * Overwrite the list with this entry removed.
+             * @param {String} The IRI of Gloss to remove from the public list.
+             */ 
+            async function removeGlossFromPublicList(glossURI){
+                if(!glossURI) throw new Error("There was no gloss uri provided to delete.")
+                const publicList = await fetch(__constants.ngCollection).then(resp => resp.json()).catch(err => {return null})
+                const items = publicList.itemListElement.filter(obj => obj["@id"].split().pop() !== glossURI.split().pop())
+                const list = {
+                    '@id': __constants.ngCollection,
+                    '@context': 'https://schema.org/',
+                    '@type': "ItemList",
+                    name: "Gallery of Glosses Public Glosses List",
+                    numberOfItems: items.length,
+                    itemListElement: items
+                }
+                fetch(`${__constants.tiny}/overwrite`, {
+                    method: "PUT",
+                    mode: 'cors',
+                    body: JSON.stringify(list),
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    }
+                })
+                .then(r => {
+                    if (r.ok) {
+                        return r.json()
+                    } else {
+                        throw new Error('Failed to save')
+                    }
+                })
+                .then(data => {
+                    const ev = new CustomEvent("The Gloss has been deleted and removed from the public list.")
+                    globalFeedbackBlip(ev, `The Gloss has been deleted and removed from the public list.`, true)    
+                })
+                .catch(err => {
+                    const ev = new CustomEvent("Public List Update Failed")
+                    UTILS.globalFeedbackBlip(ev, `The Gloss was not deleted correctly and it may still be in the public list.`, true)
+                    console.error(err)
+                })
+            }
 
             if(!id){
                 alert(`No URI supplied for delete.  Cannot delete.`)
                 return
             }
+            let confirmMessage = "Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)"
+            let overwriteList = false
+            if(await isPublicGloss(id)){
+                confirmMessage = `This Gloss is public and will be removed from the public list.\n${confirmMessage}`
+                overwriteList = true
+            }
+            if (!confirm(confirmMessage)) return
 
-            // Confirm they want to do this
-            if (!confirm(`Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)`)) return
-
+            let allWitnessesOfGloss = await getAllWitnessesOfGloss(id)
+            allWitnessesOfGloss = Array.from(allWitnessesOfGloss)
             const historyWildcard = { "$exists": true, "$size": 0 }
 
             // Get all Annotations throughout history targeting this object that were generated by this application.
             const allAnnotationsTargetingEntityQueryObj = {
-                target: UTILS.httpsIdArray(id),
-                "__rerum.generatedBy" : UTILS.httpsIdArray(DEER.GENERATOR)
+                target: httpsIdArray(id),
+                "__rerum.generatedBy" : httpsIdArray(__constants.generator)
             }
-            const allAnnotationIds = await UTILS.getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
+            const allEntityAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
             .then(annos => annos.map(anno => anno["@id"]))
             .catch(err => {
                 alert("Could not gather Annotations to delete.")
                 console.log(err)
                 return null
             })
-            // This is bad enough to stop here, we will not continue on towards deleting the entity.
-            if(allAnnotationIds === null) return
 
-            const allAnnotations = allAnnotationIds.map(annoUri => {
-                return fetch(config.URLS.DELETE, {
+            // This is bad enough to stop here, we will not continue on towards deleting the entity.
+            if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
+
+            const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
+                return fetch(`${__constants.tiny}/delete`, {
                     method: "DELETE",
-                    body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
+                    body: JSON.stringify({"@id":annoUri}),
                     headers: {
                         "Content-Type": "application/json; charset=utf-8",
                         "Authorization": `Bearer ${window.GOG_USER.authorization}`
                     }
                 })
-                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                .then(r => {
+                    if(!r.ok) throw new Error(r.text)
+                })
                 .catch(err => { 
                     console.warn(`There was an issue removing an Annotation: ${annoUri}`)
                     console.log(err)
@@ -217,11 +267,13 @@ class ManageGlossModal extends HTMLElement {
                 })
             })
 
-            // TODO Get all the Witnesses of this Gloss use deleteWitness() on each Witness.
-            
-            // In this case, we don't have to wait on these.  We can run this and the entity delete syncronously.
-            Promise.all(allAnnotations).then(success => {
-                console.log("Connected Annotations successfully removed.")
+            const allWitnessDeletes = allWitnessesOfGloss.map(witnessURI => {
+                return deleteWitness(witnessURI, false)
+            })
+
+            // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
+            await Promise.all(allEntityAnnotations).then(success => {
+                console.log("Connected Annotationss successfully removed.")
             })
             .catch(err => {
                 // OK they may be orphaned.  We will continue on towards deleting the entity.
@@ -229,10 +281,20 @@ class ManageGlossModal extends HTMLElement {
                 console.log(err)
             })
 
+            // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
+            await Promise.all(allWitnessDeletes).then(success => {
+                console.log("Connected Witnesses successfully removed.")
+            })
+            .catch(err => {
+                // OK they may be orphaned.  We will continue on towards deleting the entity.
+                console.warn("There was an issue removing connected Witnesses.")
+                console.log(err)
+            })
+
             // Now the entity itself
-            fetch(config.URLS.DELETE, {
+            fetch(`${__constants.tiny}/delete`, {
                 method: "DELETE",
-                body: JSON.stringify({"@id":id}),
+                body: JSON.stringify({ "@id": id }),
                 headers: {
                     "Content-Type": "application/json; charset=utf-8",
                     "Authorization": `Bearer ${window.GOG_USER.authorization}`
@@ -241,95 +303,23 @@ class ManageGlossModal extends HTMLElement {
             .then(r => {
                 if(r.ok){
                     document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
+                    document.querySelector("deer-view[deer-template='managedlist']").listCache.delete(id)
+                    if(overwriteList){
+                        // If a Gloss that was on the public list was removed, then we need to change the public list still.
+                        removeGlossFromPublicList(id)     
+                    }
+                    else{
+                        const ev = new CustomEvent("This Gloss has been deleted.")
+                        globalFeedbackBlip(ev, `Gloss Deleted.`, true)    
+                    }
                 }
                 else{
-                    return Promise.reject(Error(r.text))
+                    throw new Error(r.text)
                 }
             })
-            .catch(err => { 
-                alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
-                console.log(err)
-                const ev = new CustomEvent("RERUM error")
-                globalFeedbackBlip(ev, `There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`, false)
-            })
-
-            // TODO Make sure this Gloss is not in the public list.  overwrite the list if necessary.
-
-        }
-
-        /**
-         * Delete a Witness (Text) (of a Gloss) and all of the Witness's Annotations.
-         * This occurs when deleting a Gloss.  This must be called for each of its Witnesses. 
-         */ 
-        async function deleteWitness(textWitnessID){
-            if(!textWitnessID) return
-            // No extra clicks while you await.
-            const deleteWitnessButton = document.querySelector(".deleteWitness")
-            deleteWitnessButton.setAttribute("disabled", "true")
-            const annos_query = {
-                "target" : httpsIdArray(textWitnessID),
-                "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-            }
-            let anno_ids =
-                await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-                    method: "POST",
-                    mode: "cors",
-                    headers: {
-                        "Content-Type": "application/json; charset=utf-8"                },
-                    body: JSON.stringify(annos_query)
-                })
-                .then(resp => resp.json()) 
-                .then(annos => annos.map(anno => anno["@id"]))
-                .catch(err => {
-                    return []
-                })
-            let delete_calls = anno_ids.map(annoUri => {
-                return fetch(`${__constants.tiny}/delete`, {
-                    method: "DELETE",
-                    body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
-                    headers: {
-                        "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                    }
-                })
-                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                .catch(err => {
-                    console.warn(`There was an issue removing an Annotation: ${annoUri}`)
-                    console.log(err)
-                })
-            })
-
-            delete_calls.push(
-                fetch(`${__constants.tiny}/delete`, {
-                    method: "POST",
-                    mode: "cors",
-                    headers: {
-                        "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                    },
-                    body: JSON.stringify({"@id" : textWitnessID.replace(/^https?:/, 'https:')})
-                })
-                .then(resp => resp.json()) 
-                .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                .catch(err => {
-                    console.warn(`There was an issue removing the Witness: ${textWitnessID}`)
-                    console.log(err)
-                })
-            )
-            Promise.all(delete_calls).then(success => {
-                const glossID = document.querySelector("input[custom-key='references']").value
-                addEventListener("globalFeedbackFinished", ev=> {
-                    window.location = `ng.html#${glossID}`
-                })
-                const ev = new CustomEvent("Witness Deleted.  You will be redirected.")
-                globalFeedbackBlip(ev, `Witness Deleted.  You will be redirected.`, true)
-            })
             .catch(err => {
-                // OK they may be orphaned.  We will continue on towards deleting the entity.
-                console.warn("There was an issue removing connected Annotations.")
-                console.error(err)
-                const ev = new CustomEvent("Error Deleting Witness")
-                globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
+                alert(`There was an issue removing the Gloss with URI ${id}.  This item may still appear in collections.`)
+                console.log(err)
             })
         }
     }
