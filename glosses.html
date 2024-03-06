@@ -43,9 +43,12 @@
         }
 
         document.addEventListener('deer-created', event => {
-            let e = new CustomEvent("deer-view", { detail: { set: [ngCollectionList] }, bubbles: true })
-            document.dispatchEvent(e)
-            setTimeout(() => location.href = `ng.html#${event.detail['@id']}`, 3000)
+            globalFeedbackBlip(
+				new CustomEvent("deer-view", { detail: { set: [ngCollectionList] }, bubbles: true }),
+				'Gloss Created',
+				true
+			)
+			addEventListener('globalFeedbackFinished', () => location.href = `ng.html#${event.detail['@id']}`)
         })
 
     </script>
