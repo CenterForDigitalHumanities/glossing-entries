@@ -21,6 +21,7 @@ window.onload = () => {
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
         document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
+        glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
     }
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText
@@ -352,34 +353,27 @@ function witnessForGloss(tpen){
 }
 
 /**
- * An Gloss entity is being deleted.  
+ * A Gloss entity is being deleted through the ng.html interface.  
  * Delete the Gloss, the Annotations targeting the Gloss, the Witnesses of the Gloss, and the Witnesses' Annotations.
  * Remove this Gloss from the public list.
  * Paginate by redirecting to glosses.html.
  * 
  * @param id {String} The Gloss IRI.
- * @param thing {String} The archtype object's type or @type.
  */
-async function removeFromCollectionAndDelete(id=glossHashID) {
-    const ev = new CustomEvent("Not ready")
-    globalFeedbackBlip(ev, `Under construction at this time :(`, false)
-    return
-    // This won't do    
-    if (id === null) {
+async function deleteGloss(id=glossHashID) {
+    if(!id){
         alert(`No URI supplied for delete.  Cannot delete.`)
         return
-    }    
-    const thing = "Gloss"
-    const redirect = "./glosses.html"
-
-    // If it is an unexpected type, we probably shouldn't go through with the delete.
-    if (thing === null) {
-        alert(`Not sure what a ${type} is.  Cannot delete.`)
+    }
+    if(await isPublicGloss(id)){
+        const ev = new CustomEvent("Gloss is public")
+        globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
         return
     }
-
+    let allWitnessesOfGloss = await getAllWitnessesOfGloss(id)
+    allWitnessesOfGloss = Array.from(allWitnessesOfGloss)
     // Confirm they want to do this
-    if (!confirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
+    if (!confirm(`Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)`)) return
 
     const historyWildcard = { "$exists": true, "$size": 0 }
 
@@ -388,41 +382,58 @@ async function removeFromCollectionAndDelete(id=glossHashID) {
         target: httpsIdArray(id),
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
-    const allAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
-        .then(annos => annos.map(anno => anno["@id"]))
-        .catch(err => {
-            alert("Could not gather Annotations to delete.")
-            console.log(err)
-            return null
-        })
-    // This is bad enough to stop here, we will not continue on towards deleting the entity.
-    if (allAnnotationIds === null) return
+    const allEntityAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
+    .then(annos => annos.map(anno => anno["@id"]))
+    .catch(err => {
+        alert("Could not gather Annotations to delete.")
+        console.log(err)
+        return null
+    })
 
-    const allAnnotations = allAnnotationIds.map(annoUri => {
+    // This is bad enough to stop here, we will not continue on towards deleting the entity.
+    if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
+
+    const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
         return fetch(`${__constants.tiny}/delete`, {
             method: "DELETE",
-            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
+            body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
             }
         })
-        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-        .catch(err => {
+        .then(r => {
+            if(!r.ok) throw new Error(r.text)
+        })
+        .catch(err => { 
             console.warn(`There was an issue removing an Annotation: ${annoUri}`)
             console.log(err)
+            const ev = new CustomEvent("RERUM error")
+            globalFeedbackBlip(ev, `There was an issue removing an Annotation: ${annoUri}`, false)
         })
     })
 
-    // TODO Get all the Witnesses of this Gloss use deleteWitness() on each Witness.
+    const allWitnessDeletes = allWitnessesOfGloss.map(witnessURI => {
+        return deleteWitness(witnessURI, false)
+    })
 
-    // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
-    await Promise.all(allAnnotations).then(success => {
+    // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
+    await Promise.all(allEntityAnnotations).then(success => {
         console.log("Connected Annotationss successfully removed.")
     })
     .catch(err => {
         // OK they may be orphaned.  We will continue on towards deleting the entity.
         console.warn("There was an issue removing connected Annotations.")
+        console.log(err)
+    })
+
+    // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
+    await Promise.all(allWitnessDeletes).then(success => {
+        console.log("Connected Witnesses successfully removed.")
+    })
+    .catch(err => {
+        // OK they may be orphaned.  We will continue on towards deleting the entity.
+        console.warn("There was an issue removing connected Witnesses.")
         console.log(err)
     })
 
@@ -436,15 +447,20 @@ async function removeFromCollectionAndDelete(id=glossHashID) {
         }
     })
     .then(r => {
-        if (r.ok) {
-            location.href = redirect
+        if(r.ok){
+            const ev = new CustomEvent("This Gloss has been deleted.")
+            globalFeedbackBlip(ev, `Gloss deleted.  You will be redirected.`, true)
+            addEventListener("globalFeedbackFinished", () => {
+                location.href = "glosses.html"
+            })
         }
-        else {
-            return Promise.reject(Error(r.text))
+        else{ 
+            throw new Error(r.text)
         }
     })
     .catch(err => {
-        alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
+        alert(`There was an issue removing the Gloss with URI ${id}.  This item may still appear in collections.`)
         console.log(err)
     })
+
 }

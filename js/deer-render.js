@@ -1109,13 +1109,14 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     const glossID = val["@id"].replace(/^https?:/, 'https:')
                     const publishedStatus = document.createElement("span")
                     publishedStatus.classList.add("pubStatus")
-                    publishedStatus.setAttribute("glossid", val['@id'])
+                    publishedStatus.setAttribute("glossid", glossID)
                     publishedStatus.innerText = "??"
                     let li = document.createElement("li")
                     li.setAttribute("deer-id", glossID)
                     li.classList.add("galleryEntry")
                     let a = document.createElement("a")
                     a.setAttribute("href", options.link+glossID)
+                    a.setAttribute("target", "_blank")
                     let span = document.createElement("span")
 
                     if(managedListCache.get(glossID)){
@@ -1286,7 +1287,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             fetch(url).then(r => r.json())
             .then(list => {
                 elem.listCache = new Set()
-                list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
+                list.itemListElement?.forEach(item => elem.listCache.add(item['@id'].replace(/^https?:/, 'https:')))
                 for (const span of elem.querySelectorAll('.pubStatus')) {
                     const li = span.parentElement
                     const a = li.querySelector("a")
@@ -1333,7 +1334,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 let mss = []
                 let missing = false
                 elem.listCache.forEach(uri => {
-                    let labelElement = document.querySelector(`li[deer-id='${uri.replace("http:", "https:")}'] a span`)
+                    uri = uri.replace(/^https?:/,'https:')
+                    let labelElement = document.querySelector(`li[deer-id='${uri}'] a span`)
                     if (labelElement) {
                         let label = labelElement.textContent.trim()
                         mss.push({
@@ -1347,8 +1349,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 })
                 
                 if (missing) {
-                    console.warn("Cannot overwrite list while glosses are still loading.")
-                    alert("Cannot overwrite list while glosses are still loading. Please wait until all glosses are loaded.")
+                    const ev = new CustomEvent("Not Ready")
+                    UTILS.globalFeedbackBlip(ev, `Cannot overwrite list while glosses are still loading.`, false)
                     return
                 }
 
@@ -1356,7 +1358,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     '@id': elem.getAttribute("deer-listing"),
                     '@context': 'https://schema.org/',
                     '@type': "ItemList",
-                    name: elem.getAttribute("deer-listing") ?? "Gallery of Glosses",
+                    name: "Gallery of Glosses Public Glosses List",
                     numberOfItems: elem.listCache.size,
                     itemListElement: mss
                 }
@@ -1366,8 +1368,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     mode: 'cors',
                     body: JSON.stringify(list),
                     headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
                     }
                 })
                 .then(r => {

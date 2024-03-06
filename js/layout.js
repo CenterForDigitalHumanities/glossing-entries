@@ -460,20 +460,7 @@ class ReferencesBrowser extends HTMLElement {
             '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
             "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
         }
-        fetch(`${config.URLS.QUERY}?limit=100&skip=0`, {
-            method: 'POST',
-            mode: 'cors',
-            headers:{
-                "Content-Type" : "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(gloss_witness_annos_query)
-        })
-        .then(res => {
-            if (!res.ok) {
-                throw Error(res.statusText)
-            }
-            return res.json()
-        })
+        getPagedQuery(100, 0, gloss_witness_annos_query)
         .then(gloss_witness_annos => {
             const newView = new Set()
             if(gloss_witness_annos.length){

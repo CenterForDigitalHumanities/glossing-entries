@@ -188,6 +188,7 @@ export default {
                             li.setAttribute("deer-id", glossID)
                             let a = document.createElement("a")
                             a.setAttribute("href", options.link+glossID)
+                            a.setAttribute("target", "_blank")
                             let span = document.createElement("span")
                             if(cachedFilterableEntities.get(glossID)){
                                 // We cached it in the past and are going to trust it right now.
@@ -454,6 +455,7 @@ export default {
                             li.setAttribute("deer-id", glossID)
                             let a = document.createElement("a")
                             a.setAttribute("href", options.link+glossID)
+                            a.setAttribute("target", "_blank")
                             let span = document.createElement("span")
                             if(cachedFilterableEntities.get(glossID)){
                                 // We cached it in the past and are going to trust it right now.
@@ -497,6 +499,7 @@ export default {
                                 // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
                                 let div = document.createElement("div")
                                 div.setAttribute("deer-template", "filterableListItem")
+                                div.setAttribute("deer-link", "ng.html#")
                                 div.setAttribute("deer-id", glossID)
                                 if(filterPresent) div.classList.add("is-hidden")
                                 div.classList.add("deer-view")
@@ -709,7 +712,6 @@ export default {
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
                     a.setAttribute("href", options.link + obj['@id'])
                     a.setAttribute("target", "_blank")
-
                     // Turn each property into an attribute for the <li> element
                     let action = "add"
                     if(filterPresent) elem.classList[action]("is-hidden")
@@ -807,19 +809,21 @@ export default {
                     const containingListElem = elem.closest("deer-view")
                     // Be careful.  The publish list stores items via http://, but everything else is https://.  Beware the false mismatch.
                     const glossID = obj["@id"].replace(/^https?:/, 'https:')
-                    const glossHttpID = obj["@id"].replace(/^https?:/, 'http:')
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
-                    const included = listCache.has(glossHttpID)
+                    const included = listCache.has(glossID)
                     const publishedStatus = document.createElement("span")
-                    publishedStatus.setAttribute("glossid", glossHttpID)
+                    publishedStatus.setAttribute("glossid", glossID)
                     publishedStatus.classList.add("pubStatus")
                     publishedStatus.innerText = included ? "✓" : "❌"
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("li")
                     li.setAttribute("data-public", included ? "true" : "false" )
+                    li.setAttribute("deer-id", glossID)
                     let a = document.createElement("a")
                     a.classList.add("galleryEntry")
+                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("target", "_blank")
                     a.setAttribute("glossid", glossID)
                     a.setAttribute("data-public", included ? "true" : "false" )
                     a.addEventListener('click', (ev) => {
@@ -833,7 +837,7 @@ export default {
                             deerUtils.globalFeedbackBlip(wait, `Please wait for this Gloss information to load.`, false)
                             return
                         }
-                        const glossID = parentDataElem.getAttribute("data-id") ? parentDataElem.getAttribute("data-id").replace(/^https?:/, 'http:') : ""
+                        const glossID = parentDataElem.getAttribute("deer-id") ? parentDataElem.getAttribute("deer-id") : ""
                         const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
                         const published = parentDataElem.getAttribute("data-public") === "true" ? true : false
                         const glossText = parentDataElem.getAttribute("data-text") ? parentDataElem.getAttribute("data-text") : ""
