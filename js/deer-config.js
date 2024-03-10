@@ -161,7 +161,7 @@ export default {
                 </style>
                 <h2> Glosses </h2>
                 <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
-				<form id="ngForm" deer-type="named-gloss" deer-context="http://www.loc.gov/mods" class="row">
+				<form id="ngForm" deer-type="Gloss" deer-context="http://www.loc.gov/mods" class="row">
 					<input id="search-bar" filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText col">
 					<input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
 					<input is="auth-creator" type="hidden" deer-key="creator" />
