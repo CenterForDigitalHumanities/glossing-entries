@@ -612,8 +612,8 @@ async function isPublicGloss(glossID){
 async function createConfirm(message) {
     document.body.insertAdjacentHTML('afterend', 
     `<div class="confirm" style="display: block;">
-        <div style="position: fixed; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); top: 0px; left: 0px; z-index: 2;"></div>
-        <div style="padding: 1.25rem; background: white; position: absolute; width: 30%; height: auto; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 0.625rem; border: 0.125rem solid var(--color-primary); box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.5); z-index: 2;">
+        <div style="position: fixed; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); top: 0; left: 0; z-index: 1000;"></div>
+        <div style="padding: 1.25rem; background: white; position: fixed; width: 30%; min-height: 10%; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 0.625rem; border: 0.125rem solid var(--color-primary); box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.5); z-index: 1001;">
             <div id="confirmMessage" style="color: var(--color-primary); padding: 0.625rem; text-align: center; font-size: var(--font-size); font-family: var(--font-family-sans);">${message}</div>
             <div style="text-align: center;">
                 <input id="confirmYes" type="button" value="Confirm" style="padding: 0.625rem 1.25rem; margin: 0.625rem 0.3125rem; border-radius: 0.3125rem; cursor: pointer; background: green; color: white; border: none; font-size: var(--font-size); font-family: var(--font-family-sans);" />
@@ -623,12 +623,12 @@ async function createConfirm(message) {
     </div>`)
     return new Promise(complete => {
         document.getElementById('confirmYes').onclick = () => {
-            document.querySelector('.confirm').remove()
-            complete(true)
+            document.querySelector('.confirm').remove();
+            complete(true);
         }
         document.getElementById('confirmNo').onclick = () => {
-            document.querySelector('.confirm').remove()
-            complete(false)
+            document.querySelector('.confirm').remove();
+            complete(false);
         }
     })
 }
