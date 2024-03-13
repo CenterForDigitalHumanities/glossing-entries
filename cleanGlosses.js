@@ -1,3 +1,10 @@
+/**
+ * How To Run:
+ * 1. Navigate to the `glosses.html` homepage
+ * 2. Paste the contents of this file into the Console in Dev Tools
+ * 3. Run `clearDevGlosses(nLeft)` where `nLeft` is the number of glosses you want to remain in the devstore
+ */
+
 async function deleteGloss(id=glossHashID) {
 	if(await isPublicGloss(id)){
 		const ev = new CustomEvent("Gloss is public")
