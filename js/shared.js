@@ -616,8 +616,8 @@ async function createConfirm(message) {
         <div style="padding: 1.25rem; background: white; position: absolute; width: 30%; height: auto; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 0.625rem; border: 0.125rem solid var(--color-primary); box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.5); z-index: 2;">
             <div id="confirmMessage" style="color: var(--color-primary); padding: 0.625rem; text-align: center; font-size: var(--font-size); font-family: var(--font-family-sans);">${message}</div>
             <div style="text-align: center;">
-            <input id="confirmYes" type="button" value="Confirm" style="padding: 0.625rem 1.25rem; margin: 0.625rem 0.3125rem; border-radius: 0.3125rem; cursor: pointer; background: green; color: white; border: none; font-size: var(--font-size); font-family: var(--font-family-sans);" />
-            <input id="confirmNo" type="button" value="Cancel" style="padding: 0.625rem 1.25rem; margin: 0.625rem 0.3125rem; border-radius: 0.3125rem; cursor: pointer; background: red; color: white; border: none; font-size: var(--font-size); font-family: var(--font-family-sans);" />
+                <input id="confirmYes" type="button" value="Confirm" style="padding: 0.625rem 1.25rem; margin: 0.625rem 0.3125rem; border-radius: 0.3125rem; cursor: pointer; background: green; color: white; border: none; font-size: var(--font-size); font-family: var(--font-family-sans);" />
+                <input id="confirmNo" type="button" value="Cancel" style="padding: 0.625rem 1.25rem; margin: 0.625rem 0.3125rem; border-radius: 0.3125rem; cursor: pointer; background: red; color: white; border: none; font-size: var(--font-size); font-family: var(--font-family-sans);" />
             </div>
         </div>
     </div>`)
