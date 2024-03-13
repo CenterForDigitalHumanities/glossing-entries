@@ -96,14 +96,11 @@ window.onload = () => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
-<<<<<<< HEAD
-=======
     deleteWitnessButton.addEventListener("click", ev => {
         if(modalConfirm("The witness will be deleted.  This action cannot be undone.")){
             deleteWitness()
         }
     })
->>>>>>> f8f4497 (Refactoring Old Issue 68)
 }
 
 /**
