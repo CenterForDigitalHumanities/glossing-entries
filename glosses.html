@@ -42,7 +42,7 @@
             setListings()
         }
 
-        document.addEventListener('deer-created', event => {
+        document.addEventListener('deer-updated', event => {
             globalFeedbackBlip(
 				new CustomEvent("deer-view", { detail: { set: [ngCollectionList] }, bubbles: true }),
 				'Gloss Created. Redirecting to Details...',
