@@ -625,10 +625,10 @@ async function createConfirm(message) {
         document.getElementById('confirmYes').onclick = () => {
             document.querySelector('.confirm').remove()
             complete(true)
-        };
+        }
         document.getElementById('confirmNo').onclick = () => {
             document.querySelector('.confirm').remove()
             complete(false)
-        };
-    });
+        }
+    })
 }
