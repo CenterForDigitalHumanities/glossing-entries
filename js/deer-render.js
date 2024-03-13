@@ -1216,17 +1216,175 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             
             // This is a freeform filter to match on text.  
             // TODO It will need to take the statuses into account.  Will it be $AND or $OR?
-            filter.addEventListener('input', ev =>{
-                const val = ev?.target.value.trim()
-                let filterQuery
-                if(val){
-                    filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
+            document.addEventListener('DOMContentLoaded', function() {
+                const filter = document.querySelector('#yourFilterElementId'); // Adjust selector as needed
+            
+                filter.addEventListener('input', ev => {
+                    const val = ev?.target.value.trim();
+                    let filterQuery;
+                    if (val) {
+                        filterQuery = encodeContentState(JSON.stringify({"title": ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}));
+                    } else {
+                        filterQuery = encodeContentState(JSON.stringify({"title": ""}));
+                    }
+            
+                    debounce(filterGlosses(filterQuery));
+                });
+            
+                document.querySelectorAll('.delete-button').forEach(button => {
+                    button.addEventListener('click', async (event) => {
+                        const id = button.getAttribute('data-id'); // Ensure your button has 'data-id' attribute
+                        const type = button.getAttribute('data-type'); // Ensure your button has 'data-type' attribute
+                        await removeFromCollectionAndDelete(id, type, event).catch(err => {
+                            console.error("Error deleting item:", err);
+                        });
+                    });
+                });
+            });
+            
+            async function removeFromCollectionAndDelete(id, type, event) {
+                event.preventDefault();
+                // removeFromCollectionAndDelete function body...
+                // This won't do 
+                if(!id){
+                    alert(`No URI supplied for delete.  Cannot delete.`)
+                    return
                 }
-                else{
-                    filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
+                const thing = 
+                    (type === "manuscript") ? "Manuscript" :
+                    (type === "named-gloss") ? "Gloss" :
+                    (type === "Range") ? "Gloss" : null
+
+
+                // If it is an unexpected type, we probably shouldn't go through with the delete.
+                if(thing === null){
+                    alert(`Not sure what a ${type} is.  Cannot delete.`)
+                    return
                 }
-                debounce(filterGlosses(filterQuery))
-            })
+
+                // Confirm they want to do this
+                if (!modalConfirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
+
+                const historyWildcard = { "$exists": true, "$size": 0 }
+
+                /**
+                 * A customized delete functionality for manuscripts, since they have Annotations and Glosses.
+                 */ 
+                if(type==="manuscript"){
+                    // Such as ' [ Pn ] Paris, BnF, lat. 17233 ''
+
+                    const allGlossesOfManuscriptQueryObj = {
+                        "body.partOf.value": UTILS.httpsIdArray(id),
+                        "__rerum.generatedBy" : UTILS.httpsIdArray(DEER.GENERATOR),
+                        "__rerum.history.next" : historyWildcard
+                    }
+                    const allGlossIds = await UTILS.getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
+                    .then(annos => annos.map(anno => anno.target))
+                    .catch(err => {
+                        alert("Could not gather Glosses to delete.")
+                        console.log(err)
+                        return null
+                    })
+                    // This is bad enough to stop here, we will not continue on towards deleting the entity.
+                    if(allGlossIds === null) {return}
+
+                    const allGlosses = allGlossIds.map(glossUri => {
+                        return fetch(config.URLS.DELETE, {
+                            method: "DELETE",
+                            body: JSON.stringify({"@id":glossUri.replace(/^https?:/,'https:')}),
+                            headers: {
+                                "Content-Type": "application/json; charset=utf-8",
+                                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                            }
+                        })
+                        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                        .catch(err => { 
+                            console.warn(`There was an issue removing a connected Gloss: ${glossUri}`)
+                            console.log(err)
+                            const ev = new CustomEvent("RERUM error")
+                            globalFeedbackBlip(ev, `There was an issue removing a connected Gloss: ${glossUri}`, false)
+                        })
+                    })
+                    // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
+                    await Promise.all(allGlosses).then(success => {
+                        console.log("Connected Glosses successfully removed.")
+                    })
+                    .catch(err => {
+                        // OK they may be orphaned.  We will continue on towards deleting the entity.
+                        console.warn(`There was an issue removing Connected Glosses`)
+                        console.log(err)
+                        const ev = new CustomEvent("RERUM error")
+                        globalFeedbackBlip(ev, 'There was an issue removing Connected Glosses.', false)
+                    })
+                }
+
+                // Get all Annotations throughout history targeting this object that were generated by this application.
+                const allAnnotationsTargetingEntityQueryObj = {
+                    target: UTILS.httpsIdArray(id),
+                    "__rerum.generatedBy" : UTILS.httpsIdArray(DEER.GENERATOR)
+                }
+                const allAnnotationIds = await UTILS.getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
+                .then(annos => annos.map(anno => anno["@id"]))
+                .catch(err => {
+                    alert("Could not gather Annotations to delete.")
+                    console.log(err)
+                    return null
+                })
+                // This is bad enough to stop here, we will not continue on towards deleting the entity.
+                if(allAnnotationIds === null) return
+
+                const allAnnotations = allAnnotationIds.map(annoUri => {
+                    return fetch(config.URLS.DELETE, {
+                        method: "DELETE",
+                        body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
+                        headers: {
+                            "Content-Type": "application/json; charset=utf-8",
+                            "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                        }
+                    })
+                    .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
+                    .catch(err => { 
+                        console.warn(`There was an issue removing an Annotation: ${annoUri}`)
+                        console.log(err)
+                        const ev = new CustomEvent("RERUM error")
+                        globalFeedbackBlip(ev, `There was an issue removing an Annotation: ${annoUri}`, false)
+                    })
+                })
+
+                // In this case, we don't have to wait on these.  We can run this and the entity delete syncronously.
+                Promise.all(allAnnotations).then(success => {
+                    console.log("Connected Annotationss successfully removed.")
+                })
+                .catch(err => {
+                    // OK they may be orphaned.  We will continue on towards deleting the entity.
+                    console.warn("There was an issue removing connected Annotations.")
+                    console.log(err)
+                })
+
+                // Now the entity itself
+                fetch(config.URLS.DELETE, {
+                    method: "DELETE",
+                    body: JSON.stringify({"@id":id}),
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    }
+                })
+                .then(r => {
+                    if(r.ok){
+                        document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
+                    }
+                    else{
+                        return Promise.reject(Error(r.text))
+                    }
+                })
+                .catch(err => { 
+                    alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
+                    console.log(err)
+                    const ev = new CustomEvent("RERUM error")
+                    globalFeedbackBlip(ev, `There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`, false)
+                })
+            }
             
             if(numloaded === total){
                 cachedNotice.classList.remove("is-hidden")
