@@ -225,7 +225,7 @@ class ManageGlossModal extends HTMLElement {
                 confirmMessage = `This Gloss is public and will be removed from the public list.\n${confirmMessage}`
                 overwriteList = true
             }
-            if (!confirm(confirmMessage)) return
+            if (!await createConfirm(confirmMessage)) return
 
             let allWitnessesOfGloss = await getAllWitnessesOfGloss(id)
             allWitnessesOfGloss = Array.from(allWitnessesOfGloss)
