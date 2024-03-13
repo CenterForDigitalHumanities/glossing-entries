@@ -623,12 +623,12 @@ async function createConfirm(message) {
     </div>`)
     return new Promise(complete => {
         document.getElementById('confirmYes').onclick = () => {
-            document.querySelector('.confirm').remove();
-            complete(true);
+            document.querySelector('.confirm').remove()
+            complete(true)
         }
         document.getElementById('confirmNo').onclick = () => {
-            document.querySelector('.confirm').remove();
-            complete(false);
+            document.querySelector('.confirm').remove()
+            complete(false)
         }
     })
 }
