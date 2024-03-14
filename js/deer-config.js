@@ -162,10 +162,10 @@ export default {
                 <h2> Glosses </h2>
                 <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
                 <form id="ngForm" deer-type="Gloss" deer-context="http://www.loc.gov/mods" class="row">
-                    <input id="search-bar" filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText col">
+                    <input id="search-bar" filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText row">
                     <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
                     <input is="auth-creator" type="hidden" deer-key="creator" />
-                    <input id="search-submit" type="submit" value="New Gloss" class="is-hidden serifText col" disabled>
+                    <input style="background: none; border: none; color: blue; text-decoration: underline; cursor: pointer; font-size: 0.8em; padding-left: 0em;" id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="is-hidden serifText row">
                 </form>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
@@ -923,7 +923,6 @@ function debounce(func,timeout = 500) {
 
 function hideSearchBar() {
     const searchSubmit = document.getElementById('search-submit')
-    searchSubmit.classList.remove("is-hidden")
     const searchBar = document.getElementById('search-bar')
     searchBar.addEventListener("keydown", (e)=> {
         if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
@@ -932,5 +931,5 @@ function hideSearchBar() {
             }
         }
     }, true)
-    searchBar.addEventListener('input', e => searchSubmit.disabled = e.target.value.trim().length === 0, true)
+    searchBar.addEventListener('input', e => searchSubmit.classList[e.target.value.trim().length === 0 ? 'add' : 'remove']("is-hidden"), true)
 }
