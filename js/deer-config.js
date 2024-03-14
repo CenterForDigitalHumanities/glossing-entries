@@ -169,8 +169,7 @@ export default {
                         #search-submit {
                           background: none;
                           border: none;
-                          color: blue;
-                          text-decoration: underline;
+                          color: inherit;
                           cursor: pointer;
                           font-size: 0.8em;
                           padding-left: 0;
@@ -191,7 +190,7 @@ export default {
                           animation: fadeOut 0.5s forwards;
                         }
                     </style>
-                    <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="fade serifText row">
+                    <a><input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="fade serifText row"></a>
                 </form>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
