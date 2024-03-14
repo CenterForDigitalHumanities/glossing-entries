@@ -176,16 +176,16 @@ export default {
                           padding-left: 0;
                         }
                         @keyframes fadeIn {
-                          0% { opacity: 0; display: none; }
-                          100% { opacity: 1; display: inline-block; }
+                          0% { opacity: 0; height: 0em; }
+                          100% { opacity: 1; height: auto; }
                         }
                         #search-submit:not(.fade) {
                           display: inline-block;
                           animation: fadeIn 0.5s forwards;
                         }
                         @keyframes fadeOut {
-                          0% { opacity: 1; display: inline-block; }
-                          100% { opacity: 0; display: none; }
+                          0% { opacity: 1; height: auto; }
+                          100% { opacity: 0; height: 0em; }
                         }
                         #search-submit.fade {
                           animation: fadeOut 0.5s forwards;
