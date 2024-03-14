@@ -165,7 +165,33 @@ export default {
                     <input id="search-bar" filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText row">
                     <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
                     <input is="auth-creator" type="hidden" deer-key="creator" />
-                    <input style="background: none; border: none; color: blue; text-decoration: underline; cursor: pointer; font-size: 0.8em; padding-left: 0em;" id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="is-hidden serifText row">
+                    <style>
+                        #search-submit {
+                          background: none;
+                          border: none;
+                          color: blue;
+                          text-decoration: underline;
+                          cursor: pointer;
+                          font-size: 0.8em;
+                          padding-left: 0;
+                        }
+                        @keyframes fadeIn {
+                          0% { opacity: 0; display: none; }
+                          100% { opacity: 1; display: inline-block; }
+                        }
+                        #search-submit:not(.fade) {
+                          display: inline-block;
+                          animation: fadeIn 0.5s forwards;
+                        }
+                        @keyframes fadeOut {
+                          0% { opacity: 1; display: inline-block; }
+                          100% { opacity: 0; display: none; }
+                        }
+                        #search-submit.fade {
+                          animation: fadeOut 0.5s forwards;
+                        }
+                    </style>
+                    <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="fade serifText row">
                 </form>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
@@ -931,5 +957,5 @@ function hideSearchBar() {
             }
         }
     }, true)
-    searchBar.addEventListener('input', e => searchSubmit.classList[e.target.value.trim().length === 0 ? 'add' : 'remove']("is-hidden"), true)
+    searchBar.addEventListener('input', e => searchSubmit.classList[e.target.value.trim().length === 0 ? 'add' : 'remove']("fade"), true)
 }
