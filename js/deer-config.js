@@ -169,28 +169,27 @@ export default {
                         #search-submit {
                           background: none;
                           border: none;
-                          color: inherit;
+                          color: var(--color-primary);
                           cursor: pointer;
                           font-size: 0.8em;
                           padding-left: 0;
                         }
                         @keyframes fadeIn {
-                          0% { opacity: 0; height: 0em; }
-                          100% { opacity: 1; height: auto; }
+                          0% { opacity: 0; max-height: 0em; padding: 0em; }
+                          100% { opacity: 1; max-height: auto; padding: auto; }
                         }
                         #search-submit:not(.fade) {
-                          display: inline-block;
                           animation: fadeIn 0.5s forwards;
                         }
                         @keyframes fadeOut {
-                          0% { opacity: 1; height: auto; }
-                          100% { opacity: 0; height: 0em; }
+                          0% { opacity: 1; max-height: auto; padding: auto; }
+                          100% { opacity: 0; max-height: 0em; padding: 0em; }
                         }
                         #search-submit.fade {
                           animation: fadeOut 0.5s forwards;
                         }
                     </style>
-                    <a><input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="fade serifText row"></a>
+                    <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="fade serifText row">
                 </form>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
