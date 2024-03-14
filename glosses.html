@@ -44,11 +44,11 @@
 
         document.addEventListener('deer-updated', event => {
             globalFeedbackBlip(
-				new CustomEvent("deer-view", { detail: { set: [ngCollectionList] }, bubbles: true }),
-				'Gloss Created. Redirecting to Details...',
-				true
-			)
-			addEventListener('globalFeedbackFinished', () => location.href = `ng.html#${event.detail['@id']}`)
+                new CustomEvent("deer-view", { detail: { set: [ngCollectionList] }, bubbles: true }),
+                'Gloss Created. Redirecting to Details...',
+                true
+            )
+            addEventListener('globalFeedbackFinished', () => location.href = `ng.html#${event.detail['@id']}`)
         })
 
     </script>
