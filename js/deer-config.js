@@ -167,7 +167,7 @@ export default {
                     <input is="auth-creator" type="hidden" deer-key="creator" />
                     <input id="search-submit" type="submit" value="New Gloss" class="is-hidden serifText col" disabled>
                 </form>
-               s <div class="progressArea">
+                <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                     <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
                 </div>
