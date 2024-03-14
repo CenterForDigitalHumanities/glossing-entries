@@ -600,7 +600,7 @@ export default {
                             }
                             i.dispatchEvent(new Event('input', { bubbles: true }))
                         })
-						hideSearchBar()
+                        hideSearchBar()
                     }
 
                     function debounce(func,timeout = 500) {
@@ -759,7 +759,7 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
-						hideSearchBar()
+                        hideSearchBar()
                     }
                 }
             }
@@ -894,7 +894,7 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
-						hideSearchBar()
+                        hideSearchBar()
                     }
                 }
             }
