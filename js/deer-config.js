@@ -296,17 +296,7 @@ export default {
                         if(filterPresent){
                             debounce(filterGlosses(elem.$contentState))
                         }
-						const searchSubmit = document.getElementById('search-submit')
-						searchSubmit.classList.remove("is-hidden")
-						const searchBar = document.getElementById('search-bar')
-						searchBar.addEventListener("keydown", (e)=> {
-							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
-								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
-									e.preventDefault()
-								}
-							}
-						}, true)
-						searchBar.addEventListener('input', e => searchSubmit.disabled = e.target.value.trim().length === 0, true)
+                        hideSearchBar()
                     }
 
                     /** 
@@ -610,17 +600,7 @@ export default {
                             }
                             i.dispatchEvent(new Event('input', { bubbles: true }))
                         })
-						const searchSubmit = document.getElementById('search-submit')
-						searchSubmit.classList.remove("is-hidden")
-						const searchBar = document.getElementById('search-bar')
-						searchBar.addEventListener("keydown", (e)=> {
-							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
-								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
-									e.preventDefault()
-								}
-							}
-						}, true)
-						searchBar.addEventListener('input', e => searchSubmit.disabled = e.target.value.trim().length === 0, true)
+						hideSearchBar()
                     }
 
                     function debounce(func,timeout = 500) {
@@ -779,17 +759,7 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
-						const searchSubmit = document.getElementById('search-submit')
-						searchSubmit.classList.remove("is-hidden")
-						const searchBar = document.getElementById('search-bar')
-						searchBar.addEventListener("keydown", (e)=> {
-							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
-								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
-									e.preventDefault()
-								}
-							}
-						}, true)
-						searchBar.addEventListener('input', e => searchSubmit.disabled = e.target.value.trim().length === 0, true)
+						hideSearchBar()
                     }
                 }
             }
@@ -924,17 +894,7 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
-						const searchSubmit = document.getElementById('search-submit')
-						searchSubmit.classList.remove("is-hidden")
-						const searchBar = document.getElementById('search-bar')
-						searchBar.addEventListener("keydown", (e)=> {
-							if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
-								if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
-									e.preventDefault()
-								}
-							}
-						}, true)
-						searchBar.addEventListener('input', e => searchSubmit.disabled = e.target.value.trim().length === 0, true)
+						hideSearchBar()
                     }
                 }
             }
@@ -959,4 +919,18 @@ function debounce(func,timeout = 500) {
         clearTimeout(timeRemains)
         timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
     }
+}
+
+function hideSearchBar() {
+    const searchSubmit = document.getElementById('search-submit')
+    searchSubmit.classList.remove("is-hidden")
+    const searchBar = document.getElementById('search-bar')
+    searchBar.addEventListener("keydown", (e)=> {
+        if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+            if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                e.preventDefault()
+            }
+        }
+    }, true)
+    searchBar.addEventListener('input', e => searchSubmit.disabled = e.target.value.trim().length === 0, true)
 }
