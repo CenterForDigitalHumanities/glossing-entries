@@ -496,11 +496,7 @@ async function findShelfmark(msid, forceNew) {
         else {
             // check for parent msid
             const query = {
-                "body": { 
-                    "alternateTitle": { 
-                        "value": cleanMsid 
-                    } 
-                },
+                "body.alternateTitle.value": cleanMsid,
                 "__rerum.generatedBy" : __constants.generator
             }
     
@@ -515,16 +511,18 @@ async function findShelfmark(msid, forceNew) {
             .then(resp => resp.json())
             .catch(err => {
                 console.error(err)
-                return null
-            })
-    
-            if(annotation === null){
                 const qryFail = new CustomEvent("Failed to query RERUM.")
                 globalFeedbackBlip(qryFail, 'Failed to find annotation with msid identifier.', false)
                 return
+            })
+    
+            if(annotation.length > 0){
+                return annotation[0]["target"]
             }
-            else if(annotations.length > 0){
-                
+            else {
+                const qryFail = new CustomEvent("Failed to query RERUM.")
+                globalFeedbackBlip(qryFail, 'Something went wrong.', false)
+                return
             }
         }
 
