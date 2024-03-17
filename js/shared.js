@@ -6,13 +6,13 @@ let witnessesObj = {}
 //For when we test, so we can easily find and blow away junk data
 // setTimeout(() => {
 //     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="BryanRefactor"
-//         el.setAttribute("value", "BryanRefactor")
+//         el.value="BryanDelete"
+//         el.setAttribute("value", "BryanDelete")
 //     })
 //     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "BryanRefactor")
+//         el.setAttribute("deer-creator", "BryanDelete")
 //     })
-//     window.GOG_USER["http://store.rerum.io/agent"] = "BryanRefactor"
+//     window.GOG_USER["http://store.rerum.io/agent"] = "BryanDelete"
 // }, 4000)
 
 let __constants = {}
@@ -363,6 +363,29 @@ async function getAllWitnessesOfSource(source){
     })
 }
 
+
+/**
+ * @param source A String that is either a text body or a URI to a text resource.
+ */ 
+async function getAllWitnessesOfGloss(glossURI){
+    const gloss_witness_annos_query = {
+        "body.references.value" : httpsIdArray(glossURI),
+        '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    const witnessUris = await getPagedQuery(100, 0, gloss_witness_annos_query)
+    .catch(err => {
+        console.error(err)
+        return []
+    })
+    .then(gloss_witness_annos => gloss_witness_annos.map(anno => anno.target))
+    .catch(err => {
+        console.error(err)
+        return []
+    })
+    return new Set(witnessUris)
+}
+
 /**
  * Undo a manual user selection of text on the page.  Mainly just a UI trick.
  * 
@@ -549,4 +572,113 @@ async function addManuscriptToGoG(shelfmark) {
         const errorEvent = new CustomEvent("Failed to add manuscript.")
         globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
     }
+}
+
+/**
+ *  Delete a Witness of a Gloss through gloss-transcription.html, gloss-witness.html or manage-glosses.html.  
+ *  This will delete the Witness entity itself and its Annotations.  
+ *  It will no longer appear as a Witness to the Gloss in any UI.
+ * 
+ *  @param {String} witnessID - The IRI of a Witness Entity
+ *  @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
+*/
+async function deleteWitness(witnessID, redirect){
+    if(!witnessID) return
+    // No extra clicks while you await.
+    if(redirect) document.querySelector(".deleteWitness").setAttribute("disabled", "true")
+    const annos_query = {
+        "target" : httpsIdArray(witnessID),
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    let anno_ids =
+        await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8"                },
+            body: JSON.stringify(annos_query)
+        })
+        .then(resp => resp.json()) 
+        .then(annos => annos.map(anno => anno["@id"]))
+        .catch(err => {
+            return null
+        })
+
+    // This is bad enough to stop here, we will not continue on towards deleting the entity.
+    if(anno_ids === null) throw new Error("Cannot find Entity Annotations")
+
+    let delete_calls = anno_ids.map(annoUri => {
+        return fetch(`${__constants.tiny}/delete`, {
+            method: "DELETE",
+            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            }
+        })
+        .then(r => {
+            if(!r.ok) throw new Error(r.text)
+        })
+        .catch(err => {
+            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
+            console.log(err)
+        })
+    })
+
+    delete_calls.push(
+        fetch(`${__constants.tiny}/delete`, {
+            method: "DELETE",
+            body: JSON.stringify({"@id" : witnessID.replace(/^https?:/, 'https:')}),
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+        })
+        .then(r => {
+            if(!r.ok) throw new Error(r.text)
+        })
+        .catch(err => {
+            console.warn(`There was an issue removing the Witness: ${witnessID}`)
+            console.log(err)
+        })
+    )
+
+    if(redirect){
+        Promise.all(delete_calls).then(success => {
+            const glossID = document.querySelector("input[custom-key='references']").value
+            addEventListener("globalFeedbackFinished", ev=> {
+                window.location = `ng.html#${glossID}`
+            })
+            const ev = new CustomEvent("Witness Deleted.  You will be redirected.")
+            globalFeedbackBlip(ev, `Witness Deleted.  You will be redirected.`, true)
+        })
+        .catch(err => {
+            // OK they may be orphaned.  We will continue on towards deleting the entity.
+            console.warn("There was an issue removing connected Annotations.")
+            console.error(err)
+            const ev = new CustomEvent("Error Deleting Witness")
+            globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
+        })    
+        return
+    }
+    else{
+        return delete_calls
+    }
+}
+
+/**
+ * Get the public list and check its items for a given Gloss URI.
+ * http vs https is a bit goofy with the public list right now.  
+ * Extra care is taken to avoid a silly mismatch.
+ * 
+ * @param glossID A Gloss URI 
+ * @return boolean true when a Gloss URI is in the public list
+ */ 
+async function isPublicGloss(glossID){
+    const publicList = await fetch(__constants.ngCollection).then(resp => resp.json()).catch(err => {return null})
+    if(!publicList || !publicList?.itemListElement){
+        throw new Error("Unable to fetch public list to check against")
+    }
+    const publicListUris = publicList.itemListElement.map(obj => obj["@id"].split("/").pop())
+    return publicListUris.includes(glossID.split("/").pop())
 }
