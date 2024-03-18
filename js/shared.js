@@ -625,7 +625,7 @@ async function createConfirm(message) {
     return new Promise(complete => {
         document.querySelector('#confirmYes').addEventListener('click', function(event) {
             event.target.closest('.customConfirm').remove()
-            complete(true);
+            complete(true)
         })
         document.querySelector('#confirmNo').addEventListener('click', function(event) {
             event.target.closest('.customConfirm').remove()
