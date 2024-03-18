@@ -608,9 +608,13 @@ async function isPublicGloss(glossID){
     const publicListUris = publicList.itemListElement.map(obj => obj["@id"].split("/").pop())
     return publicListUris.includes(glossID.split("/").pop())
 }
-//Creates a confirmation dialog overlay on the web page with a custom message and Confirm/Cancel buttons.
-//This dialog is designed to capture a user's confirmation and performs actions based on the user's choice.
+/**
+ * Creates a custom confirmation dialog box with the specified message.
+ * @param {string} message - The message to be displayed in the confirmation dialog box.
+ * @returns {Promise<boolean>} A Promise that resolves with a boolean value indicating whether the confirmation was accepted (true) or canceled (false).
+ */
 async function createConfirm(message) {
+    // Inserting HTML for custom confirmation dialog box into the document body
     document.body.insertAdjacentHTML('afterend', 
     `<div class="customConfirm" style="display: block;">
         <div style="position: fixed; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); top: 0; left: 0; z-index: 1000;"></div>
@@ -622,13 +626,19 @@ async function createConfirm(message) {
             </div>
         </div>
     </div>`)
+    // Returning a Promise that resolves with the user's confirmation choice
     return new Promise(complete => {
+        // Adding event listeners to handle user interaction with confirmation buttons
         document.querySelector('#confirmYes').addEventListener('click', function(event) {
+            // Removing the confirmation dialog box from the DOM
             event.target.closest('.customConfirm').remove()
+            // Resolving the Promise with 'true' indicating confirmation
             complete(true)
         })
         document.querySelector('#confirmNo').addEventListener('click', function(event) {
+            // Removing the confirmation dialog box from the DOM
             event.target.closest('.customConfirm').remove()
+            // Resolving the Promise with 'false' indicating cancellation
             complete(false)
         })
     })
