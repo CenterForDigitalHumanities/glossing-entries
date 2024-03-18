@@ -632,7 +632,7 @@ async function createConfirm(message) {
         })
         confirmNo.addEventListener('click', function() {
             document.querySelector('.customConfirm').remove()
-            complete(false);
+            complete(false)
         })
     })
 }
