@@ -608,10 +608,11 @@ async function isPublicGloss(glossID){
     const publicListUris = publicList.itemListElement.map(obj => obj["@id"].split("/").pop())
     return publicListUris.includes(glossID.split("/").pop())
 }
-
+//Creates a confirmation dialog overlay on the web page with a custom message and Confirm/Cancel buttons.
+//This dialog is designed to capture a user's confirmation and performs actions based on the user's choice.
 async function createConfirm(message) {
     document.body.insertAdjacentHTML('afterend', 
-    `<div class="confirm" style="display: block;">
+    `<div class="customConfirm" style="display: block;">
         <div style="position: fixed; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); top: 0; left: 0; z-index: 1000;"></div>
         <div style="padding: 1.25rem; background: white; position: fixed; width: 30%; min-height: 10%; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 0.625rem; border: 0.125rem solid var(--color-primary); box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.5); z-index: 1001;">
             <div id="confirmMessage" style="color: var(--color-primary); padding: 0.625rem; text-align: center; font-size: var(--font-size); font-family: var(--font-family-sans);">${message}</div>
@@ -622,13 +623,13 @@ async function createConfirm(message) {
         </div>
     </div>`)
     return new Promise(complete => {
-        document.getElementById('confirmYes').onclick = () => {
-            document.querySelector('.confirm').remove()
-            complete(true)
-        }
-        document.getElementById('confirmNo').onclick = () => {
-            document.querySelector('.confirm').remove()
+        document.body.querySelector('[id=confirmYes]').addEventListener('click', function(event) {
+            event.target.closest('.customConfirm').remove()
+            complete(true);
+        })
+        document.body.querySelector('[id=confirmNo]').addEventListener('click', function(event) {
+            event.target.closest('.customConfirm').remove()
             complete(false)
-        }
+        })
     })
 }
