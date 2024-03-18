@@ -622,14 +622,17 @@ async function createConfirm(message) {
             </div>
         </div>
     </div>`)
-    return new Promise(complete => {
-        document.body.querySelector('[id=confirmYes]').addEventListener('click', function(event) {
-            event.target.closest('.customConfirm').remove()
+    return new Promise((complete) => {
+        const confirmYes = document.getElementById('confirmYes')
+        const confirmNo = document.getElementById('confirmNo')
+
+        confirmYes.addEventListener('click', function() {
+            document.querySelector('.customConfirm').remove()
             complete(true);
         })
-        document.body.querySelector('[id=confirmNo]').addEventListener('click', function(event) {
-            event.target.closest('.customConfirm').remove()
-            complete(false)
+        confirmNo.addEventListener('click', function() {
+            document.querySelector('.customConfirm').remove()
+            complete(false);
         })
     })
 }
