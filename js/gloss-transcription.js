@@ -61,8 +61,8 @@ window.onload = () => {
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
         witnessForm.setAttribute("deer-id", textWitnessID)
-        deleteWitnessButton.addEventListener("click", ev => {
-            if(confirm("The witness will be deleted.  This action cannot be undone.")){
+        deleteWitnessButton.addEventListener("click", async ev => {
+            if(await createConfirm("The witness will be deleted.  This action cannot be undone.")){
                 deleteWitness(textWitnessID, true)
             }
         })
@@ -667,7 +667,7 @@ function addButton(event) {
             inclusionBtn.classList.add("success")
         }
     }
-    inclusionBtn.addEventListener('click', ev => {
+    inclusionBtn.addEventListener('click', async ev => {
         ev.preventDefault()
         ev.stopPropagation()
         const form = ev.target.closest("form")
@@ -688,7 +688,7 @@ function addButton(event) {
         const note = ev.target.classList.contains("attached-to-source") 
            ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
            : `Save this textual witness for Gloss '${glossIncipit}'?`
-        if((createScenario || updateScenario) || confirm(note)){
+        if((createScenario || updateScenario) || await createConfirm(note)){
             const customKey = form.querySelector("input[custom-key='references']")
             const uri = ev.target.getAttribute("data-id")
             if(customKey.value !== uri){
