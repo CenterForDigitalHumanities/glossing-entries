@@ -373,7 +373,7 @@ async function deleteGloss(id=glossHashID) {
     let allWitnessesOfGloss = await getAllWitnessesOfGloss(id)
     allWitnessesOfGloss = Array.from(allWitnessesOfGloss)
     // Confirm they want to do this
-    if (!confirm(`Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)`)) return
+    if (!await createConfirm(`Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)`)) return
 
     const historyWildcard = { "$exists": true, "$size": 0 }
 
