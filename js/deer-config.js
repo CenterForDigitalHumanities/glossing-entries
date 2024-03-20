@@ -203,13 +203,36 @@ export default {
                     const filterPresent = deerUtils.getURLParameter("gog-filter")
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
-                        let ul = document.createElement("ul")
+                        let table = document.createElement("table")
+                        table.insertAdjacentHTML('afterbegin', '<thead><tr><th>Reference</th><th>Title</th></tr></thead><tbody></tbody>')
+                        table.children[0].children[0].children[0].onclick = ev =>
+                            // Refrence
+                            Array.from(table.children[1].children).sort((a, b) => {
+                                if (a.children[0].innerHTML < b.children[0].innerHTML) return -1
+                                else if (a.children[0].innerHTML > b.children[0].innerHTML) return 1
+                                else return 0
+                            }).forEach(e => {
+                                let parent = e.parentElement
+                                parent.removeChild(e)
+                                parent.appendChild(e)
+                            })
+                        table.children[0].children[0].children[1].onclick = ev =>
+                            // Title
+                            Array.from(table.children[1].children).sort((a, b) => {
+                                if (a.children[1].children[0].children[0].innerHTML < b.children[1].children[0].children[0].innerHTML) return -1
+                                else if (a.children[1].children[0].children[0].innerHTML > b.children[1].children[0].children[0].innerHTML) return 1
+                                else return 0
+                            }).forEach(e => {
+                                let parent = e.parentElement
+                                parent.removeChild(e)
+                                parent.appendChild(e)
+                            })
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
-                        total = deduplicatedList.length                
+                        total = deduplicatedList.length
                         deduplicatedList.forEach((val, index) => {
                             const glossID = val["@id"].replace(/^https?:/, 'https:')
-                            let li = document.createElement("li")
-                            li.setAttribute("deer-id", glossID)
+                            let td = document.createElement("td")
+                            td.setAttribute("deer-id", glossID)
                             let a = document.createElement("a")
                             a.setAttribute("href", options.link+glossID)
                             a.setAttribute("target", "_blank")
@@ -220,14 +243,14 @@ export default {
                                 let filteringProps = Object.keys(cachedObj)
                                 // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
                                 if(filterPresent){
-                                    li.classList.add("is-hidden")
+                                    td.classList.add("is-hidden")
                                 }
                                 // Add all Gloss object properties to the <li> element as attributes to match on later
                                 filteringProps.forEach( (prop) => {
                                     // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                                     if(prop === "text"){
                                         const t = cachedObj[prop]?.value?.textValue ?? ""
-                                        li.setAttribute("data-text", t) 
+                                        td.setAttribute("data-text", t) 
                                     }
                                     else if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
                                         let val = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
@@ -235,22 +258,36 @@ export default {
                                         const attr = `data-${prop}`
                                         if(prop === "title" && !val){
                                             val = "[ unlabeled ]"
-                                            li.setAttribute("data-unlabeled", "true")
+                                            td.setAttribute("data-unlabeled", "true")
                                         }
-                                        li.setAttribute(attr, val)
+                                        td.setAttribute(attr, val)
                                     }
                                 })
 
-                                if(!li.hasAttribute("data-title")) {
-                                    li.setAttribute("data-title", "[ unlabeled ]")
-                                    li.setAttribute("data-unlabeled", "true")
+                                if(!td.hasAttribute("data-title")) {
+                                    td.setAttribute("data-title", "[ unlabeled ]")
+                                    td.setAttribute("data-unlabeled", "true")
                                 }
-                                li.setAttribute("data-expanded", "true")
+                                td.setAttribute("data-expanded", "true")
                                 span.innerText = deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"
                                 numloaded++
+								let tr = document.createElement("tr")
+								let ref = ""
+								if (td.hasAttribute("data-canonicalreference"))
+									ref += td.getAttribute("data-canonicalreference")
+								else if (td.hasAttribute("data-_document")) {
+									ref += td.getAttribute("data-_document")
+									if (td.hasAttribute("data-_section")) {
+										ref += ` ${td.getAttribute("data-_section")}`
+										if (td.hasAttribute("data-_subsection"))
+											ref += `: ${td.getAttribute("data-_subsection")}`
+									}
+								}
+								tr.insertAdjacentHTML('afterbegin', `<td>${ref}</td>`)
                                 a.appendChild(span)
-                                li.appendChild(a)
-                                ul.appendChild(li)
+                                td.appendChild(a)
+								tr.appendChild(td)
+                                table.children[1].appendChild(tr)
                             }
                             else{
                                 // This object was not cached so we do not have its properties.
@@ -263,12 +300,12 @@ export default {
                                 div.classList.add("deer-view")
                                 span.innerText = `Loading Gloss #${index + 1}...`
                                 a.appendChild(span)
-                                li.appendChild(a)
-                                div.appendChild(li)
+                                td.appendChild(a)
+                                div.appendChild(td)
                                 ul.appendChild(div)
                             }
                         })
-                        elem.appendChild(ul)
+                        elem.appendChild(table)
                     }
 
                     elem.$contentState = ""
