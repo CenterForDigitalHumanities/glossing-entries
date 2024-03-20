@@ -280,7 +280,7 @@ export default {
 									if (td.hasAttribute("data-_section")) {
 										ref += ` ${td.getAttribute("data-_section")}`
 										if (td.hasAttribute("data-_subsection"))
-											ref += `: ${td.getAttribute("data-_subsection")}`
+											ref += `:${td.getAttribute("data-_subsection")}`
 									}
 								}
 								tr.insertAdjacentHTML('afterbegin', `<td>${ref}</td>`)
