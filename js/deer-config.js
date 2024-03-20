@@ -271,22 +271,22 @@ export default {
                                 td.setAttribute("data-expanded", "true")
                                 span.innerText = deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"
                                 numloaded++
-								let tr = document.createElement("tr")
-								let ref = ""
-								if (td.hasAttribute("data-canonicalreference"))
-									ref += td.getAttribute("data-canonicalreference")
-								else if (td.hasAttribute("data-_document")) {
-									ref += td.getAttribute("data-_document")
-									if (td.hasAttribute("data-_section")) {
-										ref += ` ${td.getAttribute("data-_section")}`
-										if (td.hasAttribute("data-_subsection"))
-											ref += `:${td.getAttribute("data-_subsection")}`
-									}
-								}
-								tr.insertAdjacentHTML('afterbegin', `<td>${ref}</td>`)
+                                let tr = document.createElement("tr")
+                                let ref = ""
+                                if (td.hasAttribute("data-canonicalreference"))
+                                    ref += td.getAttribute("data-canonicalreference")
+                                else if (td.hasAttribute("data-_document")) {
+                                    ref += td.getAttribute("data-_document")
+                                    if (td.hasAttribute("data-_section")) {
+                                        ref += ` ${td.getAttribute("data-_section")}`
+                                        if (td.hasAttribute("data-_subsection"))
+                                            ref += `:${td.getAttribute("data-_subsection")}`
+                                    }
+                                }
+                                tr.insertAdjacentHTML('afterbegin', `<td>${ref}</td>`)
                                 a.appendChild(span)
                                 td.appendChild(a)
-								tr.appendChild(td)
+                                tr.appendChild(td)
                                 table.children[1].appendChild(tr)
                             }
                             else{
