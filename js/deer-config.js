@@ -272,6 +272,7 @@ export default {
                                 span.innerText = deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"
                                 numloaded++
                                 let tr = document.createElement("tr")
+                                tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
                                 let ref = ""
                                 if (td.hasAttribute("data-canonicalreference"))
                                     ref += td.getAttribute("data-canonicalreference")
