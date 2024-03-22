@@ -203,8 +203,8 @@ export default {
                     const filterPresent = deerUtils.getURLParameter("gog-filter")
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
-                        let table = document.createElement("table")
-                        table.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th></tr></thead><tbody></tbody>')
+                        let ul = document.createElement("table")
+                        ul.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th></tr></thead><tbody></tbody>')
                         /**
                          * Sort a column
                          * @param {*} index - Column  index to sort by
@@ -213,23 +213,23 @@ export default {
                          */
                         function customSort(index=0, selector=a=>a, NULL="", down="<small>▼</small>", up="<small>▲</small>") {
                             // Remove Arrow on unsorted column
-                            for (let i = 0; i < table.children[0].children[0].childElementCount; i++)
+                            for (let i = 0; i < ul.children[0].children[0].childElementCount; i++)
                                 if (i === +index) continue
-                                else if (table.children[0].children[0].children[i].innerHTML.slice(-down.length) === down)
-                                    table.children[0].children[0].children[i].innerHTML = table.children[0].children[0].children[i].innerHTML.slice(0, -down.length)
-                                else if (table.children[0].children[0].children[i].innerHTML.slice(-up.length) === up)
-                                    table.children[0].children[0].children[i].innerHTML = table.children[0].children[0].children[i].innerHTML.slice(0, -up.length)
+                                else if (ul.children[0].children[0].children[i].innerHTML.slice(-down.length) === down)
+                                    ul.children[0].children[0].children[i].innerHTML = ul.children[0].children[0].children[i].innerHTML.slice(0, -down.length)
+                                else if (ul.children[0].children[0].children[i].innerHTML.slice(-up.length) === up)
+                                    ul.children[0].children[0].children[i].innerHTML = ul.children[0].children[0].children[i].innerHTML.slice(0, -up.length)
                             // Switch to Reverse Sort
-                            if (table.children[0].children[0].children[+index].innerHTML.slice(-down.length) === down)
-                                table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML.slice(0, -down.length) + up
+                            if (ul.children[0].children[0].children[+index].innerHTML.slice(-down.length) === down)
+                                ul.children[0].children[0].children[+index].innerHTML = ul.children[0].children[0].children[+index].innerHTML.slice(0, -down.length) + up
                             // Switch to Normal Sort
-                            else if (table.children[0].children[0].children[+index].innerHTML.slice(-up.length) === up)
-                                table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML.slice(0, -up.length) + down
+                            else if (ul.children[0].children[0].children[+index].innerHTML.slice(-up.length) === up)
+                                ul.children[0].children[0].children[+index].innerHTML = ul.children[0].children[0].children[+index].innerHTML.slice(0, -up.length) + down
                             // Switch to new column (or first time) and Normal Sort
                             else 
-                                table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML + down
-                            const modif = table.children[0].children[0].children[+index].innerHTML.slice(-down.length) === down ? -1 : 1
-                            Array.from(table.children[1].children).sort((a, b) => {
+                                ul.children[0].children[0].children[+index].innerHTML = ul.children[0].children[0].children[+index].innerHTML + down
+                            const modif = ul.children[0].children[0].children[+index].innerHTML.slice(-down.length) === down ? -1 : 1
+                            Array.from(ul.children[1].children).sort((a, b) => {
                                 // Table ? Table : Reference
                                 a = selector(a)
                                 b = selector(b)
@@ -244,14 +244,14 @@ export default {
                                 parent.appendChild(e)
                             })
                         }
-                        table.children[0].children[0].children[0].onclick = _ => customSort(0, a => a.children[0].innerHTML, "") // Refrence
-                        table.children[0].children[0].children[1].onclick = _ => customSort(1, a => a.children[1].children[0].children[0].innerHTML, "[ unlabeled ]") // Title
+                        ul.children[0].children[0].children[0].onclick = _ => customSort(0, a => a.children[0].innerHTML, "") // Refrence
+                        ul.children[0].children[0].children[1].onclick = _ => customSort(1, a => a.children[1].children[0].children[0].innerHTML, "[ unlabeled ]") // Title
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
                             const glossID = val["@id"].replace(/^https?:/, 'https:')
-                            let td = document.createElement("td")
-                            td.setAttribute("deer-id", glossID)
+                            let li = document.createElement("td")
+                            li.setAttribute("deer-id", glossID)
                             let a = document.createElement("a")
                             a.setAttribute("href", options.link+glossID)
                             a.setAttribute("target", "_blank")
@@ -262,14 +262,14 @@ export default {
                                 let filteringProps = Object.keys(cachedObj)
                                 // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
                                 if(filterPresent){
-                                    td.classList.add("is-hidden")
+                                    li.classList.add("is-hidden")
                                 }
                                 // Add all Gloss object properties to the <li> element as attributes to match on later
                                 filteringProps.forEach( (prop) => {
                                     // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                                     if(prop === "text"){
                                         const t = cachedObj[prop]?.value?.textValue ?? ""
-                                        td.setAttribute("data-text", t) 
+                                        li.setAttribute("data-text", t) 
                                     }
                                     else if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
                                         let val = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
@@ -277,43 +277,43 @@ export default {
                                         const attr = `data-${prop}`
                                         if(prop === "title" && !val){
                                             val = "[ unlabeled ]"
-                                            td.setAttribute("data-unlabeled", "true")
+                                            li.setAttribute("data-unlabeled", "true")
                                         }
-                                        td.setAttribute(attr, val)
+                                        li.setAttribute(attr, val)
                                     }
                                 })
 
-                                if(!td.hasAttribute("data-title")) {
-                                    td.setAttribute("data-title", "[ unlabeled ]")
-                                    td.setAttribute("data-unlabeled", "true")
+                                if(!li.hasAttribute("data-title")) {
+                                    li.setAttribute("data-title", "[ unlabeled ]")
+                                    li.setAttribute("data-unlabeled", "true")
                                 }
-                                td.setAttribute("data-expanded", "true")
+                                li.setAttribute("data-expanded", "true")
                                 span.innerText = deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"
                                 numloaded++
-                                let tr = modifyTableTR(document.createElement("tr"), td)
+                                let tr = modifyTableTR(document.createElement("tr"), li)
                                 a.appendChild(span)
-                                td.appendChild(a)
-                                tr.appendChild(td)
-                                table.children[1].appendChild(tr)
+                                li.appendChild(a)
+                                tr.appendChild(li)
+                                ul.children[1].appendChild(tr)
                             }
                             else{
                                 // This object was not cached so we do not have its properties.
                                 // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
-                                let tr = document.createElement("tr")
-                                tr.setAttribute("deer-link", "ng.html#")
-                                tr.setAttribute("deer-template", "filterableListItem")
-                                tr.setAttribute("deer-id", glossID)
-                                if(filterPresent) tr.classList.add("is-hidden")
-                                tr.classList.add("deer-view")
+                                let div = document.createElement("tr")
+                                div.setAttribute("deer-link", "ng.html#")
+                                div.setAttribute("deer-template", "filterableListItem")
+                                div.setAttribute("deer-id", glossID)
+                                if(filterPresent) div.classList.add("is-hidden")
+                                div.classList.add("deer-view")
                                 span.innerText = `Loading Gloss #${index + 1}...`
                                 a.appendChild(span)
-                                td.appendChild(a)
-                                tr.appendChild(document.createElement('td'))
-                                tr.appendChild(td)
-                                table.children[1].appendChild(tr)
+                                li.appendChild(a)
+                                div.appendChild(document.createElement('td'))
+                                div.appendChild(li)
+                                ul.children[1].appendChild(div)
                             }
                         })
-                        elem.appendChild(table)
+                        elem.appendChild(ul)
                     }
 
                     elem.$contentState = ""
@@ -749,7 +749,7 @@ export default {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view")
                     let filteringProps = Object.keys(obj)
-                    let td = document.createElement("td")
+                    let li = document.createElement("td")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
                     span.classList.add("serifText")
@@ -769,7 +769,7 @@ export default {
                         if(prop === "text"){
                             const t = obj[prop]?.value?.textValue ?? ""
                             if(filterPresent && filterObj.hasOwnProperty("text") && t.includes(filterObj["text"])) elem.classList.remove("is-hidden")
-                            td.setAttribute("data-text", t) 
+                            li.setAttribute("data-text", t) 
                         }
                         else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
                             let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
@@ -778,24 +778,24 @@ export default {
                             const attr = `data-${prop}`
                             if(prop === "title" && !val){
                                 val = "[ unlabeled ]"
-                                td.setAttribute("data-unlabeled", "true")
+                                li.setAttribute("data-unlabeled", "true")
                             }
-                            td.setAttribute(attr, val)
+                            li.setAttribute(attr, val)
                         }
                     })
 
-                    if(!td.hasAttribute("data-title")) {
-                        td.setAttribute("data-title", "[ unlabeled ]")
-                        td.setAttribute("data-unlabeled", "true")
+                    if(!li.hasAttribute("data-title")) {
+                        li.setAttribute("data-title", "[ unlabeled ]")
+                        li.setAttribute("data-unlabeled", "true")
                     }
 
-                    td.setAttribute("data-expanded", "true")
+                    li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
-                    modifyTableTR(elem, td)
+                    modifyTableTR(elem, li)
                     a.appendChild(span)
-                    td.appendChild(a)
-                    elem.appendChild(td)
+                    li.appendChild(a)
+                    elem.appendChild(li)
 
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
