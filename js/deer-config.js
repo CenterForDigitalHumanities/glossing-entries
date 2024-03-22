@@ -208,22 +208,26 @@ export default {
                         table.children[0].children[0].children[0].onclick = ev =>
                             // Refrence
                             Array.from(table.children[1].children).sort((a, b) => {
+                                if (a.children[0].innerHTML === "") return 1
+                                if (b.children[0].innerHTML === "") return -1
                                 if (a.children[0].innerHTML < b.children[0].innerHTML) return -1
-                                else if (a.children[0].innerHTML > b.children[0].innerHTML) return 1
-                                else return 0
+                                if (a.children[0].innerHTML > b.children[0].innerHTML) return 1
+                                return 0
                             }).forEach(e => {
-                                let parent = e.parentElement
+                                const parent = e.parentElement
                                 parent.removeChild(e)
                                 parent.appendChild(e)
                             })
                         table.children[0].children[0].children[1].onclick = ev =>
                             // Title
                             Array.from(table.children[1].children).sort((a, b) => {
+                                if (a.children[1].children[0].children[0].innerHTML === "") return 1
+                                if (b.children[1].children[0].children[0].innerHTML === "") return -1
                                 if (a.children[1].children[0].children[0].innerHTML < b.children[1].children[0].children[0].innerHTML) return -1
-                                else if (a.children[1].children[0].children[0].innerHTML > b.children[1].children[0].children[0].innerHTML) return 1
-                                else return 0
+                                if (a.children[1].children[0].children[0].innerHTML > b.children[1].children[0].children[0].innerHTML) return 1
+                                return 0
                             }).forEach(e => {
-                                let parent = e.parentElement
+                                const parent = e.parentElement
                                 parent.removeChild(e)
                                 parent.appendChild(e)
                             })
@@ -273,18 +277,19 @@ export default {
                                 numloaded++
                                 let tr = document.createElement("tr")
                                 tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
-                                let ref = ""
-                                if (td.hasAttribute("data-canonicalreference"))
-                                    ref += td.getAttribute("data-canonicalreference")
-                                else if (td.hasAttribute("data-_document")) {
-                                    ref += td.getAttribute("data-_document")
-                                    if (td.hasAttribute("data-_section")) {
-                                        ref += ` ${td.getAttribute("data-_section")}`
-                                        if (td.hasAttribute("data-_subsection"))
-                                            ref += `:${td.getAttribute("data-_subsection")}`
-                                    }
-                                }
-                                tr.insertAdjacentHTML('afterbegin', `<td>${ref}</td>`)
+                                tr.insertAdjacentHTML('afterbegin', `<td>${
+                                    td.getAttribute("data-canonicalreference") ?? `${
+                                        td.getAttribute("data-_document") ?? "Untitled"
+                                    }${
+                                        (td.hasAttribute("data-_section") ?? td.hasAttribute("data-targetchapter")) ?
+                                            ` ${td.getAttribute("data-_section") ?? td.getAttribute("data-targetchapter") ?? ""}` : " _"
+                                    }${
+                                        (td.hasAttribute("data-_subsection") || td.hasAttribute("data-_subsection")) ?
+                                            `:${td.getAttribute("data-_subsection") ?? td.getAttribute("data-targetverse")}` : ":_"
+                                    }`
+                                }</td>`)
+                                if (tr.firstChild.innerHTML === "Untitled _:_")
+                                    tr.firstChild.innerHTML = ""
                                 a.appendChild(span)
                                 td.appendChild(a)
                                 tr.appendChild(td)
