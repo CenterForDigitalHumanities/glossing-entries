@@ -205,25 +205,36 @@ export default {
                     if (options.list) {
                         let table = document.createElement("table")
                         table.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th></tr></thead><tbody></tbody>')
-                        function customSort(index) {
-                            if (["▼", "▲"].includes(table.children[0].children[0].children[+!index].innerHTML.slice(-1)))
-                                table.children[0].children[0].children[+!index].innerHTML = table.children[0].children[0].children[+!index].innerHTML.slice(0, -1)
+                        /**
+                         * Sort a column
+                         * @param {*} index - Column  index to sort by
+                         * @param {*} selector - Function to select the data to sort by
+                         * @param {*} NULL - `null` value to filter to the bottom
+                         */
+                        function customSort(index=0, selector=a=>a, NULL="") {
+                            // Remove Arrow on unsorted column
+                            for (let i = 0; i < table.children[0].children[0].childElementCount; i++)
+                                if (i !== +index && ["▼", "▲"].includes(table.children[0].children[0].children[i].innerHTML.slice(-1)))
+                                    table.children[0].children[0].children[i].innerHTML = table.children[0].children[0].children[i].innerHTML.slice(0, -1)
                             switch (table.children[0].children[0].children[+index].innerHTML.slice(-1)) {
+                                // Switch to new column (or first time) and Normal Sort
                                 case " ":
                                     table.children[0].children[0].children[+index].innerHTML += "▼"
                                     break
+                                // Switch to Reverse Sort
                                 case "▼":
                                     table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML.slice(0, -1) + "▲"
                                     break
+                                // Switch to Normal Sort
                                 case "▲":
                                     table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML.slice(0, -1) + "▼"
                                     break
                             }
                             const modif = table.children[0].children[0].children[+index].innerHTML.slice(-1) === "▼" ? 1 : -1
                             Array.from(table.children[1].children).sort((a, b) => {
-                                a = index ? a.children[1].children[0].children[0].innerHTML : a.children[0].innerHTML
-                                b = index ? b.children[1].children[0].children[0].innerHTML : b.children[0].innerHTML
-                                const NULL = index ? "[ unlabeled ]" : ""
+                                // Table ? Table : Reference
+                                a = selector(a)
+                                b = selector(b)
                                 if (a === NULL) return 1
                                 if (b === NULL) return -1
                                 if (a < b) return -modif
@@ -235,8 +246,8 @@ export default {
                                 parent.appendChild(e)
                             })
                         }
-                        table.children[0].children[0].children[0].onclick = _ => customSort(false) // Refrence
-                        table.children[0].children[0].children[1].onclick = _ => customSort(true) // Title
+                        table.children[0].children[0].children[0].onclick = _ => customSort(0, a => a.children[0].innerHTML, "") // Refrence
+                        table.children[0].children[0].children[1].onclick = _ => customSort(1, a => a.children[1].children[0].children[0].innerHTML, "[ unlabeled ]") // Title
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length
                         deduplicatedList.forEach((val, index) => {
