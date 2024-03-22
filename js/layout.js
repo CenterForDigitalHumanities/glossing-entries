@@ -84,11 +84,11 @@ class GlossHeader extends HTMLElement {
     </h1></a>
     <div class="tabs">
     <slot name="tabs">
-        <a href="./glosses.html">✏️ Glosses</a>
-        <a href="./ng.html">🆕 New gloss</a>
-        <a href="./gloss-transcription.html">🔍 Detect glosses</a>
-        <a href="./manage-glosses.html">💾 Manage glosses</a>
-        <a href="./themes.html">🎨 Themes</a>
+        <a href="./glosses.html"${window.location.pathname == "/glosses.html" ? ' style="border-top: 5px solid var(--color-primary); padding-top: 5px;"' : ""}>✏️ Glosses</a>
+        <a href="./ng.html"${window.location.pathname == "/ng.html" ? ' style="border-top: 5px solid var(--color-primary); padding-top: 5px;"' : ""}>🆕 New gloss</a>
+        <a href="./gloss-transcription.html"${window.location.pathname == "/gloss-transcription.html" ? ' style="border-top: 5px solid var(--color-primary); padding-top: 5px;"' : ""}>🔍 Detect glosses</a>
+        <a href="./manage-glosses.html"${window.location.pathname == "/manage-glosses.html" ? ' style="border-top: 5px solid var(--color-primary); padding-top: 5px;"' : ""}>💾 Manage glosses</a>
+        <a href="./themes.html"${window.location.pathname == "/themes.html" ? ' style="border-top: 5px solid var(--color-primary); padding-top: 5px;"' : ""}>🎨 Themes</a>
     </div>
     </header></template>
         `,'text/html').head.firstChild
