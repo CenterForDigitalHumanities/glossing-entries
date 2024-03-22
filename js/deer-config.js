@@ -211,26 +211,24 @@ export default {
                          * @param {*} selector - Function to select the data to sort by
                          * @param {*} NULL - `null` value to filter to the bottom
                          */
-                        function customSort(index=0, selector=a=>a, NULL="") {
+                        function customSort(index=0, selector=a=>a, NULL="", down="<small>▼</small>", up="<small>▲</small>") {
                             // Remove Arrow on unsorted column
                             for (let i = 0; i < table.children[0].children[0].childElementCount; i++)
-                                if (i !== +index && ["▼", "▲"].includes(table.children[0].children[0].children[i].innerHTML.slice(-1)))
-                                    table.children[0].children[0].children[i].innerHTML = table.children[0].children[0].children[i].innerHTML.slice(0, -1)
-                            switch (table.children[0].children[0].children[+index].innerHTML.slice(-1)) {
-                                // Switch to new column (or first time) and Normal Sort
-                                case " ":
-                                    table.children[0].children[0].children[+index].innerHTML += "▼"
-                                    break
-                                // Switch to Reverse Sort
-                                case "▼":
-                                    table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML.slice(0, -1) + "▲"
-                                    break
-                                // Switch to Normal Sort
-                                case "▲":
-                                    table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML.slice(0, -1) + "▼"
-                                    break
-                            }
-                            const modif = table.children[0].children[0].children[+index].innerHTML.slice(-1) === "▼" ? 1 : -1
+                                if (i === +index) continue
+                                else if (table.children[0].children[0].children[i].innerHTML.slice(-down.length) === down)
+                                    table.children[0].children[0].children[i].innerHTML = table.children[0].children[0].children[i].innerHTML.slice(0, -down.length)
+                                else if (table.children[0].children[0].children[i].innerHTML.slice(-up.length) === up)
+                                    table.children[0].children[0].children[i].innerHTML = table.children[0].children[0].children[i].innerHTML.slice(0, -up.length)
+                            // Switch to Reverse Sort
+                            if (table.children[0].children[0].children[+index].innerHTML.slice(-down.length) === down)
+                                table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML.slice(0, -down.length) + up
+                            // Switch to Normal Sort
+                            else if (table.children[0].children[0].children[+index].innerHTML.slice(-up.length) === up)
+                                table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML.slice(0, -up.length) + down
+                            // Switch to new column (or first time) and Normal Sort
+                            else 
+                                table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML + down
+                            const modif = table.children[0].children[0].children[+index].innerHTML.slice(-down.length) === down ? -1 : 1
                             Array.from(table.children[1].children).sort((a, b) => {
                                 // Table ? Table : Reference
                                 a = selector(a)
