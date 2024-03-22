@@ -313,17 +313,18 @@ export default {
                             else{
                                 // This object was not cached so we do not have its properties.
                                 // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
-                                let div = document.createElement("div")
-                                div.setAttribute("deer-link", "ng.html#")
-                                div.setAttribute("deer-template", "filterableListItem")
-                                div.setAttribute("deer-id", glossID)
-                                if(filterPresent) div.classList.add("is-hidden")
-                                div.classList.add("deer-view")
+                                let tr = document.createElement("tr")
+                                tr.setAttribute("deer-link", "ng.html#")
+                                tr.setAttribute("deer-template", "filterableListItem")
+                                tr.setAttribute("deer-id", glossID)
+                                if(filterPresent) tr.classList.add("is-hidden")
+                                tr.classList.add("deer-view")
                                 span.innerText = `Loading Gloss #${index + 1}...`
                                 a.appendChild(span)
                                 td.appendChild(a)
-                                div.appendChild(td)
-                                ul.appendChild(div)
+                                tr.appendChild(document.createElement('td'))
+                                tr.appendChild(td)
+                                table.children[1].appendChild(tr)
                             }
                         })
                         elem.appendChild(table)
