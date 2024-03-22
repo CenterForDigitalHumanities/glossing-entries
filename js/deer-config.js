@@ -390,18 +390,17 @@ export default {
                                 query[prop] = query[prop].trim()
                             }
                         }
-                        const items = elem.querySelectorAll('li')
-                        items.forEach(li=>{
-                            const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
-                            const elem = templateContainer ?? li
-                            if(!elem.classList.contains("is-hidden")){
-                                elem.classList.add("is-hidden")
+                        const items = elem.querySelectorAll('tbody tr')
+                        items.forEach(tr=>{
+                            if(!tr.classList.contains("is-hidden")){
+                                tr.classList.add("is-hidden")
                             }
                             for(const prop in query){
-                                if(li.hasAttribute(`data-${prop}`)){
-                                    const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
-                                    elem.classList[action](`is-hidden`,`un${action}-item`)
-                                    setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
+                                if(tr.children[1].hasAttribute(`data-${prop}`)){
+                                    const action = (tr.children[1].getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ||
+                                                    tr.children[0].innerHTML.toLowerCase().includes(query[prop].toLowerCase())) ? "remove" : "add"
+                                    tr.classList[action](`is-hidden`,`un${action}-item`)
+                                    setTimeout(()=>tr.classList.remove(`un${action}-item`),500)
                                     // If it is showing, no need to check other properties for filtering.
                                     if(action === "remove") break
                                 }
