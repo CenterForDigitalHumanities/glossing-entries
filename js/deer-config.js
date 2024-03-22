@@ -207,9 +207,11 @@ export default {
                         ul.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th></tr></thead><tbody></tbody>')
                         /**
                          * Sort a column
-                         * @param {*} index - Column  index to sort by
-                         * @param {*} selector - Function to select the data to sort by
-                         * @param {*} NULL - `null` value to filter to the bottom
+                         * @param {Number} [index=0] - Column  index to sort by
+                         * @param {Function} [selector=a=>a] - Function to select the data to sort by
+                         * @param {any} [NULL=""] - `null` value to filter to the bottom
+                         * @param {string} [down="<small>▼</small>"] - value to use to symbolize a column is being sorted in descending order
+                         * @param {string} [up="<small>▲</small>"] - value to use to symbolize a column is being sorted in ascending order
                          */
                         function customSort(index=0, selector=a=>a, NULL="", down="<small>▼</small>", up="<small>▲</small>") {
                             // Remove Arrow on unsorted column
@@ -1003,6 +1005,12 @@ function hideSearchBar() {
     searchBar.addEventListener('input', e => searchSubmit.classList[e.target.value.trim().length === 0 ? 'add' : 'remove']("fade"), true)
 }
 
+/**
+ * Style a table row and add Reference data pulled from the Title
+ * @param {HTMLTableRowElement} tr - HTML <tr> element to style
+ * @param {HTMLTableCellElement} td - HTML <td> element to pull data from
+ * @returns {HTMLTableRowElement} - Original HTML <tr> element reference with the modifications
+ */
 function modifyTableTR(tr, td) {
     tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
     tr.insertAdjacentHTML('afterbegin', `<td>${
