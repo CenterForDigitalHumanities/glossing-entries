@@ -205,27 +205,29 @@ export default {
                     if (options.list) {
                         let table = document.createElement("table")
                         table.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th></tr></thead><tbody></tbody>')
-                        table.children[0].children[0].children[0].onclick = _ => {
-                            // Refrence
-                            if (["▼", "▲"].includes(table.children[0].children[0].children[1].innerHTML.slice(-1)))
-                                table.children[0].children[0].children[1].innerHTML = table.children[0].children[0].children[1].innerHTML.slice(0, -1)
-                            switch (table.children[0].children[0].children[0].innerHTML.slice(-1)) {
+                        function customSort(index) {
+                            if (["▼", "▲"].includes(table.children[0].children[0].children[+!index].innerHTML.slice(-1)))
+                                table.children[0].children[0].children[+!index].innerHTML = table.children[0].children[0].children[+!index].innerHTML.slice(0, -1)
+                            switch (table.children[0].children[0].children[+index].innerHTML.slice(-1)) {
                                 case " ":
-                                    table.children[0].children[0].children[0].innerHTML += "▼"
+                                    table.children[0].children[0].children[+index].innerHTML += "▼"
                                     break
                                 case "▼":
-                                    table.children[0].children[0].children[0].innerHTML = table.children[0].children[0].children[0].innerHTML.slice(0, -1) + "▲"
+                                    table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML.slice(0, -1) + "▲"
                                     break
                                 case "▲":
-                                    table.children[0].children[0].children[0].innerHTML = table.children[0].children[0].children[0].innerHTML.slice(0, -1) + "▼"
+                                    table.children[0].children[0].children[+index].innerHTML = table.children[0].children[0].children[+index].innerHTML.slice(0, -1) + "▼"
                                     break
                             }
-                            const modif = table.children[0].children[0].children[0].innerHTML.slice(-1) === "▼" ? 1 : -1
+                            const modif = table.children[0].children[0].children[+index].innerHTML.slice(-1) === "▼" ? 1 : -1
                             Array.from(table.children[1].children).sort((a, b) => {
-                                if (a.children[0].innerHTML === "") return 1
-                                if (b.children[0].innerHTML === "") return -1
-                                if (a.children[0].innerHTML < b.children[0].innerHTML) return -modif
-                                if (a.children[0].innerHTML > b.children[0].innerHTML) return modif
+                                a = index ? a.children[1].children[0].children[0].innerHTML : a.children[0].innerHTML
+                                b = index ? b.children[1].children[0].children[0].innerHTML : b.children[0].innerHTML
+                                const NULL = index ? "[ unlabeled ]" : ""
+                                if (a === NULL) return 1
+                                if (b === NULL) return -1
+                                if (a < b) return -modif
+                                if (a > b) return modif
                                 return 0
                             }).forEach(e => {
                                 const parent = e.parentElement
@@ -233,34 +235,8 @@ export default {
                                 parent.appendChild(e)
                             })
                         }
-                        table.children[0].children[0].children[1].onclick = _ => {
-                            // Title
-                            if (["▼", "▲"].includes(table.children[0].children[0].children[0].innerHTML.slice(-1)))
-                                table.children[0].children[0].children[0].innerHTML = table.children[0].children[0].children[0].innerHTML.slice(0, -1)
-                            switch (table.children[0].children[0].children[1].innerHTML.slice(-1)) {
-                                case " ":
-                                    table.children[0].children[0].children[1].innerHTML += "▼"
-                                    break
-                                case "▼":
-                                    table.children[0].children[0].children[1].innerHTML = table.children[0].children[0].children[1].innerHTML.slice(0, -1) + "▲"
-                                    break
-                                case "▲":
-                                    table.children[0].children[0].children[1].innerHTML = table.children[0].children[0].children[1].innerHTML.slice(0, -1) + "▼"
-                                    break
-                            }
-                            const modif = table.children[0].children[0].children[1].innerHTML.slice(-1) === "▼" ? 1 : -1
-                            Array.from(table.children[1].children).sort((a, b) => {
-                                if (a.children[1].children[0].children[0].innerHTML === "") return 1
-                                if (b.children[1].children[0].children[0].innerHTML === "") return -1
-                                if (a.children[1].children[0].children[0].innerHTML < b.children[1].children[0].children[0].innerHTML) return -modif
-                                if (a.children[1].children[0].children[0].innerHTML > b.children[1].children[0].children[0].innerHTML) return modif
-                                return 0
-                            }).forEach(e => {
-                                const parent = e.parentElement
-                                parent.removeChild(e)
-                                parent.appendChild(e)
-                            })
-                        }
+                        table.children[0].children[0].children[0].onclick = _ => customSort(false) // Refrence
+                        table.children[0].children[0].children[1].onclick = _ => customSort(true) // Title
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length
                         deduplicatedList.forEach((val, index) => {
