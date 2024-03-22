@@ -290,21 +290,7 @@ export default {
                                 td.setAttribute("data-expanded", "true")
                                 span.innerText = deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"
                                 numloaded++
-                                let tr = document.createElement("tr")
-                                tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
-                                tr.insertAdjacentHTML('afterbegin', `<td>${
-                                    td.getAttribute("data-canonicalreference") ?? `${
-                                        td.getAttribute("data-_document") ?? "Untitled"
-                                    }${
-                                        (td.hasAttribute("data-_section") ?? td.hasAttribute("data-targetchapter")) ?
-                                            ` ${td.getAttribute("data-_section") ?? td.getAttribute("data-targetchapter") ?? ""}` : " _"
-                                    }${
-                                        (td.hasAttribute("data-_subsection") || td.hasAttribute("data-_subsection")) ?
-                                            `:${td.getAttribute("data-_subsection") ?? td.getAttribute("data-targetverse")}` : ":_"
-                                    }`
-                                }</td>`)
-                                if (tr.firstChild.innerHTML === "Untitled _:_")
-                                    tr.firstChild.innerHTML = ""
+                                let tr = modifyTableTR(document.createElement("tr"), td)
                                 a.appendChild(span)
                                 td.appendChild(a)
                                 tr.appendChild(td)
@@ -763,7 +749,7 @@ export default {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view")
                     let filteringProps = Object.keys(obj)
-                    let li = document.createElement("li")
+                    let td = document.createElement("td")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
                     span.classList.add("serifText")
@@ -783,7 +769,7 @@ export default {
                         if(prop === "text"){
                             const t = obj[prop]?.value?.textValue ?? ""
                             if(filterPresent && filterObj.hasOwnProperty("text") && t.includes(filterObj["text"])) elem.classList.remove("is-hidden")
-                            li.setAttribute("data-text", t) 
+                            td.setAttribute("data-text", t) 
                         }
                         else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
                             let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
@@ -792,24 +778,24 @@ export default {
                             const attr = `data-${prop}`
                             if(prop === "title" && !val){
                                 val = "[ unlabeled ]"
-                                li.setAttribute("data-unlabeled", "true")
+                                td.setAttribute("data-unlabeled", "true")
                             }
-                            li.setAttribute(attr, val)
+                            td.setAttribute(attr, val)
                         }
                     })
 
-                    if(!li.hasAttribute("data-title")) {
-                        li.setAttribute("data-title", "[ unlabeled ]")
-                        li.setAttribute("data-unlabeled", "true")
+                    if(!td.hasAttribute("data-title")) {
+                        td.setAttribute("data-title", "[ unlabeled ]")
+                        td.setAttribute("data-unlabeled", "true")
                     }
 
-                    li.setAttribute("data-expanded", "true")
+                    td.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
-
+                    modifyTableTR(elem, td)
                     a.appendChild(span)
-                    li.appendChild(a)
-                    elem.appendChild(li)
+                    td.appendChild(a)
+                    elem.appendChild(td)
 
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
@@ -1015,4 +1001,22 @@ function hideSearchBar() {
         }
     }, true)
     searchBar.addEventListener('input', e => searchSubmit.classList[e.target.value.trim().length === 0 ? 'add' : 'remove']("fade"), true)
+}
+
+function modifyTableTR(tr, td) {
+    tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
+    tr.insertAdjacentHTML('afterbegin', `<td>${
+        td.getAttribute("data-canonicalreference") ?? `${
+            td.getAttribute("data-_document") ?? "Untitled"
+        }${
+            (td.hasAttribute("data-_section") ?? td.hasAttribute("data-targetchapter")) ?
+                ` ${td.getAttribute("data-_section") ?? td.getAttribute("data-targetchapter") ?? ""}` : " _"
+        }${
+            (td.hasAttribute("data-_subsection") || td.hasAttribute("data-_subsection")) ?
+                `:${td.getAttribute("data-_subsection") ?? td.getAttribute("data-targetverse")}` : ":_"
+        }`
+    }</td>`)
+    if (tr.firstChild.innerHTML === "Untitled _:_")
+        tr.firstChild.innerHTML = ""
+    return tr
 }
