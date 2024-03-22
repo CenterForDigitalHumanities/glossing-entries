@@ -262,10 +262,6 @@ export default {
                                 // We cached it in the past and are going to trust it right now.
                                 const cachedObj = cachedFilterableEntities.get(glossID)
                                 let filteringProps = Object.keys(cachedObj)
-                                // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
-                                if(filterPresent){
-                                    li.classList.add("is-hidden")
-                                }
                                 // Add all Gloss object properties to the <li> element as attributes to match on later
                                 filteringProps.forEach( (prop) => {
                                     // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
@@ -293,6 +289,10 @@ export default {
                                 span.innerText = deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"
                                 numloaded++
                                 let tr = modifyTableTR(document.createElement("tr"), li)
+                                // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
+                                if(filterPresent){
+                                    tr.classList.add("is-hidden")
+                                }
                                 a.appendChild(span)
                                 li.appendChild(a)
                                 tr.appendChild(li)
