@@ -247,7 +247,7 @@ export default {
                         table.children[0].children[0].children[0].onclick = _ => customSort(0, a => a.children[0].innerHTML, "") // Refrence
                         table.children[0].children[0].children[1].onclick = _ => customSort(1, a => a.children[1].children[0].children[0].innerHTML, "[ unlabeled ]") // Title
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
-                        total = deduplicatedList.length
+                        total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
                             const glossID = val["@id"].replace(/^https?:/, 'https:')
                             let td = document.createElement("td")
