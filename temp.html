@@ -47,21 +47,44 @@
     <manage-gloss-modal class="is-hidden"></manage-gloss-modal>
 
     <script> 
+    
+        function extractIdFromURI() {
+            const pathArray = window.location.pathname.split('/')
+            const idIndex = pathArray.indexOf('id')
+            if (idIndex !== -1 && pathArray.length > idIndex) {
+                return pathArray[idIndex + 1]
+            }
+            return null
+        }
+
+        async function queryBibliographicCitations(glossId) {
+            const query = {
+                "@type": "BibliographicCitation",
+                "references": glossId, 
+                "__rerum.generatedBy": __constants.generator
+            };
+
+            try {
+                const gloss = await fetch(`${__constants.tiny+"/query"}`, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: {
+                        "Content-Type": "application/json;charset=utf-8"
+                    },
+                    body: JSON.stringify(query)
+                }).then(resp => resp.json());
+
+                console.log(gloss); // to see if we have anything
+            } catch (err) {
+                console.error(err);
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // ID from the URL
-            function extractIdFromURI() {
-                const pathArray = window.location.pathname.split('/')
-                const idIndex = pathArray.indexOf('id')
-                if (idIndex !== -1 && pathArray.length > idIndex) {
-                    return pathArray[idIndex + 1]
-                }
-                return null
-            }
-
             const pageId = extractIdFromURI()
             if (pageId) {
                 document.getElementById('documentReference').value = pageId
+                queryBibliographicCitations(pageId);
             }
         })
 
