@@ -1,58 +1,33 @@
 class CustomConfirmModal extends HTMLElement {
     constructor() {
-        super();
-        // Optionally, use a shadow DOM to encapsulate styles and markup
+        super()
         this.attachShadow({mode: 'open'})
+    }
+
+    connectedCallback() {
+        const message = this.getAttribute('message') || 'Default message'
         this.shadowRoot.innerHTML = `
             <style>
-                /* Styles for your confirmation dialog */
                 .backdrop {
-                    position: fixed;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.5);
-                    top: 0;
-                    left: 0;
-                    z-index: 1000;
+                    position: fixed; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); top: 0; left: 0; z-index: 1000;
                 }
                 .modal {
-                    padding: 1.25rem;
-                    background: white;
-                    position: fixed;
-                    width: 30%;
-                    min-height: 10%;
-                    left: 50%;
-                    top: 50%;
-                    transform: translate(-50%, -50%);
-                    border-radius: 0.625rem;
-                    border: 0.125rem solid var(--color-primary);
-                    box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.5);
-                    z-index: 1001;
-                    text-align: center;
+                    padding: 1.25rem; background: white; position: fixed; width: 30%; min-height: 10%; left: 50%; top: 50%; transform: translate(-50%, -50%);
+                    border-radius: 0.625rem; border: 0.125rem solid var(--color-primary); box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.5); z-index: 1001; text-align: center;
                 }
                 .button {
-                    padding: 0.625rem 1.25rem;
-                    margin: 0.625rem 0.3125rem;
-                    border-radius: 0.3125rem;
-                    cursor: pointer;
-                    color: white;
-                    border: none;
-                    font-size: var(--font-size);
-                    font-family: var(--font-family-sans);
+                    padding: 0.625rem 1.25rem; margin: 0.625rem; border-radius: 0.3125rem; cursor: pointer; color: white; border: none; font-size: 1rem;
                 }
                 .confirm { background: green; }
                 .cancel { background: red; }
             </style>
             <div class="backdrop"></div>
             <div class="modal">
-                <div id="confirmMessage">${this.getAttribute('message')}</div>
-                <input type="button" class="button confirm" value="Confirm" />
-                <input type="button" class="button cancel" value="Cancel" />
+                <div id="confirmMessage">${message}</div>
+                <button class="button confirm">Confirm</button>
+                <button class="button cancel">Cancel</button>
             </div>
-        `
-    }
-
-    connectedCallback() {
+        `;
         this.shadowRoot.querySelector('.confirm').addEventListener('click', () => this.resolveConfirm(true))
         this.shadowRoot.querySelector('.cancel').addEventListener('click', () => this.resolveConfirm(false))
     }
