@@ -352,7 +352,15 @@ export default {
                             }
                             for(const prop in query){
                                 if(li.hasAttribute(`data-${prop}`)){
-                                    const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
+                                    const li_mod = li.getAttribute(`data-${prop}`).toLowerCase()
+                                    const query_mod = query[prop].toLowerCase()
+                                    const action = approximateFilter(li_mod).includes(approximateFilter(query_mod)) ? "remove" : "add"
+                                    if(action === "add" && !li_mod.includes(query_mod)){
+                                        // Move approximate search result to bottom
+                                        const parent = li.parentElement
+                                        parent.removeChild(li)
+                                        parent.appendChild(li)
+                                    }
                                     elem.classList[action](`is-hidden`,`un${action}-item`)
                                     setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                     // If it is showing, no need to check other properties for filtering.
@@ -956,4 +964,16 @@ function hideSearchBar() {
         }
     }, true)
     searchBar.addEventListener('input', e => searchSubmit.classList[e.target.value.trim().length === 0 ? 'add' : 'remove']("fade"), true)
+}
+
+function approximateFilter(str){
+    return str
+        .replaceAll(/[^\w]/g, "")
+        .replaceAll("u", "v")
+        .replaceAll("j", "i")
+        .replaceAll("y", "i")
+        .replaceAll("ae", "e")
+        .replaceAll("oe", "e")
+        .replaceAll("t", "c")
+        .replaceAll("exsp", "exp")
 }
