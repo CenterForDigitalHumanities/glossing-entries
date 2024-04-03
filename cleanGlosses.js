@@ -95,6 +95,5 @@ async function clearDevGlosses(nLeft=600) {
 	const removals = Array.from(document.querySelectorAll('a'))
 		.filter(e => e.href.match(/https:\/\/devstore.rerum.io\/v1\/id\/.*$/))
 		.map(e => e.href.match(/https:\/\/devstore.rerum.io\/v1\/id\/.*$/g)[0])
-	for (let i = removals.length-1; i > nLeft-1; i--)
-		await deleteGloss(removals[i])
+	await Promise.all(removals.slice(nLeft).map(deleteGloss))
 }
