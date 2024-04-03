@@ -22,6 +22,10 @@ window.onload = () => {
         document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
         glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
+
+        document.querySelectorAll(".referenceDiv").forEach(div => div.classList.remove("is-hidden"))
+        let res = queryBibliographicCitations(hash)
+
     }
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText
@@ -464,3 +468,87 @@ async function deleteGloss(id=glossHashID) {
     })
 
 }
+
+async function queryBibliographicCitations(glossId) {
+    const query = {
+        "@type": "BibliographicCitation",
+        "references": glossId, 
+        "__rerum.generatedBy": __constants.generator
+    };
+
+    try {
+        const res = await fetch(`${__constants.tiny+"/query"}`, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(query)
+        }).then(resp => resp.json());
+
+        console.log(res); // to see if we have anything
+        return res
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const editor = document.getElementById('bibliographicCitationEditor')
+    const buttons = document.querySelectorAll('.toolbar-item')
+
+    function format(command) {
+        document.execCommand(command, false, null)
+        updateButtonStates()
+    }
+
+    function insertLink() {
+        var url = prompt("Enter the URL:")
+        if (url) {
+            document.execCommand('createLink', false, url)
+        }
+        updateButtonStates()
+    }
+
+    const updateButtonStates = () => {
+        buttons.forEach(button => {
+            const command = button.dataset.command
+            if (document.queryCommandState(command)) {
+                button.classList.add('active')
+            } else {
+                button.classList.remove('active')
+            }
+        })
+    }
+
+    document.getElementById('boldBtn').addEventListener('click', (e) => {
+        e.preventDefault()
+        format('bold')
+    })
+    document.getElementById('italicBtn').addEventListener('click', (e) => {
+        e.preventDefault()
+        format('italic')
+    })
+    document.getElementById('underlineBtn').addEventListener('click', (e) => {
+        e.preventDefault()
+        format('underline')
+    })
+    document.getElementById('linkBtn').addEventListener('click', () => {
+        insertLink()
+    })
+    document.getElementById('subscriptBtn').addEventListener('click', (e) => {
+        e.preventDefault()
+        format('subscript')
+    });
+
+    document.getElementById('superscriptBtn').addEventListener('click', (e) => {
+        e.preventDefault()
+        format('superscript')
+    });
+
+    editor.addEventListener('keyup', updateButtonStates)
+    editor.addEventListener('mouseup', updateButtonStates)
+
+    updateButtonStates()
+
+})

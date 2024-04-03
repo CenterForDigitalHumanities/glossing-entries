@@ -538,3 +538,120 @@ class ReferencesBrowser extends HTMLElement {
 }
 
 customElements.define('gog-references-browser', ReferencesBrowser)
+
+class ReferenceWidget extends HTMLElement {
+    template = `
+        <style>
+            .themeTag {
+                margin-bottom: 15px;
+            }
+            .removeTag:after {
+                content: 'x';
+                color: red;
+                padding: 1px 1px 1px 7px;
+                cursor: pointer;
+
+            }
+            .removeTag:hover {
+                font-weight: bolder;
+                font-size: 115%;
+            }
+
+            button.smaller {
+                padding: 0px 5px;
+                height: 2.2em;
+            }
+            .selectedEntities {
+                border-left: 1px dotted black;
+                border-bottom: 1px dotted black;
+                border-right: 1px dotted black;
+                padding: 4px;
+            }
+            .referenceDiv {
+                display: flex; 
+                justify-content: center; 
+                background-color: white; 
+                padding: 10px; 
+                gap: 20px; 
+                flex-wrap: wrap;
+            }
+        </style>
+        <div class="referenceDiv is-hidden">
+            <div class="col">
+                <p class="col-12 col-12-md">Gloss References are displayed below. Click the red 'x' to remove the reference.
+                </p>
+                <button class="smaller"> Add Bibliographic Reference </button>
+                <div class="selectedEntities col-12 col-12-md"></div>
+            </div>
+        </div?>
+    `
+    constructor() {
+        super()
+    }
+    connectedCallback() {
+        const $this = this
+        this.innerHTML = this.template
+        const addBtn = this.querySelector("button")
+        addBtn.addEventListener("click", addReference)
+        
+        /**
+         * Click event handler for Add Reference.  Opens a modal.
+         * Includes pagination.
+         * */
+        function addReference(event) {
+            event.preventDefault()
+            event.stopPropagation()
+            document.getElementById('bibliographicCitationModal').style.display = 'block';
+        }
+
+        var span = document.getElementsByClassName("bib-citation-close")[0];
+
+        span.onclick = function() {
+            document.getElementById('bibliographicCitationModal').style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById('bibliographicCitationModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        /**
+         * Click event handler for .removeTag when the user clicks the little x. 
+         * Removes tag from the set of known tags (if included, it really should be though.)
+         * Includes pagination.
+         * This function is exposed so that the HTML pages can call upon it during pagination moments. 
+         * */
+        this.removeTag = function(event) {
+            event.preventDefault()
+            event.stopPropagation()
+            const tagName = event.target.getAttribute("tag-name").toLowerCase()
+            let selectedTagsArea = $this.querySelector(".selectedEntities")
+            let tracked_tags = $this.querySelector("input[deer-key='tags']")
+            tracked_tags.value = tracked_tags.value.toLowerCase()
+            let delim = (tracked_tags.hasAttribute("deer-array-delimeter")) ? tracked_tags.getAttribute("deer-array-delimeter") : ","
+            let arr_tag_names = tracked_tags.value ? tracked_tags.value.split(delim) : []
+            if (arr_tag_names.indexOf(tagName) > -1) {
+                selectedTagsArea.innerHTML = ""
+                arr_tag_names.splice(arr_tag_names.indexOf(tagName), 1)
+                arr_tag_names.forEach(name => {
+                    let tag = `<span class="tag is-small">${name}<span tag-name="${name}" class="removeTag"></span></span>`
+                    selectedTagsArea.innerHTML += tag
+                })
+                selectedTagsArea.querySelectorAll(".removeTag").forEach(el => {
+                    el.addEventListener("click", $this.removeTag)
+                })
+                let str_arr = arr_tag_names.join(delim)
+                tracked_tags.value = str_arr
+                tracked_tags.setAttribute("value", str_arr)
+                tracked_tags.$isDirty = true
+            }
+            else {
+                $this.querySelector(".tagInput").value = ""
+            }
+        }
+    }
+}
+
+customElements.define('gog-reference-widget', ReferenceWidget)
