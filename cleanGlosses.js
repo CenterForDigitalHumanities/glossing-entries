@@ -92,8 +92,9 @@ async function deleteGloss(id=glossHashID) {
 }
 
 async function clearDevGlosses(nLeft=600) {
-	const removals = Array.from(document.querySelectorAll('a'))
+	await Promise.all(Array.from(document.querySelectorAll('a'))
 		.filter(e => e.href.match(/https:\/\/devstore.rerum.io\/v1\/id\/.*$/))
 		.map(e => e.href.match(/https:\/\/devstore.rerum.io\/v1\/id\/.*$/g)[0])
-	await Promise.all(removals.slice(nLeft).map(deleteGloss))
+		.slice(nLeft)
+		.map(deleteGloss))
 }
