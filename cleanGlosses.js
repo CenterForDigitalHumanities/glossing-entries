@@ -24,7 +24,7 @@ async function deleteGloss(id=glossHashID) {
 	const allEntityAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
 	.then(annos => annos.map(anno => anno["@id"]))
 	.catch(err => {
-		alert("Could not gather Annotations to delete.")
+		// alert("Could not gather Annotations to delete.")
 		console.log(err)
 		return null
 	})
@@ -85,7 +85,7 @@ async function deleteGloss(id=glossHashID) {
 		if(!r.ok) throw new Error(r.text)
 	})
 	.catch(err => {
-		alert(`There was an issue removing the Gloss with URI ${id}.  This item may still appear in collections.`)
+		// alert(`There was an issue removing the Gloss with URI ${id}.  This item may still appear in collections.`)
 		console.log(err)
 	})
 
