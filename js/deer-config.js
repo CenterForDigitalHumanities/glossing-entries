@@ -161,7 +161,36 @@ export default {
                 </style>
                 <h2> Glosses </h2>
                 <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
-                <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText">
+                <form id="ngForm" deer-type="Gloss" deer-context="http://www.loc.gov/mods" class="row">
+                    <input id="search-bar" filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText row">
+                    <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
+                    <input is="auth-creator" type="hidden" deer-key="creator" />
+                    <style>
+                        #search-submit {
+                          background: none;
+                          border: none;
+                          color: var(--color-primary);
+                          cursor: pointer;
+                          font-size: 0.8em;
+                          padding-left: 0;
+                        }
+                        @keyframes fadeIn {
+                          0% { opacity: 0; max-height: 0em; padding: 0em; }
+                          100% { opacity: 1; max-height: auto; padding: auto; }
+                        }
+                        #search-submit:not(.fade) {
+                          animation: fadeIn 0.5s forwards;
+                        }
+                        @keyframes fadeOut {
+                          0% { opacity: 1; max-height: auto; padding: auto; }
+                          100% { opacity: 0; max-height: 0em; padding: 0em; }
+                        }
+                        #search-submit.fade {
+                          animation: fadeOut 0.5s forwards;
+                        }
+                    </style>
+                    <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="fade serifText row">
+                </form>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                     <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
@@ -291,6 +320,7 @@ export default {
                         if(filterPresent){
                             debounce(filterGlosses(elem.$contentState))
                         }
+                        hideSearchBar()
                     }
 
                     /** 
@@ -525,7 +555,7 @@ export default {
                     })
 
                     // Note the capability to select multiple that we are limiting to one.
-                    elem.querySelectorAll('.toggleInclusion').forEach(btn => btn.addEventListener('click', ev => {
+                    elem.querySelectorAll('.toggleInclusion').forEach(btn => btn.addEventListener('click', async ev => {
                         ev.preventDefault()
                         ev.stopPropagation()
                         const form = ev.target.closest("form")
@@ -547,7 +577,7 @@ export default {
                         const note = ev.target.classList.contains("attached-to-source") 
                            ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
                            : `Save this textual witness for Gloss '${glossIncipit}'?`
-                        if(confirm(note)){
+                        if(await createConfirm(note)){
                             const customKey = elem.querySelector("input[custom-key='references']")
                             const uri = btn.getAttribute("data-id")
                             if(customKey.value !== uri){
@@ -594,6 +624,7 @@ export default {
                             }
                             i.dispatchEvent(new Event('input', { bubbles: true }))
                         })
+                        hideSearchBar()
                     }
 
                     function debounce(func,timeout = 500) {
@@ -752,6 +783,7 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
+                        hideSearchBar()
                     }
                 }
             }
@@ -886,6 +918,7 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
+                        hideSearchBar()
                     }
                 }
             }
@@ -910,4 +943,17 @@ function debounce(func,timeout = 500) {
         clearTimeout(timeRemains)
         timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
     }
+}
+
+function hideSearchBar() {
+    const searchSubmit = document.getElementById('search-submit')
+    const searchBar = document.getElementById('search-bar')
+    searchBar.addEventListener("keydown", (e)=> {
+        if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+            if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                e.preventDefault()
+            }
+        }
+    }, true)
+    searchBar.addEventListener('input', e => searchSubmit.classList[e.target.value.trim().length === 0 ? 'add' : 'remove']("fade"), true)
 }
