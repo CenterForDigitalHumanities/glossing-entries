@@ -96,5 +96,5 @@ async function clearDevGlosses(nLeft=600) {
 		.filter(e => e.href.match(/https:\/\/devstore.rerum.io\/v1\/id\/.*$/))
 		.map(e => e.href.match(/https:\/\/devstore.rerum.io\/v1\/id\/.*$/g)[0])
 	for (let i = removals.length-1; i > nLeft-1; i--)
-		deleteGloss(removals[i])
+		await deleteGloss(removals[i])
 }
