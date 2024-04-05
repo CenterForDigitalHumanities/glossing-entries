@@ -399,7 +399,8 @@ export default {
                             for(const prop in query){
                                 if(tr.children[1].hasAttribute(`data-${prop}`)){
                                     const action = (tr.children[1].getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ||
-                                                    tr.children[0].innerHTML.toLowerCase().includes(query[prop].toLowerCase())) ? "remove" : "add"
+                                                    tr.children[0].innerHTML.toLowerCase().includes(query[prop].toLowerCase()) ||
+                                                    tr.children[2].innerHTML.toLowerCase().includes(query[prop].toLowerCase())) ? "remove" : "add"
                                     tr.classList[action](`is-hidden`,`un${action}-item`)
                                     setTimeout(()=>tr.classList.remove(`un${action}-item`),500)
                                     // If it is showing, no need to check other properties for filtering.
@@ -1013,8 +1014,6 @@ function hideSearchBar() {
  */
 function modifyTableTR(tr, obj) {
     tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
-    if ("notes" in obj)
-        console.log(obj)
     tr.insertAdjacentHTML('afterbegin', `<td>${
         "canonicalReference" in obj ? obj["canonicalReference"]["value"] :
         `${
