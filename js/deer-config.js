@@ -1029,7 +1029,7 @@ function modifyTableTR(tr, obj) {
         }`
     }</td>`)
     if ("tags" in obj && obj["tags"]["value"] && "items" in obj["tags"]["value"] && obj["tags"]["value"]["items"])
-        tr.insertAdjacentHTML('beforeend', `<td>${obj["tags"]["value"]["items"].slice(0, 1)}</td>`)
+        tr.insertAdjacentHTML('beforeend', `<td style="white-space: nowrap; overflow: auto; text-overflow: clip; max-width: 10em;">${obj["tags"]["value"]["items"]}</td>`)
     else
         tr.insertAdjacentHTML('beforeend', "<td></td>")
     if (tr.firstChild.innerHTML === "Untitled _:_")
