@@ -204,7 +204,7 @@ export default {
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
                         let ul = document.createElement("table")
-                        ul.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th></tr></thead><tbody></tbody>')
+                        ul.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody></tbody>')
                         /**
                          * Sort a column
                          * @param {Number} [index=0] - Column  index to sort by
@@ -232,7 +232,6 @@ export default {
                                 ul.children[0].children[0].children[+index].innerHTML = ul.children[0].children[0].children[+index].innerHTML + down
                             const modif = ul.children[0].children[0].children[+index].innerHTML.slice(-down.length) === down ? -1 : 1
                             Array.from(ul.children[1].children).sort((a, b) => {
-                                // Table ? Table : Reference
                                 a = selector(a)
                                 b = selector(b)
                                 if (a === NULL) return 1
@@ -248,6 +247,7 @@ export default {
                         }
                         ul.children[0].children[0].children[0].onclick = _ => customSort(0, a => a.children[0].innerHTML, "") // Refrence
                         ul.children[0].children[0].children[1].onclick = _ => customSort(1, a => a.children[1].children[0].children[0].innerHTML, "[ unlabeled ]") // Title
+                        ul.children[0].children[0].children[2].onclick = _ => customSort(2, a => a.children[2].innerHTML, "") // Tag(s)
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
@@ -288,7 +288,7 @@ export default {
                                 li.setAttribute("data-expanded", "true")
                                 span.innerText = deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"
                                 numloaded++
-                                let tr = modifyTableTR(document.createElement("tr"), li)
+                                let tr = document.createElement("tr")
                                 // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
                                 if(filterPresent){
                                     tr.classList.add("is-hidden")
@@ -296,6 +296,7 @@ export default {
                                 a.appendChild(span)
                                 li.appendChild(a)
                                 tr.appendChild(li)
+                                modifyTableTR(tr, cachedObj)
                                 ul.children[1].appendChild(tr)
                             }
                             else{
@@ -793,10 +794,10 @@ export default {
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
-                    modifyTableTR(elem, li)
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.appendChild(li)
+                    modifyTableTR(elem, obj)
 
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
@@ -1007,22 +1008,31 @@ function hideSearchBar() {
 /**
  * Style a table row and add Reference data pulled from the Title
  * @param {HTMLTableRowElement} tr - HTML <tr> element to style
- * @param {HTMLTableCellElement} td - HTML <td> element to pull data from
+ * @param {HTMLTableCellElement} obj - HTML <td> element to pull data from
  * @returns {HTMLTableRowElement} - Original HTML <tr> element reference with the modifications
  */
-function modifyTableTR(tr, td) {
+function modifyTableTR(tr, obj) {
     tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
+    if ("notes" in obj)
+        console.log(obj)
     tr.insertAdjacentHTML('afterbegin', `<td>${
-        td.getAttribute("data-canonicalreference") ?? `${
-            td.getAttribute("data-_document") ?? "Untitled"
+        "canonicalReference" in obj ? obj["canonicalReference"]["value"] :
+        `${
+            "_document" in obj && obj["_document"]["value"] ? obj["_document"]["value"] : "Untitled"
         }${
-            (td.hasAttribute("data-_section") ?? td.hasAttribute("data-targetchapter")) ?
-                ` ${td.getAttribute("data-_section") ?? td.getAttribute("data-targetchapter") ?? ""}` : " _"
+            "targetChapter" in obj && obj["targetChapter"]["value"] ? ` ${obj["targetChapter"]["value"]}` :
+            "_section" in obj && obj["_section"]["value"] ? ` ${obj["_section"]["value"]}` :
+            " _"
         }${
-            (td.hasAttribute("data-_subsection") || td.hasAttribute("data-_subsection")) ?
-                `:${td.getAttribute("data-_subsection") ?? td.getAttribute("data-targetverse")}` : ":_"
+            "targetVerse" in obj && obj["targetVerse"]["value"] ? `:${obj["targetVerse"]["value"]}` :
+            "_subsection" in obj && obj["targetVerse"]["value"] ? `:${obj["targetVerse"]["value"]}` :
+            ":_"
         }`
     }</td>`)
+    if ("tags" in obj && obj["tags"]["value"] && "items" in obj["tags"]["value"] && obj["tags"]["value"]["items"])
+        tr.insertAdjacentHTML('beforeend', `<td>${obj["tags"]["value"]["items"].slice(0, 1)}</td>`)
+    else
+        tr.insertAdjacentHTML('beforeend', "<td></td>")
     if (tr.firstChild.innerHTML === "Untitled _:_")
         tr.firstChild.innerHTML = ""
     return tr
