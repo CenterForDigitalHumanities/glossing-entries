@@ -22,11 +22,87 @@ window.onload = () => {
         document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
         glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
-
         document.querySelectorAll(".referenceDiv").forEach(div => div.classList.remove("is-hidden"))
-        let res = queryBibliographicCitations(hash)
-
+        const referenceWidget = document.querySelector('gog-reference-widget');
+        (async () => {
+            const citations = await queryBibliographicCitations(hash);
+            if (referenceWidget) {
+                referenceWidget.updateCitations(citations);
+            }
+        })();
     }
+    const citationForm = document.getElementById('bibliographicCitationForm');
+    citationForm.addEventListener('submit', function(e) {
+        e.preventDefault(); 
+        
+        const editorContent = document.getElementById('bibliographicCitationEditor').innerHTML; 
+
+        addBibliographicCitationToGloss(editorContent, hash)
+            .then(() => {
+                document.getElementById('bibliographicCitationModal').style.display = 'none';
+                document.getElementById('bibliographicCitationEditor').innerHTML = ''; 
+            })
+            .catch(error => {
+                console.error('Failed to add citation:', error);
+            });
+    });
+    const editor = document.getElementById('bibliographicCitationEditor')
+    const buttons = document.querySelectorAll('.toolbar-item')
+
+    function format(command) {
+        document.execCommand(command, false, null)
+        updateButtonStates()
+    }
+
+    function insertLink() {
+        var url = prompt("Enter the URL:")
+        if (url) {
+            document.execCommand('createLink', false, url)
+        }
+        updateButtonStates()
+    }
+
+    const updateButtonStates = () => {
+        buttons.forEach(button => {
+            const command = button.dataset.command
+            if (document.queryCommandState(command)) {
+                button.classList.add('active')
+            } else {
+                button.classList.remove('active')
+            }
+        })
+    }
+
+    document.getElementById('boldBtn').addEventListener('click', (e) => {
+        e.preventDefault()
+        format('bold')
+    })
+    document.getElementById('italicBtn').addEventListener('click', (e) => {
+        e.preventDefault()
+        format('italic')
+    })
+    document.getElementById('underlineBtn').addEventListener('click', (e) => {
+        e.preventDefault()
+        format('underline')
+    })
+    document.getElementById('linkBtn').addEventListener('click', () => {
+        insertLink()
+    })
+    document.getElementById('subscriptBtn').addEventListener('click', (e) => {
+        e.preventDefault()
+        format('subscript')
+    });
+
+    document.getElementById('superscriptBtn').addEventListener('click', (e) => {
+        e.preventDefault()
+        format('superscript')
+    });
+
+    editor.addEventListener('keyup', updateButtonStates)
+    editor.addEventListener('mouseup', updateButtonStates)
+
+    updateButtonStates()
+
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText
     const textListener = textElem.addEventListener('input', ev => {
@@ -484,71 +560,75 @@ async function queryBibliographicCitations(glossId) {
                 "Content-Type": "application/json;charset=utf-8"
             },
             body: JSON.stringify(query)
-        }).then(resp => resp.json());
+        }).then(response => response.json());
 
-        console.log(res); // to see if we have anything
         return res
     } catch (err) {
         console.error(err);
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const editor = document.getElementById('bibliographicCitationEditor')
-    const buttons = document.querySelectorAll('.toolbar-item')
-
-    function format(command) {
-        document.execCommand(command, false, null)
-        updateButtonStates()
-    }
-
-    function insertLink() {
-        var url = prompt("Enter the URL:")
-        if (url) {
-            document.execCommand('createLink', false, url)
+async function addBibliographicCitationToGloss(bibliographicCitation, glossId) {
+    try {
+        if (typeof bibliographicCitation !== 'string' || !bibliographicCitation.trim()) {
+            const invalidInputEvent = new CustomEvent("Invalid bibliographic citation input: must be a non-empty string.")
+            globalFeedbackBlip(invalidInputEvent, 'Invalid bibliographic citation input: must be a non-empty string.', false)
+            return;
         }
-        updateButtonStates()
+
+        const cleanCitation = bibliographicCitation.trim();
+
+        const query = {
+            "@type": "BibliographicCitation",
+            "references": glossId,
+            "citation": cleanCitation, 
+            "__rerum.generatedBy": __constants.generator
+        };
+
+        const existingCitations = await fetch(`${__constants.tiny+"/query"}`, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(query)
+        }).then(resp => resp.json());
+
+        if (existingCitations.length > 0) {
+            const invalidInputEvent = new CustomEvent("A similar bibliographic citation already exists for this gloss.")
+            globalFeedbackBlip(invalidInputEvent, 'A similar bibliographic citation already exists for this gloss.', false)
+            return;
+        }
+
+        const newCitation = {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "@type": "BibliographicCitation",
+            "references": glossId,
+            "citation": cleanCitation,
+            "__rerum.generatedBy": __constants.generator
+        };
+
+        const savedCitation = await fetch(`${__constants.tiny+"/create"}`, {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(newCitation)
+        }).then(resp => resp.json());
+
+        if (savedCitation && savedCitation.hasOwnProperty("@id")) {
+            const sucessfulSaveEvent = new CustomEvent("Bibliographic citation added successfully.")
+            globalFeedbackBlip(sucessfulSaveEvent, 'Bibliographic citation added successfully.', true)
+            return savedCitation;
+        } else {
+            const invalidInputEvent = new CustomEvent("Failed to add bibliographic citation.")
+            globalFeedbackBlip(invalidInputEvent, 'Failed to add bibliographic citation.', false)
+            return;
+        }
+    } catch (error) {
+        console.error('Error adding bibliographic citation:', error);
+        const errorEvent = new CustomEvent("Error adding bibliographic citation.")
+        globalFeedbackBlip(errorEvent, 'Error adding bibliographic citation: ' + error.message, false)
     }
-
-    const updateButtonStates = () => {
-        buttons.forEach(button => {
-            const command = button.dataset.command
-            if (document.queryCommandState(command)) {
-                button.classList.add('active')
-            } else {
-                button.classList.remove('active')
-            }
-        })
-    }
-
-    document.getElementById('boldBtn').addEventListener('click', (e) => {
-        e.preventDefault()
-        format('bold')
-    })
-    document.getElementById('italicBtn').addEventListener('click', (e) => {
-        e.preventDefault()
-        format('italic')
-    })
-    document.getElementById('underlineBtn').addEventListener('click', (e) => {
-        e.preventDefault()
-        format('underline')
-    })
-    document.getElementById('linkBtn').addEventListener('click', () => {
-        insertLink()
-    })
-    document.getElementById('subscriptBtn').addEventListener('click', (e) => {
-        e.preventDefault()
-        format('subscript')
-    });
-
-    document.getElementById('superscriptBtn').addEventListener('click', (e) => {
-        e.preventDefault()
-        format('superscript')
-    });
-
-    editor.addEventListener('keyup', updateButtonStates)
-    editor.addEventListener('mouseup', updateButtonStates)
-
-    updateButtonStates()
-
-})
+}

@@ -464,52 +464,81 @@ line.selected.just {
 
 .addWitnessDiv{
   margin-bottom: 1em;
+  justify-content: center; 
+  background-color: white; 
+  padding: 20px; 
+  gap: 20px; 
+  flex-wrap: wrap; 
+  border: 1px solid #ccc; 
+  border-radius: 8px; 
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-form#ngForm,
-form#bibliographicCitationForm
+form#named-gloss
 {
+  justify-content: center; 
+  background-color: white; 
+  padding: 20px; 
+  gap: 20px; 
+  flex-wrap: wrap; 
+  border: 1px solid #ccc; 
+  border-radius: 8px; 
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   margin: 0.7em;
   margin-left: auto;
   margin-right: auto;
 }
 
+form#bibliographicCitationForm{
+    font-family: Arial, sans-serif;
+    margin: 1em auto;
+    max-width: 100%;
+    color: #333;
+}
+
 #bibliographicCitation-container {
     border: 1px solid #ccc;
     border-radius: 4px;
-    max-width: 600px;
-    margin: 20px auto;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden;
 }
 
 #bibliographicCitationtoolbar {
     display: flex;
-    background-color: #f3f3f3;
+    justify-content: start;
+    background-color: #f8f9fa;
     border-bottom: 1px solid #ccc;
-    padding: 5px;
+    padding: 0.5em;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .toolbar-item {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    padding: 5px 10px;
+    background-color: #ffffff;
+    border: 1px solid #ccc;
+    padding: 0.5em 1em;
     cursor: pointer;
-    margin-right: 5px;
-    font-size: 16px;
+    margin-right: 0.5em;
+    font-size: 0.9rem;
     border-radius: 4px;
+    transition: background-color 0.3s, box-shadow 0.3s;
 }
 
-.toolbar-item:hover {
-    background-color: #e7e7e7;
+.toolbar-item:hover, .toolbar-item.active {
+    background-color: #0056b3;
+    color: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-.toolbar-item.active {
-    background-color: #e7e7e7; 
-    box-shadow: inset 0 0 3px #666; 
+.toolbar-item, .button {
+    margin: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
 }
 
 #bibliographicCitationEditor {
-    padding: 10px;
+    padding: 1em;
     min-height: 200px;
+    border: none;
+    outline: none;
 }
 
 p.bg-light {
@@ -532,23 +561,26 @@ input#loadInput {
 }
 
 .bib-citation-modal {
-    display: none;
-    position: fixed; 
-    z-index: 1;
+    display: none; 
+    position: fixed;
+    z-index: 1; 
     left: 0;
     top: 0;
     width: 100%; 
     height: 100%; 
     overflow: auto; 
     background-color: rgb(0,0,0); 
-    background-color: rgba(0,0,0,0.4); 
+    background-color: rgba(0,0,0,0.4);
 }
+
 .bib-citation-modal-content {
     background-color: #fefefe;
-    margin: 15% auto; 
+    margin: 5% auto; 
     padding: 20px;
     border: 1px solid #888;
-    width: 80%; 
+    width: 50%;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19); 
+    border-radius: 10px; 
 }
 
 .bib-citation-close {

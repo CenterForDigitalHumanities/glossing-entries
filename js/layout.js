@@ -542,38 +542,65 @@ customElements.define('gog-references-browser', ReferencesBrowser)
 class ReferenceWidget extends HTMLElement {
     template = `
         <style>
-            .themeTag {
+            .referenceDiv {
+                justify-content: center; 
+                background-color: white; 
+                padding: 20px; 
+                gap: 20px; 
+                flex-wrap: wrap; 
+                border: 1px solid #ccc; 
+                border-radius: 8px; 
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                margin: 20px 0; 
+            }
+            .referenceTag {
                 margin-bottom: 15px;
             }
             .removeTag:after {
-                content: 'x';
+                content: '×'; /* Using a more typical 'x' symbol */
                 color: red;
                 padding: 1px 1px 1px 7px;
                 cursor: pointer;
-
             }
             .removeTag:hover {
                 font-weight: bolder;
                 font-size: 115%;
             }
-
             button.smaller {
                 padding: 0px 5px;
                 height: 2.2em;
             }
             .selectedEntities {
-                border-left: 1px dotted black;
-                border-bottom: 1px dotted black;
-                border-right: 1px dotted black;
-                padding: 4px;
+                display: flex;
+                flex-direction: column;
+                gap: 10px; 
             }
-            .referenceDiv {
-                display: flex; 
-                justify-content: center; 
-                background-color: white; 
-                padding: 10px; 
-                gap: 20px; 
-                flex-wrap: wrap;
+            .referenceCard {
+                border: 1px solid #ccc;
+                border-radius: 8px; 
+                padding: 20px; 
+                background-color: #fff; 
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+                transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between; 
+            }
+            .referenceCard:hover {
+                transform: translateY(-2px); 
+                box-shadow: 0 6px 12px rgba(0,0,0,0.2); 
+            }
+            .referenceContent {
+                margin-bottom: 20px; 
+            }
+            .referenceRemove {
+                cursor: pointer;
+                color: red;
+                font-weight: bold;
+                align-self: flex-end;
+            }
+            .referenceRemove:hover {
+                text-decoration: underline;
             }
         </style>
         <div class="referenceDiv is-hidden">
@@ -581,7 +608,8 @@ class ReferenceWidget extends HTMLElement {
                 <p class="col-12 col-12-md">Gloss References are displayed below. Click the red 'x' to remove the reference.
                 </p>
                 <button class="smaller"> Add Bibliographic Reference </button>
-                <div class="selectedEntities col-12 col-12-md"></div>
+                <div class="selectedEntities col-12 col-12-md">
+                </div>
             </div>
         </div?>
     `
@@ -612,45 +640,30 @@ class ReferenceWidget extends HTMLElement {
 
         window.onclick = function(event) {
             var modal = document.getElementById('bibliographicCitationModal');
-            if (event.target == modal) {
+            var modalContent = document.querySelector('.bib-citation-modal-content');
+            if (!modalContent.contains(event.target) && event.target == modal) {
                 modal.style.display = "none";
             }
-        }
+        };
+    }
 
-        /**
-         * Click event handler for .removeTag when the user clicks the little x. 
-         * Removes tag from the set of known tags (if included, it really should be though.)
-         * Includes pagination.
-         * This function is exposed so that the HTML pages can call upon it during pagination moments. 
-         * */
-        this.removeTag = function(event) {
-            event.preventDefault()
-            event.stopPropagation()
-            const tagName = event.target.getAttribute("tag-name").toLowerCase()
-            let selectedTagsArea = $this.querySelector(".selectedEntities")
-            let tracked_tags = $this.querySelector("input[deer-key='tags']")
-            tracked_tags.value = tracked_tags.value.toLowerCase()
-            let delim = (tracked_tags.hasAttribute("deer-array-delimeter")) ? tracked_tags.getAttribute("deer-array-delimeter") : ","
-            let arr_tag_names = tracked_tags.value ? tracked_tags.value.split(delim) : []
-            if (arr_tag_names.indexOf(tagName) > -1) {
-                selectedTagsArea.innerHTML = ""
-                arr_tag_names.splice(arr_tag_names.indexOf(tagName), 1)
-                arr_tag_names.forEach(name => {
-                    let tag = `<span class="tag is-small">${name}<span tag-name="${name}" class="removeTag"></span></span>`
-                    selectedTagsArea.innerHTML += tag
-                })
-                selectedTagsArea.querySelectorAll(".removeTag").forEach(el => {
-                    el.addEventListener("click", $this.removeTag)
-                })
-                let str_arr = arr_tag_names.join(delim)
-                tracked_tags.value = str_arr
-                tracked_tags.setAttribute("value", str_arr)
-                tracked_tags.$isDirty = true
-            }
-            else {
-                $this.querySelector(".tagInput").value = ""
-            }
-        }
+    updateCitations(citations) {
+        const selectedEntities = this.querySelector('.selectedEntities');
+        selectedEntities.innerHTML = ''; 
+
+        citations.forEach(citation => {
+            const citationContent = this.createCitationCard(citation);
+            selectedEntities.insertAdjacentHTML('beforeend', citationContent);
+        });
+    };
+
+    createCitationCard(citation) {
+        return `
+            <div class="referenceCard">
+                <div class="referenceContent">${citation.citation}</div>
+                <div class="referenceRemove" data-id="${citation['@id']}">Remove</div>
+            </div>
+        `;
     }
 }
 
