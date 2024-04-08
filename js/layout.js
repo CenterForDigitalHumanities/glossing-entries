@@ -629,33 +629,33 @@ class ReferenceWidget extends HTMLElement {
         function addReference(event) {
             event.preventDefault()
             event.stopPropagation()
-            document.getElementById('bibliographicCitationModal').style.display = 'block';
+            document.getElementById('bibliographicCitationModal').style.display = 'block'
         }
 
-        var span = document.getElementsByClassName("bib-citation-close")[0];
+        var span = document.getElementsByClassName("bib-citation-close")[0]
 
         span.onclick = function() {
-            document.getElementById('bibliographicCitationModal').style.display = "none";
+            document.getElementById('bibliographicCitationModal').style.display = "none"
         }
 
         window.onclick = function(event) {
-            var modal = document.getElementById('bibliographicCitationModal');
-            var modalContent = document.querySelector('.bib-citation-modal-content');
+            var modal = document.getElementById('bibliographicCitationModal')
+            var modalContent = document.querySelector('.bib-citation-modal-content')
             if (!modalContent.contains(event.target) && event.target == modal) {
-                modal.style.display = "none";
+                modal.style.display = "none"
             }
-        };
+        }
     }
 
     updateCitations(citations) {
-        const selectedEntities = this.querySelector('.selectedEntities');
-        selectedEntities.innerHTML = ''; 
+        const selectedEntities = this.querySelector('.selectedEntities')
+        selectedEntities.innerHTML = ''
 
         citations.forEach(citation => {
-            const citationContent = this.createCitationCard(citation);
-            selectedEntities.insertAdjacentHTML('beforeend', citationContent);
-        });
-    };
+            const citationContent = this.createCitationCard(citation)
+            selectedEntities.insertAdjacentHTML('beforeend', citationContent)
+        })
+    }
 
     createCitationCard(citation) {
         return `
@@ -663,7 +663,7 @@ class ReferenceWidget extends HTMLElement {
                 <div class="referenceContent">${citation.citation}</div>
                 <div class="referenceRemove" data-id="${citation['@id']}">Remove</div>
             </div>
-        `;
+        `
     }
 }
 

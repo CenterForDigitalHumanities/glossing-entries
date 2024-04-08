@@ -22,31 +22,38 @@ window.onload = () => {
         document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
         glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
-        const referenceDiv = document.querySelector(".referenceDiv");
-        if (referenceDiv) referenceDiv.classList.remove("is-hidden");
-        const referenceWidget = document.querySelector('gog-reference-widget');
-        (async () => {
-            const citations = await queryBibliographicCitations(hash);
-            if (referenceWidget) {
-                referenceWidget.updateCitations(citations);
-            }
-        })();
+        const referenceDiv = document.querySelector(".referenceDiv")
+        if (referenceDiv) referenceDiv.classList.remove("is-hidden")
+        const referenceWidget = document.querySelector('gog-reference-widget')
+        queryBibliographicCitations(hash)
+            .then((citations) => {
+                if (referenceWidget) {
+                    referenceWidget.updateCitations(citations)
+                }
+            })
     }
-    const citationForm = document.getElementById('bibliographicCitationForm');
+    const citationForm = document.getElementById('bibliographicCitationForm')
     citationForm.addEventListener('submit', function(e) {
-        e.preventDefault(); 
+        e.preventDefault()
         
-        const editorContent = document.getElementById('bibliographicCitationEditor').innerHTML; 
+        const editorContent = document.getElementById('bibliographicCitationEditor').innerHTML
 
         addBibliographicCitationToGloss(editorContent, hash)
             .then(() => {
-                document.getElementById('bibliographicCitationModal').style.display = 'none';
-                document.getElementById('bibliographicCitationEditor').innerHTML = ''; 
+                document.getElementById('bibliographicCitationModal').style.display = 'none'
+                document.getElementById('bibliographicCitationEditor').innerHTML = ''
+                const referenceWidget = document.querySelector('gog-reference-widget')
+                queryBibliographicCitations(hash)
+                    .then((citations) => {
+                        if (referenceWidget) {
+                            referenceWidget.updateCitations(citations)
+                        }
+                    })
             })
             .catch(error => {
-                console.error('Failed to add citation:', error);
-            });
-    });
+                console.error('Failed to add citation:', error)
+            })
+    })
     const editor = document.getElementById('bibliographicCitationEditor')
     const buttons = document.querySelectorAll('.toolbar-item')
 
@@ -92,12 +99,12 @@ window.onload = () => {
     document.getElementById('subscriptBtn').addEventListener('click', (e) => {
         e.preventDefault()
         format('subscript')
-    });
+    })
 
     document.getElementById('superscriptBtn').addEventListener('click', (e) => {
         e.preventDefault()
         format('superscript')
-    });
+    })
 
     editor.addEventListener('keyup', updateButtonStates)
     editor.addEventListener('mouseup', updateButtonStates)
@@ -546,6 +553,13 @@ async function deleteGloss(id=glossHashID) {
 
 }
 
+/**
+ * Queries and retrieves all bibliographic citations associated with a specific Gloss entity.
+ * 
+ * 
+ * @param glossId {String} The unique identifier (IRI) of the Gloss entity for which bibliographic citations
+ *                         are being queried.
+ */
 async function queryBibliographicCitations(glossId) {
     const query = {
         "@type": "BibliographicCitation",
@@ -561,20 +575,30 @@ async function queryBibliographicCitations(glossId) {
                 "Content-Type": "application/json;charset=utf-8"
             },
             body: JSON.stringify(query)
-        }).then(response => response.json());
+        }).then(response => response.json())
 
         return res
     } catch (err) {
-        console.error(err);
+        console.error(err)
     }
 }
 
+/**
+ * Adds a bibliographic citation to a specific Gloss entity. This function first validates and cleans
+ * the bibliographic citation input, checks for an existing citation to avoid duplicates, and then
+ * saves a new bibliographic citation if it does not already exist. 
+ * 
+ * @param bibliographicCitation {String} The bibliographic citation as an HTML string. This citation
+ *                                       may include formatting tags (e.g., <i>, <a>) to preserve the
+ *                                       citation style.
+ * @param glossId {String} The unique identifier (IRI) of the Gloss entity to which the citation is being added.
+ */
 async function addBibliographicCitationToGloss(bibliographicCitation, glossId) {
     try {
         if (typeof bibliographicCitation !== 'string' || !bibliographicCitation.trim()) {
             const invalidInputEvent = new CustomEvent("Invalid bibliographic citation input: must be a non-empty string.")
             globalFeedbackBlip(invalidInputEvent, 'Invalid bibliographic citation input: must be a non-empty string.', false)
-            return;
+            return
         }
 
         const cleanCitation = bibliographicCitation.trim();
@@ -584,7 +608,7 @@ async function addBibliographicCitationToGloss(bibliographicCitation, glossId) {
             "references": glossId,
             "citation": cleanCitation, 
             "__rerum.generatedBy": __constants.generator
-        };
+        }
 
         const existingCitations = await fetch(`${__constants.tiny+"/query"}`, {
             method: 'POST',
@@ -593,21 +617,21 @@ async function addBibliographicCitationToGloss(bibliographicCitation, glossId) {
                 "Content-Type": "application/json;charset=utf-8"
             },
             body: JSON.stringify(query)
-        }).then(resp => resp.json());
+        }).then(resp => resp.json())
 
         if (existingCitations.length > 0) {
             const invalidInputEvent = new CustomEvent("A similar bibliographic citation already exists for this gloss.")
             globalFeedbackBlip(invalidInputEvent, 'A similar bibliographic citation already exists for this gloss.', false)
-            return;
+            return
         }
 
         const newCitation = {
-            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "@context": "http://purl.org/dc/terms",
             "@type": "BibliographicCitation",
             "references": glossId,
             "citation": cleanCitation,
             "__rerum.generatedBy": __constants.generator
-        };
+        }
 
         const savedCitation = await fetch(`${__constants.tiny+"/create"}`, {
             method: 'POST',
@@ -619,16 +643,24 @@ async function addBibliographicCitationToGloss(bibliographicCitation, glossId) {
         }).then(resp => resp.json());
 
         if (savedCitation && savedCitation.hasOwnProperty("@id")) {
-            const sucessfulSaveEvent = new CustomEvent("Bibliographic citation added successfully.")
-            globalFeedbackBlip(sucessfulSaveEvent, 'Bibliographic citation added successfully.', true)
-            return savedCitation;
+            addEventListener('deer-updated', () => {
+                const sucessfulSaveEvent = new CustomEvent("Bibliographic citation added successfully.")
+                globalFeedbackBlip(sucessfulSaveEvent, 'Bibliographic citation added successfully.', true)
+                return savedCitation;
+            })
+            addEventListener('deer-created', () => {
+                const sucessfulSaveEvent = new CustomEvent("Bibliographic citation added successfully.")
+                globalFeedbackBlip(sucessfulSaveEvent, 'Bibliographic citation added successfully.', true)
+                return savedCitation;
+            })
+
         } else {
             const invalidInputEvent = new CustomEvent("Failed to add bibliographic citation.")
             globalFeedbackBlip(invalidInputEvent, 'Failed to add bibliographic citation.', false)
-            return;
+            return
         }
     } catch (error) {
-        console.error('Error adding bibliographic citation:', error);
+        console.error('Error adding bibliographic citation:', error)
         const errorEvent = new CustomEvent("Error adding bibliographic citation.")
         globalFeedbackBlip(errorEvent, 'Error adding bibliographic citation: ' + error.message, false)
     }
