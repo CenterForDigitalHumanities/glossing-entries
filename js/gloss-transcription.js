@@ -62,7 +62,7 @@ window.onload = () => {
         deleteBtn.classList.remove("is-hidden")
         witnessForm.setAttribute("deer-id", textWitnessID)
         deleteWitnessButton.addEventListener("click", async ev => {
-            const customMessage = "This Gloss has already been attached to this source. Normally it would not appear in the same source a second time. Be sure before you attach this Gloss. Save this textual witness for Gloss ''?"
+            const customMessage = "The witness will be deleted. This action cannot be undone."
             if(await showCustomConfirm(customMessage)) {
                 deleteWitness(textWitnessID, true)
             }
