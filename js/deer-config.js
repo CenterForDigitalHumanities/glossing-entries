@@ -161,6 +161,24 @@ export default {
                 </style>
                 <h2> Glosses </h2>
                 <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+                <div id="approximate" class="is-hidden">
+                    <input type="checkbox" id="u↔v" name="u↔v" checked>
+                    <label for="u↔v">u ↔ v</label>
+                    <input type="checkbox" id="j↔i" name="j↔i" checked>
+                    <label for="j↔i">j ↔ i</label>
+                    <input type="checkbox" id="y↔i" name="y↔i" checked>
+                    <label for="y↔i">y ↔ i</label>
+                    <input type="checkbox" id="ae↔e" name="ae↔e" checked>
+                    <label for="ae↔e">ae ↔ e</label>
+                    <input type="checkbox" id="oe↔e" name="oe↔e" checked>
+                    <label for="oe↔e">oe ↔ e</label>
+                    <input type="checkbox" id="t↔c" name="t↔c" checked>
+                    <label for="t↔c">t ↔ c</label>
+                    <input type="checkbox" id="exsp↔exp" name="exsp↔exp" checked>
+                    <label for="exsp↔exp">exsp ↔ exp</label>
+                    <input type="checkbox" id="ignore-whitespace" name="ignore-whitespace" checked>
+                    <label for="ignore-whitespace">Ignore Whitespace</label>
+                </div>
                 <form id="ngForm" deer-type="Gloss" deer-context="http://www.loc.gov/mods" class="row">
                     <input id="search-bar" filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText row">
                     <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
@@ -281,6 +299,7 @@ export default {
                     const filter = elem.querySelector('input')
                     const cachedNotice = elem.querySelector(".cachedNotice")
                     const progressArea = elem.querySelector(".progressArea")
+                    const approximate = elem.querySelector("#approximate")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                     totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
                     totalsProgress.setAttribute("total", total)
@@ -308,6 +327,8 @@ export default {
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
+                        approximate.classList.remove("is-hidden")
+                        Array.from(approximate.children).forEach(e => e.addEventListener('change', () => debounce(filterGlosses(elem.$contentState))))
                         elem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be selected or take on the string or whatevs
                             i.classList.remove("is-hidden")
@@ -967,13 +988,21 @@ function hideSearchBar() {
 }
 
 function approximateFilter(str){
+    if (document.querySelector("#ignore-whitespace").checked)
+        str = str.replaceAll(/[^\w]/g, "")
+    if (document.querySelector("#u↔v").checked)
+        str = str.replaceAll("u", "v")
+    if (document.querySelector("#j↔i").checked)
+        str = str.replaceAll("j", "i")
+    if (document.querySelector("#y↔i").checked)
+        str = str.replaceAll("y", "i")
+    if (document.querySelector("#ae↔e").checked)
+        str = str.replaceAll("ae", "e")
+    if (document.querySelector("#oe↔e").checked)
+        str = str.replaceAll("oe", "e")
+    if (document.querySelector("#t↔c").checked)
+        str = str.replaceAll("t", "c")
+    if (document.querySelector("#exsp↔exp").checked)
+        str = str.replaceAll("exsp", "exp")
     return str
-        .replaceAll(/[^\w]/g, "")
-        .replaceAll("u", "v")
-        .replaceAll("j", "i")
-        .replaceAll("y", "i")
-        .replaceAll("ae", "e")
-        .replaceAll("oe", "e")
-        .replaceAll("t", "c")
-        .replaceAll("exsp", "exp")
 }
