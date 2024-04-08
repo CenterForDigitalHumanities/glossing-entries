@@ -22,7 +22,8 @@ window.onload = () => {
         document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
         glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
-        document.querySelectorAll(".referenceDiv").forEach(div => div.classList.remove("is-hidden"))
+        const referenceDiv = document.querySelector(".referenceDiv");
+        if (referenceDiv) referenceDiv.classList.remove("is-hidden");
         const referenceWidget = document.querySelector('gog-reference-widget');
         (async () => {
             const citations = await queryBibliographicCitations(hash);
