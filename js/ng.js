@@ -565,7 +565,7 @@ async function queryBibliographicCitations(glossId) {
         "@type": "BibliographicCitation",
         "references": [glossId], 
         "__rerum.generatedBy": __constants.generator
-    };
+    }
 
     try {
         const res = await fetch(`${__constants.tiny+"/query"}`, {
@@ -601,7 +601,7 @@ async function addBibliographicCitationToGloss(bibliographicCitation, glossId) {
             return
         }
 
-        const cleanCitation = bibliographicCitation.trim();
+        const cleanCitation = bibliographicCitation.trim()
 
         const query = {
             "@type": "BibliographicCitation",
@@ -640,13 +640,13 @@ async function addBibliographicCitationToGloss(bibliographicCitation, glossId) {
                 "Content-Type": "application/json;charset=utf-8"
             },
             body: JSON.stringify(newCitation)
-        }).then(resp => resp.json());
+        }).then(resp => resp.json())
 
         if (savedCitation && savedCitation.hasOwnProperty("@id")) {
             addEventListener('deer-updated', () => {
                 const sucessfulSaveEvent = new CustomEvent("Bibliographic citation added successfully.")
                 globalFeedbackBlip(sucessfulSaveEvent, 'Bibliographic citation added successfully.', true)
-                return savedCitation;
+                return savedCitation
             })
         } else {
             const invalidInputEvent = new CustomEvent("Failed to add bibliographic citation.")
