@@ -987,6 +987,12 @@ function hideSearchBar() {
     searchBar.addEventListener('input', e => searchSubmit.classList[e.target.value.trim().length === 0 ? 'add' : 'remove']("fade"), true)
 }
 
+
+/**
+ * Modifies a given string with a set of orthographic relations to easier match other strings provided to this function
+ * @param {string} str - string to convert to approximation
+ * @returns modified string
+ */
 function approximateFilter(str){
     if (document.querySelector("#ignore-whitespace").checked)
         str = str.replaceAll(/[^\w]/g, "")
