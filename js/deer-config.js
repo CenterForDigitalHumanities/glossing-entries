@@ -161,24 +161,6 @@ export default {
                 </style>
                 <h2> Glosses </h2>
                 <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
-                <div id="approximate" class="is-hidden">
-                    <input type="checkbox" id="u↔v" name="u↔v" checked>
-                    <label for="u↔v">u ↔ v</label>
-                    <input type="checkbox" id="j↔i" name="j↔i" checked>
-                    <label for="j↔i">j ↔ i</label>
-                    <input type="checkbox" id="y↔i" name="y↔i" checked>
-                    <label for="y↔i">y ↔ i</label>
-                    <input type="checkbox" id="ae↔e" name="ae↔e" checked>
-                    <label for="ae↔e">ae ↔ e</label>
-                    <input type="checkbox" id="oe↔e" name="oe↔e" checked>
-                    <label for="oe↔e">oe ↔ e</label>
-                    <input type="checkbox" id="t↔c" name="t↔c" checked>
-                    <label for="t↔c">t ↔ c</label>
-                    <input type="checkbox" id="exsp↔exp" name="exsp↔exp" checked>
-                    <label for="exsp↔exp">exsp ↔ exp</label>
-                    <input type="checkbox" id="ignore-whitespace" name="ignore-whitespace" checked>
-                    <label for="ignore-whitespace">Ignore Whitespace</label>
-                </div>
                 <form id="ngForm" deer-type="Gloss" deer-context="http://www.loc.gov/mods" class="row">
                     <input id="search-bar" filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText row">
                     <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
@@ -209,6 +191,24 @@ export default {
                     </style>
                     <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="fade serifText row">
                 </form>
+                <div id="approximate" class="is-hidden">
+                    <input type="checkbox" id="u↔v" name="u↔v" checked>
+                    <label for="u↔v">u ↔ v</label>
+                    <input type="checkbox" id="j↔i" name="j↔i" checked>
+                    <label for="j↔i">j ↔ i</label>
+                    <input type="checkbox" id="y↔i" name="y↔i" checked>
+                    <label for="y↔i">y ↔ i</label>
+                    <input type="checkbox" id="ae↔e" name="ae↔e" checked>
+                    <label for="ae↔e">ae ↔ e</label>
+                    <input type="checkbox" id="oe↔e" name="oe↔e" checked>
+                    <label for="oe↔e">oe ↔ e</label>
+                    <input type="checkbox" id="t↔c" name="t↔c" checked>
+                    <label for="t↔c">t ↔ c</label>
+                    <input type="checkbox" id="exsp↔exp" name="exsp↔exp" checked>
+                    <label for="exsp↔exp">exsp ↔ exp</label>
+                    <input type="checkbox" id="ignore-whitespace" name="ignore-whitespace" checked>
+                    <label for="ignore-whitespace">Ignore Whitespace</label>
+                </div>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                     <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
