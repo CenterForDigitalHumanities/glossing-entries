@@ -563,7 +563,7 @@ async function deleteGloss(id=glossHashID) {
 async function queryBibliographicCitations(glossId) {
     const query = {
         "@type": "BibliographicCitation",
-        "references": glossId, 
+        "references": [glossId], 
         "__rerum.generatedBy": __constants.generator
     };
 
@@ -605,7 +605,7 @@ async function addBibliographicCitationToGloss(bibliographicCitation, glossId) {
 
         const query = {
             "@type": "BibliographicCitation",
-            "references": glossId,
+            "references": [glossId],
             "citation": cleanCitation, 
             "__rerum.generatedBy": __constants.generator
         }
@@ -628,7 +628,7 @@ async function addBibliographicCitationToGloss(bibliographicCitation, glossId) {
         const newCitation = {
             "@context": "http://purl.org/dc/terms",
             "@type": "BibliographicCitation",
-            "references": glossId,
+            "references": [glossId],
             "citation": cleanCitation,
             "__rerum.generatedBy": __constants.generator
         }
