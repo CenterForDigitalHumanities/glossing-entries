@@ -750,10 +750,10 @@ async function isPublicGloss(glossID){
  * @param {string} message - The message to be displayed in the confirmation dialog box.
  * @returns {Promise<boolean>} A Promise that resolves with a boolean value indicating whether the confirmation was accepted (true) or canceled (false).
  */
-async function showCustomConfirm() {
+async function showCustomConfirm(message) {
     const confirmModal = document.createElement('custom-confirm-modal')
-    confirmModal.setAttribute('message', 'Are you sure you want to proceed?')
-    document.body.appendChild(confirmModal)
+    confirmModal.setAttribute('message', message)
+    document.body.appendChild(confirmModal);
 
     return new Promise(resolve => {
         confirmModal.addEventListener('confirm', event => {
