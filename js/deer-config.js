@@ -577,7 +577,7 @@ export default {
                         const note = ev.target.classList.contains("attached-to-source") 
                            ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
                            : `Save this textual witness for Gloss '${glossIncipit}'?`
-                        if(await createConfirm(note)){
+                        if(await showCustomConfirm(note)){
                             const customKey = elem.querySelector("input[custom-key='references']")
                             const uri = btn.getAttribute("data-id")
                             if(customKey.value !== uri){

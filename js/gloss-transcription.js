@@ -62,7 +62,8 @@ window.onload = () => {
         deleteBtn.classList.remove("is-hidden")
         witnessForm.setAttribute("deer-id", textWitnessID)
         deleteWitnessButton.addEventListener("click", async ev => {
-            if(await createConfirm("The witness will be deleted.  This action cannot be undone.")){
+            const customMessage = "The witness will be deleted. This action cannot be undone."
+            if(await showCustomConfirm(customMessage)) {
                 deleteWitness(textWitnessID, true)
             }
         })
@@ -688,7 +689,7 @@ function addButton(event) {
         const note = ev.target.classList.contains("attached-to-source") 
            ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
            : `Save this textual witness for Gloss '${glossIncipit}'?`
-        if((createScenario || updateScenario) || await createConfirm(note)){
+        if((createScenario || updateScenario) || await showCustomConfirm(note)){
             const customKey = form.querySelector("input[custom-key='references']")
             const uri = ev.target.getAttribute("data-id")
             if(customKey.value !== uri){
