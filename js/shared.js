@@ -1,3 +1,69 @@
+class CustomConfirmModal extends HTMLElement {
+    constructor() {
+        super()
+        this.attachShadow({mode: 'open'})
+    }
+
+    connectedCallback() {
+        const message = this.getAttribute('message') || 'Default message'
+        this.shadowRoot.innerHTML = `
+        <style>
+            .backdrop {
+                position: fixed;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                top: 0;
+                left: 0;
+                z-index: 1000;
+            }
+            .modal {
+                padding: 20px; /* Increased padding */
+                background: white;
+                position: fixed;
+                width: auto; /* Adjust width */
+                max-width: 90%; /* Ensure it doesn't exceed the viewport width */
+                min-height: 10%;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+                border-radius: 10px;
+                border: 2px solid var(--color-primary);
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                z-index: 1001;
+                text-align: center;
+            }
+            .button {
+                padding: 15px 30px; /* Increased padding for larger touch targets */
+                margin: 10px; /* Adjusted margin */
+                border-radius: 5px;
+                cursor: pointer;
+                color: white;
+                border: none;
+                font-size: 18px; /* Larger font size */
+                width: auto; /* Adjust button width */
+                min-width: 120px; /* Minimum width for better visibility */
+            }
+            .confirm { background-color: green; }
+            .cancel { background-color: red; }
+        </style>
+        <div class="backdrop"></div>
+        <div class="modal">
+            <div id="confirmMessage">${message}</div>
+            <button class="button confirm">Confirm</button>
+            <button class="button cancel">Cancel</button>
+        </div>
+    `
+        this.shadowRoot.querySelector('.confirm').addEventListener('click', () => this.resolveConfirm(true))
+        this.shadowRoot.querySelector('.cancel').addEventListener('click', () => this.resolveConfirm(false))
+    }
+
+    resolveConfirm(result) {
+        this.dispatchEvent(new CustomEvent('confirm', {detail: {confirmed: result}}))
+        this.remove()
+    }
+}
+customElements.define('custom-confirm-modal', CustomConfirmModal)
 /**
  * Shared front end functionality across the HTML pages.
  */
@@ -684,33 +750,14 @@ async function isPublicGloss(glossID){
  * @param {string} message - The message to be displayed in the confirmation dialog box.
  * @returns {Promise<boolean>} A Promise that resolves with a boolean value indicating whether the confirmation was accepted (true) or canceled (false).
  */
-async function createConfirm(message) {
-    // Inserting HTML for custom confirmation dialog box into the document body
-    document.body.insertAdjacentHTML('afterend', 
-    `<div class="customConfirm" style="display: block;">
-        <div style="position: fixed; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); top: 0; left: 0; z-index: 1000;"></div>
-        <div style="padding: 1.25rem; background: white; position: fixed; width: 30%; min-height: 10%; left: 50%; top: 50%; transform: translate(-50%, -50%); border-radius: 0.625rem; border: 0.125rem solid var(--color-primary); box-shadow: 0 0 0.625rem rgba(0, 0, 0, 0.5); z-index: 1001;">
-            <div id="confirmMessage" style="color: var(--color-primary); padding: 0.625rem; text-align: center; font-size: var(--font-size); font-family: var(--font-family-sans);">${message}</div>
-            <div style="text-align: center;">
-                <input id="confirmYes" type="button" value="Confirm" style="padding: 0.625rem 1.25rem; margin: 0.625rem 0.3125rem; border-radius: 0.3125rem; cursor: pointer; background: green; color: white; border: none; font-size: var(--font-size); font-family: var(--font-family-sans);" />
-                <input id="confirmNo" type="button" value="Cancel" style="padding: 0.625rem 1.25rem; margin: 0.625rem 0.3125rem; border-radius: 0.3125rem; cursor: pointer; background: red; color: white; border: none; font-size: var(--font-size); font-family: var(--font-family-sans);" />
-            </div>
-        </div>
-    </div>`)
-    // Returning a Promise that resolves with the user's confirmation choice
-    return new Promise(complete => {
-        // Adding event listeners to handle user interaction with confirmation buttons
-        document.querySelector('#confirmYes').addEventListener('click', function(event) {
-            // Removing the confirmation dialog box from the DOM
-            event.target.closest('.customConfirm').remove()
-            // Resolving the Promise with 'true' indicating confirmation
-            complete(true)
-        })
-        document.querySelector('#confirmNo').addEventListener('click', function(event) {
-            // Removing the confirmation dialog box from the DOM
-            event.target.closest('.customConfirm').remove()
-            // Resolving the Promise with 'false' indicating cancellation
-            complete(false)
-        })
+async function showCustomConfirm(message) {
+    const confirmModal = document.createElement('custom-confirm-modal')
+    confirmModal.setAttribute('message', message)
+    document.body.appendChild(confirmModal);
+
+    return new Promise(resolve => {
+        confirmModal.addEventListener('confirm', event => {
+            resolve(event.detail.confirmed)
+        }, {once: true})
     })
 }
