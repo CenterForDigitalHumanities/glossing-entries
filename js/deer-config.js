@@ -371,12 +371,12 @@ export default {
                         }
                         debounce(filterGlosses(filterQuery))
                     })
+                    Array.from(approximate.children).forEach(e => e.addEventListener('change', () => debounce(filterGlosses(elem.$contentState))))
 
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
                         approximate.classList.remove("is-hidden")
-                        Array.from(approximate.children).forEach(e => e.addEventListener('change', () => debounce(filterGlosses(elem.$contentState))))
                         elem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be selected or take on the string or whatevs
                             i.classList.remove("is-hidden")
