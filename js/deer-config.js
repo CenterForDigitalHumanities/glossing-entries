@@ -1066,18 +1066,12 @@ function modifyTableTR(tr, obj) {
     return tr
 }
 
-function approximateFilter(str){
-    return str
-        .replaceAll(/[^\w]/g, "")
-        .replaceAll("u", "v")
-        .replaceAll("j", "i")
-        .replaceAll("y", "i")
-        .replaceAll("ae", "e")
-        .replaceAll("oe", "e")
-        .replaceAll("t", "c")
-        .replaceAll("exsp", "exp")
-}
 
+/**
+ * Modifies a given string with a set of orthographic relations to easier match other strings provided to this function
+ * @param {string} str - string to convert to approximation
+ * @returns modified string
+ */
 function approximateFilter(str){
     if (document.querySelector("#ignore-whitespace").checked)
         str = str.replaceAll(/[^\w]/g, "")
