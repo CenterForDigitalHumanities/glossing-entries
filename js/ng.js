@@ -648,12 +648,6 @@ async function addBibliographicCitationToGloss(bibliographicCitation, glossId) {
                 globalFeedbackBlip(sucessfulSaveEvent, 'Bibliographic citation added successfully.', true)
                 return savedCitation;
             })
-            addEventListener('deer-created', () => {
-                const sucessfulSaveEvent = new CustomEvent("Bibliographic citation added successfully.")
-                globalFeedbackBlip(sucessfulSaveEvent, 'Bibliographic citation added successfully.', true)
-                return savedCitation;
-            })
-
         } else {
             const invalidInputEvent = new CustomEvent("Failed to add bibliographic citation.")
             globalFeedbackBlip(invalidInputEvent, 'Failed to add bibliographic citation.', false)
