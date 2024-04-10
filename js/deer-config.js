@@ -222,7 +222,7 @@ export default {
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
                         let ul = document.createElement("ul")
-                        ul.insertAdjacentHTML('beforeend', `<li id="approximate-bar">Approimate Matches</li>`)
+                        ul.insertAdjacentHTML('beforeend', `<lh id="approximate-bar">Approimate Matches</lh>`)
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
@@ -383,7 +383,7 @@ export default {
                                     const li_mod = li.getAttribute(`data-${prop}`).toLowerCase()
                                     const query_mod = query[prop].toLowerCase()
                                     const action = approximateFilter(li_mod).includes(approximateFilter(query_mod)) ? "remove" : "add"
-                                    if(action === "add")
+                                    if(action === "remove")
                                         if (!li_mod.includes(query_mod))
                                             approximateBar.classList.remove('is-hidden')
                                         else{
