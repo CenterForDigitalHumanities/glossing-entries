@@ -382,14 +382,13 @@ export default {
                                     const li_mod = li.getAttribute(`data-${prop}`).toLowerCase()
                                     const query_mod = query[prop].toLowerCase()
                                     const action = approximateFilter(li_mod).includes(approximateFilter(query_mod)) ? "remove" : "add"
-                                    if(action === "add" && li.compareDocumentPosition(approximateBar) === document.DOCUMENT_POSITION_PRECEDING){
+                                    if(action === "add" && li.compareDocumentPosition(approximateBar) === document.DOCUMENT_POSITION_PRECEDING)
                                         if (!li_mod.includes(query_mod))
                                             approximateBar.classList.remove('is-hidden')
                                         else{
                                             parent.removeChild(li)
                                             parent.insertAdjacentElement('afterbegin', li)
                                         }
-                                    }
                                     elem.classList[action](`is-hidden`,`un${action}-item`)
                                     setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                     // If it is showing, no need to check other properties for filtering.
