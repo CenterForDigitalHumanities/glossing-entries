@@ -412,15 +412,18 @@ export default {
                                 query[prop] = query[prop].trim()
                             }
                         }
-                        const items = elem.querySelectorAll('tbody tr')
                         const approximateBar = elem.querySelector('#approximate-bar')
                         approximateBar.classList.add('is-hidden')
                         const parent = approximateBar.parentElement
                         parent.removeChild(approximateBar)
                         parent.insertAdjacentElement('afterbegin', approximateBar)
-                        items.forEach(tr=>{
-                            if(!tr.classList.contains("is-hidden")){
-                                tr.classList.add("is-hidden")
+                        const items = elem.querySelectorAll('li')
+                        items.forEach(li=>{
+                            if(li === approximateBar) return
+                            const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
+                            const elem = templateContainer ?? li
+                            if(!elem.classList.contains("is-hidden")){
+                                elem.classList.add("is-hidden")
                             }
                             for(const prop in query){
                                 if(tr.children[1].hasAttribute(`data-${prop}`)){
@@ -429,7 +432,7 @@ export default {
                                         tr.children[2].innerHTML.toLowerCase()]
                                     const query_mod = query[prop].toLowerCase()
                                     const action = tr_mod.map(x => approximateFilter(x).includes(approximateFilter(query_mod))).some(x => x) ? "remove" : "add"
-                                    if (action === "add" && li.compareDocumentPosition(approximateBar) === document.DOCUMENT_POSITION_PRECEDING){
+                                    if (action === "add"){
                                         if(!tr_mod.map(x => x.includes(query_mod)).some(x => x))
                                             approximateBar.classList.remove("is-hidden")
                                         else{
