@@ -222,6 +222,7 @@ export default {
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
                         let ul = document.createElement("ul")
+                        ul.insertAdjacentHTML('beforeend', `<li id="approximate-bar">Approimate Matches</li>`)
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
@@ -365,6 +366,11 @@ export default {
                             }
                         }
                         const items = elem.querySelectorAll('li')
+                        const approximateBar = elem.querySelector('#approximate-bar')
+                        approximateBar.classList.add('is-hidden')
+                        const parent = approximateBar.parentElement
+                        parent.removeChild(approximateBar)
+                        parent.insertAdjacentElement('afterbegin', approximateBar)
                         items.forEach(li=>{
                             const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
                             const elem = templateContainer ?? li
@@ -376,11 +382,13 @@ export default {
                                     const li_mod = li.getAttribute(`data-${prop}`).toLowerCase()
                                     const query_mod = query[prop].toLowerCase()
                                     const action = approximateFilter(li_mod).includes(approximateFilter(query_mod)) ? "remove" : "add"
-                                    if(action === "add" && !li_mod.includes(query_mod)){
-                                        // Move approximate search result to bottom
-                                        const parent = li.parentElement
-                                        parent.removeChild(li)
-                                        parent.appendChild(li)
+                                    if(action === "add" && li.compareDocumentPosition(approximateBar) === document.DOCUMENT_POSITION_PRECEDING){
+                                        if (!li_mod.includes(query_mod))
+                                            approximateBar.classList.remove('is-hidden')
+                                        else{
+                                            parent.removeChild(li)
+                                            parent.insertAdjacentElement('afterbegin', li)
+                                        }
                                     }
                                     elem.classList[action](`is-hidden`,`un${action}-item`)
                                     setTimeout(()=>elem.classList.remove(`un${action}-item`),500)

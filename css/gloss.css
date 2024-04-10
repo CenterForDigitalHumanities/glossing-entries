@@ -119,6 +119,11 @@ img.thumbnail {
   position: relative;
 }
 
+.is-hidden {
+  height: 0em;
+  opacity: 0;
+}
+
 #ngCollectionList li.is-hidden.unadd-item, #ngCollectionList li.is-hidden.unremove-item {
   display: block !important;
 }
