@@ -418,6 +418,11 @@ export default {
                         parent.removeChild(approximateBar)
                         parent.insertAdjacentElement('afterbegin', approximateBar)
                         const items = elem.querySelectorAll('li')
+                        const approximateBar = elem.querySelector('#approximate-bar')
+                        approximateBar.classList.add('is-hidden')
+                        const parent = approximateBar.parentElement
+                        parent.removeChild(approximateBar)
+                        parent.insertAdjacentElement('afterbegin', approximateBar)
                         items.forEach(li=>{
                             if(li === approximateBar) return
                             const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null

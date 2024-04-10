@@ -124,11 +124,6 @@ img.thumbnail {
   opacity: 0;
 }
 
-.is-hidden {
-  height: 0em;
-  opacity: 0;
-}
-
 #ngCollectionList li.is-hidden.unadd-item, #ngCollectionList li.is-hidden.unremove-item,
 #ngCollectionList tr.is-hidden.unadd-item, #ngCollectionList tr.is-hidden.unremove-item {
   display: block !important;
