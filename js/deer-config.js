@@ -365,13 +365,14 @@ export default {
                                 query[prop] = query[prop].trim()
                             }
                         }
-                        const items = elem.querySelectorAll('li')
                         const approximateBar = elem.querySelector('#approximate-bar')
                         approximateBar.classList.add('is-hidden')
                         const parent = approximateBar.parentElement
                         parent.removeChild(approximateBar)
                         parent.insertAdjacentElement('afterbegin', approximateBar)
+                        const items = elem.querySelectorAll('li')
                         items.forEach(li=>{
+                            if(li === approximateBar) return
                             const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
                             const elem = templateContainer ?? li
                             if(!elem.classList.contains("is-hidden")){
@@ -382,7 +383,7 @@ export default {
                                     const li_mod = li.getAttribute(`data-${prop}`).toLowerCase()
                                     const query_mod = query[prop].toLowerCase()
                                     const action = approximateFilter(li_mod).includes(approximateFilter(query_mod)) ? "remove" : "add"
-                                    if(action === "add" && li.compareDocumentPosition(approximateBar) === document.DOCUMENT_POSITION_PRECEDING)
+                                    if(action === "add")
                                         if (!li_mod.includes(query_mod))
                                             approximateBar.classList.remove('is-hidden')
                                         else{
