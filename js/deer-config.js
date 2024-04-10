@@ -222,7 +222,7 @@ export default {
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
                         let ul = document.createElement("table")
-                        ul.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody></tbody>')
+                        ul.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th><th id="approximate-bar">Approimate Matches</th></tr></thead><tbody></tbody>')
                         /**
                          * Sort a column
                          * @param {Number} [index=0] - Column  index to sort by
@@ -413,6 +413,11 @@ export default {
                             }
                         }
                         const items = elem.querySelectorAll('tbody tr')
+                        const approximateBar = elem.querySelector('#approximate-bar')
+                        approximateBar.classList.add('is-hidden')
+                        const parent = approximateBar.parentElement
+                        parent.removeChild(approximateBar)
+                        parent.insertAdjacentElement('afterbegin', approximateBar)
                         items.forEach(tr=>{
                             if(!tr.classList.contains("is-hidden")){
                                 tr.classList.add("is-hidden")
@@ -424,11 +429,12 @@ export default {
                                         tr.children[2].innerHTML.toLowerCase()]
                                     const query_mod = query[prop].toLowerCase()
                                     const action = tr_mod.map(x => approximateFilter(x).includes(approximateFilter(query_mod))).some(x => x) ? "remove" : "add"
-                                    if (action === "add" && !tr_mod.map(x => x.includes(query_mod)).some(x => x)){
-                                        // Move approximate search result to bottom
-                                        const parent = tr.parentElement
-                                        parent.removeChild(tr)
-                                        parent.appendChild(tr)
+                                    if (action === "add" && li.compareDocumentPosition(approximateBar) === document.DOCUMENT_POSITION_PRECEDING){
+                                        if(!tr_mod.map(x => x.includes(query_mod)).some(x => x))
+                                            approximateBar.classList.remove("is-hidden")
+                                        else{
+                                            parent.removeChild(tr)
+                                            parent.insertAdjacentElement('afterbegin', tr)
                                     }
                                     elem.classList[action](`is-hidden`,`un${action}-item`)
                                     setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
