@@ -420,9 +420,8 @@ export default {
                         const items = elem.querySelectorAll('tbody tr')
                         items.forEach(tr=>{
                             if(tr === approximateBar) return
-                            if(!tr.classList.contains("is-hidden")){
+                            if(!tr.classList.contains("is-hidden"))
                                 tr.classList.add("is-hidden")
-                            }
                             for(const prop in query){
                                 if(tr.children[1].hasAttribute(`data-${prop}`)){
                                     const tr_mod = [tr.children[0].innerHTML.toLowerCase(),
@@ -1072,7 +1071,6 @@ function modifyTableTR(tr, obj) {
         tr.firstChild.innerHTML = ""
     return tr
 }
-
 
 /**
  * Modifies a given string with a set of orthographic relations to easier match other strings provided to this function
