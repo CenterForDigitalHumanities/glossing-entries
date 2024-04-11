@@ -222,7 +222,7 @@ export default {
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
                         let ul = document.createElement("table")
-                        ul.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th><th id="approximate-bar">Approimate Matches</th></tr></thead><tbody></tbody>')
+                        ul.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar"><th>Approimate Matches</th></tr></tbody>')
                         /**
                          * Sort a column
                          * @param {Number} [index=0] - Column  index to sort by
