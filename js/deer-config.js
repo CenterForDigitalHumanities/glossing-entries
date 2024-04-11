@@ -398,11 +398,19 @@ export default {
                             }
                             for(const prop in query){
                                 if(tr.children[1].hasAttribute(`data-${prop}`)){
-                                    const action = (tr.children[1].getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ||
-                                                    tr.children[0].innerHTML.toLowerCase().includes(query[prop].toLowerCase()) ||
-                                                    tr.children[2].innerHTML.toLowerCase().includes(query[prop].toLowerCase())) ? "remove" : "add"
-                                    tr.classList[action](`is-hidden`,`un${action}-item`)
-                                    setTimeout(()=>tr.classList.remove(`un${action}-item`),500)
+                                    const tr_mod = [tr.children[0].innerHTML.toLowerCase(),
+                                        tr.children[1].getAttribute(`data-${prop}`).toLowerCase(),
+                                        tr.children[2].innerHTML.toLowerCase()]
+                                    const query_mod = query[prop].toLowerCase()
+                                    const action = tr_mod.map(x => approximateFilter(x).includes(approximateFilter(query_mod))).some(x => x) ? "remove" : "add"
+                                    if (action === "add" && !tr_mod.map(x => x.includes(query_mod)).some(x => x)){
+                                        // Move approximate search result to bottom
+                                        const parent = tr.parentElement
+                                        parent.removeChild(tr)
+                                        parent.appendChild(tr)
+                                    }
+                                    elem.classList[action](`is-hidden`,`un${action}-item`)
+                                    setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                     // If it is showing, no need to check other properties for filtering.
                                     if(action === "remove") break
                                 }
@@ -1035,4 +1043,28 @@ function modifyTableTR(tr, obj) {
     if (tr.firstChild.innerHTML === "Untitled _:_")
         tr.firstChild.innerHTML = ""
     return tr
+}
+
+function approximateFilter(str){
+    return str
+        .replaceAll(/[^\w]/g, "")
+        .replaceAll("u", "v")
+        .replaceAll("j", "i")
+        .replaceAll("y", "i")
+        .replaceAll("ae", "e")
+        .replaceAll("oe", "e")
+        .replaceAll("t", "c")
+        .replaceAll("exsp", "exp")
+}
+
+function approximateFilter(str){
+    return str
+        .replaceAll(/[^\w]/g, "")
+        .replaceAll("u", "v")
+        .replaceAll("j", "i")
+        .replaceAll("y", "i")
+        .replaceAll("ae", "e")
+        .replaceAll("oe", "e")
+        .replaceAll("t", "c")
+        .replaceAll("exsp", "exp")
 }
