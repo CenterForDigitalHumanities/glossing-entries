@@ -432,13 +432,13 @@ export default {
                                         tr.children[2].innerHTML.toLowerCase()]
                                     const query_mod = query[prop].toLowerCase()
                                     const action = tr_mod.map(x => approximateFilter(x).includes(approximateFilter(query_mod))).some(x => x) ? "remove" : "add"
-                                    if (action === "remove"){
+                                    if (action === "remove")
                                         if(!tr_mod.map(x => x.includes(query_mod)).some(x => x))
                                             approximateBar.classList.remove("is-hidden")
                                         else{
                                             parent.removeChild(tr)
                                             parent.insertAdjacentElement('afterbegin', tr)
-                                    }
+                                        }
                                     elem.classList[action](`is-hidden`,`un${action}-item`)
                                     setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
                                     // If it is showing, no need to check other properties for filtering.
