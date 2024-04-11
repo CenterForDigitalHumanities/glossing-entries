@@ -222,7 +222,7 @@ export default {
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
                         let ul = document.createElement("table")
-                        ul.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar"><th>Approimate Matches</th></tr></tbody>')
+                        ul.insertAdjacentHTML('afterbegin', `<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar" style="border-bottom: 0.1em solid var(--color-lightGrey);"><th>Approimate Matches</th></tr></tbody>`)
                         /**
                          * Sort a column
                          * @param {Number} [index=0] - Column  index to sort by
@@ -436,8 +436,8 @@ export default {
                                             parent.removeChild(tr)
                                             parent.insertAdjacentElement('afterbegin', tr)
                                         }
-                                    elem.classList[action](`is-hidden`,`un${action}-item`)
-                                    setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
+                                    tr.classList[action](`is-hidden`,`un${action}-item`)
+                                    setTimeout(()=>tr.classList.remove(`un${action}-item`),500)
                                     // If it is showing, no need to check other properties for filtering.
                                     if(action === "remove") break
                                 }
