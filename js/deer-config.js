@@ -417,13 +417,11 @@ export default {
                         const parent = approximateBar.parentElement
                         parent.removeChild(approximateBar)
                         parent.insertAdjacentElement('afterbegin', approximateBar)
-                        const items = elem.querySelectorAll('li')
-                        items.forEach(li=>{
-                            if(li === approximateBar) return
-                            const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
-                            const elem = templateContainer ?? li
-                            if(!elem.classList.contains("is-hidden")){
-                                elem.classList.add("is-hidden")
+                        const items = elem.querySelectorAll('tbody tr')
+                        items.forEach(tr=>{
+                            if(tr === approximateBar) return
+                            if(!tr.classList.contains("is-hidden")){
+                                tr.classList.add("is-hidden")
                             }
                             for(const prop in query){
                                 if(tr.children[1].hasAttribute(`data-${prop}`)){
