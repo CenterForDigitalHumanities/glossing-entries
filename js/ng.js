@@ -26,8 +26,10 @@ window.onload = () => {
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     if(window.location.search){
         const params = new URLSearchParams(window.location.search)
-        if(params.has("title"))
+        if(params.has("title")){
             labelElem.value = params.get("title")
+            labelElem.$isDirty = true
+        }
     }
     const textElem = glossText
     const textListener = textElem.addEventListener('input', ev => {
