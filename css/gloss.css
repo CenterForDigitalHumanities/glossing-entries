@@ -470,7 +470,19 @@ line.selected.just {
   margin-bottom: 1em;
 }
 
-form#ngForm,
+input#search-bar
+{
+  margin-top: 0.7em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+input#search-submit
+{
+  margin-left: auto;
+  margin-right: auto;
+}
+
 form#bibliographicCitationForm
 {
   margin: 0.7em;

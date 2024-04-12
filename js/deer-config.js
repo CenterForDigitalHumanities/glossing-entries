@@ -161,36 +161,32 @@ export default {
                 </style>
                 <h2> Glosses </h2>
                 <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
-                <form id="ngForm" deer-type="Gloss" deer-context="http://www.loc.gov/mods" class="row">
-                    <input id="search-bar" filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText row">
-                    <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
-                    <input is="auth-creator" type="hidden" deer-key="creator" />
-                    <style>
-                        #search-submit {
-                          background: none;
-                          border: none;
-                          color: var(--color-primary);
-                          cursor: pointer;
-                          font-size: 0.8em;
-                          padding-left: 0;
-                        }
-                        @keyframes fadeIn {
-                          0% { opacity: 0; max-height: 0em; padding: 0em; }
-                          100% { opacity: 1; max-height: auto; padding: auto; }
-                        }
-                        #search-submit:not(.fade) {
-                          animation: fadeIn 0.5s forwards;
-                        }
-                        @keyframes fadeOut {
-                          0% { opacity: 1; max-height: auto; padding: auto; }
-                          100% { opacity: 0; max-height: 0em; padding: 0em; }
-                        }
-                        #search-submit.fade {
-                          animation: fadeOut 0.5s forwards;
-                        }
-                    </style>
-                    <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="fade serifText row">
-                </form>
+                <input id="search-bar" filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText row">
+                <style>
+                    #search-submit {
+                        background: none;
+                        border: none;
+                        color: var(--color-primary);
+                        cursor: pointer;
+                        font-size: 0.8em;
+                        padding-left: 0;
+                    }
+                    @keyframes fadeIn {
+                        0% { opacity: 0; max-height: 0em; padding: 0em; }
+                        100% { opacity: 1; max-height: auto; padding: auto; }
+                    }
+                    #search-submit:not(.fade) {
+                        animation: fadeIn 0.5s forwards;
+                    }
+                    @keyframes fadeOut {
+                        0% { opacity: 1; max-height: auto; padding: auto; }
+                        100% { opacity: 0; max-height: 0em; padding: 0em; }
+                    }
+                    #search-submit.fade {
+                        animation: fadeOut 0.5s forwards;
+                    }
+                </style>
+                <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="fade serifText row">
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                     <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
@@ -996,6 +992,14 @@ function debounce(func,timeout = 500) {
 function hideSearchBar() {
     const searchSubmit = document.getElementById('search-submit')
     const searchBar = document.getElementById('search-bar')
+    searchSubmit.onclick = () => {
+        globalFeedbackBlip(
+            new CustomEvent("deer-view", { detail: { set: [ngCollectionList] }, bubbles: true }),
+            'Redirecting to Gloss Creation...',
+            true
+        )
+        addEventListener('globalFeedbackFinished', () => location.href = `ng.html?title=${searchBar.value}`)
+    }
     searchBar.addEventListener("keydown", (e)=> {
         if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
             if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
