@@ -26,6 +26,7 @@ window.onload = () => {
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     if(window.location.search){
         const params = new URLSearchParams(window.location.search)
+        window.history.replaceState({}, document.title, 'ng.html')
         if(params.has("title")){
             labelElem.value = params.get("title")
             labelElem.$isDirty = true
