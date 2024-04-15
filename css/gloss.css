@@ -489,58 +489,6 @@ form#named-gloss
   margin-right: auto;
 }
 
-form#bibliographicCitationForm{
-    font-family: Arial, sans-serif;
-    margin: 1em auto;
-    max-width: 100%;
-    color: #333;
-}
-
-#bibliographicCitation-container {
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
-
-#bibliographicCitationtoolbar {
-    display: flex;
-    justify-content: start;
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #ccc;
-    padding: 0.5em;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.toolbar-item {
-    background-color: #ffffff;
-    border: 1px solid #ccc;
-    padding: 0.5em 1em;
-    cursor: pointer;
-    margin-right: 0.5em;
-    font-size: 0.9rem;
-    border-radius: 4px;
-    transition: background-color 0.3s, box-shadow 0.3s;
-}
-
-.toolbar-item:hover, .toolbar-item.active {
-    background-color: #0056b3;
-    color: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.toolbar-item, .button {
-    margin: 4px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-}
-
-#bibliographicCitationEditor {
-    padding: 1em;
-    min-height: 200px;
-    border: none;
-    outline: none;
-}
-
 p.bg-light {
   padding: 0.5em;
   text-align: center;
@@ -558,41 +506,4 @@ input#loadInput {
 
 .nomargin{
   margin: 0;
-}
-
-.bib-citation-modal {
-    display: none; 
-    position: fixed;
-    z-index: 1; 
-    left: 0;
-    top: 0;
-    width: 100%; 
-    height: 100%; 
-    overflow: auto; 
-    background-color: rgb(0,0,0); 
-    background-color: rgba(0,0,0,0.4);
-}
-
-.bib-citation-modal-content {
-    background-color: #fefefe;
-    margin: 5% auto; 
-    padding: 20px;
-    border: 1px solid #888;
-    width: 50%;
-    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19); 
-    border-radius: 10px; 
-}
-
-.bib-citation-close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
-
-.bib-citation-close:hover,
-.bib-citation-close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
 }

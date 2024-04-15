@@ -22,16 +22,19 @@ window.onload = () => {
         document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
         glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
+        
         const referenceDiv = document.querySelector(".referenceDiv")
         if (referenceDiv) referenceDiv.classList.remove("is-hidden")
-        const referenceWidget = document.querySelector('gog-reference-widget')
+        const bibliographicCitationModal = document.querySelector('bibliographic-citation-modal')
         queryBibliographicCitations(hash)
             .then((citations) => {
-                if (referenceWidget) {
-                    referenceWidget.updateCitations(citations)
+                if (bibliographicCitationModal) {
+                    bibliographicCitationModal.updateCitations(citations)
                 }
             })
+            
     }
+     
     const citationForm = document.getElementById('bibliographicCitationForm')
     citationForm.addEventListener('submit', function(e) {
         e.preventDefault()
@@ -42,11 +45,11 @@ window.onload = () => {
             .then(() => {
                 document.getElementById('bibliographicCitationModal').style.display = 'none'
                 document.getElementById('bibliographicCitationEditor').innerHTML = ''
-                const referenceWidget = document.querySelector('gog-reference-widget')
+                const bibliographicCitationModal = document.querySelector('bibliographic-citation-modal')
                 queryBibliographicCitations(hash)
                     .then((citations) => {
-                        if (referenceWidget) {
-                            referenceWidget.updateCitations(citations)
+                        if (bibliographicCitationModal) {
+                            bibliographicCitationModal.updateCitations(citations)
                         }
                     })
             })
@@ -54,6 +57,7 @@ window.onload = () => {
                 console.error('Failed to add citation:', error)
             })
     })
+   
     const editor = document.getElementById('bibliographicCitationEditor')
     const buttons = document.querySelectorAll('.toolbar-item')
 
@@ -110,6 +114,7 @@ window.onload = () => {
     editor.addEventListener('mouseup', updateButtonStates)
 
     updateButtonStates()
+
 
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText

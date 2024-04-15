@@ -9,6 +9,7 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/witnessModal.js" type="module"></script>
+    <script src="js/biblliographicCitationModal.js" type="module"></script>
     <script src="js/shared.js"></script>
     <script src="js/ng.js"></script>
 </head>
@@ -21,39 +22,7 @@
         avoid creating a new one unless it does not already exist.
     </p>
 
-
-    <gog-reference-widget></gog-reference-widget>   
-
-    <div id="bibliographicCitationModal" class="bib-citation-modal">
-        <div class="bib-citation-modal-content">
-            <span class="bib-citation-close">&times;</span>
-            <form id="bibliographicCitationForm" deer-type="BibliographicResource" deer-context="http://purl.org/dc/terms">
-                <div class="row">
-                    <label for="bibliographicCitationEditor" class="col-12 text-left">Bibliographic Citation: &#10082;</label>
-                </div>
-        
-                <div class="bibliographicCitation-container">
-                    <div class="row" id="bibliographicCitationtoolbar">
-                        <button type="button" class="toolbar-item" id="boldBtn" data-command="bold">Bold</button>
-                        <button type="button" class="toolbar-item" id="italicBtn" data-command="italic">Italics</button>
-                        <button type="button" class="toolbar-item" id="underlineBtn" data-command="underline">Underline</button>
-                        <button type="button" class="toolbar-item" id="linkBtn">Link</button>
-                        <button type="button" class="toolbar-item" id="subscriptBtn" data-command="subscript">Subscript</button>
-                        <button type="button" class="toolbar-item" id="superscriptBtn" data-command="superscript">Superscript</button>
-                    </div>
-                
-                    <div class="row">
-                        <div id="bibliographicCitationEditor" class="col-12 required" contenteditable="true"></div>
-                    </div>
-                </div>
-        
-                <div class="row">
-                    <input type="hidden" deer-key="references" id="documentReference">
-                    <input class="button primary" type="submit" value="Add Citation"/>
-                </div>
-            </form>
-        </div>
-    </div>
+    <bibliographic-citation-modal></bibliographic-citation-modal>
  
 
     <gog-references-browser class="bg-light is-hidden"> </gog-references-browser>
