@@ -1,8 +1,24 @@
 /**
-  * Process a T-PEN Manifest URI (Presentation API 2.1 only) for its transcription text.
-  * Generate the UI around canvases (pages) and text (lines) so that a user can select text.
-  * Store that text selection as a URI Fragment using #char.  It may be an array that spans multiple lines.
-*/
+ * Defines a custom HTML element `<witness-text-selector>` that processes a T-PEN Manifest URI (Presentation API 2.1 only)
+ * or direct text to generate a user interface allowing text selections. The selected text is intended to be stored
+ * as a URI fragment using #char, potentially spanning multiple lines.
+ * 
+ * Attributes:
+ * - `witness-uri`: A URI pointing to a resource containing the text for transcription.
+ * - `witness-text`: Directly provided text content to be used for transcription if no URI is provided.
+ * 
+ * CSS Styling:
+ * - The selected text is highlighted with an orange background.
+ * - Toggle buttons are provided to hide/show text.
+ * 
+ * Events:
+ * - Custom events like `witness-text-loaded` and `witness-text-error` are dispatched to signal the load status
+ *   or errors in fetching or processing the text.
+ * 
+ * Usage:
+ * - Place this element within an HTML document with optional attributes `witness-uri` or `witness-text`.
+ * - Use JavaScript to listen for custom events and interact with the selected text.
+ */
 class WitnessTextSelector extends HTMLElement {
     template = `
         <style>
