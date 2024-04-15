@@ -1,5 +1,30 @@
 import Queue from './yocto.js';
-
+/**
+ * Creates a concurrency-limited control function that manages execution of multiple asynchronous operations.
+ * This is useful for regulating the number of operations that can run simultaneously, preventing resource overuse.
+ *
+ * @param {number} concurrency - The maximum number of concurrent operations allowed. This must be a positive integer or `Number.POSITIVE_INFINITY` for no limit.
+ * @returns {Function} A generator function that can be used to add asynchronous tasks to be controlled by the concurrency limit.
+ *
+ * @throws {TypeError} If the `concurrency` argument is not a positive integer or `Number.POSITIVE_INFINITY`.
+ *
+ * @example
+ * // Example usage:
+ * import pLimit from './pLimit.js';
+ *
+ * const limit = pLimit(2); // Only two operations will run concurrently.
+ *
+ * // Function that returns a promise.
+ * const doSomething = (value) => new Promise(resolve => setTimeout(resolve, 1000, value));
+ *
+ * async function processArray(array) {
+ *   const results = await Promise.all(array.map(item => limit(() => doSomething(item))));
+ *   console.log(results);
+ * }
+ *
+ * // This will only execute two promises at a time.
+ * processArray([1, 2, 3, 4]);
+ */
 export default function pLimit(concurrency) {
 	if (!((Number.isInteger(concurrency) || concurrency === Number.POSITIVE_INFINITY) && concurrency > 0)) {
 		throw new TypeError('Expected `concurrency` to be a number from 1 and up');
