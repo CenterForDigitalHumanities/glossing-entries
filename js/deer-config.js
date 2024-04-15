@@ -122,6 +122,15 @@ export default {
                 const filter = elem.querySelector('input')
                 filter.classList.remove('is-hidden')
                 filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
+                /**
+                 * Filters list items based on a search query by toggling their visibility.
+                 * 
+                 * This function applies a case-insensitive search to the text content of each <li> element within the specified container.
+                 * If the text content of an <li> element includes the query string, that element is shown; otherwise, it is hidden.
+                 * This function also applies a smooth transition effect for showing and hiding elements.
+                 *
+                 * @param {string} queryString The search string used to filter list items. Default is an empty string.
+                 */
                 function filterGlosses(queryString=''){
                     const query = queryString.trim().toLowerCase()
                     for (const prop in query) {
