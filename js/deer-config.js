@@ -191,6 +191,24 @@ export default {
                     </style>
                     <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="fade serifText row">
                 </form>
+                <div id="approximate" class="is-hidden">
+                    <input type="checkbox" id="u↔v" name="u↔v" checked>
+                    <label for="u↔v">u ↔ v</label>
+                    <input type="checkbox" id="j↔i" name="j↔i" checked>
+                    <label for="j↔i">j ↔ i</label>
+                    <input type="checkbox" id="y↔i" name="y↔i" checked>
+                    <label for="y↔i">y ↔ i</label>
+                    <input type="checkbox" id="ae↔e" name="ae↔e" checked>
+                    <label for="ae↔e">ae ↔ e</label>
+                    <input type="checkbox" id="oe↔e" name="oe↔e" checked>
+                    <label for="oe↔e">oe ↔ e</label>
+                    <input type="checkbox" id="t↔c" name="t↔c" checked>
+                    <label for="t↔c">t ↔ c</label>
+                    <input type="checkbox" id="exsp↔exp" name="exsp↔exp" checked>
+                    <label for="exsp↔exp">exsp ↔ exp</label>
+                    <input type="checkbox" id="ignore-whitespace" name="ignore-whitespace" checked>
+                    <label for="ignore-whitespace">Ignore Whitespace</label>
+                </div>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                     <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
@@ -204,7 +222,7 @@ export default {
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
                         let ul = document.createElement("table")
-                        ul.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody></tbody>')
+                        ul.insertAdjacentHTML('afterbegin', `<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar" style="border-bottom: 0.1em solid var(--color-lightGrey);"><th>Approimate Matches</th></tr></tbody>`)
                         /**
                          * Sort a column
                          * @param {Number} [index=0] - Column  index to sort by
@@ -329,6 +347,7 @@ export default {
                     const filter = elem.querySelector('input')
                     const cachedNotice = elem.querySelector(".cachedNotice")
                     const progressArea = elem.querySelector(".progressArea")
+                    const approximate = elem.querySelector("#approximate")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                     totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
                     totalsProgress.setAttribute("total", total)
@@ -352,10 +371,12 @@ export default {
                         }
                         debounce(filterGlosses(filterQuery))
                     })
+                    Array.from(approximate.children).forEach(e => e.addEventListener('change', () => debounce(filterGlosses(elem.$contentState))))
 
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
+                        approximate.classList.remove("is-hidden")
                         elem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be selected or take on the string or whatevs
                             i.classList.remove("is-hidden")
@@ -391,16 +412,30 @@ export default {
                                 query[prop] = query[prop].trim()
                             }
                         }
+                        const approximateBar = elem.querySelector('#approximate-bar')
+                        approximateBar.classList.add('is-hidden')
+                        const parent = approximateBar.parentElement
+                        parent.removeChild(approximateBar)
+                        parent.insertAdjacentElement('afterbegin', approximateBar)
                         const items = elem.querySelectorAll('tbody tr')
                         items.forEach(tr=>{
-                            if(!tr.classList.contains("is-hidden")){
+                            if(tr === approximateBar) return
+                            if(!tr.classList.contains("is-hidden"))
                                 tr.classList.add("is-hidden")
-                            }
                             for(const prop in query){
                                 if(tr.children[1].hasAttribute(`data-${prop}`)){
-                                    const action = (tr.children[1].getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ||
-                                                    tr.children[0].innerHTML.toLowerCase().includes(query[prop].toLowerCase()) ||
-                                                    tr.children[2].innerHTML.toLowerCase().includes(query[prop].toLowerCase())) ? "remove" : "add"
+                                    const tr_mod = [tr.children[0].innerHTML.toLowerCase(),
+                                        tr.children[1].getAttribute(`data-${prop}`).toLowerCase(),
+                                        tr.children[2].innerHTML.toLowerCase()]
+                                    const query_mod = query[prop].toLowerCase()
+                                    const action = tr_mod.map(x => approximateFilter(x).includes(approximateFilter(query_mod))).some(x => x) ? "remove" : "add"
+                                    if (action === "remove")
+                                        if(!tr_mod.map(x => x.includes(query_mod)).some(x => x))
+                                            approximateBar.classList.remove("is-hidden")
+                                        else{
+                                            parent.removeChild(tr)
+                                            parent.insertAdjacentElement('afterbegin', tr)
+                                        }
                                     tr.classList[action](`is-hidden`,`un${action}-item`)
                                     setTimeout(()=>tr.classList.remove(`un${action}-item`),500)
                                     // If it is showing, no need to check other properties for filtering.
@@ -1035,4 +1070,29 @@ function modifyTableTR(tr, obj) {
     if (tr.firstChild.innerHTML === "Untitled _:_")
         tr.firstChild.innerHTML = ""
     return tr
+}
+
+/**
+ * Modifies a given string with a set of orthographic relations to easier match other strings provided to this function
+ * @param {string} str - string to convert to approximation
+ * @returns modified string
+ */
+function approximateFilter(str){
+    if (document.querySelector("#ignore-whitespace").checked)
+        str = str.replaceAll(/[^\w]/g, "")
+    if (document.querySelector("#u↔v").checked)
+        str = str.replaceAll("u", "v")
+    if (document.querySelector("#j↔i").checked)
+        str = str.replaceAll("j", "i")
+    if (document.querySelector("#y↔i").checked)
+        str = str.replaceAll("y", "i")
+    if (document.querySelector("#ae↔e").checked)
+        str = str.replaceAll("ae", "e")
+    if (document.querySelector("#oe↔e").checked)
+        str = str.replaceAll("oe", "e")
+    if (document.querySelector("#t↔c").checked)
+        str = str.replaceAll("t", "c")
+    if (document.querySelector("#exsp↔exp").checked)
+        str = str.replaceAll("exsp", "exp")
+    return str
 }
