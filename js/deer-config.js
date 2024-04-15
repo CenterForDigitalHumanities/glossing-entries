@@ -1,12 +1,15 @@
 import deerUtils from "./deer-utils.js"
 // import AuthButton from './auth.js'
 
+// Fetch configuration constants from a JSON file and handle any errors.
 const __constants = await fetch("../properties.json").then(r=>r.json()).catch(e=>{return {}})
 
+// Constants for API base URLs.
 const baseV1 = __constants.rerum
 const tiny = __constants.tiny
 
 export default {
+    // Configuration of custom attributes for HTML elements manipulated by the app.
     ID: "deer-id", // attribute, URI for resource to render
     TYPE: "deer-type", // attribute, JSON-LD @type
     TEMPLATE: "deer-template", // attribute, enum for custom template
@@ -27,12 +30,14 @@ export default {
     INPUTTYPE: "deer-input-type", //attribute, defines whether this is an array list, array set, or object 
     ARRAYDELIMETER: "deer-array-delimeter", //attribute, denotes delimeter to use for array.join()
 
+    // Selectors for identifying different types of input elements in the DOM.
     INPUTS: ["input", "textarea", "dataset", "select"], // array of selectors, identifies inputs with .value
     CONTAINERS: ["ItemList", "ItemListElement", "List", "Set", "list", "set", "@list", "@set"], // array of supported list and set types the app will dig into for array values
     PRIMITIVES: [],
 
     GENERATOR: __constants.generator, // The value for __rerum.generatedBy.  It should be the same as the agent encoded in the logged in user's Bearer Token.
 
+    // API endpoints derived from the constants, used for CRUD operations.
     URLS: {
         BASE_ID: __constants.rerum,
         CREATE: __constants.tiny+"/create",
@@ -42,7 +47,7 @@ export default {
         DELETE: __constants.tiny+"/delete",
         SINCE: __constants.rerum+"/since"
     },
-
+    // Custom events that can be emitted by the application, for use in event listeners.
     EVENTS: {
         CREATED: "deer-created",
         UPDATED: "deer-updated",
@@ -674,7 +679,12 @@ export default {
                         })
                         hideSearchBar()
                     }
-
+                    /**
+                     * Debounces function calls by delaying execution until after a specified time has elapsed since the last call.
+                     * @param {Function} func Function to debounce.
+                     * @param {Number} timeout Delay in milliseconds before the function is executed after the last call.
+                     * @returns {Function} Debounced function.
+                     */
                     function debounce(func,timeout = 500) {
                         let timeRemains
                         return (...args) => {
@@ -985,6 +995,12 @@ function userHasRole(roles){
     return Boolean(window.GOG_USER?.["http://rerum.io/user_roles"]?.roles.filter(r=>roles.includes(r)).length)
 }
 
+/**
+ * Debounces function calls by delaying execution until after a specified time has elapsed since the last call.
+ * @param {Function} func Function to debounce.
+ * @param {Number} timeout Delay in milliseconds before the function is executed after the last call.
+ * @returns {Function} Debounced function.
+ */
 function debounce(func,timeout = 500) {
     let timeRemains
     return (...args) => {
@@ -992,7 +1008,9 @@ function debounce(func,timeout = 500) {
         timeRemains = setTimeout(()=>func.apply(this,args),timeRemains)
     }
 }
-
+/**
+ * Hides the search submit button when the search bar is empty, reducing visual clutter.
+ */
 function hideSearchBar() {
     const searchSubmit = document.getElementById('search-submit')
     const searchBar = document.getElementById('search-bar')
