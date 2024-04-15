@@ -235,7 +235,7 @@ class BibliographicCitationModal extends HTMLElement {
             <div class="col">
                 <p class="col-12 col-12-md">Gloss References are displayed below. Click the caret to see the rest of the reference. Click the pencil icon to edit the reference. Click the trash icon to remove the reference.
                 </p>
-                <button class="smaller"> Add Bibliographic Reference </button>
+                <button class="smaller"> New Citation </button>
                 <div class="selectedEntities col-12 col-12-md">
                 </div>
             </div>
