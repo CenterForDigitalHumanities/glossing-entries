@@ -1,9 +1,32 @@
 import { default as utils } from './deer-utils.js'
 
 /**
-  * A focused pop up containing the Gloss deer-form, similar to the form on ng.html.
-  * It can be included on any HTML page.  It fires events for when the DEER form contained within has been saved.
-*/
+ * A custom HTML element `<witness-modal>` that provides a focused pop-up modal containing the Gloss form.
+ * This modal is designed to be embedded in any HTML page and can interactively display details about multiple appearances of a gloss in a text.
+ *
+ * CSS Styling:
+ * - The modal and its components (such as the close button and appearance list) are styled for visibility and interactivity.
+ * - Background dimming is implemented to focus user attention on the modal content.
+ *
+ * Functionality:
+ * - The modal can be toggled to show or hide based on user interactions, such as clicking the close button.
+ * - Custom events are dispatched to signal the modal's visibility state to any listeners within the application.
+ *
+ * Usage:
+ * - Place this element within an HTML document where you need to provide interactive details about gloss appearances.
+ * - Utilize the embedded DEER form for detailed gloss interactions.
+ *
+ * Methods:
+ * - `connectedCallback()`: Initializes the modal's HTML content and sets up event listeners for the close button.
+ * - `toggleModal()`: Toggles the visibility of the modal and dispatches events based on the visibility state.
+ *
+ * Events:
+ * - `witness-modal-hidden`: Fired when the modal is hidden.
+ * - `witness-modal-visible`: Fired when the modal is visible.
+ *
+ * Example:
+ * - To use this modal, simply add `<witness-modal></witness-modal>` to your HTML and interact with it through the provided API.
+ */
 class WitnessModal extends HTMLElement {
     template = `
         <style>
