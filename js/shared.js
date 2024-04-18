@@ -1,3 +1,7 @@
+/**
+ * Custom modal for confirming actions.
+ * @class
+ */
 class CustomConfirmModal extends HTMLElement {
     constructor() {
         super()
@@ -117,7 +121,11 @@ async function setListings(){
         }
     })    
 }
-
+/**
+ * Retrieves the value of a URL parameter by name.
+ * @param {string} variable - The name of the URL parameter.
+ * @returns {string|boolean} - The value of the URL parameter if found, otherwise false.
+ */
 function getURLParameter(variable) {
     const query = window.location.search.substring(1)
     const vars = query.split("&")
@@ -127,24 +135,45 @@ function getURLParameter(variable) {
     }
     return (false)
 }
-
+/**
+ * Converts an ID to an array or a MongoDB query object based on whether it starts with "http".
+ * @param {string} id - The ID to convert.
+ * @param {boolean} justArray - Indicates whether to return only an array.
+ * @returns {array|object} - The converted ID as an array or MongoDB query object.
+ */
 function httpsIdArray(id, justArray) {
     if (!id.startsWith("http")) return justArray ? [ id ] : id
     if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
     return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
 }
-
+/**
+ * Broadcasts an event to a specified element with additional data.
+ * @param {Event} event - The event object.
+ * @param {string} type - The type of event to broadcast.
+ * @param {HTMLElement} element - The element to dispatch the event to.
+ * @param {object} obj - Additional data to include in the event.
+ */
 function broadcast(event = {}, type, element, obj = {}) {
     let e = new CustomEvent(type, { detail: Object.assign(obj, { target: event.target }), bubbles: true })
     element.dispatchEvent(e)
 }
-
+/**
+ * Displays a feedback message to the user.
+ * @param {boolean} noid - Indicates whether the message is for a manuscript without a URI.
+ */
 function alertReturn(noid) {
     let msg = noid
         ? "You entered this page without a manuscript URI. Click OK to head back to the list."
         : "The manuscript this gloss is from does not have a TPEN project associated with it."
 }
-
+/**
+ * Retrieves paginated query results.
+ * @param {number} lim - The limit of results per page.
+ * @param {number} it - The index of the current page.
+ * @param {object} queryObj - The query object to execute.
+ * @param {array} allResults - The accumulated results from all pages.
+ * @returns {Promise} - A promise resolving to an array of query results.
+ */
 function getPagedQuery(lim, it = 0, queryObj, allResults = []) {
     return fetch(`${__constants.tiny}/query?limit=${lim}&skip=${it}`, {
         method: "POST",
@@ -167,7 +196,12 @@ function getPagedQuery(lim, it = 0, queryObj, allResults = []) {
             throw err
         })
 }
-
+/**
+ * Displays global feedback to the user.
+ * @param {Event} event - The triggering event.
+ * @param {string} message - The feedback message to display.
+ * @param {boolean} success - Indicates whether the operation was successful.
+ */
 function globalFeedbackBlip(event, message, success) {
     globalFeedback.innerText = message
     globalFeedback.classList.add("show")
@@ -196,7 +230,11 @@ function filtersFromURL() {
     let decodedJSON = decodeContentState(encoded)
     return decodedJSON
 }
-
+/**
+ * Encodes content state JSON to a Base64 URL.
+ * @param {string} contentStateJSON - The content state JSON to encode.
+ * @returns {string} - The Base64 URL encoded string.
+ */
 function encodeContentState(contentStateJSON) {
     let uriEncoded = encodeURIComponent(contentStateJSON)
     let base64 = btoa(uriEncoded)
@@ -204,7 +242,11 @@ function encodeContentState(contentStateJSON) {
     let base64urlNoPadding = base64url.replace(/=/g, "")
     return base64urlNoPadding
 }
-
+/**
+ * Decodes a Base64 URL encoded string to content state JSON.
+ * @param {string} encodedContentState - The Base64 URL encoded string to decode.
+ * @returns {object} - The decoded content state JSON object.
+ */
 function decodeContentState(encodedContentState) {
     let base64url = restorePadding(encodedContentState)
     let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
@@ -212,7 +254,11 @@ function decodeContentState(encodedContentState) {
     let uriDecoded = decodeURIComponent(base64Decoded)
     return JSON.parse(uriDecoded)
 }
-
+/**
+ * Restores padding to a Base64 URL encoded string.
+ * @param {string} s - The Base64 URL encoded string to restore padding to.
+ * @returns {string} - The padded Base64 URL encoded string.
+ */
 function restorePadding(s) {
     // The length of the restored string must be a multiple of 4
     let pad = s.length % 4
@@ -238,7 +284,9 @@ document.addEventListener('deer-updated', event => {
 })
 
 /** Auth */
-
+/**
+ * Loads the hash identifier (hash-id) and sets it as an attribute for elements with [hash-id].
+ */
 function loadHashId() {
     let hash = location.hash?.substring(1)
     if (!hash) { return }
@@ -254,7 +302,12 @@ function loadHashId() {
     })
 }
 if (document.readyState === 'interactive' || 'loaded') loadHashId()
-
+/**
+ * Finds matching incipits based on the provided incipit and title start.
+ * @param {string} incipit - The incipit to search for.
+ * @param {string} titleStart - The start of the title.
+ * @returns {Promise<Array>} - A promise that resolves to an array of matching glosses.
+ */
 async function findMatchingIncipits(incipit, titleStart) {
     if (incipit?.length < 5) { 
         const ev = new CustomEvent(`Text "${incipit}" is too short to consider.`)
