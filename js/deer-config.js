@@ -843,6 +843,7 @@ export default {
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
                     const modalBtn = containingListElem.querySelector("gloss-modal-button")
+                    const approximate = containingListElem.querySelector("#approximate")
                     const filterInstructions = containingListElem.querySelector(".filterInstructions")
                     totalsProgress.setAttribute("count", numloaded)
                     totalsProgress.setAttribute("total", total)
@@ -855,6 +856,7 @@ export default {
                         if(modalBtn) modalBtn.classList.remove("is-hidden")
                         if(filterInstructions) filterInstructions.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
+                        approximate.classList.remove("is-hidden")
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be visible and selected / take on the string / etc.
                             i.classList.remove("is-hidden")
