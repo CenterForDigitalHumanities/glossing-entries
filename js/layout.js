@@ -30,10 +30,7 @@ class GlossFooter extends HTMLElement {
     }
 }
 customElements.define('gog-footer', GlossFooter)
-/**
- * Represents a custom HTML element for the header of a gloss gallery.
- * @extends HTMLElement
- */
+
 class GlossHeader extends HTMLElement {
     static #stylizeTab(dir="") {
         return `href="${dir}"${window.location.pathname === dir.slice(1) ? ' style="border-top: 5px solid var(--color-primary); padding-top: 5px;"' : ""}}`
@@ -106,10 +103,7 @@ class GlossHeader extends HTMLElement {
 }
 
 customElements.define('gog-header', GlossHeader)
-/**
- * Represents a custom HTML element for displaying an open-source notice.
- * @extends HTMLElement
- */
+
 class OSNotice extends HTMLElement {
     template  = `
     <div class="osNotice bg-basic"> 
@@ -136,10 +130,7 @@ class OSNotice extends HTMLElement {
 }
 
 customElements.define('os-notice', OSNotice)
-/**
- * Represents a custom HTML element for displaying an open-source notice.
- * @extends HTMLElement
- */
+
 class TagWidget extends HTMLElement {
     template = `
         <style>
@@ -273,10 +264,7 @@ class TagWidget extends HTMLElement {
 }
 
 customElements.define('gog-tag-widget', TagWidget)
-/**
- * Represents a custom HTML element for a theme widget.
- * @extends HTMLElement
- */
+
 class ThemeWidget extends HTMLElement {
     template = `
         <style>
@@ -409,10 +397,7 @@ class ThemeWidget extends HTMLElement {
 }
 
 customElements.define('gog-theme-widget', ThemeWidget)
-/**
- * Represents a custom HTML element for a references browser.
- * @extends HTMLElement
- */
+
 class ReferencesBrowser extends HTMLElement {
     template = `
         <style>
