@@ -263,8 +263,8 @@ export default {
                             else 
                                 ul.children[0].children[0].children[+index].innerHTML = ul.children[0].children[0].children[+index].innerHTML + down
                             const modif = ul.children[0].children[0].children[+index].innerHTML.slice(-down.length) === down ? -1 : 1
-                        	const approximateBar = elem.querySelector('#approximate-bar')
-							Array.from(ul.children[1].children).sort((a, b) => {
+                            const approximateBar = elem.querySelector('#approximate-bar')
+                            Array.from(ul.children[1].children).sort((a, b) => {
                                 if (a === NULL || a === approximateBar) return 1
                                 if (b === NULL || b === approximateBar) return -1
                                 a = selector(a)
@@ -277,7 +277,7 @@ export default {
                                 parent.removeChild(e)
                                 parent.appendChild(e)
                             })
-							filterHandle()
+                            filterHandle()
                         }
                         ul.children[0].children[0].children[0].onclick = _ => customSort(0, a => a.children[0].innerHTML, "") // Refrence
                         ul.children[0].children[0].children[1].onclick = _ => customSort(1, a => a.children[1].children[0].children[0].innerHTML, "[ unlabeled ]") // Title
@@ -376,9 +376,9 @@ export default {
                     })
 
                     // Filter the list of glosses as users type their query against 'title'
-					function filterHandle() {
-						const val = filter.value.trim()
-						let filterQuery
+                    function filterHandle() {
+                        const val = filter.value.trim()
+                        let filterQuery
                         if(val){
                             filterQuery = encodeContentState(JSON.stringify({"title" : val, "text": val, "targetedtext": val}))
                         }
@@ -386,7 +386,7 @@ export default {
                             filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
                         }
                         debounce(filterGlosses(filterQuery))
-					}
+                    }
                     filter.addEventListener('input', filterHandle)
                     Array.from(approximate.children).forEach(e => e.addEventListener('change', filterHandle))
 
