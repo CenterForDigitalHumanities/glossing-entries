@@ -1,9 +1,13 @@
 import { default as utils } from './deer-utils.js'
 
 /**
-  * A focused pop up containing the Gloss deer-form, similar to the form on ng.html.
-  * It can be included on any HTML page.  It fires events for when the DEER form contained within has been saved.
-*/
+ * Custom HTML element `<witness-modal>` provides a pop-up modal for displaying gloss appearances.
+ * It's designed for easy embedding in any HTML page, allowing interactive exploration of gloss details.
+ *
+ * Usage:
+ * - Add `<witness-modal></witness-modal>` to your HTML for gloss interactions.
+ * - Use the embedded DEER form for detailed gloss interactions.
+ */
 class WitnessModal extends HTMLElement {
     template = `
         <style>

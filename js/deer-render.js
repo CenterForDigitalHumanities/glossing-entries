@@ -182,7 +182,12 @@ DEER.TEMPLATES.linky = function (obj, options = {}) {
         return null
     }
 }
-
+/**
+ * Generates HTML thumbnails for a given object.
+ * @param {object} obj - The object containing data for generating thumbnails.
+ * @param {object} options - Options for generating thumbnails (optional).
+ * @returns {object} - An object containing HTML and a function for rendering thumbnails.
+ */
 DEER.TEMPLATES.thumbs = function (obj, options = {}) {
     return {
         html: obj["tpen://base-project"] ? `<div class="is-full-width"> <h3> ... loading images ... </h3> </div>` : ``,
@@ -195,12 +200,22 @@ DEER.TEMPLATES.thumbs = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML page links for navigating through canvases of a given object.
+ * @param {object} obj - The object containing data for generating page links.
+ * @param {object} options - Options for generating page links (optional).
+ * @returns {string} - A string containing HTML page links.
+ */
 DEER.TEMPLATES.pageLinks = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     return obj.sequences[0].canvases.reduce((a, b, i) => a += `<a class="button" href="?page=${i + 1}#${obj["@id"]}">${b.label}</a>`, ``)
 }
-
+/**
+ * Generates HTML for displaying folio transcriptions.
+ * @param {object} obj - The object containing data for generating folio transcriptions.
+ * @param {object} options - Options for generating folio transcriptions (optional).
+ * @returns {object} - An object containing HTML and a function for rendering folio transcriptions.
+ */
 DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     return {
@@ -227,7 +242,12 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML for managing gloss assignments.
+ * @param {object} obj - The object containing data for managing gloss assignments.
+ * @param {object} options - Options for managing gloss assignments (optional).
+ * @returns {object} - An object containing HTML and a function for managing gloss assignments.
+ */
 DEER.TEMPLATES.glossAssignments = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     return {
@@ -270,7 +290,10 @@ DEER.TEMPLATES.glossAssignments = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Attaches a click event handler to remove gloss badges.
+ * @param {HTMLElement} elem - The HTML element representing the gloss badge.
+ */
 function AttachClickToRemoveHandler(elem) {
     elem.addEventListener('click', ev => {
         ev.stopPropagation()
@@ -284,7 +307,12 @@ function AttachClickToRemoveHandler(elem) {
         elem.innerHTML = ''
     })
 }
-
+/**
+ * Generates HTML for managing gloss lines.
+ * @param {object} obj - The object containing data for managing gloss lines.
+ * @param {object} options - Options for managing gloss lines (optional).
+ * @returns {object} - An object containing HTML and a function for managing gloss lines.
+ */
 DEER.TEMPLATES.glossLines = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     //TODO we need to know the GlossID here as well.
@@ -421,6 +449,9 @@ DEER.TEMPLATES.glossLines = function (obj, options = {}) {
                     })
 
             }
+            /**
+             * Renders gloss designations based on linking annotations.
+             */
             function renderGlossDesignations() {
                 const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
                 const query = {
@@ -473,7 +504,12 @@ DEER.TEMPLATES.glossLines = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML for displaying images using OpenSeadragon (OSD).
+ * @param {object} obj - The object containing data for displaying images.
+ * @param {object} options - Options for displaying images (optional).
+ * @returns {object|string} - An object containing HTML and a function for displaying images using OSD, or a string representing a bare image template.
+ */
 DEER.TEMPLATES.osd = function (obj, options = {}) {
     const index = options.index && !isNaN(options.index) ? options.index : 0
     const imgURL = obj.sequences[0].canvases[index].images[0].resource['@id']
@@ -501,7 +537,12 @@ DEER.TEMPLATES.osd = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML for displaying lines of text with options for assigning locations.
+ * @param {object} obj - The object containing data for displaying lines.
+ * @param {object} options - Options for displaying lines (optional).
+ * @returns {object} - An object containing HTML and a function for displaying lines with location assignment options.
+ */
 DEER.TEMPLATES.lines_new = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     const index = options.index && !isNaN(options.index) ? options.index : 0
@@ -690,6 +731,9 @@ DEER.TEMPLATES.lines_new = function (obj, options = {}) {
                     UTILS.globalFeedbackBlip(ev, `Locations update failed.`, false)
                 })
             }
+            /**
+             * Fetches existing annotations for assigned locations and highlights corresponding lines.
+             */
             function highlightLocations() {
                 const pageElement = document.querySelector("div.page")
                 const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
@@ -788,7 +832,12 @@ DEER.TEMPLATES.lines_new = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML content for displaying and manipulating lines within a canvas.
+ * @param {Object} obj - The object containing canvas and line information.
+ * @param {Object} options - Optional parameters for customization.
+ * @returns {Object} - An object containing HTML content and functionality.
+ */
 DEER.TEMPLATES.lines = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     let c = obj.sequences[0].canvases[options.index ?? 0]
@@ -959,6 +1008,9 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
                     UTILS.globalFeedbackBlip(ev, `Locations update failed.`, false)
                 })
             }
+            /**
+             * Retrieves existing line positions from annotations and highlights them in the UI.
+             */
             function highlightLocations() {
                 const pageElement = document.querySelector("div.page")
                 const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
@@ -1037,7 +1089,12 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML and functionality for managing glosses.
+ * @param {Object} obj - The gloss object.
+ * @param {Object} options - Options for customization.
+ * @returns {Object} - HTML structure and functionality.
+ */
 DEER.TEMPLATES.managedlist = function (obj, options = {}) {
     return{
         html: ` 
@@ -1329,7 +1386,9 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 }))
                 saveList.addEventListener('click', overwriteList)
             })
-                            
+            /**
+             * Overwrites the list of glosses with updated data.
+             */            
             function overwriteList() {
                 let mss = []
                 let missing = false
@@ -1443,7 +1502,12 @@ DEER.TEMPLATES.entity = function (obj, options = {}) {
     tmpl += (list.includes("</dd>")) ? `<dl>${list}</dl>` : ``
     return tmpl
 }
-
+/**
+ * Template function to generate a list of items.
+ * @param {object} obj - The object containing the items.
+ * @param {object} options - Options for customizing the list.
+ * @returns {string} - The HTML template for the list.
+ */
 DEER.TEMPLATES.list = function (obj, options = {}) {
     let tmpl = `<h2>${UTILS.getLabel(obj)}</h2>`
     if (options.list) {
@@ -1610,7 +1674,12 @@ export default class DeerRender {
                             console.error("Broke with listObj at ", listObj)
                             RENDER.element(this.elem, listObj)
                         })
-
+                    /**
+                     * Function to fetch paged query results for a list.
+                     * @param {number} lim - The limit for the number of items per page.
+                     * @param {number} it - The offset for pagination.
+                     * @returns {Promise} - A promise that resolves to the paged query results.
+                     */
                     function getListPagedQuery(lim, it = 0) {
                         const q = DEER.URLS.QUERY.replace("?limit=100&skip=0", "")
                         return fetch(`${q}?limit=${lim}&skip=${it}`, {
