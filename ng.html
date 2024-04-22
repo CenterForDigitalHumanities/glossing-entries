@@ -1,114 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <title>Gallery of Glosses</title>
-    <link rel="stylesheet" href="css/gloss.css">
+    <link rel="stylesheet" href="css/gloss.css" />
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
     <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/witnessdiv.js" type="module"></script>
-    <script src="js/bibliographicCitationDiv.js" type="module"></script>
+    <script src="js/bibliographicCitationView.js" type="module"></script>
     <script src="js/shared.js"></script>
     <script src="js/ng.js"></script>
-</head>
+  </head>
 
-<body class="container">
+  <body class="container">
     <gog-header class="container"></gog-header>
-    <h2> <span class="add-update">Add</span> Gloss </h2>
-    <p id="look" class="bg-light">
-        NB: A Gloss is an important thing. Please describe it as well as possible and
-        avoid creating a new one unless it does not already exist.
-    </p>
+    <h2><span class="add-update">Add</span> Gloss</h2>
+    <p id="look" class="bg-light">NB: A Gloss is an important thing. Please describe it as well as possible and avoid creating a new one unless it does not already exist.</p>
 
     <bibliographic-citation-div></bibliographic-citation-div>
- 
 
     <gog-references-browser class="bg-light is-hidden"> </gog-references-browser>
     <!-- Center & make a white background div with buttons inside, decide color later -->
-    <div class="addWitnessDiv is-hidden" style="display: flex; justify-content: center; background-color: white; padding: 10px; gap: 20px; flex-wrap: wrap;">
-        <button class="addWitnessBtn button is-hidden" onclick="witnessForGloss(true)" style="margin: 5px; padding: 10px; border: none; border-radius: 4px;">Add a T-PEN Transcription Witness for this Gloss</button>
-        <button class="addWitnessBtn button is-hidden" onclick="witnessForGloss()" style="margin: 5px; padding: 10px; border: none; border-radius: 4px;">Add a Textual Witness for this Gloss</button>
+    <div class="addWitnessDiv is-hidden" style="display: flex; justify-content: center; background-color: white; padding: 10px; gap: 20px; flex-wrap: wrap">
+      <button class="addWitnessBtn button is-hidden" onclick="witnessForGloss(true)" style="margin: 5px; padding: 10px; border: none; border-radius: 4px">
+        Add a T-PEN Transcription Witness for this Gloss
+      </button>
+      <button class="addWitnessBtn button is-hidden" onclick="witnessForGloss()" style="margin: 5px; padding: 10px; border: none; border-radius: 4px">Add a Textual Witness for this Gloss</button>
     </div>
 
-
     <form id="named-gloss" deer-type="Gloss" deer-context="http://purl.org/dc/terms" hash-id>
-        <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
-        <input is="auth-creator" type="hidden" deer-key="creator" />
-        <div class="row">
-            <label class="col-3 col-2-md text-right">Gloss Text: <i class="fas fa-info-circle icon-help" title="Enter the content of the gloss here."></i></label>
-            <textarea custom-text-key="text" id="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
-            
-            <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
-            <select custom-text-key="language" name="textLang" id="textLang" class="col-3 col-2-md">
-                <option value="la" selected>Latin</option>
-                <option value="de">German</option>
-                <option value="fr">French</option>
-                <option value="en">English</option>
-            </select>
+      <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses" />
+      <input is="auth-creator" type="hidden" deer-key="creator" />
+      <div class="row">
+        <label class="col-3 col-2-md text-right">Gloss Text: <i class="fas fa-info-circle icon-help" title="Enter the content of the gloss here."></i></label>
+        <textarea custom-text-key="text" id="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
 
-            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
-                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
-            </label>
-        </div>
-        <div class="row">
-            <label class="col-3 col-2-md text-right">Description: <i title="Provide a brief description or summary of the gloss."></i></label>
-            <input type="text" deer-key="description" placeholder="description" class="col-9 col-10-md">
-            <label class="col-3 col-2-md text-right">Canonical Reference Locator: <i class="fas fa-info-circle icon-help" title="Enter a reference to the location in the source text, like 'Matthew 5:1'."></i></label>
-            <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
-            <button class="col-6" type="button" role="button" onclick="parseSections()">parse sections</button>
-            <label class="col-3 col-2-md text-right">Document: <i class="fas fa-info-circle icon-help" title="Specify the document or source from which the gloss is taken."></i></label>
-            <input type="text" deer-key="_document" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Section: <i class="fas fa-info-circle icon-help" title="Indicate the specific chapter or section of the document."></i></label>
-            <input type="text" deer-key="_section" placeholder="chapter" class="col-9 col-4-md">
-            <label class="col-3 col-2-md text-right">Subsection(s): <i class="fas fa-info-circle icon-help" title="Mention the particular verse or subsections referred to in the gloss."></i></label>
-            <input type="text" deer-key="_subsection" placeholder="verse" class="col-9 col-4-md">
-        </div>
-        <div class="row">
-            <label class="col-3 col-2-md text-right">Target Text: <i class="fas fa-info-circle icon-help" title="Input the text that this gloss is aimed at or elaborates upon."></i></label>
-            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text" ></textarea>
-            <label class="col-3 col-2-md text-right">Label for display: <i class="fas fa-info-circle icon-help" title="Enter the incipit or identifying label."></i></label>
-            <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
-        </div>
-        <div class="row">
-            <label class="col-3 col-2-md text-right">Notes: <i class="fas fa-info-circle icon-help" title="Enter internal notes or comments about this gloss."></i></label>
-            <input type="text" deer-key="_notes" placeholder="internal notes" class="col-9 col-10-md">
-        </div>
-        <div class="row">
-            <gog-tag-widget class="col"> </gog-tag-widget>
-            <gog-theme-widget class="col"> </gog-theme-widget>
-        </div>
-        <div class="row">
-            <div class="col">
-                <p> Before submitting you can check for existing Glosses that may already contain the text provided above. </p>
-                <button type="button" id="checkForGlossesBtn"> Check for Existing Glosses </button>
+        <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
+        <select custom-text-key="language" name="textLang" id="textLang" class="col-3 col-2-md">
+          <option value="la" selected>Latin</option>
+          <option value="de">German</option>
+          <option value="fr">French</option>
+          <option value="en">English</option>
+        </select>
 
-                <div id="glossResult"></div>
-            </div>
+        <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
+          The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
+        </label>
+      </div>
+      <div class="row">
+        <label class="col-3 col-2-md text-right">Description: <i title="Provide a brief description or summary of the gloss."></i></label>
+        <input type="text" deer-key="description" placeholder="description" class="col-9 col-10-md" />
+        <label class="col-3 col-2-md text-right"
+          >Canonical Reference Locator: <i class="fas fa-info-circle icon-help" title="Enter a reference to the location in the source text, like 'Matthew 5:1'."></i
+        ></label>
+        <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md" />
+        <button class="col-6" type="button" role="button" onclick="parseSections()">parse sections</button>
+        <label class="col-3 col-2-md text-right">Document: <i class="fas fa-info-circle icon-help" title="Specify the document or source from which the gloss is taken."></i></label>
+        <input type="text" deer-key="_document" placeholder='e.g., "Matthew"' class="col-9 col-4-md" />
+        <label class="col-3 col-2-md text-right">Section: <i class="fas fa-info-circle icon-help" title="Indicate the specific chapter or section of the document."></i></label>
+        <input type="text" deer-key="_section" placeholder="chapter" class="col-9 col-4-md" />
+        <label class="col-3 col-2-md text-right">Subsection(s): <i class="fas fa-info-circle icon-help" title="Mention the particular verse or subsections referred to in the gloss."></i></label>
+        <input type="text" deer-key="_subsection" placeholder="verse" class="col-9 col-4-md" />
+      </div>
+      <div class="row">
+        <label class="col-3 col-2-md text-right">Target Text: <i class="fas fa-info-circle icon-help" title="Input the text that this gloss is aimed at or elaborates upon."></i></label>
+        <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text"></textarea>
+        <label class="col-3 col-2-md text-right">Label for display: <i class="fas fa-info-circle icon-help" title="Enter the incipit or identifying label."></i></label>
+        <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md" />
+      </div>
+      <div class="row">
+        <label class="col-3 col-2-md text-right">Notes: <i class="fas fa-info-circle icon-help" title="Enter internal notes or comments about this gloss."></i></label>
+        <input type="text" deer-key="_notes" placeholder="internal notes" class="col-9 col-10-md" />
+      </div>
+      <div class="row">
+        <gog-tag-widget class="col"> </gog-tag-widget>
+        <gog-theme-widget class="col"> </gog-theme-widget>
+      </div>
+      <div class="row">
+        <div class="col">
+          <p>Before submitting you can check for existing Glosses that may already contain the text provided above.</p>
+          <button type="button" id="checkForGlossesBtn">Check for Existing Glosses</button>
+
+          <div id="glossResult"></div>
         </div>
-        <input type="submit" value="Create" class="col add-update">
-        <input type="button" onclick="deleteGloss()" class="dropGloss button error" value="Drop Gloss"/>
+      </div>
+      <input type="submit" value="Create" class="col add-update" />
+      <input type="button" onclick="deleteGloss()" class="dropGloss button error" value="Drop Gloss" />
     </form>
 
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <witness-div class="is-hidden"></witness-div>
-</body>
+  </body>
 
-<script>
+  <script>
     /**
      * Make sure DEER forms do not submit when a user hits "Enter".
-     */ 
-    document.querySelectorAll("form[deer-type]").forEach(form => {
-        form.addEventListener("keydown", (e)=> {
-            if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
-                if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
-                    e.preventDefault()
-                }
+     */
+    document.querySelectorAll("form[deer-type]").forEach((form) => {
+      form.addEventListener(
+        "keydown",
+        (e) => {
+          if (e.keyIdentifier == "U+000A" || e.keyIdentifier == "Enter" || e.keyCode == 13) {
+            if (e.target.nodeName == "INPUT" && e.target.type == "text") {
+              e.preventDefault();
             }
-        }, true)
-    })
-</script>
-
+          }
+        },
+        true
+      );
+    });
+  </script>
 </html>
