@@ -16,33 +16,43 @@ const changeLoader = new MutationObserver(renderChange)
 var DEER = config
 
 /**
- * Observer callback for rendering newly loaded objects. Checks the
- * mutationsList for "deep-object" attribute changes.
- * @param {Array} mutationsList of MutationRecord objects
+ * Observes DOM mutations and processes changes based on DEER configuration attributes.
+ * This function is meant to be used as a callback for a MutationObserver to handle specific attribute changes
+ * on elements that are part of the DEER framework. It checks for changes to DEER.ID and DEER.LISTENING attributes
+ * and performs actions like fetching data, updating local storage, or setting up event listeners based on these changes.
+ * 
+ * @param {Array} mutationsList - Array of MutationRecord objects describing each change observed by the MutationObserver.
  */
 async function renderChange(mutationsList) {
     for (var mutation of mutationsList) {
+        // Switch on the name of the modified attribute.
         switch (mutation.attributeName) {
             case DEER.ID:
+                // Handle changes to DEER.ID attribute: fetch and render data linked to the new ID.
                 let id = mutation.target.getAttribute(DEER.ID)
-                if (id === null) return
+                if (id === null) return // If the new ID is null, skip processing.
                 let obj = {}
                 try {
+                    // Attempt to retrieve the data object from local storage.
                     obj = JSON.parse(localStorage.getItem(id))
-                } catch (err) { }
+                } catch (err) {/* fail silently if JSON parsing fails */ }
                 if (!obj ?? !obj["@id"]) {
+                    // If no object found, fetch it from the network.
                     id = id.replace(/^https?:/, 'https:') // avoid mixed content
                     obj = await fetch(id).then(response => response.json()).catch(error => error)
                     if (obj) {
+                        // Store fetched object in local storage for future use.
                         localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
                     } else {
                         return false
                     }
                 }
+                // Render the data to the associated element.
                 new DeerReport(mutation.target, DEER)
                 // TODO: This is too heavy. Create a "populateFormFields" method and call it instead.
                 break
             case DEER.LISTENING:
+                // Set up a listener for clicks that match the specified DEER.LISTENING attribute.
                 let listensTo = mutation.target.getAttribute(DEER.LISTENING)
                 if (listensTo) {
                     mutation.target.addEventListener(DEER.EVENTS.CLICKED, e => {
@@ -507,7 +517,18 @@ export default class DeerReport {
             })
     }
 }
-
+/**
+ * Initializes forms for use with the DEER framework based on a provided configuration.
+ * This function scans the document for form elements specified in the configuration and
+ * applies DEER functionality to them by instantiating the DeerReport class for each form.
+ * It also sets up an event listener to handle dynamically added forms that might appear
+ * after initial page load, ensuring that all forms, whether initially present or added
+ * later, are properly integrated with DEER.
+ *
+ * @param {Object} config - Configuration object specifying selectors and settings for DEER forms.
+ * The configuration should include a FORM property that provides a CSS selector string identifying
+ * which forms should be initialized.
+ */
 export function initializeDeerForms(config) {
     const forms = document.querySelectorAll(config.FORM)
     Array.from(forms).forEach(elem => new DeerReport(elem, config))
