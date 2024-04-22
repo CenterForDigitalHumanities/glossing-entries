@@ -237,7 +237,14 @@ export default {
                     if (options.list) {
                         let ul = document.createElement("table")
                         ul.insertAdjacentHTML('afterbegin', `<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar" class="is-hidden" style="border-bottom: 0.1em solid var(--color-lightGrey);"><th>Approximate Matches</th></tr></tbody>`)
-                        /**
+                        function getSort(down="<small>▼</small>", up="<small>▲</small>") {
+							for (let i = 0; i < ul.children[0].children[0].childElementCount; i++)
+                            	if (ul.children[0].children[0].children[i].innerHTML.slice(-down.length) === down ||
+									ul.children[0].children[0].children[i].innerHTML.slice(-up.length) === up)
+									return i
+							return null
+						}
+						/**
                          * Sort a column
                          * @param {Number} [index=0] - Column  index to sort by
                          * @param {Function} [selector=a=>a] - Function to select the data to sort by
@@ -277,7 +284,7 @@ export default {
                                 parent.removeChild(e)
                                 parent.appendChild(e)
                             })
-                            filterHandle()
+							filterHandle()
                         }
                         ul.children[0].children[0].children[0].onclick = _ => customSort(0, a => a.children[0].innerHTML, "") // Refrence
                         ul.children[0].children[0].children[1].onclick = _ => customSort(1, a => a.children[1].children[0].children[0].innerHTML, "[ unlabeled ]") // Title
@@ -451,7 +458,7 @@ export default {
                                             approximateBar.classList.remove("is-hidden")
                                         else{
                                             parent.removeChild(tr)
-                                            parent.insertAdjacentElement('afterbegin', tr)
+                                            parent.insertBefore(tr, approximateBar) //parent.insertAdjacentElement('afterbegin', tr)
                                         }
                                     tr.classList[action](`is-hidden`,`un${action}-item`)
                                     setTimeout(()=>tr.classList.remove(`un${action}-item`),500)
