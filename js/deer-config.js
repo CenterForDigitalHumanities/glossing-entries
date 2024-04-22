@@ -277,6 +277,7 @@ export default {
                                 parent.removeChild(e)
                                 parent.appendChild(e)
                             })
+							filterHandle()
                         }
                         ul.children[0].children[0].children[0].onclick = _ => customSort(0, a => a.children[0].innerHTML, "") // Refrence
                         ul.children[0].children[0].children[1].onclick = _ => customSort(1, a => a.children[1].children[0].children[0].innerHTML, "[ unlabeled ]") // Title
