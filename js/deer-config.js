@@ -236,7 +236,7 @@ export default {
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
                         let ul = document.createElement("table")
-                        ul.insertAdjacentHTML('afterbegin', `<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar" style="border-bottom: 0.1em solid var(--color-lightGrey);"><th>Approimate Matches</th></tr></tbody>`)
+                        ul.insertAdjacentHTML('afterbegin', `<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar" class="is-hidden" style="border-bottom: 0.1em solid var(--color-lightGrey);"><th>Approximate Matches</th></tr></tbody>`)
                         /**
                          * Sort a column
                          * @param {Number} [index=0] - Column  index to sort by
@@ -263,11 +263,12 @@ export default {
                             else 
                                 ul.children[0].children[0].children[+index].innerHTML = ul.children[0].children[0].children[+index].innerHTML + down
                             const modif = ul.children[0].children[0].children[+index].innerHTML.slice(-down.length) === down ? -1 : 1
-                            Array.from(ul.children[1].children).sort((a, b) => {
+                        	const approximateBar = elem.querySelector('#approximate-bar')
+							Array.from(ul.children[1].children).sort((a, b) => {
+                                if (a === NULL || a === approximateBar) return 1
+                                if (b === NULL || b === approximateBar) return -1
                                 a = selector(a)
                                 b = selector(b)
-                                if (a === NULL) return 1
-                                if (b === NULL) return -1
                                 if (a < b) return -modif
                                 if (a > b) return modif
                                 return 0
