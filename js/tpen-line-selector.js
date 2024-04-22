@@ -1,10 +1,35 @@
 /**
-  * Process a T-PEN Manifest URI (Presentation API 2.1 only) for its transcription text.
-  * Generate the UI around canvases (pages) and text (lines) so that a user can select text.
-  * Store that text selection as a URI Fragment using #char.  It may be an array that spans multiple lines.
-  * 
-  * Automatically move around <marks> in the selection idea: https://stackoverflow.com/questions/47836227/how-to-disable-selecting-some-of-the-text-in-div
-*/
+ * A custom HTML element `<tpen-line-selector>` that processes a T-PEN Manifest URI for transcription text.
+ * It generates a user interface around canvases (pages) and text (lines) to facilitate text selection by the user.
+ * The selected text is stored as a URI Fragment using `#char`, potentially spanning multiple lines.
+ *
+ * Attributes:
+ * - `tpen-project`: A URI to a T-PEN project which contains transcription data to be loaded and interacted with.
+ *
+ * CSS Styling:
+ * - Text areas are styled to distinguish them visually, with toggles provided for collapsing text sections.
+ * - Custom styles define the appearance of text selections and toggle controls.
+ *
+ * Usage:
+ * - Place this element within an HTML document and provide the `tpen-project` attribute pointing to a valid T-PEN project URI.
+ * - Interact with the text through UI elements rendered by the component which allow text selection and section toggling.
+ *
+ * Methods:
+ * - `connectedCallback()`: Called when the element is added to the DOM, initializing the element's inner HTML and setting up event listeners.
+ * - `attributeChangedCallback(name, oldValue, newValue)`: Monitors changes to the `tpen-project` attribute and reloads the component if necessary.
+ *
+ * Internal Logic:
+ * - Fetches transcription data from the specified T-PEN URI.
+ * - Dynamically generates HTML content based on the fetched data, including text lines and toggle controls for each page.
+ * - Implements event handlers for toggling visibility of text sections and capturing text selections made by the user.
+ *
+ * Events:
+ * - Custom events like `tpen-lines-loaded` and `tpen-lines-error` are dispatched to indicate the status of transcription data loading.
+ * Process a T-PEN Manifest URI (Presentation API 2.1 only) for its transcription text.
+ * Generate the UI around canvases (pages) and text (lines) so that a user can select text.
+ * Store that text selection as a URI Fragment using #char.  It may be an array that spans multiple lines.
+ * Automatically move around <marks> in the selection idea: https://stackoverflow.com/questions/47836227/how-to-disable-selecting-some-of-the-text-in-div
+ */
 class TpenLineSelector extends HTMLElement {
     template = `
         <style>
