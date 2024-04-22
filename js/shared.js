@@ -252,7 +252,7 @@ function decodeContentState(encodedContentState) {
     let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
     let base64Decoded = atob(base64)
     let uriDecoded = decodeURIComponent(base64Decoded)
-	if (!uriDecoded) uriDecoded = `{"title":""}`
+    if (!uriDecoded) uriDecoded = `{"title":""}`
     return JSON.parse(uriDecoded)
 }
 /**
