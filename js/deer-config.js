@@ -385,7 +385,7 @@ export default {
                         }
                         debounce(filterGlosses(filterQuery))
                     })
-                    Array.from(approximate.children).forEach(e => e.addEventListener('change', () => debounce(filterGlosses(elem.$contentState))))
+                    Array.from(approximate.children).forEach(e => e.addEventListener('change', () => { if(filterPresent) debounce(filterGlosses(elem.$contentState)) }))
 
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
