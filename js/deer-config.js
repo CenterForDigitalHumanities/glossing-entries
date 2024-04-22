@@ -374,18 +374,19 @@ export default {
                     })
 
                     // Filter the list of glosses as users type their query against 'title'
-                    filter.addEventListener('input', ev =>{
-                        const val = ev?.target.value.trim()
-                        let filterQuery
+					function filterHandle() {
+						const val = filter.value.trim()
+						let filterQuery
                         if(val){
-                            filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
+                            filterQuery = encodeContentState(JSON.stringify({"title" : val, "text": val, "targetedtext": val}))
                         }
                         else{
                             filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
                         }
                         debounce(filterGlosses(filterQuery))
-                    })
-                    Array.from(approximate.children).forEach(e => e.addEventListener('change', () => { if(filterPresent) debounce(filterGlosses(elem.$contentState)) }))
+					}
+                    filter.addEventListener('input', filterHandle)
+                    Array.from(approximate.children).forEach(e => e.addEventListener('change', filterHandle))
 
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
