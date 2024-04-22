@@ -237,7 +237,12 @@ function parseSections() {
     })
     
 }
-
+/**
+ * Prefills the tags area in the form with provided tag data and builds the UI.
+ * @param {object|array|string} tagData - The tag data to prefill.
+ * @param {HTMLFormElement} form - The form element where the tags area is located.
+ * @returns {boolean} - Returns false if there is no tag data.
+ */
 function prefillTagsArea(tagData, form = document.getElementById("named-gloss")) {
     if (tagData === undefined) {
         console.warn("Cannot set value for tags and build UI.  There is no data.")
@@ -263,7 +268,12 @@ function prefillTagsArea(tagData, form = document.getElementById("named-gloss"))
     })
     selectedTagsArea.innerHTML = tags
 }
-
+/**
+ * Prefills the themes area in the form with provided theme data and builds the UI.
+ * @param {object|array|string} themeData - The theme data to prefill.
+ * @param {HTMLFormElement} form - The form element where the themes area is located.
+ * @returns {boolean} - Returns false if there is no theme data.
+ */
 function prefillThemesArea(themeData, form = document.getElementById("named-gloss")) {
     if (themeData === undefined) {
         console.warn("Cannot set value for themes and build UI.  There is no data.")
@@ -337,7 +347,10 @@ function prefillText(textObj, form) {
         textElem.setAttribute("value", textVal)
     }
 }
-
+/**
+ * Redirects or opens a new tab to the witness page for the given gloss.
+ * @param {boolean} tpen - Indicates whether to redirect to T-PEN for the witness page.
+ */
 function witnessForGloss(tpen){
     const title = document.getElementById("named-gloss").querySelector("input[deer-key='title']").value
     if(!title) return
