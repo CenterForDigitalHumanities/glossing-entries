@@ -237,7 +237,7 @@ export default {
                     if (options.list) {
                         let ul = document.createElement("table")
                         ul.insertAdjacentHTML('afterbegin', `<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar" class="is-hidden" style="border-bottom: 0.1em solid var(--color-lightGrey);"><th>Approximate Matches</th></tr></tbody>`)
-						/**
+                        /**
                          * Sort a column
                          * @param {Number} [index=0] - Column  index to sort by
                          * @param {Function} [selector=a=>a] - Function to select the data to sort by
@@ -277,7 +277,7 @@ export default {
                                 parent.removeChild(e)
                                 parent.appendChild(e)
                             })
-							filterHandle()
+                            filterHandle()
                         }
                         ul.children[0].children[0].children[0].onclick = _ => customSort(0, a => a.children[0].innerHTML, "") // Refrence
                         ul.children[0].children[0].children[1].onclick = _ => customSort(1, a => a.children[1].children[0].children[0].innerHTML, "[ unlabeled ]") // Title
