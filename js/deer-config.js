@@ -1018,7 +1018,9 @@ function debounce(func,timeout = 500) {
     }
 }
 /**
- * Hides the search submit button when the search bar is empty, reducing visual clutter.
+ * Attaches event listeners to the search bar to dynamically hide the search submit button
+ * when the search bar is empty, reducing visual clutter.
+ * This function should be called once to initialize the behavior.
  */
 function hideSearchBar() {
     const searchSubmit = document.getElementById('search-submit')
