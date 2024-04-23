@@ -207,6 +207,10 @@ class BibliographicCitationView extends HTMLElement {
             .referenceRemove {
                 color: red;
             }
+            .text-muted {
+                color: gray;
+                font-size: 10px;
+            }
         </style>
         <div class="referenceDiv is-hidden">
             <div class="col">
@@ -222,7 +226,8 @@ class BibliographicCitationView extends HTMLElement {
                 <span class="bib-citation-close">&times;</span>
                 <form id="bibliographicCitationForm" deer-type="BibliographicResource" deer-context="http://purl.org/dc/terms">
                     <div class="row">
-                        <label for="bibliographicCitationEditor" class="col-12 text-left">Bibliographic Citation: &#10082;</label>
+                        <label for="bibliographicCitationEditor" class="col-12 text-left">Bibliographic Citation:</label>
+                        <p class="text-left text-muted">If typing manually, it is recommended to type the content first, then highlight, then click the buttons to transform the highlighted content.  </p>
                     </div>
             
                     <div class="bibliographicCitation-container">
@@ -236,7 +241,7 @@ class BibliographicCitationView extends HTMLElement {
                         </div>
                     
                         <div class="row">
-                            <div id="bibliographicCitationEditor" class="col-12 required" contenteditable="true"></div>
+                            <div spellcheck="false" id="bibliographicCitationEditor" class="col-12 required" contenteditable="true"></div>
                         </div>
                     </div>
             
@@ -253,29 +258,36 @@ class BibliographicCitationView extends HTMLElement {
     this.citationsMap = {}
   }
   connectedCallback() {
-    const $this = this
     this.innerHTML = this.template
 
-    let span = document.getElementsByClassName("bib-citation-close")[0]
+    const span = this.querySelector(".bib-citation-close")
 
-    span.onclick = function () {
-      document.getElementById("bibliographicCitationModal").style.display = "none"
+    span.onclick = () => {
+        this.querySelector("#bibliographicCitationModal").style.display = "none"
     }
 
-    window.onclick = function (event) {
-      let modal = document.getElementById("bibliographicCitationModal")
-      let modalContent = document.querySelector(".bib-citation-modal-content")
-      if (!modalContent.contains(event.target) && event.target == modal) {
+    const modal = this.querySelector("#bibliographicCitationModal")
+    const modalContent = this.querySelector(".bib-citation-modal-content")
+
+    window.addEventListener("mousedown", (event) => {
+        if (!modalContent.contains(event.target) && event.target !== modalContent) {
+          this.isClickOutsideModal = true
+        } else {
+          this.isClickOutsideModal = false
+        }
+      })
+  
+    window.addEventListener("mouseup", (event) => {
+    if (this.isClickOutsideModal && !modalContent.contains(event.target) && event.target === modal) {
         modal.style.display = "none"
-      }
     }
+    this.isClickOutsideModal = false
+    })
 
-    const openModalButton = document.getElementById("openCitationModalButton")
+    const openModalButton = this.querySelector("#openCitationModalButton")
     openModalButton.addEventListener("click", (event) => {
       this.openModal(event)
     })
-
-    const bibliographicCitationDiv = document.querySelector("bibliographic-citation-div")
 
     let hash = window.location.hash
     if (hash.startsWith("#")) {
@@ -283,17 +295,15 @@ class BibliographicCitationView extends HTMLElement {
       if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
         // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
         let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
-        document.dispatchEvent(e)
+        this.dispatchEvent(e)
         return
       }
     }
 
     if (hash) {
-      document.querySelector(".referenceDiv").classList.remove("is-hidden")
+      this.querySelector(".referenceDiv").classList.remove("is-hidden")
       queryBibliographicCitations(hash).then((citations) => {
-        if (bibliographicCitationDiv) {
-          bibliographicCitationDiv.updateCitations(citations)
-        }
+        this.updateCitations(citations)
       })
     }
 
@@ -318,12 +328,14 @@ class BibliographicCitationView extends HTMLElement {
       }
     })
 
-    const citationForm = document.getElementById("bibliographicCitationForm")
+    const citationForm = this.querySelector("#bibliographicCitationForm")
+    const editor = this.querySelector("#bibliographicCitationEditor")
+
+    const documentReferenceInput = this.querySelector("#documentReference")
+
     citationForm.addEventListener("submit", async function (e) {
       e.preventDefault()
-
-      const editorContent = document.getElementById("bibliographicCitationEditor").innerHTML
-      const documentReferenceInput = document.getElementById("documentReference")
+      const editorContent = editor.innerHTML
       const citationId = documentReferenceInput.value
 
       try {
@@ -333,70 +345,47 @@ class BibliographicCitationView extends HTMLElement {
           await addBibliographicCitationToGloss(editorContent, hash)
         }
 
-        document.getElementById("bibliographicCitationModal").style.display = "none"
-        document.getElementById("bibliographicCitationEditor").innerHTML = ""
+        modal.style.display = "none"
+        editor.innerHTML = ""
         documentReferenceInput.value = ""
       } catch (error) {
         console.error("Failed to process citation:", error)
       }
     })
 
-    const editor = document.getElementById("bibliographicCitationEditor")
-    const buttons = document.querySelectorAll(".toolbar-item")
+    this.setupEditor()
+  }
 
-    function format(command) {
-      document.execCommand(command, false, null)
-      updateButtonStates()
-    }
-
-    function insertLink() {
-      let url = prompt("Enter the URL:")
-      if (url) {
-        document.execCommand("createLink", false, url)
-      }
-      updateButtonStates()
-    }
-
-    const updateButtonStates = () => {
-      buttons.forEach((button) => {
-        const command = button.dataset.command
-        if (document.queryCommandState(command)) {
-          button.classList.add("active")
-        } else {
-          button.classList.remove("active")
-        }
+  setupEditor() {
+    const editor = this.querySelector("#bibliographicCitationEditor")
+    const buttons = this.querySelectorAll(".toolbar-item")
+  
+    buttons.forEach((button) => {
+      button.addEventListener("click", (e) => {
+        e.preventDefault()
+        this.formatCommand(button.dataset.command)
       })
-    }
-
-    document.getElementById("boldBtn").addEventListener("click", (e) => {
-      e.preventDefault()
-      format("bold")
     })
-    document.getElementById("italicBtn").addEventListener("click", (e) => {
-      e.preventDefault()
-      format("italic")
+  
+    editor.addEventListener("keyup", () => this.updateButtonStates())
+    editor.addEventListener("mouseup", () => this.updateButtonStates())
+  }
+  
+  formatCommand(command) {
+    document.execCommand(command, false, null)
+    this.updateButtonStates()
+  }
+  
+  updateButtonStates() {
+    const buttons = this.querySelectorAll(".toolbar-item")
+    buttons.forEach(button => {
+      const command = button.dataset.command
+      if (document.queryCommandState(command)) {
+        button.classList.add("active")
+      } else {
+        button.classList.remove("active")
+      }
     })
-    document.getElementById("underlineBtn").addEventListener("click", (e) => {
-      e.preventDefault()
-      format("underline")
-    })
-    document.getElementById("linkBtn").addEventListener("click", () => {
-      insertLink()
-    })
-    document.getElementById("subscriptBtn").addEventListener("click", (e) => {
-      e.preventDefault()
-      format("subscript")
-    })
-
-    document.getElementById("superscriptBtn").addEventListener("click", (e) => {
-      e.preventDefault()
-      format("superscript")
-    })
-
-    editor.addEventListener("keyup", updateButtonStates)
-    editor.addEventListener("mouseup", updateButtonStates)
-
-    updateButtonStates()
   }
 
   openModal(event) {
