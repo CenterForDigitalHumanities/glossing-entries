@@ -247,231 +247,256 @@ class BibliographicCitationView extends HTMLElement {
                 </form>
             </div>
         </div>
-    `;
+    `
   constructor() {
-    super();
-    this.citationsMap = {};
+    super()
+    this.citationsMap = {}
   }
   connectedCallback() {
-    const $this = this;
-    this.innerHTML = this.template;
+    const $this = this
+    this.innerHTML = this.template
 
-    var span = document.getElementsByClassName("bib-citation-close")[0];
+    let span = document.getElementsByClassName("bib-citation-close")[0]
 
     span.onclick = function () {
-      document.getElementById("bibliographicCitationModal").style.display = "none";
-    };
+      document.getElementById("bibliographicCitationModal").style.display = "none"
+    }
 
     window.onclick = function (event) {
-      var modal = document.getElementById("bibliographicCitationModal");
-      var modalContent = document.querySelector(".bib-citation-modal-content");
+      let modal = document.getElementById("bibliographicCitationModal")
+      let modalContent = document.querySelector(".bib-citation-modal-content")
       if (!modalContent.contains(event.target) && event.target == modal) {
-        modal.style.display = "none";
+        modal.style.display = "none"
       }
-    };
+    }
 
-    const openModalButton = document.getElementById("openCitationModalButton");
+    const openModalButton = document.getElementById("openCitationModalButton")
     openModalButton.addEventListener("click", (event) => {
-      this.openModal(event);
-    });
+      this.openModal(event)
+    })
 
-    const bibliographicCitationDiv = document.querySelector("bibliographic-citation-div");
+    const bibliographicCitationDiv = document.querySelector("bibliographic-citation-div")
 
-    let hash = window.location.hash;
+    let hash = window.location.hash
     if (hash.startsWith("#")) {
-      hash = window.location.hash.substring(1);
+      hash = window.location.hash.substring(1)
       if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
         // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-        let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true });
-        document.dispatchEvent(e);
-        return;
+        let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
+        document.dispatchEvent(e)
+        return
       }
     }
 
     if (hash) {
-      document.querySelector(".referenceDiv").classList.remove("is-hidden");
+      document.querySelector(".referenceDiv").classList.remove("is-hidden")
       queryBibliographicCitations(hash).then((citations) => {
         if (bibliographicCitationDiv) {
-          bibliographicCitationDiv.updateCitations(citations);
+          bibliographicCitationDiv.updateCitations(citations)
         }
-      });
+      })
     }
 
     this.addEventListener("click", async (event) => {
-      const target = event.target;
-      const card = target.closest(".referenceCard");
+      const target = event.target
+      const card = target.closest(".referenceCard")
       if (card) {
         if (event.target.classList.contains("dropdownButton") || event.target.closest(".dropdownButton")) {
-          const referenceCard = event.target.closest(".referenceCard");
-          referenceCard.querySelector(".referenceContent").classList.toggle("is-hidden");
-          referenceCard.querySelector(".referencePreview").classList.toggle("is-hidden");
-          const dropdownIcon = referenceCard.querySelector(".dropdownButton i");
-          dropdownIcon.classList.toggle("fa-caret-left");
-          dropdownIcon.classList.toggle("fa-caret-down");
+          const referenceCard = event.target.closest(".referenceCard")
+          referenceCard.querySelector(".referenceContent").classList.toggle("is-hidden")
+          referenceCard.querySelector(".referencePreview").classList.toggle("is-hidden")
+          const dropdownIcon = referenceCard.querySelector(".dropdownButton i")
+          dropdownIcon.classList.toggle("fa-caret-left")
+          dropdownIcon.classList.toggle("fa-caret-down")
         } else if (event.target.classList.contains("referenceEdit") || event.target.closest(".referenceEdit")) {
-          const citationId = event.target.closest(".referenceCard").getAttribute("data-id");
-          this.editCitation(citationId);
+          const citationId = event.target.closest(".referenceCard").getAttribute("data-id")
+          this.editCitation(citationId)
         } else if (event.target.classList.contains("referenceRemove") || event.target.closest(".referenceRemove")) {
-          const citationId = event.target.closest(".referenceCard").getAttribute("data-id");
-          this.removeCitation(citationId);
+          const citationId = event.target.closest(".referenceCard").getAttribute("data-id")
+          this.removeCitation(citationId)
         }
       }
-    });
+    })
 
-    const citationForm = document.getElementById("bibliographicCitationForm");
+    const citationForm = document.getElementById("bibliographicCitationForm")
     citationForm.addEventListener("submit", async function (e) {
-      e.preventDefault();
+      e.preventDefault()
 
-      const editorContent = document.getElementById("bibliographicCitationEditor").innerHTML;
-      const documentReferenceInput = document.getElementById("documentReference");
-      const citationId = documentReferenceInput.value;
+      const editorContent = document.getElementById("bibliographicCitationEditor").innerHTML
+      const documentReferenceInput = document.getElementById("documentReference")
+      const citationId = documentReferenceInput.value
 
       try {
         if (citationId) {
-          await updateBibliographicCitation(editorContent, hash, citationId);
+          await updateBibliographicCitation(editorContent, hash, citationId)
         } else {
-          await addBibliographicCitationToGloss(editorContent, hash);
+          await addBibliographicCitationToGloss(editorContent, hash)
         }
 
-        document.getElementById("bibliographicCitationModal").style.display = "none";
-        document.getElementById("bibliographicCitationEditor").innerHTML = "";
-        documentReferenceInput.value = "";
+        document.getElementById("bibliographicCitationModal").style.display = "none"
+        document.getElementById("bibliographicCitationEditor").innerHTML = ""
+        documentReferenceInput.value = ""
       } catch (error) {
-        console.error("Failed to process citation:", error);
+        console.error("Failed to process citation:", error)
       }
-    });
+    })
 
-    const editor = document.getElementById("bibliographicCitationEditor");
-    const buttons = document.querySelectorAll(".toolbar-item");
+    const editor = document.getElementById("bibliographicCitationEditor")
+    const buttons = document.querySelectorAll(".toolbar-item")
 
     function format(command) {
-      document.execCommand(command, false, null);
-      updateButtonStates();
+      document.execCommand(command, false, null)
+      updateButtonStates()
     }
 
     function insertLink() {
-      var url = prompt("Enter the URL:");
+      let url = prompt("Enter the URL:")
       if (url) {
-        document.execCommand("createLink", false, url);
+        document.execCommand("createLink", false, url)
       }
-      updateButtonStates();
+      updateButtonStates()
     }
 
     const updateButtonStates = () => {
       buttons.forEach((button) => {
-        const command = button.dataset.command;
+        const command = button.dataset.command
         if (document.queryCommandState(command)) {
-          button.classList.add("active");
+          button.classList.add("active")
         } else {
-          button.classList.remove("active");
+          button.classList.remove("active")
         }
-      });
-    };
+      })
+    }
 
     document.getElementById("boldBtn").addEventListener("click", (e) => {
-      e.preventDefault();
-      format("bold");
-    });
+      e.preventDefault()
+      format("bold")
+    })
     document.getElementById("italicBtn").addEventListener("click", (e) => {
-      e.preventDefault();
-      format("italic");
-    });
+      e.preventDefault()
+      format("italic")
+    })
     document.getElementById("underlineBtn").addEventListener("click", (e) => {
-      e.preventDefault();
-      format("underline");
-    });
+      e.preventDefault()
+      format("underline")
+    })
     document.getElementById("linkBtn").addEventListener("click", () => {
-      insertLink();
-    });
+      insertLink()
+    })
     document.getElementById("subscriptBtn").addEventListener("click", (e) => {
-      e.preventDefault();
-      format("subscript");
-    });
+      e.preventDefault()
+      format("subscript")
+    })
 
     document.getElementById("superscriptBtn").addEventListener("click", (e) => {
-      e.preventDefault();
-      format("superscript");
-    });
+      e.preventDefault()
+      format("superscript")
+    })
 
-    editor.addEventListener("keyup", updateButtonStates);
-    editor.addEventListener("mouseup", updateButtonStates);
+    editor.addEventListener("keyup", updateButtonStates)
+    editor.addEventListener("mouseup", updateButtonStates)
 
-    updateButtonStates();
+    updateButtonStates()
   }
 
   openModal(event) {
-    event.preventDefault();
-    event.stopPropagation();
+    event.preventDefault()
+    event.stopPropagation()
 
-    const documentReferenceInput = this.querySelector("#documentReference");
-    documentReferenceInput.value = "";
+    const documentReferenceInput = this.querySelector("#documentReference")
+    documentReferenceInput.value = ""
 
-    const editor = document.getElementById("bibliographicCitationEditor");
-    editor.innerHTML = "";
+    const editor = document.getElementById("bibliographicCitationEditor")
+    editor.innerHTML = ""
 
-    this.setModalButtonLabel("Add Citation");
+    this.setModalButtonLabel("Add Citation")
 
-    document.getElementById("bibliographicCitationModal").style.display = "block";
+    document.getElementById("bibliographicCitationModal").style.display = "block"
   }
 
   setModalButtonLabel(label) {
-    const submitButton = document.getElementById("citationSubmitButton");
-    submitButton.value = label;
+    const submitButton = document.getElementById("citationSubmitButton")
+    submitButton.value = label
   }
 
+  /**
+   * Opens the citation modal for editing an existing citation. It loads the content of the citation into
+   * the editor and sets the form to reflect an update operation.
+   *
+   * @param {String} citationId - The unique identifier (IRI) of the citation to edit.
+   */
   editCitation(citationId) {
-    const citationContent = this.citationsMap[citationId];
+    const citationContent = this.citationsMap[citationId]
 
-    const editor = document.getElementById("bibliographicCitationEditor");
-    editor.innerHTML = citationContent;
+    const editor = document.getElementById("bibliographicCitationEditor")
+    editor.innerHTML = citationContent
 
-    const documentReferenceInput = this.querySelector("#documentReference");
-    documentReferenceInput.value = citationId;
+    const documentReferenceInput = this.querySelector("#documentReference")
+    documentReferenceInput.value = citationId
 
-    this.setModalButtonLabel("Update Citation");
+    this.setModalButtonLabel("Update Citation")
 
-    document.getElementById("bibliographicCitationModal").style.display = "block";
+    document.getElementById("bibliographicCitationModal").style.display = "block"
   }
 
+  /**
+   * Deletes a citation and updates the UI to reflect the change. If the citation is successfully deleted,
+   * it refreshes the list of citations displayed.
+   *
+   * @param {String} citationId - The unique identifier (IRI) of the citation to delete.
+   */
   removeCitation(citationId) {
     // TODO: might want to add a warning in the future
     deleteBibliographicCitation(citationId).then(() => {
-      const successfulUpdateEvent = new CustomEvent("Bibliographic citation deleted successfully.");
-      globalFeedbackBlip(successfulUpdateEvent, "Bibliographic citation deleted successfully.", true);
-      let hash = window.location.hash;
+      const successfulUpdateEvent = new CustomEvent("Bibliographic citation deleted successfully.")
+      globalFeedbackBlip(successfulUpdateEvent, "Bibliographic citation deleted successfully.", true)
+      let hash = window.location.hash
       if (hash.startsWith("#")) {
-        hash = window.location.hash.substring(1);
+        hash = window.location.hash.substring(1)
         if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
           // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-          let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true });
-          document.dispatchEvent(e);
-          return;
+          let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
+          document.dispatchEvent(e)
+          return
         }
       }
 
       queryBibliographicCitations(hash).then((citations) => {
-        const bibliographicCitationDiv = document.querySelector("bibliographic-citation-div");
+        const bibliographicCitationDiv = document.querySelector("bibliographic-citation-div")
         if (bibliographicCitationDiv) {
-          bibliographicCitationDiv.updateCitations(citations);
+          bibliographicCitationDiv.updateCitations(citations)
         }
-      });
-    });
+      })
+    })
   }
 
+  /**
+   * Updates the internal state and the display of citations. Maps citations by their IDs for quick access
+   * and dynamically creates HTML content for each citation to be displayed on the page.
+   *
+   * @param {Array} citations - An array of citation objects to display.
+   */
   updateCitations(citations) {
-    this.citationsMap = {};
-    const selectedEntities = this.querySelector(".selectedEntities");
-    selectedEntities.innerHTML = "";
+    this.citationsMap = {}
+    const selectedEntities = this.querySelector(".selectedEntities")
+    selectedEntities.innerHTML = ""
 
     citations.forEach((citation) => {
-      this.citationsMap[citation["@id"]] = citation.citation;
-      const citationContent = this.createCitationCard(citation);
-      selectedEntities.insertAdjacentHTML("beforeend", citationContent);
-    });
+      this.citationsMap[citation["@id"]] = citation.citation
+      const citationContent = this.createCitationCard(citation)
+      selectedEntities.insertAdjacentHTML("beforeend", citationContent)
+    })
   }
 
+
+  /**
+   * Creates an HTML representation of a citation card. This card includes actions such as view, edit, and delete.
+   *
+   * @param {Object} citation - The citation data object.
+   * @returns {String} The HTML string of the citation card.
+   */
   createCitationCard(citation) {
-    const previewContent = citation.citation.length > 40 ? citation.citation.substring(0, 40) + "…" : citation.citation;
+    const previewContent = citation.citation.length > 40 ? citation.citation.substring(0, 40) + "…" : citation.citation
 
     return `
             <div class="referenceCard" data-id="${citation["@id"]}">
@@ -494,15 +519,15 @@ class BibliographicCitationView extends HTMLElement {
                 <div class="referenceContent is-hidden">${citation.citation}</div>
                 <div class="referencePreview">${previewContent}</div>
             </div>
-        `;
+        `
   }
 }
 
 let __constants = await fetch("../properties.json")
   .then((r) => r.json())
   .catch((e) => {
-    return {};
-  });
+    return {}
+  })
 
 /**
  * Queries and retrieves all bibliographic citations associated with a specific Gloss entity.
@@ -516,7 +541,7 @@ async function queryBibliographicCitations(glossId) {
     "@type": "BibliographicCitation",
     references: [glossId],
     "__rerum.generatedBy": __constants.generator,
-  };
+  }
 
   try {
     const res = await fetch(`${__constants.tiny + "/query"}`, {
@@ -526,10 +551,10 @@ async function queryBibliographicCitations(glossId) {
         "Content-Type": "application/json;charset=utf-8",
       },
       body: JSON.stringify(query),
-    }).then((response) => response.json());
-    return res;
+    }).then((response) => response.json())
+    return res
   } catch (err) {
-    console.error(err);
+    console.error(err)
   }
 }
 
@@ -546,19 +571,19 @@ async function queryBibliographicCitations(glossId) {
 async function addBibliographicCitationToGloss(citationContent, glossId) {
   try {
     if (typeof citationContent !== "string" || !citationContent.trim()) {
-      const invalidInputEvent = new CustomEvent("Invalid bibliographic citation input: must be a non-empty string.");
-      globalFeedbackBlip(invalidInputEvent, "Invalid bibliographic citation input: must be a non-empty string.", false);
-      return;
+      const invalidInputEvent = new CustomEvent("Invalid bibliographic citation input: must be a non-empty string.")
+      globalFeedbackBlip(invalidInputEvent, "Invalid bibliographic citation input: must be a non-empty string.", false)
+      return
     }
 
-    const cleanCitation = citationContent.trim();
+    const cleanCitation = citationContent.trim()
 
     const query = {
       "@type": "BibliographicCitation",
       references: [glossId],
       citation: cleanCitation,
       "__rerum.generatedBy": __constants.generator,
-    };
+    }
 
     const existingCitations = await fetch(`${__constants.tiny + "/query"}`, {
       method: "POST",
@@ -567,13 +592,13 @@ async function addBibliographicCitationToGloss(citationContent, glossId) {
         "Content-Type": "application/json;charset=utf-8",
       },
       body: JSON.stringify(query),
-    }).then((resp) => resp.json());
+    }).then((resp) => resp.json())
 
-    const isDuplicate = existingCitations.some((citation) => citation.citation === cleanCitation);
+    const isDuplicate = existingCitations.some((citation) => citation.citation === cleanCitation)
     if (isDuplicate) {
-      const invalidInputEvent = new CustomEvent("A similar bibliographic citation already exists for this gloss.");
-      globalFeedbackBlip(invalidInputEvent, "A similar bibliographic citation already exists for this gloss.", false);
-      return;
+      const invalidInputEvent = new CustomEvent("A similar bibliographic citation already exists for this gloss.")
+      globalFeedbackBlip(invalidInputEvent, "A similar bibliographic citation already exists for this gloss.", false)
+      return
     }
 
     const newCitation = {
@@ -582,7 +607,7 @@ async function addBibliographicCitationToGloss(citationContent, glossId) {
       references: [glossId],
       citation: cleanCitation,
       "__rerum.generatedBy": __constants.generator,
-    };
+    }
 
     const savedCitation = await fetch(`${__constants.tiny + "/create"}`, {
       method: "POST",
@@ -591,41 +616,41 @@ async function addBibliographicCitationToGloss(citationContent, glossId) {
         "Content-Type": "application/json;charset=utf-8",
       },
       body: JSON.stringify(newCitation),
-    }).then((resp) => resp.json());
+    }).then((resp) => resp.json())
 
     if (savedCitation && savedCitation.hasOwnProperty("@id")) {
       addEventListener("deer-updated", () => {
-        const sucessfulSaveEvent = new CustomEvent("Bibliographic citation added successfully.");
-        globalFeedbackBlip(sucessfulSaveEvent, "Bibliographic citation added successfully.", true);
-        return savedCitation;
-      });
+        const sucessfulSaveEvent = new CustomEvent("Bibliographic citation added successfully.")
+        globalFeedbackBlip(sucessfulSaveEvent, "Bibliographic citation added successfully.", true)
+        return savedCitation
+      })
 
-      let hash = window.location.hash;
+      let hash = window.location.hash
       if (hash.startsWith("#")) {
-        hash = window.location.hash.substring(1);
+        hash = window.location.hash.substring(1)
         if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
           // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-          let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true });
-          document.dispatchEvent(e);
-          return;
+          let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
+          document.dispatchEvent(e)
+          return
         }
       }
 
       queryBibliographicCitations(hash).then((citations) => {
-        const bibliographicCitationDiv = document.querySelector("bibliographic-citation-div");
+        const bibliographicCitationDiv = document.querySelector("bibliographic-citation-div")
         if (bibliographicCitationDiv) {
-          bibliographicCitationDiv.updateCitations(citations);
+          bibliographicCitationDiv.updateCitations(citations)
         }
-      });
+      })
     } else {
-      const invalidInputEvent = new CustomEvent("Failed to add bibliographic citation.");
-      globalFeedbackBlip(invalidInputEvent, "Failed to add bibliographic citation.", false);
-      return;
+      const invalidInputEvent = new CustomEvent("Failed to add bibliographic citation.")
+      globalFeedbackBlip(invalidInputEvent, "Failed to add bibliographic citation.", false)
+      return
     }
   } catch (error) {
-    console.error("Error adding bibliographic citation:", error);
-    const errorEvent = new CustomEvent("Error adding bibliographic citation.");
-    globalFeedbackBlip(errorEvent, "Error adding bibliographic citation: " + error.message, false);
+    console.error("Error adding bibliographic citation:", error)
+    const errorEvent = new CustomEvent("Error adding bibliographic citation.")
+    globalFeedbackBlip(errorEvent, "Error adding bibliographic citation: " + error.message, false)
   }
 }
 
@@ -636,7 +661,7 @@ async function addBibliographicCitationToGloss(citationContent, glossId) {
  */
 async function deleteBibliographicCitation(citationId) {
   try {
-    const trimmedCitationId = citationId.split("/").pop();
+    const trimmedCitationId = citationId.split("/").pop()
 
     await fetch(`${__constants.tiny}/delete/${trimmedCitationId}`, {
       method: "DELETE",
@@ -646,29 +671,37 @@ async function deleteBibliographicCitation(citationId) {
       },
     })
       .then(() => {
-        return;
+        return
       })
       .catch(() => {
-        throw new Error(`Failed to delete bibliographic citation`);
-      });
+        throw new Error(`Failed to delete bibliographic citation`)
+      })
   } catch (error) {
-    console.error("Error deleting bibliographic citation:", error);
-    const errorEvent = new CustomEvent("Error deleting bibliographic citation.");
-    globalFeedbackBlip(errorEvent, "Error deleting bibliographic citation: " + error.message, false);
+    console.error("Error deleting bibliographic citation:", error)
+    const errorEvent = new CustomEvent("Error deleting bibliographic citation.")
+    globalFeedbackBlip(errorEvent, "Error deleting bibliographic citation: " + error.message, false)
   }
 }
 
+/**
+ * Updates a bibliographic citation by first deleting the existing citation and then adding the updated
+ * citation content. If deletion is successful, the new citation content is added.
+ *
+ * @param {String} citationContent - The updated bibliographic citation content.
+ * @param {String} glossId - The unique identifier (IRI) of the Gloss entity to which the citation is related.
+ * @param {String} citationId - The unique identifier (IRI) of the citation that is being updated.
+ */
 async function updateBibliographicCitation(citationContent, glossId, citationId) {
   try {
     deleteBibliographicCitation(citationId).then(() => {
-      addBibliographicCitationToGloss(citationContent, glossId);
-    });
+      addBibliographicCitationToGloss(citationContent, glossId)
+    })
   } catch (error) {
-    console.error("Error updating bibliographic citation:", error);
-    const errorEvent = new CustomEvent("Error updating bibliographic citation.");
-    globalFeedbackBlip(errorEvent, "Error updating bibliographic citation: " + error.message, false);
-    return null;
+    console.error("Error updating bibliographic citation:", error)
+    const errorEvent = new CustomEvent("Error updating bibliographic citation.")
+    globalFeedbackBlip(errorEvent, "Error updating bibliographic citation: " + error.message, false)
+    return null
   }
 }
 
-customElements.define("bibliographic-citation-div", BibliographicCitationView);
+customElements.define("bibliographic-citation-div", BibliographicCitationView)

@@ -22,8 +22,6 @@ window.onload = () => {
         document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
         glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
-       
-        
     }
 
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
