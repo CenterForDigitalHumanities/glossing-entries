@@ -278,15 +278,25 @@ class BibliographicCitationView extends HTMLElement {
       })
   
     window.addEventListener("mouseup", (event) => {
-    if (this.isClickOutsideModal && !modalContent.contains(event.target) && event.target === modal) {
-        modal.style.display = "none"
-    }
-    this.isClickOutsideModal = false
+        if (this.isClickOutsideModal && !modalContent.contains(event.target) && event.target === modal) {
+            modal.style.display = "none"
+        }
+        this.isClickOutsideModal = false
     })
 
     const openModalButton = this.querySelector("#openCitationModalButton")
-    openModalButton.addEventListener("click", (event) => {
-      this.openModal(event)
+    const documentReferenceInput = this.querySelector("#documentReference")
+    const editor = this.querySelector("#bibliographicCitationEditor")
+
+    openModalButton.addEventListener("click", (ev) => {
+        ev.preventDefault()
+        ev.stopPropagation()
+    
+        documentReferenceInput.value = ""
+        
+        editor.innerHTML = ""
+        this.setModalButtonLabel("Add Citation")
+        modal.style.display = "block"
     })
 
     let hash = window.location.hash
@@ -329,10 +339,6 @@ class BibliographicCitationView extends HTMLElement {
     })
 
     const citationForm = this.querySelector("#bibliographicCitationForm")
-    const editor = this.querySelector("#bibliographicCitationEditor")
-
-    const documentReferenceInput = this.querySelector("#documentReference")
-
     citationForm.addEventListener("submit", async function (e) {
       e.preventDefault()
       const editorContent = editor.innerHTML
@@ -388,23 +394,8 @@ class BibliographicCitationView extends HTMLElement {
     })
   }
 
-  openModal(event) {
-    event.preventDefault()
-    event.stopPropagation()
-
-    const documentReferenceInput = this.querySelector("#documentReference")
-    documentReferenceInput.value = ""
-
-    const editor = document.getElementById("bibliographicCitationEditor")
-    editor.innerHTML = ""
-
-    this.setModalButtonLabel("Add Citation")
-
-    document.getElementById("bibliographicCitationModal").style.display = "block"
-  }
-
   setModalButtonLabel(label) {
-    const submitButton = document.getElementById("citationSubmitButton")
+    const submitButton = this.querySelector("#citationSubmitButton")
     submitButton.value = label
   }
 
@@ -417,7 +408,7 @@ class BibliographicCitationView extends HTMLElement {
   editCitation(citationId) {
     const citationContent = this.citationsMap[citationId]
 
-    const editor = document.getElementById("bibliographicCitationEditor")
+    const editor = this.querySelector("#bibliographicCitationEditor")
     editor.innerHTML = citationContent
 
     const documentReferenceInput = this.querySelector("#documentReference")
@@ -425,7 +416,7 @@ class BibliographicCitationView extends HTMLElement {
 
     this.setModalButtonLabel("Update Citation")
 
-    document.getElementById("bibliographicCitationModal").style.display = "block"
+    this.querySelector("#bibliographicCitationModal").style.display = "block"
   }
 
   /**
