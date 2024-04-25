@@ -813,36 +813,6 @@ export default {
                     let a = document.createElement("a")
                     let span = document.createElement("span")
                     span.classList.add("serifText")
-                    const createScenario = elem.hasAttribute("create-scenario")
-                    const updateScenario = elem.hasAttribute("update-scenario")   
-                    const increaseTotal = ((createScenario || updateScenario))
-                    const filterPresent = containingListElem.$contentState
-                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
-                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
-                    a.setAttribute("href", options.link + obj['@id'])
-                    a.setAttribute("target", "_blank")
-                    // Turn each property into an attribute for the <li> element
-                    let action = "add"
-                    if(filterPresent) elem.classList[action]("is-hidden")
-                    filteringProps.forEach( (prop) => {
-                        // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                        if(prop === "text"){
-                            const t = obj[prop]?.value?.textValue ?? ""
-                            if(filterPresent && filterObj.hasOwnProperty("text") && t.includes(filterObj["text"])) elem.classList.remove("is-hidden")
-                            li.setAttribute("data-text", t) 
-                        }
-                        else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
-                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
-                            if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) elem.classList.remove("is-hidden")
-                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
-                            const attr = `data-${prop}`
-                            if(prop === "title" && !val){
-                                val = "[ unlabeled ]"
-                                li.setAttribute("data-unlabeled", "true")
-                            }
-                            li.setAttribute(attr, val)
-                        }
-                    })
 
                     if(!li.hasAttribute("data-title")) {
                         li.setAttribute("data-title", "[ unlabeled ]")
@@ -856,6 +826,38 @@ export default {
                     li.appendChild(a)
                     elem.appendChild(li)
                     modifyTableTR(elem, obj)
+                    
+                    const createScenario = elem.hasAttribute("create-scenario")
+                    const updateScenario = elem.hasAttribute("update-scenario")   
+                    const increaseTotal = ((createScenario || updateScenario))
+                    const filterPresent = containingListElem.$contentState
+                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
+                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
+                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("target", "_blank")
+                    // Turn each property into an attribute for the <li> element
+                    if(filterPresent) elem.classList.add("is-hidden")
+                    filteringProps.forEach( (prop) => {
+                        // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
+                        if(prop === "text")
+                            li.setAttribute("data-text", obj[prop]?.value?.textValue ?? "") 
+                        else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`
+                            if(prop === "title" && !val){
+                                val = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
+                            }
+                            li.setAttribute(attr, val)
+                        }
+                        if(elem.children[1].hasAttribute(`data-${prop}`) &&
+                            filterPresent && filterObj.hasOwnProperty("text") && (
+                            elem.children[1].getAttribute(`data-${prop}`).toLowerCase().includes(filterObj["text"].toLowerCase()) ||
+                            elem.children[0].innerHTML.toLowerCase().includes(filterObj["text"].toLowerCase()) ||
+                            elem.children[2].innerHTML.toLowerCase().includes(filterObj["text"].toLowerCase())))
+                            elem.classList.remove("is-hidden")
+                    })
 
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
