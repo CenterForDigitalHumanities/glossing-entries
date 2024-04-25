@@ -445,7 +445,8 @@ export default {
                                         tr.children[1].getAttribute(`data-${prop}`).toLowerCase(),
                                         tr.children[2].innerHTML.toLowerCase()]
                                     const query_mod = query[prop].toLowerCase()
-                                    const action = tr_mod.map(x => approximateFilter(x).includes(approximateFilter(query_mod))).some(x => x) ? "remove" : "add"
+									const query_mod_aprox = approximateFilter(query_mod)
+                                    const action = tr_mod.map(x => approximateFilter(x).includes(query_mod_aprox)).some(x => x) ? "remove" : "add"
                                     if (action === "remove")
                                         if(!tr_mod.map(x => x.includes(query_mod)).some(x => x))
                                             approximateBar.classList.remove("is-hidden")
@@ -851,12 +852,14 @@ export default {
                             }
                             li.setAttribute(attr, val)
                         }
-                        if(elem.children[1].hasAttribute(`data-${prop}`) &&
-                            filterPresent && filterObj.hasOwnProperty("text") && (
-                            elem.children[1].getAttribute(`data-${prop}`).toLowerCase().includes(filterObj["text"].toLowerCase()) ||
-                            elem.children[0].innerHTML.toLowerCase().includes(filterObj["text"].toLowerCase()) ||
-                            elem.children[2].innerHTML.toLowerCase().includes(filterObj["text"].toLowerCase())))
-                            elem.classList.remove("is-hidden")
+                        if(elem.children[1].hasAttribute(`data-${prop}`) && filterPresent && filterObj.hasOwnProperty("text")) {
+							const tr_mod = [elem.children[1].getAttribute(`data-${prop}`).toLowerCase(),
+								elem.children[0].innerHTML.toLowerCase(),
+								elem.children[2].innerHTML.toLowerCase()]
+							const query_mod_aprox = approximateFilter(filterObj["text"].toLowerCase())
+							if (tr_mod.map(x => approximateFilter(x).includes(query_mod_aprox)).some(x => x))
+								elem.classList.remove("is-hidden")
+						}
                     })
 
                     // Pagination for the progress indicator element
