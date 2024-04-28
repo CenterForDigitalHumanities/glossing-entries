@@ -90,11 +90,35 @@
 </body>
 
 <script>
-    /**
-     * Make sure DEER forms do not submit when a user hits "Enter".
-     */ 
+    // Function to disable or enable all input fields
+    function toggleFormElements(disabled) {
+        document.querySelectorAll('input, textarea, select, button').forEach(element => {
+            element.disabled = disabled
+        });
+    }
+
+    // Disable all fields initially
+    toggleFormElements(true)
+
+    // Event listener for DEER forms
+    document.addEventListener('deer-form-rendered', function() {
+        // Enable all form elements once the form has been rendered with data
+        toggleFormElements(false)
+    });
+
+    // Check if we are creating a new gloss
+    document.addEventListener('DOMContentLoaded', function() {
+        // Assuming you have a way to determine if this is a new gloss creation
+        // E.g., by checking the URL, a hidden input field, etc.
+        // Here we simply check if the form is empty, as an example
+        if (!document.querySelector('#glossText').value) {
+            toggleFormElements(false)
+        }
+    });
+
+    // Prevent form submission with "Enter" key
     document.querySelectorAll("form[deer-type]").forEach(form => {
-        form.addEventListener("keydown", (e)=> {
+        form.addEventListener("keydown", (e) => {
             if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
                 if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
                     e.preventDefault()
