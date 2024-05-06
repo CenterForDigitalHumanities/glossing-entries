@@ -534,3 +534,8 @@ input#loadInput {
 .nomargin{
   margin: 0;
 }
+
+textarea:disabled, select:disabled {
+  cursor: not-allowed;
+  opacity: .4;
+}
