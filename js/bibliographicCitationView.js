@@ -648,14 +648,16 @@ async function deleteBibliographicCitation(citationId) {
       mode: "cors",
       headers: {
         "Content-Type": "application/json;charset=utf-8",
+        "Authorization": `Bearer ${window.GOG_USER.authorization}`
       },
     })
-      .then(() => {
+    .then(r => {
+        if(!r.ok) throw new Error(r.text)
         return
-      })
-      .catch(() => {
-        throw new Error(`Failed to delete bibliographic citation`)
-      })
+    })
+    .catch(() => {
+    throw new Error(`Failed to delete bibliographic citation`)
+    })
   } catch (error) {
     console.error("Error deleting bibliographic citation:", error)
     const errorEvent = new CustomEvent("Error deleting bibliographic citation.")

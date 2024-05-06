@@ -729,7 +729,7 @@ async function deleteWitness(witnessID, redirect){
             body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                "Authorization": `Bearer ${window.GOG_USER.orization}`
             }
         })
         .then(r => {
