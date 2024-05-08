@@ -8,6 +8,19 @@ const __constants = await fetch("../properties.json").then(r=>r.json()).catch(e=
 const baseV1 = __constants.rerum
 const tiny = __constants.tiny
 
+const down = "<small>▼</small>"
+const up = "<small>▲</small>"
+const sortSelectors = [
+    a => a.children[0].innerHTML.toLowerCase(),
+    a => a.children[1].children[0].children[0].innerHTML.toLowerCase(),
+    a => a.children[2].innerHTML.toLowerCase()
+]
+const sortNULLS = [
+    "",
+    "[ unlabeled ]",
+    ""
+]
+
 export default {
     // Configuration of custom attributes for HTML elements manipulated by the app.
     ID: "deer-id", // attribute, URI for resource to render
@@ -234,18 +247,6 @@ export default {
                     let total = 0
                     const filterPresent = deerUtils.getURLParameter("gog-filter")
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
-                    const up = "<small>▲</small>"
-                    const down = "<small>▼</small>"
-                    const sortSelectors = [
-                        a => a.children[0].innerHTML.toLowerCase(),
-                        a => a.children[1].children[0].children[0].innerHTML.toLowerCase(),
-                        a => a.children[2].innerHTML.toLowerCase()
-                    ]
-                    const sortNULLS = [
-                        "",
-                        "[ unlabeled ]",
-                        ""
-                    ]
                     if (options.list) {
                         let ul = document.createElement("table")
                         ul.insertAdjacentHTML('afterbegin', `<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar" class="is-hidden" style="border-bottom: 0.1em solid var(--color-lightGrey);"><th>Approximate Matches</th></tr></tbody>`)
@@ -382,35 +383,8 @@ export default {
                         else{
                             filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
                         }
-                        if (options.list) {
-                            const ul = elem.querySelector("table")
-                            let sortIndex = 1
-                            let sortDirection = 1
-                            for (let i = 0; i < ul.children[0].children[0].childElementCount; i++)
-                                if (ul.children[0].children[0].children[i].innerHTML.slice(-down.length) === down) {
-                                    sortIndex = i
-                                    sortDirection = -1
-                                } else if (ul.children[0].children[0].children[i].innerHTML.slice(-up.length) === up) {
-                                    sortIndex = i
-                                    sortDirection = 1
-                                }
-                            const approximateBar = elem.querySelector('#approximate-bar')
-                            Array.from(ul.children[1].children).sort((a, b) => {
-                                if (a === approximateBar) return 1
-                                if (b === approximateBar) return -1
-                                a = sortSelectors[sortIndex](a)
-                                b = sortSelectors[sortIndex](b)
-                                if (a === sortNULLS[sortIndex]) return 1
-                                if (b === sortNULLS[sortIndex]) return -1
-                                if (a < b) return -sortDirection
-                                if (a > b) return sortDirection
-                                return 0
-                            }).forEach(e => {
-                                const parent = e.parentElement
-                                parent.removeChild(e)
-                                parent.appendChild(e)
-                            })
-                        }
+                        if (options.list)
+                            smartFilter()
                         debounce(filterGlosses(filterQuery))
                     }
                     filter.addEventListener('input', filterHandle)
@@ -910,6 +884,7 @@ export default {
                         if(filterInstructions) filterInstructions.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
                         approximate.classList.remove("is-hidden")
+                        smartFilter()
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be visible and selected / take on the string / etc.
                             i.classList.remove("is-hidden")
@@ -1160,4 +1135,34 @@ function approximateFilter(str){
     if (document.querySelector("#exsp↔exp").checked)
         str = str.replaceAll("exsp", "exp")
     return str
+}
+
+function smartFilter() {
+    const ul = document.querySelector("table")
+    let sortIndex = 1
+    let sortDirection = 1
+    for (let i = 0; i < ul.children[0].children[0].childElementCount; i++)
+        if (ul.children[0].children[0].children[i].innerHTML.slice(-down.length) === down) {
+            sortIndex = i
+            sortDirection = -1
+        } else if (ul.children[0].children[0].children[i].innerHTML.slice(-up.length) === up) {
+            sortIndex = i
+            sortDirection = 1
+        }
+    const approximateBar = document.querySelector('#approximate-bar')
+    Array.from(ul.children[1].children).sort((a, b) => {
+        if (a === approximateBar) return 1
+        if (b === approximateBar) return -1
+        a = sortSelectors[sortIndex](a)
+        b = sortSelectors[sortIndex](b)
+        if (a === sortNULLS[sortIndex]) return 1
+        if (b === sortNULLS[sortIndex]) return -1
+        if (a < b) return -sortDirection
+        if (a > b) return sortDirection
+        return 0
+    }).forEach(e => {
+        const parent = e.parentElement
+        parent.removeChild(e)
+        parent.appendChild(e)
+    })
 }
