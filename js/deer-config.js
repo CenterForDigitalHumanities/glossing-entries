@@ -8,6 +8,19 @@ const __constants = await fetch("../properties.json").then(r=>r.json()).catch(e=
 const baseV1 = __constants.rerum
 const tiny = __constants.tiny
 
+const down = "<small>▼</small>"
+const up = "<small>▲</small>"
+const sortSelectors = [
+    a => a.children[0].innerHTML.toLowerCase(),
+    a => a.children[1].children[0].children[0].innerHTML.toLowerCase(),
+    a => a.children[2].innerHTML.toLowerCase()
+]
+const sortNULLS = [
+    "",
+    "[ unlabeled ]",
+    ""
+]
+
 export default {
     // Configuration of custom attributes for HTML elements manipulated by the app.
     ID: "deer-id", // attribute, URI for resource to render
@@ -205,6 +218,24 @@ export default {
                     </style>
                     <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new gloss..." class="fade serifText row">
                 </form>
+                <div id="approximate" class="is-hidden">
+                    <input type="checkbox" id="u↔v" name="u↔v" checked>
+                    <label for="u↔v">u ↔ v</label>
+                    <input type="checkbox" id="j↔i" name="j↔i" checked>
+                    <label for="j↔i">j ↔ i</label>
+                    <input type="checkbox" id="y↔i" name="y↔i" checked>
+                    <label for="y↔i">y ↔ i</label>
+                    <input type="checkbox" id="ae↔e" name="ae↔e" checked>
+                    <label for="ae↔e">ae ↔ e</label>
+                    <input type="checkbox" id="oe↔e" name="oe↔e" checked>
+                    <label for="oe↔e">oe ↔ e</label>
+                    <input type="checkbox" id="t↔c" name="t↔c" checked>
+                    <label for="t↔c">t ↔ c</label>
+                    <input type="checkbox" id="exsp↔exp" name="exsp↔exp" checked>
+                    <label for="exsp↔exp">exsp ↔ exp</label>
+                    <input type="checkbox" id="ignore-whitespace" name="ignore-whitespace" checked>
+                    <label for="ignore-whitespace">Ignore Whitespace</label>
+                </div>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
                     <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
@@ -218,16 +249,14 @@ export default {
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
                         let ul = document.createElement("table")
-                        ul.insertAdjacentHTML('afterbegin', '<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody></tbody>')
+                        ul.insertAdjacentHTML('afterbegin', `<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar" class="is-hidden" style="border-bottom: 0.1em solid var(--color-lightGrey);"><th>Approximate Matches</th></tr></tbody>`)
                         /**
-                         * Sort a column
+                         * Add Sort icon
                          * @param {Number} [index=0] - Column  index to sort by
-                         * @param {Function} [selector=a=>a] - Function to select the data to sort by
-                         * @param {any} [NULL=""] - `null` value to filter to the bottom
                          * @param {string} [down="<small>▼</small>"] - value to use to symbolize a column is being sorted in descending order
                          * @param {string} [up="<small>▲</small>"] - value to use to symbolize a column is being sorted in ascending order
                          */
-                        function customSort(index=0, selector=a=>a, NULL="", down="<small>▼</small>", up="<small>▲</small>") {
+                        function customSortIcon(index=0, down="<small>▼</small>", up="<small>▲</small>") {
                             // Remove Arrow on unsorted column
                             for (let i = 0; i < ul.children[0].children[0].childElementCount; i++)
                                 if (i === +index) continue
@@ -244,24 +273,13 @@ export default {
                             // Switch to new column (or first time) and Normal Sort
                             else 
                                 ul.children[0].children[0].children[+index].innerHTML = ul.children[0].children[0].children[+index].innerHTML + down
-                            const modif = ul.children[0].children[0].children[+index].innerHTML.slice(-down.length) === down ? -1 : 1
-                            Array.from(ul.children[1].children).sort((a, b) => {
-                                a = selector(a)
-                                b = selector(b)
-                                if (a === NULL) return 1
-                                if (b === NULL) return -1
-                                if (a < b) return -modif
-                                if (a > b) return modif
-                                return 0
-                            }).forEach(e => {
-                                const parent = e.parentElement
-                                parent.removeChild(e)
-                                parent.appendChild(e)
-                            })
                         }
-                        ul.children[0].children[0].children[0].onclick = _ => customSort(0, a => a.children[0].innerHTML, "") // Refrence
-                        ul.children[0].children[0].children[1].onclick = _ => customSort(1, a => a.children[1].children[0].children[0].innerHTML, "[ unlabeled ]") // Title
-                        ul.children[0].children[0].children[2].onclick = _ => customSort(2, a => a.children[2].innerHTML, "") // Tag(s)
+                        Array.from(ul.children[0].children[0].children).forEach((val, index) => {
+                            val.onclick = _ => {
+                                customSortIcon(index, down, up)
+                                filterHandle()
+                            }
+                        })
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
@@ -343,6 +361,7 @@ export default {
                     const filter = elem.querySelector('input')
                     const cachedNotice = elem.querySelector(".cachedNotice")
                     const progressArea = elem.querySelector(".progressArea")
+                    const approximate = elem.querySelector("#approximate")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                     totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
                     totalsProgress.setAttribute("total", total)
@@ -355,21 +374,26 @@ export default {
                     })
 
                     // Filter the list of glosses as users type their query against 'title'
-                    filter.addEventListener('input', ev =>{
-                        const val = ev?.target.value.trim()
+                    function filterHandle() {
+                        const val = filter.value.trim()
                         let filterQuery
                         if(val){
-                            filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
+                            filterQuery = encodeContentState(JSON.stringify({"title" : val, "text": val, "targetedtext": val}))
                         }
                         else{
                             filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
                         }
+                        if (options.list)
+                            smartFilter()
                         debounce(filterGlosses(filterQuery))
-                    })
+                    }
+                    filter.addEventListener('input', filterHandle)
+                    Array.from(approximate.children).forEach(e => e.addEventListener('change', filterHandle))
 
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
+                        approximate.classList.remove("is-hidden")
                         elem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be selected or take on the string or whatevs
                             i.classList.remove("is-hidden")
@@ -405,16 +429,31 @@ export default {
                                 query[prop] = query[prop].trim()
                             }
                         }
+                        const approximateBar = elem.querySelector('#approximate-bar')
+                        approximateBar.classList.add('is-hidden')
+                        const parent = approximateBar.parentElement
+                        parent.removeChild(approximateBar)
+                        parent.insertAdjacentElement('afterbegin', approximateBar)
                         const items = elem.querySelectorAll('tbody tr')
                         items.forEach(tr=>{
-                            if(!tr.classList.contains("is-hidden")){
+                            if(tr === approximateBar) return
+                            if(!tr.classList.contains("is-hidden"))
                                 tr.classList.add("is-hidden")
-                            }
                             for(const prop in query){
                                 if(tr.children[1].hasAttribute(`data-${prop}`)){
-                                    const action = (tr.children[1].getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ||
-                                                    tr.children[0].innerHTML.toLowerCase().includes(query[prop].toLowerCase()) ||
-                                                    tr.children[2].innerHTML.toLowerCase().includes(query[prop].toLowerCase())) ? "remove" : "add"
+                                    const tr_mod = [tr.children[0].innerHTML.toLowerCase(),
+                                        tr.children[1].getAttribute(`data-${prop}`).toLowerCase(),
+                                        tr.children[2].innerHTML.toLowerCase()]
+                                    const query_mod = query[prop].toLowerCase()
+                                    const query_mod_aprox = approximateFilter(query_mod)
+                                    const action = tr_mod.map(x => approximateFilter(x).includes(query_mod_aprox)).some(x => x) ? "remove" : "add"
+                                    if (action === "remove")
+                                        if(!tr_mod.map(x => x.includes(query_mod)).some(x => x))
+                                            approximateBar.classList.remove("is-hidden")
+                                        else{
+                                            parent.removeChild(tr)
+                                            parent.insertBefore(tr, approximateBar)
+                                        }
                                     tr.classList[action](`is-hidden`,`un${action}-item`)
                                     setTimeout(()=>tr.classList.remove(`un${action}-item`),500)
                                     // If it is showing, no need to check other properties for filtering.
@@ -775,36 +814,6 @@ export default {
                     let a = document.createElement("a")
                     let span = document.createElement("span")
                     span.classList.add("serifText")
-                    const createScenario = elem.hasAttribute("create-scenario")
-                    const updateScenario = elem.hasAttribute("update-scenario")   
-                    const increaseTotal = ((createScenario || updateScenario))
-                    const filterPresent = containingListElem.$contentState
-                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
-                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
-                    a.setAttribute("href", options.link + obj['@id'])
-                    a.setAttribute("target", "_blank")
-                    // Turn each property into an attribute for the <li> element
-                    let action = "add"
-                    if(filterPresent) elem.classList[action]("is-hidden")
-                    filteringProps.forEach( (prop) => {
-                        // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
-                        if(prop === "text"){
-                            const t = obj[prop]?.value?.textValue ?? ""
-                            if(filterPresent && filterObj.hasOwnProperty("text") && t.includes(filterObj["text"])) elem.classList.remove("is-hidden")
-                            li.setAttribute("data-text", t) 
-                        }
-                        else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
-                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
-                            if(filterPresent && filterObj.hasOwnProperty(prop) && val.includes(filterObj[prop])) elem.classList.remove("is-hidden")
-                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
-                            const attr = `data-${prop}`
-                            if(prop === "title" && !val){
-                                val = "[ unlabeled ]"
-                                li.setAttribute("data-unlabeled", "true")
-                            }
-                            li.setAttribute(attr, val)
-                        }
-                    })
 
                     if(!li.hasAttribute("data-title")) {
                         li.setAttribute("data-title", "[ unlabeled ]")
@@ -818,6 +827,40 @@ export default {
                     li.appendChild(a)
                     elem.appendChild(li)
                     modifyTableTR(elem, obj)
+                    
+                    const createScenario = elem.hasAttribute("create-scenario")
+                    const updateScenario = elem.hasAttribute("update-scenario")   
+                    const increaseTotal = ((createScenario || updateScenario))
+                    const filterPresent = containingListElem.$contentState
+                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
+                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
+                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("target", "_blank")
+                    // Turn each property into an attribute for the <li> element
+                    if(filterPresent) elem.classList.add("is-hidden")
+                    filteringProps.forEach( (prop) => {
+                        // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
+                        if(prop === "text")
+                            li.setAttribute("data-text", obj[prop]?.value?.textValue ?? "") 
+                        else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`
+                            if(prop === "title" && !val){
+                                val = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
+                            }
+                            li.setAttribute(attr, val)
+                        }
+                        if(elem.children[1].hasAttribute(`data-${prop}`) && filterPresent && filterObj.hasOwnProperty("text")) {
+                            const tr_mod = [elem.children[1].getAttribute(`data-${prop}`).toLowerCase(),
+                                elem.children[0].innerHTML.toLowerCase(),
+                                elem.children[2].innerHTML.toLowerCase()]
+                            const query_mod_aprox = approximateFilter(filterObj["text"].toLowerCase())
+                            if (tr_mod.map(x => approximateFilter(x).includes(query_mod_aprox)).some(x => x))
+                                elem.classList.remove("is-hidden")
+                        }
+                    })
 
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
@@ -827,6 +870,7 @@ export default {
                     const cachedNotice = containingListElem.querySelector(".cachedNotice")
                     const progressArea = containingListElem.querySelector(".progressArea")
                     const modalBtn = containingListElem.querySelector("gloss-modal-button")
+                    const approximate = containingListElem.querySelector("#approximate")
                     const filterInstructions = containingListElem.querySelector(".filterInstructions")
                     totalsProgress.setAttribute("count", numloaded)
                     totalsProgress.setAttribute("total", total)
@@ -839,6 +883,8 @@ export default {
                         if(modalBtn) modalBtn.classList.remove("is-hidden")
                         if(filterInstructions) filterInstructions.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
+                        approximate.classList.remove("is-hidden")
+                        smartFilter()
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be visible and selected / take on the string / etc.
                             i.classList.remove("is-hidden")
@@ -1064,4 +1110,59 @@ function modifyTableTR(tr, obj) {
     if (tr.firstChild.innerHTML === "Untitled _:_")
         tr.firstChild.innerHTML = ""
     return tr
+}
+
+/**
+ * Modifies a given string with a set of orthographic relations to easier match other strings provided to this function
+ * @param {string} str - string to convert to approximation
+ * @returns modified string
+ */
+function approximateFilter(str){
+    if (document.querySelector("#ignore-whitespace").checked)
+        str = str.replaceAll(/[^\w]/g, "")
+    if (document.querySelector("#u↔v").checked)
+        str = str.replaceAll("u", "v")
+    if (document.querySelector("#j↔i").checked)
+        str = str.replaceAll("j", "i")
+    if (document.querySelector("#y↔i").checked)
+        str = str.replaceAll("y", "i")
+    if (document.querySelector("#ae↔e").checked)
+        str = str.replaceAll("ae", "e")
+    if (document.querySelector("#oe↔e").checked)
+        str = str.replaceAll("oe", "e")
+    if (document.querySelector("#t↔c").checked)
+        str = str.replaceAll("t", "c")
+    if (document.querySelector("#exsp↔exp").checked)
+        str = str.replaceAll("exsp", "exp")
+    return str
+}
+
+function smartFilter() {
+    const ul = document.querySelector("table")
+    let sortIndex = 1
+    let sortDirection = 1
+    for (let i = 0; i < ul.children[0].children[0].childElementCount; i++)
+        if (ul.children[0].children[0].children[i].innerHTML.slice(-down.length) === down) {
+            sortIndex = i
+            sortDirection = -1
+        } else if (ul.children[0].children[0].children[i].innerHTML.slice(-up.length) === up) {
+            sortIndex = i
+            sortDirection = 1
+        }
+    const approximateBar = document.querySelector('#approximate-bar')
+    Array.from(ul.children[1].children).sort((a, b) => {
+        if (a === approximateBar) return 1
+        if (b === approximateBar) return -1
+        a = sortSelectors[sortIndex](a)
+        b = sortSelectors[sortIndex](b)
+        if (a === sortNULLS[sortIndex]) return 1
+        if (b === sortNULLS[sortIndex]) return -1
+        if (a < b) return -sortDirection
+        if (a > b) return sortDirection
+        return 0
+    }).forEach(e => {
+        const parent = e.parentElement
+        parent.removeChild(e)
+        parent.appendChild(e)
+    })
 }
