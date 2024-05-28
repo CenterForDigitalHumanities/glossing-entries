@@ -31,9 +31,9 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "BasicWitnessTest"
+    // form.querySelector("input[deer-key='creator']").value = "BryanRefactor"
     
-    const labelElem = form.querySelector("input[deer-key='label']")
+    const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
     labelElem.setAttribute("value", "")
     labelElem.removeAttribute("deer-source")
@@ -75,6 +75,7 @@ function setWitnessFormDefaults(){
 
     // The source value not change and would need to be captured on the next submit.
     const sourceElem = form.querySelector("input[custom-key='source']")
+    sourceElem.removeAttribute("deer-source")
     sourceElem.$isDirty = true
 
     // reset the Glosses filter
@@ -161,85 +162,10 @@ window.onload = () => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
-    deleteWitnessButton.addEventListener("click", ev => {
-        if(confirm("The witness will be deleted.  This action cannot be undone.")){
+    deleteWitnessButton.addEventListener("click", async ev => {
+        if(await showCustomConfirm("The witness will be deleted.  This action cannot be undone.")){
             deleteWitness()
         }
-    })
-}
-
-/**
- *  Delete a Witness of a Gloss.  
- *  This will delete the entity itself and its Annotations.  It will no longer appear as a Witness to the Gloss in any UI.
-*/
-async function deleteWitness(){
-    if(!textWitnessID) return
-    // No extra clicks while you await.
-    const deleteWitnessButton = document.querySelector(".deleteWitness")
-    deleteWitnessButton.setAttribute("disabled", "true")
-    const annos_query = {
-        "target" : httpsIdArray(textWitnessID),
-        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-    }
-    let anno_ids =
-        await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-            method: "POST",
-            mode: "cors",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8"                },
-            body: JSON.stringify(annos_query)
-        })
-        .then(resp => resp.json()) 
-        .then(annos => annos.map(anno => anno["@id"]))
-        .catch(err => {
-            return []
-        })
-    let delete_calls = anno_ids.map(annoUri => {
-        return fetch(`${__constants.tiny}/delete`, {
-            method: "DELETE",
-            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            }
-        })
-        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-        .catch(err => {
-            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
-            console.log(err)
-        })
-    })
-
-    delete_calls.push(
-        fetch(`${__constants.tiny}/delete`, {
-            method: "POST",
-            mode: "cors",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            },
-            body: JSON.stringify({"@id" : textWitnessID.replace(/^https?:/, 'https:')})
-        })
-        .then(resp => resp.json()) 
-        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-        .catch(err => {
-            console.warn(`There was an issue removing the Witness: ${textWitnessID}`)
-            console.log(err)
-        })
-    )
-    Promise.all(delete_calls).then(success => {
-        addEventListener("globalFeedbackFinished", ev=> {
-            window.location = "ng.html#"
-        })
-        const ev = new CustomEvent("Witness Deleted.  You will be redirected.")
-        globalFeedbackBlip(ev, `Witness Deleted.  You will be redirected.`, true)
-    })
-    .catch(err => {
-        // OK they may be orphaned.  We will continue on towards deleting the entity.
-        console.warn("There was an issue removing connected Annotations.")
-        console.error(err)
-        const ev = new CustomEvent("Error Deleting Witness")
-        globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
     })
 }
 
@@ -624,10 +550,10 @@ addEventListener('gloss-modal-saved', event => {
 
     const selectedBtn = document.querySelector(".toggleInclusion[disabled]")
     if(selectedBtn){
-        selectedBtn.setAttribute("title", "Attach this Gloss and Save")
-        selectedBtn.setAttribute("value", "➥ attach")
-        selectedBtn.setAttribute("class", "toggleInclusion button primary")
-        selectedBtn.removeAttribute("disabled")    
+        selectedBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
+        selectedBtn.setAttribute("value", "❢ attach")
+        selectedBtn.setAttribute("class", "toggleInclusion attached-to-source button primary")
+        selectedBtn.removeAttribute("disabled")
     }
 
     modal.classList.add("is-hidden")
@@ -675,17 +601,21 @@ function addButton(event) {
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")
     inclusionBtn.setAttribute("data-id", obj["@id"])
+    let already = false
+    if(witnessesObj?.referencedGlosses){
+        already = witnessesObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
+    }
     if(updateScenario){
         inclusionBtn.setAttribute("disabled", "")
         inclusionBtn.setAttribute("value", "✓ attached")
         inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-        inclusionBtn.setAttribute("class", "toggleInclusion button success")  
+        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button success`)  
     }
     else{
         // Either a create scenario, or neither (just loading up)
-        inclusionBtn.setAttribute("title", "Attach this Gloss and Save")
-        inclusionBtn.setAttribute("value", "➥ attach")
-        inclusionBtn.setAttribute("class", "toggleInclusion button primary")
+        inclusionBtn.setAttribute("title", `${already ? "This gloss was attached in the past.  Be sure before you attach it." : "Attach This Gloss and Save" }`)
+        inclusionBtn.setAttribute("value", `${already ? "❢" : "➥"} attach`)
+        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button primary`)
 
         // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
         if(textWitnessID && referencedGlossID === obj["@id"]){
@@ -697,7 +627,7 @@ function addButton(event) {
             inclusionBtn.classList.add("success")
         }
     }
-    inclusionBtn.addEventListener('click', ev => {
+    inclusionBtn.addEventListener('click', async ev => {
         ev.preventDefault()
         ev.stopPropagation()
         const form = ev.target.closest("form")
@@ -716,8 +646,11 @@ function addButton(event) {
             globalFeedbackBlip(blip, `Select some text first.`, false)
             return   
         }
-        const namedGlossIncipit = ev.target.closest("li").getAttribute("data-title")
-        if((createScenario || updateScenario) || confirm(`Save this textual witness for Gloss '${namedGlossIncipit}'?`)){
+        const glossIncipit = ev.target.closest("li").getAttribute("data-title")
+        const note = ev.target.classList.contains("attached-to-source") 
+           ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
+           : `Save this textual witness for Gloss '${glossIncipit}'?`
+        if((createScenario || updateScenario) || await showCustomConfirm(note)){
             const customKey = form.querySelector("input[custom-key='references']")
             const uri = ev.target.getAttribute("data-id")
             if(customKey.value !== uri){

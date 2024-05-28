@@ -182,7 +182,12 @@ DEER.TEMPLATES.linky = function (obj, options = {}) {
         return null
     }
 }
-
+/**
+ * Generates HTML thumbnails for a given object.
+ * @param {object} obj - The object containing data for generating thumbnails.
+ * @param {object} options - Options for generating thumbnails (optional).
+ * @returns {object} - An object containing HTML and a function for rendering thumbnails.
+ */
 DEER.TEMPLATES.thumbs = function (obj, options = {}) {
     return {
         html: obj["tpen://base-project"] ? `<div class="is-full-width"> <h3> ... loading images ... </h3> </div>` : ``,
@@ -195,12 +200,22 @@ DEER.TEMPLATES.thumbs = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML page links for navigating through canvases of a given object.
+ * @param {object} obj - The object containing data for generating page links.
+ * @param {object} options - Options for generating page links (optional).
+ * @returns {string} - A string containing HTML page links.
+ */
 DEER.TEMPLATES.pageLinks = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     return obj.sequences[0].canvases.reduce((a, b, i) => a += `<a class="button" href="?page=${i + 1}#${obj["@id"]}">${b.label}</a>`, ``)
 }
-
+/**
+ * Generates HTML for displaying folio transcriptions.
+ * @param {object} obj - The object containing data for generating folio transcriptions.
+ * @param {object} options - Options for generating folio transcriptions (optional).
+ * @returns {object} - An object containing HTML and a function for rendering folio transcriptions.
+ */
 DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     return {
@@ -227,7 +242,12 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML for managing gloss assignments.
+ * @param {object} obj - The object containing data for managing gloss assignments.
+ * @param {object} options - Options for managing gloss assignments (optional).
+ * @returns {object} - An object containing HTML and a function for managing gloss assignments.
+ */
 DEER.TEMPLATES.glossAssignments = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     return {
@@ -270,7 +290,10 @@ DEER.TEMPLATES.glossAssignments = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Attaches a click event handler to remove gloss badges.
+ * @param {HTMLElement} elem - The HTML element representing the gloss badge.
+ */
 function AttachClickToRemoveHandler(elem) {
     elem.addEventListener('click', ev => {
         ev.stopPropagation()
@@ -284,7 +307,12 @@ function AttachClickToRemoveHandler(elem) {
         elem.innerHTML = ''
     })
 }
-
+/**
+ * Generates HTML for managing gloss lines.
+ * @param {object} obj - The object containing data for managing gloss lines.
+ * @param {object} options - Options for managing gloss lines (optional).
+ * @returns {object} - An object containing HTML and a function for managing gloss lines.
+ */
 DEER.TEMPLATES.glossLines = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     //TODO we need to know the GlossID here as well.
@@ -421,6 +449,9 @@ DEER.TEMPLATES.glossLines = function (obj, options = {}) {
                     })
 
             }
+            /**
+             * Renders gloss designations based on linking annotations.
+             */
             function renderGlossDesignations() {
                 const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
                 const query = {
@@ -473,7 +504,12 @@ DEER.TEMPLATES.glossLines = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML for displaying images using OpenSeadragon (OSD).
+ * @param {object} obj - The object containing data for displaying images.
+ * @param {object} options - Options for displaying images (optional).
+ * @returns {object|string} - An object containing HTML and a function for displaying images using OSD, or a string representing a bare image template.
+ */
 DEER.TEMPLATES.osd = function (obj, options = {}) {
     const index = options.index && !isNaN(options.index) ? options.index : 0
     const imgURL = obj.sequences[0].canvases[index].images[0].resource['@id']
@@ -501,7 +537,12 @@ DEER.TEMPLATES.osd = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML for displaying lines of text with options for assigning locations.
+ * @param {object} obj - The object containing data for displaying lines.
+ * @param {object} options - Options for displaying lines (optional).
+ * @returns {object} - An object containing HTML and a function for displaying lines with location assignment options.
+ */
 DEER.TEMPLATES.lines_new = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     const index = options.index && !isNaN(options.index) ? options.index : 0
@@ -690,6 +731,9 @@ DEER.TEMPLATES.lines_new = function (obj, options = {}) {
                     UTILS.globalFeedbackBlip(ev, `Locations update failed.`, false)
                 })
             }
+            /**
+             * Fetches existing annotations for assigned locations and highlights corresponding lines.
+             */
             function highlightLocations() {
                 const pageElement = document.querySelector("div.page")
                 const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
@@ -788,7 +832,12 @@ DEER.TEMPLATES.lines_new = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML content for displaying and manipulating lines within a canvas.
+ * @param {Object} obj - The object containing canvas and line information.
+ * @param {Object} options - Optional parameters for customization.
+ * @returns {Object} - An object containing HTML content and functionality.
+ */
 DEER.TEMPLATES.lines = function (obj, options = {}) {
     // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses users.</h4>` }
     let c = obj.sequences[0].canvases[options.index ?? 0]
@@ -959,6 +1008,9 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
                     UTILS.globalFeedbackBlip(ev, `Locations update failed.`, false)
                 })
             }
+            /**
+             * Retrieves existing line positions from annotations and highlights them in the UI.
+             */
             function highlightLocations() {
                 const pageElement = document.querySelector("div.page")
                 const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
@@ -1037,249 +1089,367 @@ DEER.TEMPLATES.lines = function (obj, options = {}) {
         }
     }
 }
-
+/**
+ * Generates HTML and functionality for managing glosses.
+ * @param {Object} obj - The gloss object.
+ * @param {Object} options - Options for customization.
+ * @returns {Object} - HTML structure and functionality.
+ */
 DEER.TEMPLATES.managedlist = function (obj, options = {}) {
-    // if(!userHasRole(["glossing_user_manager", "glossing_user_contributor", "glossing_user_public"])) { return `<h4 class="text-error">This function is limited to registered Gallery of Glosses managers.</h4>` }
-    try {
-        // If the collection doesn't have a name, something has gone wrong.
-        if(!obj.name) return
-
-        let tmpl = `<input type="hidden" deer-collection="${options.collection}">`
-        const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
-
-        if (options.list) {
-            tmpl += `<ul>`
-            obj[options.list].forEach((val, index) => {
-                const removeBtn = `<a href="${val['@id']}" data-type="${type}" class="removeCollectionItem" title="Delete This Entry">&#x274C</a>`
-                const visibilityBtn = `<a class="togglePublic" href="${val['@id']}" title="Toggle public visibility"> 👁 </a>`
-                tmpl += `<li>
-                ${visibilityBtn}
-                <a href="${options.link}${val['@id']}">
-                    <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
-                </a>
-                ${removeBtn}
-                </li>`
-            })
-            tmpl += `</ul>`
-        }
-        else {
-            console.log("There are no items in this list to draw.")
-            console.log(obj)
-        }
-        return {
-            html: tmpl,
-            then: elem => {
-
-                fetch(elem.getAttribute("deer-listing")).then(r => r.json())
-                    .then(list => {
-                        elem.listCache = new Set()
-                        list.itemListElement?.forEach(item => elem.listCache.add(item['@id']))
-                        for (const a of document.querySelectorAll('.togglePublic')) {
-                            const include = elem.listCache.has(a.getAttribute("href")) ? "add" : "remove"
-                            a.classList[include]("is-included")
-                        }
-                    })
-                    .then(() => {
-                        document.querySelectorAll(".removeCollectionItem").forEach(el => el.addEventListener('click', (ev) => {
-                            ev.preventDefault()
-                            ev.stopPropagation()
-                            const itemID = el.getAttribute("href")
-                            const itemType = el.getAttribute("data-type")
-                            removeFromCollectionAndDelete(itemID, itemType)
-                        }))
-                        document.querySelectorAll('.togglePublic').forEach(a => a.addEventListener('click', ev => {
-                            ev.preventDefault()
-                            ev.stopPropagation()
-                            const uri = a.getAttribute("href")
-                            const included = elem.listCache.has(uri)
-                            a.classList[included ? "remove" : "add"]("is-included")
-                            elem.listCache[included ? "delete" : "add"](uri)
-                            saveList.style.visibility = "visible"
-                        }))
-                        saveList.addEventListener('click', overwriteList)
-                    })
-
-
-                function overwriteList() {
-                    let mss = []
-                    elem.listCache.forEach(uri => {
-                        mss.push({
-                            label: document.querySelector(`deer-view[deer-id='${uri}']`).textContent.trim(),
-                            '@id': uri
-                        })
-                    })
-
-                    const list = {
-                        '@id': elem.getAttribute("deer-listing"),
-                        '@context': 'https://schema.org/',
-                        '@type': "ItemList",
-                        name: elem.getAttribute("deer-listing") ?? "Gallery of Glosses",
-                        numberOfItems: elem.listCache.size,
-                        itemListElement: mss
-                    }
-
-                    fetch(DEER.URLS.OVERWRITE, {
-                        method: "PUT",
-                        mode: 'cors',
-                        body: JSON.stringify(list),
-                        headers: {
-                        "Content-Type": "application/json; charset=utf-8",
-                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                        }
-                    }).then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                        .catch(err => alert(`Failed to save: ${err}`))
+    return{
+        html: ` 
+            <style>
+                .cachedNotice{
+                    margin-top: -1em;
+                    display: block;
+                    margin-bottom: 0.55em;
+                }
+                .cachedNotice a{
+                    cursor: pointer;
                 }
 
-                /**
-                 * An archetype entity is being deleted.  Delete it and some choice Annotations connected to it.
-                 * 
-                 * Might want to update the name of this to be delete from collection instead of delete this
-                 * 
-                 * 
-                 * @param event {Event} A button/link click event
-                 * @param type {String} The archtype object's type or @type.
-                 */ 
-                async function removeFromCollectionAndDelete(id, type) {
-                    event.preventDefault()
+                .galleryEntry{
+                    cursor: alias;
+                }
+                .totalsProgress{
+                    text-align: center;
+                    background-color: rgba(0, 0, 0, 0.1);
+                    padding-top: 4px;
+                    font-size: 13pt;
+                }
+                .facet-filters{
+                    border-bottom: 1px solid black;
+                }
+                ul{
+                    list-style-type: none;
+                    padding-left: 1em;
+                }
+            </style>
+            <h2 class="nomargin"> Manage Glosses </h2>
+            <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+            <div class="row is-hidden facet-filters">
+                <div class="col-4 is-hidden">
+                    <div class="statusFacets">
+                        <small> 
+                            Check to see Glosses with the status.
+                        </small>
+                        <input class="statusFacet" type="checkbox" status-filter="public" /><label>Public</label>
+                        <input class="statusFacet" type="checkbox" status-filter="unlabeled" /><label>Untitled</label>
+                        <input class="statusFacet" type="checkbox" status-filter="other" /><label>T.B.D.</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <small> 
+                        Find Glosses by text
+                    </small>
+                    <input filter="title" type="text" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="serifText">
+                </div>
+            </div>
+            <div class="progressArea row">
+                <div class="col">
+                    <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
+                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
+                </div>
+            </div>
+        `,
+        then: (elem) => {
+            let managedListCache = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+            let numloaded = 0
+            let total = 0
+            const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
+            const filterObj = {}
+            if (options.list) {
+                let ul = document.createElement("ul")
+                const deduplicatedList = UTILS.removeDuplicates(obj[options.list], '@id')
+                total = deduplicatedList.length                
+                deduplicatedList.forEach((val, index) => {
+                    const glossID = val["@id"].replace(/^https?:/, 'https:')
+                    const publishedStatus = document.createElement("span")
+                    publishedStatus.classList.add("pubStatus")
+                    publishedStatus.setAttribute("glossid", glossID)
+                    publishedStatus.innerText = "??"
+                    let li = document.createElement("li")
+                    li.setAttribute("deer-id", glossID)
+                    li.classList.add("galleryEntry")
+                    let a = document.createElement("a")
+                    a.setAttribute("href", options.link+glossID)
+                    a.setAttribute("target", "_blank")
+                    let span = document.createElement("span")
 
-                    // This won't do 
-                    if(!id){
-                        alert(`No URI supplied for delete.  Cannot delete.`)
-                        return
-                    }
-                    const thing = 
-                        (type === "manuscript") ? "Manuscript" :
-                        (type === "named-gloss") ? "Gloss" :
-                        (type === "Range") ? "Gloss" : null
-
-
-                    // If it is an unexpected type, we probably shouldn't go through with the delete.
-                    if(thing === null){
-                        alert(`Not sure what a ${type} is.  Cannot delete.`)
-                        return
-                    }
-
-                    // Confirm they want to do this
-                    if (!confirm(`Really delete this ${thing}?\n(Cannot be undone)`)) return
-
-                    const historyWildcard = { "$exists": true, "$size": 0 }
-
-                    /**
-                     * A customized delete functionality for manuscripts, since they have Annotations and Glosses.
-                     */ 
-                    if(type==="manuscript"){
-                        // Such as ' [ Pn ] Paris, BnF, lat. 17233 ''
-
-                        const allGlossesOfManuscriptQueryObj = {
-                            "body.partOf.value": UTILS.httpsIdArray(id),
-                            "__rerum.generatedBy" : UTILS.httpsIdArray(DEER.GENERATOR),
-                            "__rerum.history.next" : historyWildcard
-                        }
-                        const allGlossIds = await UTILS.getPagedQuery(100, 0, allGlossesOfManuscriptQueryObj)
-                        .then(annos => annos.map(anno => anno.target))
-                        .catch(err => {
-                            alert("Could not gather Glosses to delete.")
-                            console.log(err)
-                            return null
-                        })
-                        // This is bad enough to stop here, we will not continue on towards deleting the entity.
-                        if(allGlossIds === null) {return}
-
-                        const allGlosses = allGlossIds.map(glossUri => {
-                            return fetch(config.URLS.DELETE, {
-                                method: "DELETE",
-                                body: JSON.stringify({"@id":glossUri.replace(/^https?:/,'https:')}),
-                                headers: {
-                                    "Content-Type": "application/json; charset=utf-8",
-                                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    if(managedListCache.get(glossID)){
+                        // We cached it in the past and are going to trust it right now.
+                        const cachedObj = managedListCache.get(glossID)
+                        let filteringProps = Object.keys(cachedObj)
+                        // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
+                        li.setAttribute("data-expanded", "true")
+                        // Add all Gloss object properties to the <li> element as attributes to match on later
+                        filteringProps.forEach( (prop) => {
+                            if(prop === "text"){
+                                const t = cachedObj[prop]?.value?.textValue ?? ""
+                                li.setAttribute("data-text", t) 
+                            }
+                            else if(typeof UTILS.getValue(cachedObj[prop]) === "string" || typeof UTILS.getValue(cachedObj[prop]) === "number") {
+                                let value = UTILS.getValue(cachedObj[prop])+""
+                                prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                                const attr = `data-${prop}`
+                                if(prop === "title" && !value){
+                                    value = "[ unlabeled ]"
+                                    li.setAttribute("data-unlabeled", "true")
                                 }
-                            })
-                            .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                            .catch(err => { 
-                                console.warn(`There was an issue removing a connected Gloss: ${glossUri}`)
-                                console.log(err)
-                            })
-                        })
-                        // Wait for these to delete before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
-                        await Promise.all(allGlosses).then(success => {
-                            console.log("Connected Glosses successfully removed.")
-                        })
-                        .catch(err => {
-                            // OK they may be orphaned.  We will continue on towards deleting the entity.
-                            console.warn(`There was an issue removing Connected Glosses`)
-                            console.log(err)
-                        })
-                    }
-
-                    // Get all Annotations throughout history targeting this object that were generated by this application.
-                    const allAnnotationsTargetingEntityQueryObj = {
-                        target: UTILS.httpsIdArray(id),
-                        "__rerum.generatedBy" : UTILS.httpsIdArray(DEER.GENERATOR)
-                    }
-                    const allAnnotationIds = await UTILS.getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
-                    .then(annos => annos.map(anno => anno["@id"]))
-                    .catch(err => {
-                        alert("Could not gather Annotations to delete.")
-                        console.log(err)
-                        return null
-                    })
-                    // This is bad enough to stop here, we will not continue on towards deleting the entity.
-                    if(allAnnotationIds === null) return
-
-                    const allAnnotations = allAnnotationIds.map(annoUri => {
-                        return fetch(config.URLS.DELETE, {
-                            method: "DELETE",
-                            body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
-                            headers: {
-                                "Content-Type": "application/json; charset=utf-8",
-                                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                                li.setAttribute(attr, value)
+                                if(value.includes(filterObj[prop])){
+                                    li.classList.remove("is-hidden")
+                                }
                             }
                         })
-                        .then(r => r.ok ? r.json() : Promise.reject(Error(r.text)))
-                        .catch(err => { 
-                            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
-                            console.log(err)
-                        })
-                    })
-                    
-                    // In this case, we don't have to wait on these.  We can run this and the entity delete syncronously.
-                    Promise.all(allAnnotations).then(success => {
-                        console.log("Connected Annotationss successfully removed.")
-                    })
-                    .catch(err => {
-                        // OK they may be orphaned.  We will continue on towards deleting the entity.
-                        console.warn("There was an issue removing connected Annotations.")
-                        console.log(err)
-                    })
+                        if(!filteringProps.includes("title")) {
+                            li.setAttribute("data-title", "[ unlabeled ]")
+                            li.setAttribute("data-unlabeled", "true")
+                        }
+                        span.innerText = UTILS.getLabel(cachedObj) ? UTILS.getLabel(cachedObj) : "Label Unprocessable"
+                        numloaded++
+                        a.appendChild(span)
+                        li.appendChild(publishedStatus)
+                        li.appendChild(a)
+                        ul.appendChild(li)
+                    }
+                    else{
+                        // This object was not cached so we do not have its properties.
+                        // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
+                        let div = document.createElement("div")
+                        div.setAttribute("deer-template", "managedFilterableListItem")
+                        div.setAttribute("deer-id", glossID)
+                        div.classList.add("deer-view")
+                        span.innerText = `Loading Gloss #${index + 1}...`
+                        a.appendChild(span)
+                        li.appendChild(publishedStatus)
+                        li.appendChild(a)
+                        div.appendChild(li)
+                        ul.appendChild(div)
+                    }
+                })
+                elem.appendChild(ul)
+            }
+            else{
+                console.log("There are no items in this list to draw.")
+                console.log(obj)
+                return
+            }
+            elem.$contentState = ""
+            const totalsProgress = elem.querySelector(".totalsProgress")
 
-                    // Now the entity itself
-                    fetch(config.URLS.DELETE, {
-                        method: "DELETE",
-                        body: JSON.stringify({"@id":id}),
-                        headers: {
-                            "Content-Type": "application/json; charset=utf-8",
-                            "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                        }
-                    })
-                    .then(r => {
-                        if(r.ok){
-                            document.querySelector(`[deer-id="${id}"]`).closest("li").remove()
-                        }
-                        else{
-                            return Promise.reject(Error(r.text))
-                        }
-                    })
-                    .catch(err => { 
-                        alert(`There was an issue removing the ${thing} with URI ${id}.  This item may still appear in collections.`)
-                        console.log(err)
-                    })
+            const filter = elem.querySelector('input[filter="title"]')
+            const facetFilter = elem.querySelector(".statusFacets")
+            const facetInputs = elem.querySelectorAll(".statusFacet")
+            const cachedNotice = elem.querySelector(".cachedNotice")
+            const progressArea = elem.querySelector(".progressArea")
+
+            totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
+            totalsProgress.setAttribute("total", total)
+            totalsProgress.setAttribute("count", numloaded)
+
+            elem.querySelector(".newcache").addEventListener("click", ev => {
+                localStorage.clear()
+                location.reload()
+            })
+
+            // These particular ones are true/false flags, so their value is "true" and "false" not some other string to match on.
+            // TODO work with other filters.  Will it be $AND or $OR?
+            facetInputs.forEach(input => {
+                input.addEventListener('input', ev =>{
+                    const k = ev?.target.getAttribute("status-filter")
+                    const url = new URL(window.location.href)
+                    let filterQuery
+                    let filters = {}
+                    // TODO need the build this filter based on every checked status and typed text to match on.
+                    if(ev?.target.checked){
+                        filters[k] = "true"
+                    }
+                    if(Object.keys(filters).length === 0) filters.title = ""
+                    filterQuery = encodeContentState(JSON.stringify(filters))
+                    debounce(filterGlosses(filterQuery))
+                })    
+            })
+            
+            // This is a freeform filter to match on text.  
+            // TODO It will need to take the statuses into account.  Will it be $AND or $OR?
+            filter.addEventListener('input', ev =>{
+                const val = ev?.target.value.trim()
+                let filterQuery
+                if(val){
+                    filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
+                }
+                else{
+                    filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
+                }
+                debounce(filterGlosses(filterQuery))
+            })
+            
+            if(numloaded === total){
+                cachedNotice.classList.remove("is-hidden")
+                saveList.classList.remove("is-hidden")
+                progressArea.classList.add("is-hidden")
+                elem.querySelector(".facet-filters").classList.remove("is-hidden")
+                elem.querySelectorAll("input[filter]").forEach(i => {
+                    i.classList.remove("is-hidden")
+                })
+            }
+            function debounce(func, timeout = 500) {
+                let timer
+                return (...args) => {
+                    clearTimeout(timer)
+                    timer = setTimeout(() => { func.apply(this, args) }, timeout)
                 }
             }
+
+            /** 
+             * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
+             */ 
+            function filterGlosses(queryString = '') {
+                const numloaded = parseInt(totalsProgress.getAttribute("count"))
+                const total = parseInt(totalsProgress.getAttribute("total"))
+                if (numloaded !== total) {
+                    const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
+                    UTILS.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
+                    return
+                }
+                queryString = queryString.trim()
+                const query = decodeContentState(queryString)
+                for (const prop in query) {
+                    if (typeof query[prop] === 'string') {
+                        query[prop] = query[prop].trim()
+                    }
+                }
+                const items = elem.querySelectorAll('li')
+                items.forEach(li=>{
+                    const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
+                    const elem = templateContainer ?? li
+                    if(!elem.classList.contains("is-hidden")){
+                        elem.classList.add("is-hidden")
+                    }
+                    for(const prop in query){
+                        if(li.hasAttribute(`data-${prop}`)){
+                            const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
+                            elem.classList[action](`is-hidden`,`un${action}-item`)
+                            setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
+                            // If it is showing, no need to check other properties for filtering.
+                            if(action === "remove") break
+                        }
+                    }
+                })
+            }
+
+            let url = new URL(elem.getAttribute("deer-listing"))
+            url.searchParams.set('nocache', Date.now())
+            fetch(url).then(r => r.json())
+            .then(list => {
+                elem.listCache = new Set()
+                list.itemListElement?.forEach(item => elem.listCache.add(item['@id'].replace(/^https?:/, 'https:')))
+                for (const span of elem.querySelectorAll('.pubStatus')) {
+                    const li = span.parentElement
+                    const a = li.querySelector("a")
+                    if(elem.listCache.has(span.getAttribute("glossid"))){
+                        span.innerHTML = "✓"
+                        li.setAttribute("data-public", "true")
+                        a.setAttribute("data-public", "true")
+                    }
+                    else{
+                        span.innerHTML = "❌"
+                        li.setAttribute("data-public", "false")
+                        a.setAttribute("data-public", "false")
+                    }
+                }
+            })
+            .then(() => {
+                elem.querySelectorAll(".galleryEntry").forEach(el => el.addEventListener('click', (ev) => {
+                    ev.preventDefault()
+                    ev.stopPropagation()
+                    // This <li> will have all the processed data-stuff that we will want to use upstream.
+                    const parentDataElem = ev.target.closest("li")
+                    if(!parentDataElem.getAttribute("data-type")){
+                        // Don't have enough info to manage yet
+                        const wait = new CustomEvent("Please wait for this Gloss information to load.")
+                        UTILS.globalFeedbackBlip(wait, `Please wait for this Gloss information to load.`, false)
+                        return
+                    }
+                    const glossID = parentDataElem.getAttribute("deer-id") ? parentDataElem.getAttribute("deer-id") : ""
+                    const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
+                    const published = parentDataElem.getAttribute("data-public") === "true" ? true : false
+                    const glossText = parentDataElem.getAttribute("data-text") ? parentDataElem.getAttribute("data-text") : ""
+                    const glossData = {
+                        "@id": glossID,
+                        "title": glossTitle,
+                        "text" : glossText,
+                        "published": published
+                    }
+                    document.querySelector("manage-gloss-modal").open(glossData)
+                }))
+                saveList.addEventListener('click', overwriteList)
+            })
+            /**
+             * Overwrites the list of glosses with updated data.
+             */            
+            function overwriteList() {
+                let mss = []
+                let missing = false
+                elem.listCache.forEach(uri => {
+                    uri = uri.replace(/^https?:/,'https:')
+                    let labelElement = document.querySelector(`li[deer-id='${uri}'] a span`)
+                    if (labelElement) {
+                        let label = labelElement.textContent.trim()
+                        mss.push({
+                            label: label,
+                            '@id': uri
+                        })
+                    } else {
+                        console.log(`Element with deer-id '${uri}' not found.`)
+                        missing = true
+                    }
+                })
+                
+                if (missing) {
+                    const ev = new CustomEvent("Not Ready")
+                    UTILS.globalFeedbackBlip(ev, `Cannot overwrite list while glosses are still loading.`, false)
+                    return
+                }
+
+                const list = {
+                    '@id': elem.getAttribute("deer-listing"),
+                    '@context': 'https://schema.org/',
+                    '@type': "ItemList",
+                    name: "Gallery of Glosses Public Glosses List",
+                    numberOfItems: elem.listCache.size,
+                    itemListElement: mss
+                }
+                
+                fetch(DEER.URLS.OVERWRITE, {
+                    method: "PUT",
+                    mode: 'cors',
+                    body: JSON.stringify(list),
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    }
+                })
+                .then(r => {
+                    if (r.ok) {
+                        return r.json()
+                    } else {
+                        throw new Error('Failed to save')
+                    }
+                })
+                .then(data => {
+                    const ev = new CustomEvent("Public List Updated")
+                    UTILS.globalFeedbackBlip(ev, `Public Glosses Updated Successfully.`, true)
+                    saveList.setAttribute("disabled", "true")
+                })
+                .catch(err => {
+                    const ev = new CustomEvent("Public List Update Failed")
+                    UTILS.globalFeedbackBlip(ev, `There was an error.  The public list may not be updated.`, true)
+                    console.error(err)
+                })
+            }
         }
-    } catch (err) {
-        console.log("Could not build list template.")
-        console.error(err)
-        return null
     }
 }
 
@@ -1332,7 +1502,12 @@ DEER.TEMPLATES.entity = function (obj, options = {}) {
     tmpl += (list.includes("</dd>")) ? `<dl>${list}</dl>` : ``
     return tmpl
 }
-
+/**
+ * Template function to generate a list of items.
+ * @param {object} obj - The object containing the items.
+ * @param {object} options - Options for customizing the list.
+ * @returns {string} - The HTML template for the list.
+ */
 DEER.TEMPLATES.list = function (obj, options = {}) {
     let tmpl = `<h2>${UTILS.getLabel(obj)}</h2>`
     if (options.list) {
@@ -1499,7 +1674,12 @@ export default class DeerRender {
                             console.error("Broke with listObj at ", listObj)
                             RENDER.element(this.elem, listObj)
                         })
-
+                    /**
+                     * Function to fetch paged query results for a list.
+                     * @param {number} lim - The limit for the number of items per page.
+                     * @param {number} it - The offset for pagination.
+                     * @returns {Promise} - A promise that resolves to the paged query results.
+                     */
                     function getListPagedQuery(lim, it = 0) {
                         const q = DEER.URLS.QUERY.replace("?limit=100&skip=0", "")
                         return fetch(`${q}?limit=${lim}&skip=${it}`, {
@@ -1509,17 +1689,25 @@ export default class DeerRender {
                                 "Content-Type": "application/json; charset=utf-8"
                             },
                             body: JSON.stringify(queryObj)
-                        }).then(response => response.json())
-                            .then(list => {
-                                listObj.itemListElement = listObj.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
-                                this.elem.setAttribute(DEER.LIST, "itemListElement")
-                                try {
-                                    listObj["@type"] = list[0]["@type"] ?? list[0].type ?? "ItemList"
-                                } catch (err) { }
-                                if (list.length ?? (list.length % lim === 0)) {
-                                    return getListPagedQuery.bind(this)(lim, it + list.length)
-                                }
-                            })
+                        }).then(response => {
+                            if (!response.ok){
+                                UTILS.handleErrorBlip(response)
+                            }
+                            return response.json()
+                        })
+                        .then(list => {
+                            listObj.itemListElement = listObj.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
+                            this.elem.setAttribute(DEER.LIST, "itemListElement")
+                            try {
+                                listObj["@type"] = list[0]["@type"] ?? list[0].type ?? "ItemList"
+                            } catch (err) { }
+                            if (list.length ?? (list.length % lim === 0)) {
+                                return getListPagedQuery.bind(this)(lim, it + list.length)
+                            }
+                        })
+                        .catch(err => {
+                            console.log(err)
+                        })
                     }
                 }
             }

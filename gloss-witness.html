@@ -100,7 +100,7 @@
         <input type="hidden" custom-key="source">
         <div class="row">
             <label class="col-3 col-2-md text-right is-hidden">Label:</label>
-            <input type="text" deer-key="label" placeholder="Label" class="col-9 col-10-md is-hidden">
+            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
 
             <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required"
@@ -151,6 +151,15 @@
                     value="text/plain" />
             </label>
 
+			<label class="col-3 col-2-md text-right">Gloss format:</label>
+            <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
+                <option value="none" selected>None</option>
+                <option value="marginal">Marginal</option>
+                <option value="interlinear">Interlinear</option>
+                <option value="appendix">Appendix</option>
+                <option value="other">Other</option>
+            </select>
+
             <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..."
@@ -161,7 +170,7 @@
         <div class="row">
             <witness-text-selector class="lineSelector witness-needed is-hidden col-7-md col-6-sm">
             </witness-text-selector>
-            <deer-view class="witness-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-listing
+            <deer-view class="witness-needed is-hidden col-5-md col-6-sm" id="ngCollectionList"
                 deer-collection="GoG-Named-Glosses" deer-link="ng.html#"
                 deer-template="glossesSelectorForTextualWitness">
                 Loading&hellip;
@@ -173,5 +182,18 @@
     <gloss-modal class="is-hidden"></gloss-modal>
     <script src="js/gloss-witness.js"></script>
 </body>
-
+<script>
+    /**
+     * Make sure DEER forms do not submit when a user hits "Enter".
+     */ 
+    document.querySelectorAll("form[deer-type]").forEach(form => {
+        form.addEventListener("keydown", (e)=> {
+            if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+                if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                    e.preventDefault()
+                }
+            }
+        }, true)
+    })
+</script>
 </html>

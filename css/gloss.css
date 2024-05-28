@@ -1,6 +1,7 @@
 @import "https://unpkg.com/chota@latest";
 @import url('https://fonts.googleapis.com/css2?family=Eczar&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Volkhov&display=swap');
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css');
 
 :root {
   --bg-color: hsl(0, 0%, 100%);
@@ -28,6 +29,12 @@ gog-header + div.container {
 .bg-basic, div.container, form {
   background-color: var(--bg-color)!important;
   display: block;
+  border-bottom: 2px solid var(--color-lightGrey);
+  padding: .8em;
+  border-radius: 0.2em;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 1em;
 }
 div.content {
   min-height: 400px;
@@ -35,6 +42,7 @@ div.content {
 .tabs {
   white-space: nowrap;
   font-family: 'Eczar',serif;
+  margin-left: -2em;
 }
 
 .tabs a {
@@ -73,7 +81,7 @@ textarea.taller {
   position: absolute;
   max-width: none;
   min-width: 100%;
-  filter:blur(.2rem);
+  filter:blur(.5rem);
   left:0;
   top:0;
   z-index: -1;
@@ -85,6 +93,7 @@ h1.title {
   font-size: 3em;
   font-family: "Eczar","Volkhov",serif;
   margin:0;
+  margin-left: -0.6em;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -110,82 +119,66 @@ img.thumbnail {
   position: relative;
 }
 
-#ngCollectionList li.is-hidden.unadd-item, #ngCollectionList li.is-hidden.unremove-item {
+#ngCollectionList li.is-hidden.unadd-item, #ngCollectionList li.is-hidden.unremove-item,
+#ngCollectionList tr.is-hidden.unadd-item, #ngCollectionList tr.is-hidden.unremove-item {
   display: block !important;
 }
 
-#ngCollectionList li.is-hidden {
+#ngCollectionList li.is-hidden,
+#ngCollectionList tr.is-hidden {
   height: 0em;
   opacity: 0;
 }
 
-#ngCollectionList li {
+#ngCollectionList li,
+#ngCollectionList tr {
   transition: all 500ms;
   opacity: 1;
   height:1.6em;
 }
 
-#ngCollectionList li.unadd-item {
+#ngCollectionList li.unadd-item,
+#ngCollectionList tr.unadd-item {
   opacity: 0;
   height: 0em;
 }
 
-#collectionList li.is-hidden.unadd-item, #collectionList li.is-hidden.unremove-item {
+#ngCollectionList tr[deer-template="filterableListItem"].is-hidden.unadd-item, #ngCollectionList tr[deer-template="filterableListItem"].is-hidden.unremove-item {
   display: block !important;
 }
 
-#collectionList li.is-hidden {
+#ngCollectionList tr[deer-template="filterableListItem"].is-hidden {
   height: 0em;
   opacity: 0;
 }
 
-#collectionList li {
+#ngCollectionList tr[deer-template="filterableListItem"] {
   transition: all 500ms;
   opacity: 1;
   height:1.6em;
 }
 
-#collectionList li.unadd-item {
+#ngCollectionList tr[deer-template="filterableListItem"].unadd-item {
   opacity: 0;
   height: 0em;
 }
 
-#ngCollectionList div[deer-template="filterableListItem"].is-hidden.unadd-item, #ngCollectionList div[deer-template="filterableListItem"].is-hidden.unremove-item {
+#ngCollectionList div[deer-template="managedFilterableListItem"].is-hidden.unadd-item, #ngCollectionList div[deer-template="managedFilterableListItem"].is-hidden.unremove-item {
   display: block !important;
 }
 
-#ngCollectionList div[deer-template="filterableListItem"].is-hidden {
+#ngCollectionList div[deer-template="managedFilterableListItem"].is-hidden {
   height: 0em;
   opacity: 0;
 }
 
-#ngCollectionList div[deer-template="filterableListItem"] {
+#ngCollectionList div[deer-template="managedFilterableListItem"] {
   transition: all 500ms;
   opacity: 1;
   height:1.6em;
 }
 
-#ngCollectionList div[deer-template="filterableListItem"].unadd-item {
-  opacity: 0;
-  height: 0em;
-}
-
-#collectionList div[deer-template="filterableListItem"].is-hidden.unadd-item, #collectionList div[deer-template="filterableListItem"].is-hidden.unremove-item {
-  display: block !important;
-}
-
-#collectionList div[deer-template="filterableListItem"].is-hidden {
-  height: 0em;
-  opacity: 0;
-}
-
-#collectionList div[deer-template="filterableListItem"] {
-  transition: all 500ms;
-  opacity: 1;
-  height:1.6em;
-}
-
-#collectionList div[deer-template="filterableListItem"].unadd-item {
+#ngCollectionList div[deer-template="managedFilterableListItem"].unadd-item {
   opacity: 0;
   height: 0em;
 }
@@ -471,4 +464,73 @@ line.selected.just {
 
 .addWitnessBtn{
   margin-bottom: 1em;
+}
+
+.addWitnessDiv{
+  margin-bottom: 1em;
+}
+
+form#ngForm,
+form#bibliographicCitationForm
+{
+  margin: 0.7em;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#bibliographicCitation-container {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+#bibliographicCitationtoolbar {
+    display: flex;
+    background-color: #f3f3f3;
+    border-bottom: 1px solid #ccc;
+    padding: 5px;
+}
+
+.toolbar-item {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 16px;
+    border-radius: 4px;
+}
+
+.toolbar-item:hover {
+    background-color: #e7e7e7;
+}
+
+.toolbar-item.active {
+    background-color: #e7e7e7; 
+    box-shadow: inset 0 0 3px #666; 
+}
+
+#bibliographicCitationEditor {
+    padding: 10px;
+    min-height: 200px;
+}
+
+p.bg-light {
+  padding: 0.5em;
+  text-align: center;
+  border-radius: 0.5em;
+  font-weight: bold;
+}
+
+input#loadInput {
+  margin-top: 1em;
+}
+
+.content.container {
+  margin-left: -.001em;
+}
+
+.nomargin{
+  margin: 0;
 }
