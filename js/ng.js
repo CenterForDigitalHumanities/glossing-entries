@@ -25,6 +25,14 @@ window.onload = () => {
         glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
     }
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
+    if(window.location.search){
+        const params = new URLSearchParams(window.location.search)
+        window.history.replaceState({}, document.title, 'ng.html')
+        if(params.has("title")){
+            labelElem.value = params.get("title")
+            labelElem.$isDirty = true
+        }
+    }
     const textElem = glossText
     const textListener = textElem.addEventListener('input', ev => {
         if (textElem.value?.length > 5) {

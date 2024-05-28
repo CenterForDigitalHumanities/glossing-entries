@@ -1071,6 +1071,14 @@ function debounce(func,timeout = 500) {
 function hideSearchBar() {
     const searchSubmit = document.getElementById('search-submit')
     const searchBar = document.getElementById('search-bar')
+    searchSubmit.onclick = () => {
+        globalFeedbackBlip(
+            new CustomEvent("deer-view", { detail: { set: [ngCollectionList] }, bubbles: true }),
+            'Redirecting to Gloss Creation...',
+            true
+        )
+        addEventListener('globalFeedbackFinished', () => location.href = `ng.html?title=${searchBar.value}`)
+    }
     searchBar.addEventListener("keydown", (e)=> {
         if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
             if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
