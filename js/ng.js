@@ -18,6 +18,7 @@ window.onload = () => {
     
     const glossForm = document.getElementById("named-gloss")
     if(hash) {
+        setFieldDisabled(true)
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
         document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
@@ -105,6 +106,7 @@ addEventListener('deer-form-rendered', event => {
             break
         default:
     }
+    setFieldDisabled(false)
 })
 
 /**
@@ -476,4 +478,12 @@ async function deleteGloss(id=glossHashID) {
         console.log(err)
     })
 
+}
+
+/**
+ * Enable/Disable all form fields
+ * @param {boolean} disabled - Set all form fields used to have this value for their `disabled` attribute
+ */
+function setFieldDisabled(disabled = true) {
+    document.querySelectorAll('input,textarea,select,button').forEach(e => e.disabled = disabled)
 }
