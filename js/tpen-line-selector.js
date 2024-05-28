@@ -174,10 +174,107 @@ class TpenLineSelector extends HTMLElement {
                         lineElem.innerText = txt
                         if(!txt) lineElem.classList.add("emptyLine")
                         lineElem.onmousedown = function(e){
-                            if(event.button > 0) return
+                            if(e.button > 0) return
                             // The green <mark> has to be removed before selection occurs or the range indexes will not line up.
                             let unmarkup = new Mark(".tpenProjectLines")
                             unmarkup.unmark({"className" : "persists"})
+                        lineElem.onmouseup = function(e) {
+                            const s = document.getSelection()
+                            const customKey = $this.querySelector("input[custom-key='selections']")
+                            const filter = document.querySelector("input[filter]")
+                            const selectedText = s?.toString().trim() ?? ""
+                            const firstword = selectedText.split(" ")[0]
+                            if(selectedText){
+                                // The filter may not be in the DOM when the user is selecting text.
+                                // Only use the filter if it is !.is-hidden
+                                if(filter && !filter.classList.contains("is-hidden")){
+                                    filter.value = firstword
+                                    filter.setAttribute("value", firstword)
+                                    filter.dispatchEvent(new Event('input', { bubbles: true }))
+                                }
+
+                                const textInput = document.querySelector("textarea[custom-text-key='text']")
+                                textInput.setAttribute("value", selectedText)
+                                textInput.value = selectedText
+                                textInput.dispatchEvent(new Event('input', { bubbles: true }))
+
+                                let witnessLabel = selectedText.slice(0, 16)
+                                const labelElem = document.querySelector("input[deer-key='label']")
+                                const shelfmark = document.querySelector("input[deer-key='identifier']").value
+                                // Generate a programmatic label
+                                if(witnessLabel){
+                                    if(shelfmark){
+                                        witnessLabel += `...(${shelfmark})`
+                                    }
+                                    else{
+                                        witnessLabel += `...(${Date.now()})`
+                                    }    
+                                    if(labelElem.value !== witnessLabel){
+                                        labelElem.value = witnessLabel
+                                        labelElem.setAttribute("value", witnessLabel)
+                                        labelElem.dispatchEvent(new Event('input', { bubbles: true }))
+                                    }
+                                }
+                                else{
+                                   // A side effect of this is that a label cannot be unset by a typical DEER form update.
+                                   labelElem.value = "" 
+                                   labelElem.setAttribute("value", "")
+                                   labelElem.$isDirty = false
+                                }
+                                let selections = []
+                                let selectedElems = []
+                                let linePreviews = []
+                                const stopID = document.getSelection().extentNode.parentElement.getAttribute("tpen-line-id")
+                                let el = document.getSelection().baseNode.parentElement
+                                let stopEl = document.getSelection().extentNode.parentElement
+                                $this.querySelectorAll(".togglePage").forEach(tog => tog.classList.remove("has-selection"))
+                                el.parentElement.previousElementSibling.classList.add("has-selection")
+                                stopEl.parentElement.previousElementSibling.classList.add("has-selection")
+                                if(stopID === el.getAttribute("tpen-line-id")){
+                                    // The entire selection happened in just this line.  It will not be empty.
+                                    selections.push(`${el.getAttribute("tpen-project-line-id")}#char=${document.getSelection().baseOffset},${document.getSelection().extentOffset}`)
+                                    selectedElems.push(el)
+                                    linePreviews.push()
+                                }
+                                else{
+                                    // The selection happened over multiple lines.  We need to make a target out of each line.  There may be empty lines in-between.
+                                    if(!el.classList.contains("emptyLine")) {
+                                        selections.push(`${el.getAttribute("tpen-project-line-id")}#char=${document.getSelection().baseOffset},${el.innerText.length-1}`)
+                                        selectedElems.push(el)
+                                    }
+                                    el = el.nextElementSibling
+                                    while(el.getAttribute("tpen-line-id") !== stopID){
+                                        if(!el.classList.contains("emptyLine")){
+                                            selections.push(`${el.getAttribute("tpen-project-line-id")}#char=0,${el.innerText.length-1}`)
+                                            selectedElems.push(el)
+                                        }
+                                        if(el.nextElementSibling){
+                                            el = el.nextElementSibling    
+                                        }
+                                        else{
+                                            //We are at the end of a page and are going on to the next page.  Get to the next page and get the first line
+                                            el = el.parentElement.nextElementSibling.nextElementSibling.nextElementSibling.firstChild
+                                        }
+                                    }  
+                                    if(!el.classList.contains("emptyLine")){
+                                        selections.push(`${el.getAttribute("tpen-project-line-id")}#char=0,${document.getSelection().extentOffset}`)
+                                        selectedElems.push(el)
+                                    }
+                                }
+                                if(customKey.value !== selections.join("__")){
+                                    customKey.value = selections.join("__") 
+                                    customKey.$isDirty = true
+                                    $this.closest("form").$isDirty = true
+                                }
+                                $this.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
+                                    if(!tog.classList.contains("is-toggled")){
+                                        tog.click()
+                                    }
+                                })    
+                                console.log("You made the following line selections")
+                                console.log(selections)
+                                buildDepictionURL(selectedElems)
+                            }
                         }
                         lineElem.onmouseup = captureSelectedText
                         pageContainer.appendChild(lineElem)
@@ -357,3 +454,30 @@ class TpenLineSelector extends HTMLElement {
 }
 
 customElements.define('tpen-line-selector', TpenLineSelector)
+
+/**
+ * Generate a URL [string] with selectors for TPEN project lines.
+ * @param {Array} linesArray TPEN line elements to be processed
+ * @returns [URL]
+ */
+function buildDepictionURL(linesArray) {
+    const imgSrc = [...linesArray][0].getAttribute("tpen-image-url")
+    const selectorArray = [...linesArray].map(line=>{
+        const xywh = line.getAttribute('tpen-image-fragment')?.split('xywh=')[1].split(',')
+        return {
+            x: parseInt(xywh[0]), y: parseInt(xywh[1]), w: parseInt(xywh[2]), h:parseInt(xywh[3])
+        }
+    })
+    let discreteLines = [selectorArray[0]]
+    selectorArray.forEach(selector => {
+        const lastLine = discreteLines.pop()
+        if(selector.x === lastLine.x) {
+            lastLine.h = selector.y - lastLine.y + selector.h
+            lastLine.w = Math.max(lastLine.w,selector.w)
+            discreteLines.push(lastLine)
+            return
+        }
+        discreteLines.push(lastLine,selector)
+    })
+    return discreteLines.map(line => `${imgSrc}#xywh=${line.x},${line.y},${line.w},${line.h}`)
+}
