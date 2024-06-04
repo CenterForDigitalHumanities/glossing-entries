@@ -453,7 +453,7 @@ class ReferencesBrowser extends HTMLElement {
             Witnesses queued to be created when you submit can be removed by clicking the '<span style="color:red;">x</span>' symbol.
         </p>
         <ul class="glossWitnesses">
-            <li> Looking for Witnesses... </li>
+            <li class="wait"> Looking for Witnesses... </li>
         </ul>
     `
     constructor() {
@@ -482,7 +482,7 @@ class ReferencesBrowser extends HTMLElement {
                 if(gloss_witness_annos.length){
                     $this.classList.remove("is-hidden")
                     // Get rid of 'non found' placeholder
-                    witnessList.querySelector("li").remove()
+                    witnessList.querySelector("li.wait")?.remove()
                     gloss_witness_annos.forEach((gloss_witness_anno, index) => {
                         const witnessURI = gloss_witness_anno.target
                         const li = document.createElement("li")
@@ -554,6 +554,7 @@ class ReferencesBrowser extends HTMLElement {
             event.stopPropagation()
             const name = witnessInput.value
             if(!name) return
+            witnessList.querySelector("li.wait")?.remove()
             const li = document.createElement("li")
             const a = document.createElement("a")
             li.classList.add("witness-queued")
