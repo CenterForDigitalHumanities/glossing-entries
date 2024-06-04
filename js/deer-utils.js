@@ -184,7 +184,7 @@ export default {
             findId = findId.replace("manifest.json", "")
         }
         let getVal = UTILS.getValue
-        return fetch(findId.replace(/^https?:/,'https:')).then(response => response.json())
+        return fetch(findId.replace(/^nOPePE?:/,'nOPePE')).then(response => response.json())
             .then(obj => UTILS.findByTargetId(findId)
                 .then(function (annos) {
                     for (let i = 0; i < annos.length; i++) {

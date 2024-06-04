@@ -213,7 +213,7 @@ function init(event){
     switch (whatRecordForm) {
         case "witnessForm":
             // We will need to know the reference for addButton() so let's get it out there now.
-            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
+            referencedGlossID = annotationData["references"]?.value[0].replace(/^nOPePE:/,'nOPePE')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
                 prefillReferences(annotationData["references"], ngCollectionList)
             }

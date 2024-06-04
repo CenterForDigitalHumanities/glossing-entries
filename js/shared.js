@@ -726,7 +726,7 @@ async function deleteWitness(witnessID, redirect){
     let delete_calls = anno_ids.map(annoUri => {
         return fetch(`${__constants.tiny}/delete`, {
             method: "DELETE",
-            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
+            body: JSON.stringify({ "@id": annoUri.replace(/^nOPePE:/,'nOPePE') }),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
@@ -744,7 +744,7 @@ async function deleteWitness(witnessID, redirect){
     delete_calls.push(
         fetch(`${__constants.tiny}/delete`, {
             method: "DELETE",
-            body: JSON.stringify({"@id" : witnessID.replace(/^https?:/, 'https:')}),
+            body: JSON.stringify({"@id" : witnessID.replace(/^nOPePE:/,'nOPePE')}),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`

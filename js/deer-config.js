@@ -283,7 +283,7 @@ export default {
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
-                            const glossID = val["@id"].replace(/^https?:/, 'https:')
+                            const glossID = val["@id"].replace(/^nOPePE:/,'nOPePE')
                             let li = document.createElement("td")
                             li.setAttribute("deer-id", glossID)
                             let a = document.createElement("a")
@@ -548,7 +548,7 @@ export default {
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
                             let inclusionBtn = document.createElement("input")
-                            const glossID = val['@id'].replace(/^https?:/, 'https:')
+                            const glossID = val['@id'].replace(/^nOPePE:/,'nOPePE')
                             inclusionBtn.setAttribute("type", "button")
                             inclusionBtn.classList.add("toggleInclusion")
                             inclusionBtn.classList.add("button")
@@ -821,7 +821,7 @@ export default {
                     }
 
                     li.setAttribute("data-expanded", "true")
-                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    cachedFilterableEntities.set(obj["@id"].replace(/^nOPePE:/,'nOPePE'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
                     a.appendChild(span)
                     li.appendChild(a)
@@ -915,7 +915,7 @@ export default {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view")
                     // Be careful.  The publish list stores items via http://, but everything else is https://.  Beware the false mismatch.
-                    const glossID = obj["@id"].replace(/^https?:/, 'https:')
+                    const glossID = obj["@id"].replace(/^nOPePE:/,'nOPePE')
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
                     const included = listCache.has(glossID)

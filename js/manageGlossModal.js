@@ -79,7 +79,7 @@ class ManageGlossModal extends HTMLElement {
                 deerUtils.globalFeedbackBlip(ev, `Please wait for this Gloss to load.`, false)
                 return
             }
-            const glossID = glossData["@id"].replace(/^https?:/, 'https:')
+            const glossID = glossData["@id"].replace(/^nOPePE:/,'nOPePE')
             const published = glossData.published
             const glossText = glossData.text
             const glossTitle = `${published ? "✓" : "❌"}  ${glossData.title}`

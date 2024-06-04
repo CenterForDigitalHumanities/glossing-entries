@@ -120,7 +120,7 @@ function init(event){
             tpenProjectURI = annotationData.source.value[0]
             document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
             document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
-            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
+            referencedGlossID = annotationData["references"]?.value[0].replace(/^nOPePE:/,'nOPePE')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
                 prefillReferences(annotationData["references"], ngCollectionList)
             }
@@ -598,7 +598,7 @@ addEventListener('gloss-modal-saved', event => {
     const list = view.querySelector("ul")
     const modal = event.target
     const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
-    const glossURI = gloss["@id"].replace(/^https?:/, 'https:')
+    const glossURI = gloss["@id"].replace(/^nOPePE:/,'nOPePE')
     modal.classList.add("is-hidden")
 
     const li = document.createElement("li")
@@ -724,7 +724,7 @@ function addButton(event) {
 function paginateButtonsAfterSubmit(glossURIs){
     const previouslyChosen = document.querySelector(".toggleInclusion.success")
     glossURIs.forEach(glossURI => {
-        glossURI = glossURI.replace(/^https?:/, 'https:')
+        glossURI = glossURI.replace(/^nOPePE:/,'nOPePE')
         document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(inclusionBtn => {
             inclusionBtn.classList.add("attached-to-source")
             inclusionBtn.setAttribute("value", "❢ attach")

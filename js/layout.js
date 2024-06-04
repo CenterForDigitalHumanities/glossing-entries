@@ -404,6 +404,8 @@ class ReferencesBrowser extends HTMLElement {
             gog-references-browser{
                 position: relative;
                 display: block;
+                border-radius: 8px;
+                padding: 20px;
             }
 
             .glossWitnesses{
@@ -418,9 +420,36 @@ class ReferencesBrowser extends HTMLElement {
                 color: var(--color-primary);
             }
 
+            .remove-witness:after {
+                content: "x";
+                color: red;
+                padding: 1px 1px 1px 7px;
+                cursor: pointer;
+
+            }
+            .remove-witness:hover {
+                font-weight: bolder;
+            }
+
+            button.smaller {
+                padding: 0px 5px;
+                height: 2.2em;
+            }
+
         </style>
-        <p> Known Witnesses of this Gloss are displayed below.  Click on one for details about the Witness. </p>
-        <ul class="glossWitnesses"> </ul>
+        <p> Have a Witness or two in mind?  Add them below to create when you submit this Gloss.</p>
+        <div class="row">
+            <input type="text" class="col-8 col-4-md witnessInput" placeholder="Shelfmark goes here">
+            <button class="addWitnessTag button secondary smaller col-4 col-3-md"> Add Witness Reference </button>
+        </div>
+        <p> 
+            Known Witnesses of this Gloss are displayed below.  Click on one for details about the Witness.<br>
+            Witnesses queued to be created when you submit are denoted by a '<span style="color:red;">x</span>' symbol, which you can click
+            to remove the shelfmark from the queue.
+        </p>
+        <ul class="glossWitnesses">
+            <li> No Witnesses Found </li>
+        </ul>
     `
     constructor() {
         super()
@@ -434,108 +463,128 @@ class ReferencesBrowser extends HTMLElement {
         const $this = this
         this.innerHTML = this.template
         const witnessList = $this.querySelector(".glossWitnesses")
+        const witnessInput = $this.querySelector(".witnessInput")
         const glossURI = this.getAttribute("gloss-uri") ? decodeURIComponent(this.getAttribute("gloss-uri")) : null
-        if(!glossURI) return
-
-        function activateWitnessModal(event){
-            const witness_uris = clicked_li.getAttribute("appearances").split("__")
-            if(witness_uris.length <= 1) return
-            const modal = document.querySelector("witness-modal")
-            const clicked_li = event.target.tagName === "SPAN" ? event.target.closest("li") : event.target
-            const source_uri = clicked_li.getAttribute("source-uri")
-            const witnessListElem = modal.querySelector(".appearancesList")
-            witnessListElem.innerHTML = ""
-            witness_uris.forEach((witness, index) => {
-                let li
-                if(source_uri.includes("t-pen.org/TPEN/")){
-                    li = `<li><a target="_blank" href="/gloss-transcription.html#${witness}">Appearance ${index+1}</a></li>`
-                }
-                else{
-                    li = `<li><a target="_blank" href="/gloss-witness.html#${witness}">Appearance ${index+1}</a></li>`
-                }
-                witnessListElem.innerHTML += li
-            })        
-            modal.toggleModal()
-        }
-
-        const gloss_witness_annos_query = {
-            "body.references.value" : glossURI,
-            '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
-            "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
-        }
-        getPagedQuery(100, 0, gloss_witness_annos_query)
-        .then(gloss_witness_annos => {
-            const newView = new Set()
-            if(gloss_witness_annos.length){
-                $this.classList.remove("is-hidden")
-                gloss_witness_annos.forEach((gloss_witness_anno, index) => {
-                    const li = document.createElement("li")
-                    li.setAttribute("count", "0")
-                    const a = document.createElement("a")
-                    const witnessURI = gloss_witness_anno.target
-                    const query2 = {
-                        "body.source.value" : {"$exists":true},
-                        "target" : httpsIdArray(gloss_witness_anno.target),
-                        '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
-                        "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
-                    }
-                    fetch(`${config.URLS.QUERY}?limit=100&skip=0`, {
-                        method: 'POST',
-                        mode: 'cors',
-                        headers:{
-                            "Content-Type" : "application/json;charset=utf-8"
-                        },
-                        body: JSON.stringify(query2)
-                    })
-                    .then(res => {
-                        if (!res.ok) {
-                            throw Error(res.statusText)
-                        }
-                        return res.json()
-                    })
-                    .then(witness_source_annos => {
-                        let witnessSource = witness_source_annos.length ? witness_source_annos[0].body.source.value[0] : null
-                        const witnessURI = witness_source_annos.length ? witness_source_annos[0].target : ""
-                        let sourceURI = witnessSource ? witnessSource : gloss_witness_anno.target
-                        if(!(witnessSource.startsWith("http:") || witnessSource.startsWith("https:"))){
-                            sourceURI = gloss_witness_anno.target
-                        }
-                        // Do not add duplicates.  This UI will list the separate occurances when there are more than 1.
-                        const existing = witnessList.querySelector(`li[source-uri="${sourceURI}"]`)
-                        if(existing) {
-                            const existing_li = existing.closest("li")
-                            existing_li.setAttribute("count", parseInt(existing_li.getAttribute("count")) + 1)
-                            existing_li.setAttribute("appearances", existing_li.getAttribute("appearances")+`__${witnessURI}`)
-                            return
-                        }
-                        li.setAttribute("source-uri", sourceURI)
-                        li.setAttribute("count", "1")
-                        li.setAttribute("appearances", witnessURI)
-                        a.classList.add("deer-view")
-                        a.setAttribute("deer-template", "shelfmark")
-                        a.setAttribute("deer-id", witnessURI)
-                        a.setAttribute("target", "_blank")
-                        if(sourceURI.includes("t-pen.org/TPEN/")){
-                            a.setAttribute("href", `gloss-transcription.html#${witnessURI}`)
-                        }
-                        else{
-                            a.setAttribute("href",`gloss-witness.html#${witnessURI}`)
-                        }
-                        a.innerHTML = "loading..." 
-                        li.appendChild(a)
-                        witnessList.appendChild(li)
-                        utils.broadcast(undefined, "deer-view", document, { set: [a] })    
-                    })
-                    .catch(err => {
-                        return null
-                    })
-                })
+        if(glossURI){
+            const gloss_witness_annos_query = {
+                "body.references.value" : glossURI,
+                '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
+                "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
             }
-        })
-        .catch(err => {
-            console.error(err)
-            $this.innerHTML = `<b class="text-error"> Could not get Gloss witnesses. </b>`
-        })
+            getPagedQuery(100, 0, gloss_witness_annos_query)
+            .then(gloss_witness_annos => {
+                const newView = new Set()
+                if(gloss_witness_annos.length){
+                    $this.classList.remove("is-hidden")
+                    gloss_witness_annos.forEach((gloss_witness_anno, index) => {
+                        const li = document.createElement("li")
+                        li.setAttribute("count", "0")
+                        const a = document.createElement("a")
+                        const witnessURI = gloss_witness_anno.target
+                        const query2 = {
+                            "body.source.value" : {"$exists":true},
+                            "target" : httpsIdArray(gloss_witness_anno.target),
+                            '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
+                            "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
+                        }
+                        fetch(`${config.URLS.QUERY}?limit=100&skip=0`, {
+                            method: 'POST',
+                            mode: 'cors',
+                            headers:{
+                                "Content-Type" : "application/json;charset=utf-8"
+                            },
+                            body: JSON.stringify(query2)
+                        })
+                        .then(res => {
+                            if (!res.ok) {
+                                throw Error(res.statusText)
+                            }
+                            return res.json()
+                        })
+                        .then(witness_source_annos => {
+                            let witnessSource = witness_source_annos.length ? witness_source_annos[0].body.source.value[0] : null
+                            const witnessURI = witness_source_annos.length ? witness_source_annos[0].target : ""
+                            let sourceURI = witnessSource ? witnessSource : gloss_witness_anno.target
+                            if(!(witnessSource.startsWith("http:") || witnessSource.startsWith("https:"))){
+                                sourceURI = gloss_witness_anno.target
+                            }
+                            // Do not add duplicates.  This UI will list the separate occurances when there are more than 1.
+                            const existing = witnessList.querySelector(`li[source-uri="${sourceURI}"]`)
+                            if(existing) {
+                                const existing_li = existing.closest("li")
+                                existing_li.setAttribute("count", parseInt(existing_li.getAttribute("count")) + 1)
+                                existing_li.setAttribute("appearances", existing_li.getAttribute("appearances")+`__${witnessURI}`)
+                                return
+                            }
+                            li.setAttribute("source-uri", sourceURI)
+                            li.setAttribute("count", "1")
+                            li.setAttribute("appearances", witnessURI)
+                            a.classList.add("deer-view")
+                            a.setAttribute("deer-template", "shelfmark")
+                            a.setAttribute("deer-id", witnessURI)
+                            a.setAttribute("target", "_blank")
+                            if(sourceURI.includes("t-pen.org/TPEN/")){
+                                a.setAttribute("href", `gloss-transcription.html#${witnessURI}`)
+                            }
+                            else{
+                                a.setAttribute("href",`gloss-witness.html#${witnessURI}`)
+                            }
+                            a.innerHTML = "loading..." 
+                            li.appendChild(a)
+                            witnessList.appendChild(li)
+                            utils.broadcast(undefined, "deer-view", document, { set: [a] })    
+                        })
+                        .catch(err => {
+                            return null
+                        })
+                    })
+                }
+            })
+            .catch(err => {
+                console.error(err)
+                $this.innerHTML = `<b class="text-error"> Could not get Gloss witnesses. </b>`
+            })    
+        }
+        /**
+         * Click event handler for Add Theme.  Takes the user input and adds the string to the Set if it isn't already included.
+         * Includes pagination.
+         * */
+        this.addReference = function(event) {
+            event.preventDefault()
+            event.stopPropagation()
+            const name = witnessInput.value
+            if(!name) return
+            const li = document.createElement("li")
+            const a = document.createElement("a")
+            li.classList.add("witness-queued")
+            a.classList.add("deer-view")
+            a.setAttribute("deer-template", "shelfmark")
+            a.setAttribute("target", "_blank")
+            //a.setAttribute("href",`gloss-witness.html#${witnessURI}`)
+            a.setAttribute("deer-id", "")
+            a.innerHTML = `${name}`
+            li.appendChild(a)
+            const span = document.createElement("span")
+            span.classList.add("remove-witness")
+            span.addEventListener("click", $this.removeReference)
+            li.appendChild(span)
+            witnessList.appendChild(li)
+            witnessInput.value = ""
+        }
+
+        /**
+         * Click event handler for .removeTheme when the user clicks the little x. 
+         * Removes theme from the set of known themes (if included, it really should be though.)
+         * Includes pagination.
+         * This function is exposed so that the HTML pages can call upon it during pagination moments. 
+         * */
+        this.removeReference = function(event) {
+            event.preventDefault()
+            event.stopPropagation()
+            event.target.closest("li").remove()
+        }
+
+        $this.querySelector(".addWitnessTag").addEventListener("click", $this.addReference)
     }
     static get observedAttributes() { return ['gloss-uri'] }
 }

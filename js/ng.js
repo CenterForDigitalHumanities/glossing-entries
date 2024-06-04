@@ -109,20 +109,111 @@ addEventListener('deer-form-rendered', event => {
     setFieldDisabled(false)
 })
 
+async function generateWitnessesOnSubmit(glossid){
+    // Must have a label/shelfmark/whatever.  This creates a Witness entity and the Annotation for the provided label.
+    const queued = document.getElementByTagName("gog-references-browser").querySelectorAll(".witness-queued")
+    let createdReferencesAnno = null
+    let createdLabelAnno = null
+    let createdWitness = null
+    let createdWitnesses = []
+    for await (const witness of queued){
+        const label = witness.innerText
+        let referencesObj = {
+            "@context":"http://www.w3.org/ns/anno.jsonld",
+            "@type":"Annotation",
+            "body":{
+                "references":{
+                    "value":[glossid]
+                }
+            },
+            "target": "TODO"
+        }
+        let labelObj = {
+            "@context":"http://www.w3.org/ns/anno.jsonld",
+            "@type":"Annotation",
+            "body":{
+                "shelfmark":{
+                    "value":label
+                }
+            },
+            "target": "TODO"
+        }
+        const witnessObj = {
+            "@context": "https://schema.org/docs/jsonldcontext.json",
+            "@type": "Text",
+            "creator": window.GOG_USER["http://store.rerum.io/agent"]
+        }
+        createdWitness = await fetch(`${__constants.tiny}/create`, {
+            method: "POST",
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+            body: JSON.stringify(witnessObj)
+        })
+        .then(res => res.json())
+        .catch(err => {throw err})
+
+        if(createdWitness["@id"]){
+            labelObj.target = createdWitness["@id"]
+            referencesObj.target = createdWitness["@id"]
+            createdLabelAnno = await fetch(`${__constants.tiny}/create`, {
+                method: "POST",
+                mode: 'cors',
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                },
+                body: JSON.stringify(labelObj)
+            })
+            .then(res => res.json())
+            .catch(err => {throw err})
+            createdReferencesAnno = await fetch(`${__constants.tiny}/create`, {
+                method: "POST",
+                mode: 'cors',
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                },
+                body: JSON.stringify(labelObj)
+            })
+            .then(res => res.json())
+            .catch(err => {throw err})
+        }
+        createdWitness.label = {
+            "source":{
+                "citationSource":createdLabelAnno["@id"]
+            },
+            "value" : label
+        }
+        createdWitness.references = {
+            "source":{
+                "citationSource":createdReferencesAnno["@id"]
+            },
+            "value" : [glossid]
+        }
+        createdWitnesses.push(createdWitness)
+    }
+    return createdWitnesses
+}
+
 /**
  * The DEER announcement for when all form fields have been saved or updated.
  * Extend this functionality by also saving or updating the custom fields.
  * 
  */ 
-addEventListener('deer-updated', event => {
+addEventListener('deer-updated', async (event) => {
     const $elem = event.target
     //Only care about witness form
     if($elem?.id  !== "named-gloss") return
     // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
     event.preventDefault()
     event.stopPropagation()
-
+    let witness = null
     const entityID = event.detail["@id"]  
+    const witnesses = await generateWitnessesOnSubmit(entityID)
+
     const customTextElems = [
         $elem.querySelector("input[custom-text-key='format']"),
         $elem.querySelector("select[custom-text-key='language']"),
@@ -173,9 +264,9 @@ addEventListener('deer-updated', event => {
             globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
             const hash = window.location.hash.substring(1)
             if(!hash){
-                setTimeout(() => {
-                    window.location.reload()
-                }, 2000)    
+                // setTimeout(() => {
+                //     window.location.reload()
+                // }, 2000)    
             }
         })
         .catch(err => {
@@ -183,6 +274,7 @@ addEventListener('deer-updated', event => {
             console.error(err)
         })
     }
+
 })
 
 /**
@@ -411,7 +503,7 @@ async function deleteGloss(id=glossHashID) {
     const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
         return fetch(`${__constants.tiny}/delete`, {
             method: "DELETE",
-            body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
+            body: JSON.stringify({"@id":annoUri.replace(/^nOPePE?:/,'nOPePE')}),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
