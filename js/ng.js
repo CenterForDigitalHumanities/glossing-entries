@@ -108,7 +108,7 @@ addEventListener('deer-form-rendered', event => {
     }
     setTimeout(() => {
         setFieldDisabled(false)
-    }, 1000)
+    }, 2500)
 })
 
 /**

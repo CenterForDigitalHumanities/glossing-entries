@@ -437,9 +437,10 @@ class ReferencesBrowser extends HTMLElement {
             }
 
         </style>
+        <h4> Witnesses </h4>
         <p> Have a Witness or two in mind?  Add them below to create when you submit this Gloss.</p>
         <div class="row">
-            <input type="text" class="col-8 col-4-md witnessInput" placeholder="Shelfmark goes here">
+            <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
             <button class="addWitnessTag button secondary smaller col-4 col-3-md"> Add Witness Reference </button>
         </div>
         <p> 
