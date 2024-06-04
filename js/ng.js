@@ -111,12 +111,23 @@ addEventListener('deer-form-rendered', event => {
     }, 1000)
 })
 
+/**
+ * When a Gloss is submitted for creation or update it will contain a set of Witnesses to create.
+ * All the Witnesses will know is what shelfmark the user wants to create with and what glossid it should connect with.
+ *     - ?? Check for existing Witnesses with this shelfmark ??
+ *     - Generate a Witness Entity
+ *     - Generate an 'identifier' Annotation that targets the Witness Entity.  Its value is the provided shelfmark text.
+ *     - Generate a 'references' Annotation that targets the Witness Entity.  Its value is the [provided gloss id]
+ * 
+ * @param glossid - the rerum URI of the created Gloss to connect this Witness to via a 'references' Annotation.
+ * @return An array of created Witness entities.  Each witness is expanded to contain the Annotations created as well.
+ */ 
 async function generateWitnessesOnSubmit(glossid){
     // Must have a label/shelfmark/whatever.  This creates a Witness entity and the Annotation for the provided label.
     if(!glossid) throw new Error("Must have a Gloss URI to generate witnesses")
     const queued = document.getElementsByTagName("gog-references-browser")[0].querySelectorAll(".witness-queued")
     let createdReferencesAnno = null
-    let createdLabelAnno = null
+    let createdIdentifierAnno = null
     let createdWitness = null
     let createdWitnesses = []
     for await (const witness_li of queued){
@@ -164,10 +175,11 @@ async function generateWitnessesOnSubmit(glossid){
             identifierObj.target = createdWitness["@id"]
             referencesObj.target = createdWitness["@id"]
             const a = witness_li.querySelector("a")
-            a.setAttribute("deer-id", createdWitness["@id"])
+            witness_li.setAttribute("deer-id", createdWitness["@id"])
             //how do we know which one to link to: gloss-transcription or gloss-witness??
+            //The established way is to see if a source anno exists and if it's value has TPEN or not.
             a.setAttribute("href", `gloss-transcription.html#${createdWitness["@id"]}`)
-            createdLabelAnno = await fetch(`${__constants.tiny}/create`, {
+            createdIdentifierAnno = await fetch(`${__constants.tiny}/create`, {
                 method: "POST",
                 mode: 'cors',
                 headers: {
@@ -189,12 +201,14 @@ async function generateWitnessesOnSubmit(glossid){
             })
             .then(res => res.json())
             .catch(err => {throw err})
+            witness_li.setAttribute("deer-source", createdReferencesAnno["@id"])
+            a.setAttribute("deer-source", createdIdentifierAnno["@id"])
             witness_li.querySelector("span").remove()
             witness_li.classList.remove("witness-queued")
         }
         createdWitness.identifier = {
             "source":{
-                "citationSource":createdLabelAnno["@id"]
+                "citationSource":createdIdentifierAnno["@id"]
             },
             "value" : user_input
         }
@@ -212,6 +226,7 @@ async function generateWitnessesOnSubmit(glossid){
 /**
  * The DEER announcement for when all form fields have been saved or updated.
  * Extend this functionality by also saving or updating the custom fields.
+ * Extend this functionality by also saving any queued Witness shelfmarks.
  * 
  */ 
 addEventListener('deer-updated', async (event) => {
@@ -223,6 +238,7 @@ addEventListener('deer-updated', async (event) => {
     event.stopPropagation()
     let witness = null
     const entityID = event.detail["@id"]  
+    // PROPOSED quick witness generation and connection via the gog-references-browser.
     const witnesses = await generateWitnessesOnSubmit(entityID)
 
     const customTextElems = [

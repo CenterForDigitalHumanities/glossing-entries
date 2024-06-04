@@ -479,9 +479,11 @@ class ReferencesBrowser extends HTMLElement {
                     // Get rid of 'non found' placeholder
                     witnessList.querySelector("li").remove()
                     gloss_witness_annos.forEach((gloss_witness_anno, index) => {
-                        const li = document.createElement("li")
-                        const a = document.createElement("a")
                         const witnessURI = gloss_witness_anno.target
+                        const li = document.createElement("li")
+                        li.setAttribute("deer-id", witnessURI)
+                        li.setAttribute("deer-source",  gloss_witness_anno["@id"])
+                        const a = document.createElement("a")
                         a.classList.add("deer-view")
                         a.setAttribute("deer-template", "shelfmark")
                         a.setAttribute("deer-id", witnessURI)
