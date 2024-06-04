@@ -466,16 +466,12 @@ line.selected.just {
   margin-bottom: 1em;
 }
 
-.addWitnessDiv{
-  margin-bottom: 1em;
-  justify-content: center; 
+.redirectToWitness{
   background-color: white; 
   padding: 20px; 
-  gap: 20px; 
-  flex-wrap: wrap; 
   border: 1px solid #ccc; 
   border-radius: 8px; 
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  margin-top: 1.25em;
 }
 
 form#named-gloss

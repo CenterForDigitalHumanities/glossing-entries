@@ -448,7 +448,7 @@ class ReferencesBrowser extends HTMLElement {
             to remove the shelfmark from the queue.
         </p>
         <ul class="glossWitnesses">
-            <li> No Witnesses Found </li>
+            <li> Looking for Witnesses... </li>
         </ul>
     `
     constructor() {
@@ -460,11 +460,11 @@ class ReferencesBrowser extends HTMLElement {
       }
     }
     connectedCallback() {
-        const $this = this
         this.innerHTML = this.template
+        const $this = this
         const witnessList = $this.querySelector(".glossWitnesses")
         const witnessInput = $this.querySelector(".witnessInput")
-        const glossURI = this.getAttribute("gloss-uri") ? decodeURIComponent(this.getAttribute("gloss-uri")) : null
+        const glossURI = $this.getAttribute("gloss-uri") ? decodeURIComponent($this.getAttribute("gloss-uri")) : null
         if(glossURI){
             const gloss_witness_annos_query = {
                 "body.references.value" : glossURI,
@@ -476,15 +476,22 @@ class ReferencesBrowser extends HTMLElement {
                 const newView = new Set()
                 if(gloss_witness_annos.length){
                     $this.classList.remove("is-hidden")
+                    // Get rid of 'non found' placeholder
+                    witnessList.querySelector("li").remove()
                     gloss_witness_annos.forEach((gloss_witness_anno, index) => {
                         const li = document.createElement("li")
-                        li.setAttribute("count", "0")
                         const a = document.createElement("a")
                         const witnessURI = gloss_witness_anno.target
-                        const query2 = {
+                        a.classList.add("deer-view")
+                        a.setAttribute("deer-template", "shelfmark")
+                        a.setAttribute("deer-id", witnessURI)
+                        a.setAttribute("target", "_blank")
+                        a.innerHTML = "loading..." 
+                        // Can only determine which witness interface to go to based on source annotation, if one exists.
+                        const witness_source_annos_query = {
                             "body.source.value" : {"$exists":true},
-                            "target" : httpsIdArray(gloss_witness_anno.target),
-                            '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
+                            "target" : httpsIdArray(witnessURI),
+                            "__rerum.history.next":{ $exists: true, $type: "array", $eq: [] },
                             "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
                         }
                         fetch(`${config.URLS.QUERY}?limit=100&skip=0`, {
@@ -493,7 +500,7 @@ class ReferencesBrowser extends HTMLElement {
                             headers:{
                                 "Content-Type" : "application/json;charset=utf-8"
                             },
-                            body: JSON.stringify(query2)
+                            body: JSON.stringify(witness_source_annos_query)
                         })
                         .then(res => {
                             if (!res.ok) {
@@ -502,47 +509,30 @@ class ReferencesBrowser extends HTMLElement {
                             return res.json()
                         })
                         .then(witness_source_annos => {
-                            let witnessSource = witness_source_annos.length ? witness_source_annos[0].body.source.value[0] : null
-                            const witnessURI = witness_source_annos.length ? witness_source_annos[0].target : ""
-                            let sourceURI = witnessSource ? witnessSource : gloss_witness_anno.target
-                            if(!(witnessSource.startsWith("http:") || witnessSource.startsWith("https:"))){
-                                sourceURI = gloss_witness_anno.target
-                            }
-                            // Do not add duplicates.  This UI will list the separate occurances when there are more than 1.
-                            const existing = witnessList.querySelector(`li[source-uri="${sourceURI}"]`)
-                            if(existing) {
-                                const existing_li = existing.closest("li")
-                                existing_li.setAttribute("count", parseInt(existing_li.getAttribute("count")) + 1)
-                                existing_li.setAttribute("appearances", existing_li.getAttribute("appearances")+`__${witnessURI}`)
-                                return
-                            }
-                            li.setAttribute("source-uri", sourceURI)
-                            li.setAttribute("count", "1")
-                            li.setAttribute("appearances", witnessURI)
-                            a.classList.add("deer-view")
-                            a.setAttribute("deer-template", "shelfmark")
-                            a.setAttribute("deer-id", witnessURI)
-                            a.setAttribute("target", "_blank")
-                            if(sourceURI.includes("t-pen.org/TPEN/")){
+                            let witnessSource = witness_source_annos.length ? witness_source_annos[0]?.body?.source?.value[0] : null
+                            if(witnessSource?.includes("t-pen.org/TPEN/")){
                                 a.setAttribute("href", `gloss-transcription.html#${witnessURI}`)
                             }
                             else{
                                 a.setAttribute("href",`gloss-witness.html#${witnessURI}`)
                             }
-                            a.innerHTML = "loading..." 
                             li.appendChild(a)
                             witnessList.appendChild(li)
-                            utils.broadcast(undefined, "deer-view", document, { set: [a] })    
+                            utils.broadcast(undefined, "deer-view", document, { set: [a] })  
                         })
                         .catch(err => {
-                            return null
-                        })
+                            console.error(err)
+                            $this.innerHTML = `<b class="text-error"> Error communicating with RERUM. </b>`
+                        }) 
                     })
+                }
+                else{
+                    witnessList.querySelector("li").innerHTML = `<b> No Witnesses Found.  Create one now! </b>`    
                 }
             })
             .catch(err => {
                 console.error(err)
-                $this.innerHTML = `<b class="text-error"> Could not get Gloss witnesses. </b>`
+                $this.innerHTML = `<b class="text-error"> Could not load Witness References component. </b>`
             })    
         }
         /**
@@ -557,10 +547,7 @@ class ReferencesBrowser extends HTMLElement {
             const li = document.createElement("li")
             const a = document.createElement("a")
             li.classList.add("witness-queued")
-            a.classList.add("deer-view")
-            a.setAttribute("deer-template", "shelfmark")
             a.setAttribute("target", "_blank")
-            //a.setAttribute("href",`gloss-witness.html#${witnessURI}`)
             a.setAttribute("deer-id", "")
             a.innerHTML = `${name}`
             li.appendChild(a)

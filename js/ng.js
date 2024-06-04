@@ -20,7 +20,7 @@ window.onload = () => {
     if(hash) {
         setFieldDisabled(true)
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
-        document.querySelectorAll(".addWitnessDiv").forEach(div => div.classList.remove("is-hidden"))
+        document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
         glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
     }
@@ -106,18 +106,21 @@ addEventListener('deer-form-rendered', event => {
             break
         default:
     }
-    setFieldDisabled(false)
+    setTimeout(() => {
+        setFieldDisabled(false)
+    }, 1000)
 })
 
 async function generateWitnessesOnSubmit(glossid){
     // Must have a label/shelfmark/whatever.  This creates a Witness entity and the Annotation for the provided label.
-    const queued = document.getElementByTagName("gog-references-browser").querySelectorAll(".witness-queued")
+    if(!glossid) throw new Error("Must have a Gloss URI to generate witnesses")
+    const queued = document.getElementsByTagName("gog-references-browser")[0].querySelectorAll(".witness-queued")
     let createdReferencesAnno = null
     let createdLabelAnno = null
     let createdWitness = null
     let createdWitnesses = []
-    for await (const witness of queued){
-        const label = witness.innerText
+    for await (const witness_li of queued){
+        const user_input = witness_li.innerText
         let referencesObj = {
             "@context":"http://www.w3.org/ns/anno.jsonld",
             "@type":"Annotation",
@@ -126,20 +129,22 @@ async function generateWitnessesOnSubmit(glossid){
                     "value":[glossid]
                 }
             },
-            "target": "TODO"
+            "target": "TODO",
+            "creator": window.GOG_USER["http://store.rerum.io/agent"]
         }
-        let labelObj = {
+        let identifierObj = {
             "@context":"http://www.w3.org/ns/anno.jsonld",
             "@type":"Annotation",
             "body":{
-                "shelfmark":{
-                    "value":label
+                "identifier":{
+                    "value":user_input
                 }
             },
-            "target": "TODO"
+            "target": "TODO",
+            "creator": window.GOG_USER["http://store.rerum.io/agent"]
         }
         const witnessObj = {
-            "@context": "https://schema.org/docs/jsonldcontext.json",
+            "@context": "http://purl.org/dc/terms",
             "@type": "Text",
             "creator": window.GOG_USER["http://store.rerum.io/agent"]
         }
@@ -156,8 +161,12 @@ async function generateWitnessesOnSubmit(glossid){
         .catch(err => {throw err})
 
         if(createdWitness["@id"]){
-            labelObj.target = createdWitness["@id"]
+            identifierObj.target = createdWitness["@id"]
             referencesObj.target = createdWitness["@id"]
+            const a = witness_li.querySelector("a")
+            a.setAttribute("deer-id", createdWitness["@id"])
+            //how do we know which one to link to: gloss-transcription or gloss-witness??
+            a.setAttribute("href", `gloss-transcription.html#${createdWitness["@id"]}`)
             createdLabelAnno = await fetch(`${__constants.tiny}/create`, {
                 method: "POST",
                 mode: 'cors',
@@ -165,7 +174,7 @@ async function generateWitnessesOnSubmit(glossid){
                     "Content-Type": "application/json; charset=utf-8",
                     "Authorization": `Bearer ${window.GOG_USER.authorization}`
                 },
-                body: JSON.stringify(labelObj)
+                body: JSON.stringify(identifierObj)
             })
             .then(res => res.json())
             .catch(err => {throw err})
@@ -176,16 +185,18 @@ async function generateWitnessesOnSubmit(glossid){
                     "Content-Type": "application/json; charset=utf-8",
                     "Authorization": `Bearer ${window.GOG_USER.authorization}`
                 },
-                body: JSON.stringify(labelObj)
+                body: JSON.stringify(referencesObj)
             })
             .then(res => res.json())
             .catch(err => {throw err})
+            witness_li.querySelector("span").remove()
+            witness_li.classList.remove("witness-queued")
         }
-        createdWitness.label = {
+        createdWitness.identifier = {
             "source":{
                 "citationSource":createdLabelAnno["@id"]
             },
-            "value" : label
+            "value" : user_input
         }
         createdWitness.references = {
             "source":{
@@ -264,9 +275,10 @@ addEventListener('deer-updated', async (event) => {
             globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
             const hash = window.location.hash.substring(1)
             if(!hash){
-                // setTimeout(() => {
-                //     window.location.reload()
-                // }, 2000)    
+                setTimeout(() => {
+                    window.location = `ng.html#${entityID}`
+                    window.location.reload()
+                }, 2000)    
             }
         })
         .catch(err => {
@@ -288,7 +300,7 @@ addEventListener('expandError', event => {
     document.getElementById("named-gloss").classList.add("is-hidden")
     look.classList.add("text-error")
     look.innerText = "Could not get Witness information."
-    document.querySelector(".addWitnessDiv").classList.add("is-hidden")
+    document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.add("is-hidden"))
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
 
@@ -577,5 +589,12 @@ async function deleteGloss(id=glossHashID) {
  * @param {boolean} disabled - Set all form fields used to have this value for their `disabled` attribute
  */
 function setFieldDisabled(disabled = true) {
-    document.querySelectorAll('input,textarea,select,button').forEach(e => e.disabled = disabled)
+    document.querySelectorAll('input,textarea,select,button').forEach(e => {
+        if(disabled){
+            e.setAttribute("disabled", "")
+        }
+        else{
+            e.removeAttribute("disabled")
+        }
+    })
 }

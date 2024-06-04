@@ -1,7 +1,7 @@
 {
     "ngCollection" : "http://localhost:3001/v1/id/610c54deffce846a83e70625",
     "msCollection" : "http://localhost:3001/v1/id/610ad6f1ffce846a83e70613",
-    "generator" : "http://localhost:3001/v1/id/5afeebf3e4b0b0d588705d90",
+    "generator" : "http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90",
     "tiny" : "http://localhost:3002/app",
     "rerum" : "http://localhost:3001/v1"
 }
