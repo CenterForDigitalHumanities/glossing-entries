@@ -438,19 +438,25 @@ class ReferencesBrowser extends HTMLElement {
 
             .witness-queued a {
                 color: var(--color-grey);
-    text-decoration: underline;
+                text-decoration: underline;
+            }
+
+            .bumper {
+                margin-top: 1em;
             }
 
         </style>
         <h4> See Witness References </h4>
-        <p> Have a Witness or two in mind?  Add them below to create when you submit this Gloss.</p>
+        <p> 
+            Have a Witness or two in mind?  Provide shelfmarks below to create Witnesses when you submit this Gloss.<br>
+            Witnesses queued to be created when you submit can be removed by clicking the '<span style="color:red;">x</span>' symbol.
+        </p>
         <div class="row">
             <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
             <button class="addWitnessTag button secondary smaller col-4 col-3-md"> Add Witness Reference </button>
         </div>
-        <p> 
-            Known Witnesses of this Gloss are displayed below.  Click on one for details about the Witness.<br>
-            Witnesses queued to be created when you submit can be removed by clicking the '<span style="color:red;">x</span>' symbol.
+        <p class="bumper"> 
+            Known and queued Witnesses of this Gloss are displayed below.  Click a known Witness for details about the Witness.
         </p>
         <ul class="glossWitnesses">
             <li class="wait"> Looking for Witnesses... </li>
