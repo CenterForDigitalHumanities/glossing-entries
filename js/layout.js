@@ -436,8 +436,13 @@ class ReferencesBrowser extends HTMLElement {
                 height: 2.2em;
             }
 
+            .witness-queued a {
+                color: var(--color-grey);
+    text-decoration: underline;
+            }
+
         </style>
-        <h4> Witnesses </h4>
+        <h4> See Witness References </h4>
         <p> Have a Witness or two in mind?  Add them below to create when you submit this Gloss.</p>
         <div class="row">
             <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
@@ -445,8 +450,7 @@ class ReferencesBrowser extends HTMLElement {
         </div>
         <p> 
             Known Witnesses of this Gloss are displayed below.  Click on one for details about the Witness.<br>
-            Witnesses queued to be created when you submit are denoted by a '<span style="color:red;">x</span>' symbol, which you can click
-            to remove the shelfmark from the queue.
+            Witnesses queued to be created when you submit can be removed by clicking the '<span style="color:red;">x</span>' symbol.
         </p>
         <ul class="glossWitnesses">
             <li> Looking for Witnesses... </li>
@@ -538,6 +542,9 @@ class ReferencesBrowser extends HTMLElement {
                 $this.innerHTML = `<b class="text-error"> Could not load Witness References component. </b>`
             })    
         }
+        else{
+            witnessList.querySelector("li").innerHTML = `<b> Add Witness References Above! </b>`    
+        }
         /**
          * Click event handler for Add Theme.  Takes the user input and adds the string to the Set if it isn't already included.
          * Includes pagination.
@@ -550,11 +557,13 @@ class ReferencesBrowser extends HTMLElement {
             const li = document.createElement("li")
             const a = document.createElement("a")
             li.classList.add("witness-queued")
+            li.setAttribute("title", "This Witness is queued")
             a.setAttribute("target", "_blank")
             a.setAttribute("deer-id", "")
             a.innerHTML = `${name}`
             li.appendChild(a)
             const span = document.createElement("span")
+            span.setAttribute("title", "remove from queue")
             span.classList.add("remove-witness")
             span.addEventListener("click", $this.removeReference)
             li.appendChild(span)
