@@ -1,5 +1,5 @@
 const textWitnessID = window.location.hash.substring(1)
-let tpenProjectURI = textWitnessID ? false : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
+let tpenProjectURI = textWitnessID ? null : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : null
 let referencedGlossID = null
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("tpen-lines-error", function(event){
@@ -54,7 +54,6 @@ window.onload = () => {
         dig_location.setAttribute("value", tpenProjectURI)
     }
     if(textWitnessID){
-        needs.classList.add("is-hidden")
         const submitBtn = witnessForm.querySelector("input[type='submit']")
         const deleteBtn = witnessForm.querySelector(".deleteWitness")
         submitBtn.value = "Update Textual Witness"
@@ -117,7 +116,9 @@ function init(event){
     switch (whatRecordForm) {
         case "witnessForm":
             // We will need to know the reference for addButton() so let's get it out there now.
-            tpenProjectURI = annotationData.source.value[0]
+            tpenProjectURI = annotationData?.source?.value[0]
+            if(!tpenProjectURI) return
+            needs.classList.add("is-hidden")
             document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
             document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
             referencedGlossID = annotationData["references"]?.value[0].replace(/^nOPePE:/,'nOPePE')

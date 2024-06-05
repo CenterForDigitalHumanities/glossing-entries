@@ -114,7 +114,7 @@ class TpenLineSelector extends HTMLElement {
         const $this = this
         const tpenProjectURI = this.getAttribute("tpen-project") ? decodeURIComponent(this.getAttribute("tpen-project")) : null
         const tpenProjectLines = this.querySelector(".tpenProjectLines")
-        if(!tpenProjectURI) return
+        if(!tpenProjectURI || !tpenProjectURI.includes("t-pen.org")) return
         this.querySelector("div.toggle").addEventListener("click", event => {
             const container = event.target.nextElementSibling
             if(container.classList.contains("is-toggled")) {

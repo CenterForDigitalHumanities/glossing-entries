@@ -1071,14 +1071,16 @@ function debounce(func,timeout = 500) {
 function hideSearchBar() {
     const searchSubmit = document.getElementById('search-submit')
     const searchBar = document.getElementById('search-bar')
-    searchBar.addEventListener("keydown", (e)=> {
-        if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
-            if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
-                e.preventDefault()
+    if(searchBar){
+        searchBar.addEventListener("keydown", (e)=> {
+            if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+                if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                    e.preventDefault()
+                }
             }
-        }
-    }, true)
-    searchBar.addEventListener('input', e => searchSubmit.classList[e.target.value.trim().length === 0 ? 'add' : 'remove']("fade"), true)
+        }, true)
+        searchBar.addEventListener('input', e => searchSubmit.classList[e.target.value.trim().length === 0 ? 'add' : 'remove']("fade"), true)    
+    }
 }
 
 /**
