@@ -493,6 +493,7 @@ p.bg-light {
   padding: 0.5em;
   border-radius: 0.5em;
   font-weight: bold;
+  padding: 20px;
 }
 
 input#loadInput {
