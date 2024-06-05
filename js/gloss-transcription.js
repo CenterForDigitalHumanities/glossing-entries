@@ -1,5 +1,5 @@
 const textWitnessID = window.location.hash.substring(1)
-let tpenProjectURI = textWitnessID ? null : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : null
+let tpenProjectURI = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : null
 let referencedGlossID = null
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("tpen-lines-error", function(event){
@@ -47,6 +47,16 @@ window.onload = () => {
     const deleteWitnessButton = document.querySelector(".deleteWitness")
     addEventListener('tpen-lines-loaded', getAllWitnesses)
     if(tpenProjectURI) {
+        if(!tpenProjectURI.includes("t-pen.org")){
+            const ev = new CustomEvent("TPEN Project Error")
+            look.classList.add("text-error")
+            look.innerText=`Provided project URI is not from T-PEN.  Only use T-PEN project or manifest URIs.`
+            witnessForm.remove()
+            loading.classList.add("is-hidden")
+            globalFeedbackBlip(ev, `Provided project URI is not from T-PEN.`, false)
+            needs.classList.add("is-hidden")
+            return
+        }
         document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
         needs.classList.add("is-hidden")
         document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
@@ -116,8 +126,19 @@ function init(event){
     switch (whatRecordForm) {
         case "witnessForm":
             // We will need to know the reference for addButton() so let's get it out there now.
-            tpenProjectURI = annotationData?.source?.value[0]
+            const sourceURI = annotationData?.source?.value[0]
+            tpenProjectURI = tpenProjectURI ? tpenProjectURI : annotationData?.source?.value[0]
             if(!tpenProjectURI) return
+            if(sourceURI && sourceURI !== tpenProjectURI){
+                const ev = new CustomEvent("TPEN Lines Error")
+                look.classList.add("text-error")
+                look.innerText=`Provided TPEN project URI does not match source URI.  There can only be one source.  Remove the ?tpen-project variable from the URL in your browser's address bar and refresh the page.`
+                witnessForm.remove()
+                loading.classList.add("is-hidden")
+                globalFeedbackBlip(ev, `TPEN source project mismatch.`, false)
+                needs.classList.add("is-hidden")
+                return
+            }
             needs.classList.add("is-hidden")
             document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
             document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
