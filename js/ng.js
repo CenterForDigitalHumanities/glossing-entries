@@ -93,6 +93,15 @@ addEventListener('deer-form-rendered', event => {
     switch (whatRecordForm) {
         case "named-gloss":
             // supporting forms populated
+            const entityType = annotationData.type ?? annotationData["@type"] ?? null
+            if(entityType !== "Gloss"){
+                document.querySelector(".gloss-needed").classList.add("is-hidden")
+                const ev = new CustomEvent("Gloss Details Error")
+                look.classList.add("text-error")
+                look.innerText = `The provided #entity of type '${entityType}' is not a 'Gloss'.`
+                globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Gloss'.`, false)
+                return
+            }
             prefillTagsArea(annotationData["tags"], event.target)
             prefillThemesArea(annotationData["themes"], event.target)
             prefillText(annotationData["text"], event.target)
@@ -315,7 +324,7 @@ addEventListener('expandError', event => {
     const ev = new CustomEvent("Gloss Details Error")
     document.getElementById("named-gloss").classList.add("is-hidden")
     look.classList.add("text-error")
-    look.innerText = "Could not get Witness information."
+    look.innerText = "Could not get Gloss information."
     document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.add("is-hidden"))
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
