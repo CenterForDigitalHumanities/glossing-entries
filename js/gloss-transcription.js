@@ -50,7 +50,7 @@ window.onload = () => {
         if(!tpenProjectURI.includes("t-pen.org")){
             const ev = new CustomEvent("TPEN Project Error")
             look.classList.add("text-error")
-            look.innerText=`Provided project URI is not from T-PEN.  Only use T-PEN project or manifest URIs.`
+            look.innerText=`Provided URI is not from T-PEN.  Only use T-PEN project or manifest URIs.`
             witnessForm.remove()
             loading.classList.add("is-hidden")
             globalFeedbackBlip(ev, `Provided project URI is not from T-PEN.`, false)
