@@ -21,12 +21,12 @@ window.onload = () => {
     const deleteWitnessButton = document.querySelector(".deleteWitness")
     if(textWitnessID){
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
-        const submitBtn = witnessForm.querySelector("input[type='submit']")
-        const deleteBtn = witnessForm.querySelector(".deleteWitness")
+        //const submitBtn = witnessForm.querySelector("input[type='submit']")
+        //const deleteBtn = witnessForm.querySelector(".deleteWitness")
         loading.classList.remove("is-hidden")
-        submitBtn.value = "Update Witness Fragment"
-        submitBtn.classList.remove("is-hidden")
-        deleteBtn.classList.remove("is-hidden")
+        //submitBtn.value = "Update Witness Fragment"
+        //submitBtn.classList.remove("is-hidden")
+        //deleteBtn.classList.remove("is-hidden")
         witnessForm.setAttribute("deer-id", textWitnessID)
     }
     else{
