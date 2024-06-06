@@ -853,13 +853,13 @@ export default {
                             li.setAttribute(attr, val)
                         }
                         if(elem.children[1].hasAttribute(`data-${prop}`) && filterPresent && filterObj.hasOwnProperty("text")) {
-                            const tr_mod = [elem.children[1].getAttribute(`data-${prop}`).toLowerCase(),
-                                elem.children[0].innerHTML.toLowerCase(),
-                                elem.children[2].innerHTML.toLowerCase()]
-                            const query_mod_aprox = approximateFilter(filterObj["text"].toLowerCase())
-                            if (tr_mod.map(x => approximateFilter(x).includes(query_mod_aprox)).some(x => x))
-                                elem.classList.remove("is-hidden")
-                        }
+                        const tr_mod = [elem.children[1].getAttribute(`data-${prop}`).toLowerCase(),
+                            elem.children[0].innerHTML.toLowerCase(),
+                            elem.children[2].innerHTML.toLowerCase()]
+                        const query_mod_aprox = approximateFilter(filterObj["text"].toLowerCase())
+                        if (tr_mod.map(x => approximateFilter(x).includes(query_mod_aprox)).some(x => x))
+                            elem.classList.remove("is-hidden")
+                        }    
                     })
 
                     // Pagination for the progress indicator element
