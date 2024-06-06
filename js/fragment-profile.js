@@ -376,3 +376,11 @@ function setFieldDisabled(disabled = true) {
         }
     })
 }
+
+/**
+ * Redirects or opens a new tab to the witness page for the given gloss.
+ * @param {boolean} tpen - Indicates whether to redirect to T-PEN for the witness page.
+ */
+function metadataForWitness(tpen){
+    document.location.href = `/fragment-metadata.html#${textWitnessID}`
+}
