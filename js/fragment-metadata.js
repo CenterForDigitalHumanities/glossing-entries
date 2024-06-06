@@ -221,6 +221,17 @@ function init(event){
     const $elem = event.target
     switch (whatRecordForm) {
         case "witnessForm":
+            const entityType = annotationData.type ?? annotationData["@type"] ?? null
+            if(entityType !== "Text"){
+                document.querySelectorAll(".source-needed").forEach(el => el.classList.add("is-hidden"))
+                const ev = new CustomEvent("Witness Details Error")
+                look.classList.add("text-error")
+                look.innerText = `The provided #entity of type '${entityType}' is not a 'Text'.`
+                loading.classList.add("is-hidden")
+                witnessForm.classList.add("is-hidden")
+                globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Text'.`, false)
+                return
+            }
             // We will need to know the reference for addButton() so let's get it out there now.
             referencedGlossID = annotationData["references"]?.value[0].replace(/^nOPePE:/,'nOPePE')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){

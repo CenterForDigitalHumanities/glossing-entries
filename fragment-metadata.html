@@ -51,8 +51,11 @@
     <p id="reset" class="bg-basic is-hidden"> 
         This page automatically applied a text resource.  If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
     </p>
-    <bibliographic-citation-div></bibliographic-citation-div>
-    <div id="needs" class="row bg-basic">
+    <p id="look" class="bg-light">
+        Witness Fragment Metadata
+    </p>
+    <bibliographic-citation-div class="source-needed"></bibliographic-citation-div>
+    <div id="needs" class="row bg-basic source-needed">
         <h4> Provide Fragment Text Source </h4>
         <div class="col">
             <p class="howTo"> 
@@ -83,12 +86,12 @@
         </div>        
     </div>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
-    <div id="loading" class="is-hidden">
+    <div id="loading" class="is-hidden source-needed">
         <p class="loadingMsg"> 
             Please be patient while we get things together...  
         </p>
     </div>
-    <form id="witnessForm" class="is-hidden bg-basic" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
+    <form id="witnessForm" class="is-hidden bg-basic source-needed" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
         <h4> Provide Fragment Information </h4>
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">

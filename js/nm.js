@@ -43,7 +43,7 @@ window.onload = () => {
     //textElem.addEventListener('blur', ev => checkForManuscriptsBtn.click())
     checkForManuscriptsBtn.addEventListener('click', async ev => {
         const matches = await findMatchingIncipits(textElem.value.trim(), labelElem.value)
-        manuscriptResult.innerHTML = matches.length ? "<p>Potential matches found!</p>" : "<p>Witness appears unique!</p>"
+        manuscriptResult.innerHTML = matches.length ? "<p>Potential matches found!</p>" : "<p>Manuscript appears unique!</p>"
         matches.forEach(anno => {
             manuscriptResult.insertAdjacentHTML('beforeend', `<a href="#${anno.id.split('/').pop()}">${anno.title}</a>`)
         })
@@ -91,12 +91,12 @@ addEventListener('deer-form-rendered', event => {
         case "named-manuscript":
             // supporting forms populated
             const entityType = annotationData.type ?? annotationData["@type"] ?? null
-            if(entityType !== "Witness"){
+            if(entityType !== "Manuscript"){
                 document.querySelector(".witness-needed").classList.add("is-hidden")
-                const ev = new CustomEvent("Witness Details Error")
+                const ev = new CustomEvent("Manuscript Details Error")
                 look.classList.add("text-error")
-                look.innerText = `The provided #entity of type '${entityType}' is not a 'Witness'.`
-                globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Witness'.`, false)
+                look.innerText = `The provided #entity of type '${entityType}' is not a 'Manuscript'.`
+                globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Manuscript'.`, false)
                 return
             }
             prefillTagsArea(annotationData["tags"], event.target)
@@ -120,7 +120,7 @@ addEventListener('deer-form-rendered', event => {
 /**
  * The DEER announcement for when all form fields have been saved or updated.
  * Extend this functionality by also saving or updating the custom fields.
- * Extend this functionality by also saving any queued Witness shelfmarks.
+ * Extend this functionality by also saving any queued Manuscript shelfmarks.
  * 
  */ 
 addEventListener('deer-updated', async (event) => {
@@ -179,8 +179,8 @@ addEventListener('deer-updated', async (event) => {
         })
         .then(success => {
             console.log("GLOSS FULLY SAVED")
-            const ev = new CustomEvent("Thank you for your Witness Submission!")
-            globalFeedbackBlip(ev, `Thank you for your Witness Submission!`, true)
+            const ev = new CustomEvent("Thank you for your Manuscript Submission!")
+            globalFeedbackBlip(ev, `Thank you for your Manuscript Submission!`, true)
             const hash = window.location.hash.substring(1)
             if(!hash){
                 setTimeout(() => {
@@ -204,10 +204,10 @@ addEventListener('deer-updated', async (event) => {
  */ 
 addEventListener('expandError', event => {
     const uri = event.detail.uri
-    const ev = new CustomEvent("Witness Details Error")
+    const ev = new CustomEvent("Manuscript Details Error")
     document.getElementById("named-manuscript").classList.add("is-hidden")
     look.classList.add("text-error")
-    look.innerText = "Could not get Witness information."
+    look.innerText = "Could not get Manuscript information."
     document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.add("is-hidden"))
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
@@ -266,7 +266,7 @@ function prefillTagsArea(tagData, form = document.getElementById("named-manuscri
         tagData.hasOwnProperty("items") ? tagData.items :
             [tagData]
     if (arr_names.length === 0) {
-        console.warn("There are no tags recorded for this Witness")
+        console.warn("There are no tags recorded for this Manuscript")
         return false
     }
     form.querySelector("input[deer-key='tags']").value = arr_names.join(",")
@@ -297,7 +297,7 @@ function prefillThemesArea(themeData, form = document.getElementById("named-manu
         themeData.hasOwnProperty("items") ? themeData.items :
             [themeData]
     if (arr_names.length === 0) {
-        console.warn("There are no themes recorded for this Witness")
+        console.warn("There are no themes recorded for this Manuscript")
         return false
     }
     form.querySelector("input[deer-key='themes']").value = arr_names.join(",")
@@ -363,12 +363,12 @@ function prefillText(textObj, form) {
 }
 
 /**
- * A Witness entity is being deleted through the ng.html interface.  
- * Delete the Witness, the Annotations targeting the Witness, the Witnesses of the Witness, and the Witnesses' Annotations.
- * Remove this Witness from the public list.
+ * A Manuscript entity is being deleted through the ng.html interface.  
+ * Delete the Manuscript, the Annotations targeting the Manuscript, the Witnesses of the Manuscript, and the Witnesses' Annotations.
+ * Remove this Manuscript from the public list.
  * Paginate by redirecting to glosses.html.
  * 
- * @param id {String} The Witness IRI.
+ * @param id {String} The Manuscript IRI.
  */
 async function deleteWitness(id=manuscriptHashID) {
     if(!id){
@@ -376,14 +376,14 @@ async function deleteWitness(id=manuscriptHashID) {
         return
     }
     if(await isPublicWitness(id)){
-        const ev = new CustomEvent("Witness is public")
-        globalFeedbackBlip(ev, `This Witness is public and cannot be deleted from here.`, false)
+        const ev = new CustomEvent("Manuscript is public")
+        globalFeedbackBlip(ev, `This Manuscript is public and cannot be deleted from here.`, false)
         return
     }
     let allWitnessesOfWitness = await getAllWitnessesOfWitness(id)
     allWitnessesOfWitness = Array.from(allWitnessesOfWitness)
     // Confirm they want to do this
-    if (!await showCustomConfirm(`Really delete this Witness and remove its Witnesses?\n(Cannot be undone)`)) return
+    if (!await showCustomConfirm(`Really delete this Manuscript and remove its Witnesses?\n(Cannot be undone)`)) return
 
     const historyWildcard = { "$exists": true, "$size": 0 }
 
@@ -458,8 +458,8 @@ async function deleteWitness(id=manuscriptHashID) {
     })
     .then(r => {
         if(r.ok){
-            const ev = new CustomEvent("This Witness has been deleted.")
-            globalFeedbackBlip(ev, `Witness deleted.  You will be redirected.`, true)
+            const ev = new CustomEvent("This Manuscript has been deleted.")
+            globalFeedbackBlip(ev, `Manuscript deleted.  You will be redirected.`, true)
             addEventListener("globalFeedbackFinished", () => {
                 location.href = "glosses.html"
             })
@@ -469,7 +469,7 @@ async function deleteWitness(id=manuscriptHashID) {
         }
     })
     .catch(err => {
-        alert(`There was an issue removing the Witness with URI ${id}.  This item may still appear in collections.`)
+        alert(`There was an issue removing the Manuscript with URI ${id}.  This item may still appear in collections.`)
         console.log(err)
     })
 

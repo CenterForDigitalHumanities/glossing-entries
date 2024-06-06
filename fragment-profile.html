@@ -42,17 +42,17 @@
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2 class="bg-basic"> Witness Fragment Profile </h2>
-    <!-- <p class="bg-light"> 
+    <p id="look" class="bg-light">
         Witness Fragment Details
-    </p> -->
+    </p>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
     <div id="loading" class="is-hidden">
         <p class="loadingMsg"> 
             Please be patient while we get things together...  
         </p>
     </div>
-    <bibliographic-citation-div></bibliographic-citation-div>
-    <div class="redirectToWitness bg-light">
+    <bibliographic-citation-div class="source-needed"></bibliographic-citation-div>
+    <div class="redirectToWitness bg-light source-needed">
         <h4> Modify Fragment Metadata </h4>
         <p> <u>Redirect</u> to the Fragment Metadata page by clicking below. </p>
         <a class="addWitnessBtn button secondary" onclick="metadataForWitness(true)" style="margin: 5px; padding: 10px; border: none; border-radius: 4px;">Redirect to Modify Fragment Metadata</a>

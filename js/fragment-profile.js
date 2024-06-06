@@ -18,7 +18,6 @@ window.onload = () => {
     const witnessURI = getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
     const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : false
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
-    const deleteWitnessButton = document.querySelector(".deleteWitness")
     if(textWitnessID){
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
         //const submitBtn = witnessForm.querySelector("input[type='submit']")
@@ -72,11 +71,6 @@ window.onload = () => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
-    deleteWitnessButton.addEventListener("click", async ev => {
-        if(await showCustomConfirm("The witness will be deleted.  This action cannot be undone.")){
-            deleteWitness()
-        }
-    })
     setFieldDisabled(true)
 }
 
@@ -128,6 +122,17 @@ function init(event){
     const $elem = event.target
     switch (whatRecordForm) {
         case "witnessForm":
+            const entityType = annotationData.type ?? annotationData["@type"] ?? null
+            if(entityType !== "Text"){
+                document.querySelectorAll(".source-needed").forEach(el => el.classList.add("is-hidden"))
+                const ev = new CustomEvent("Witness Details Error")
+                look.classList.add("text-error")
+                look.innerText = `The provided #entity of type '${entityType}' is not a 'Text'.`
+                loading.classList.add("is-hidden")
+                witnessForm.classList.add("is-hidden")
+                globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Text'.`, false)
+                return
+            }
             // We will need to know the reference for addButton() so let's get it out there now.
             referencedGlossID = annotationData["references"]?.value[0].replace(/^nOPePE:/,'nOPePE')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
