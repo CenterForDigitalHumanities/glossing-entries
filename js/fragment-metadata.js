@@ -180,10 +180,10 @@ function show(event){
             const source = event.detail?.source?.value[0]
             if(source){
                 needs.classList.add("is-hidden")
-                document.querySelectorAll(".source-needed").forEach(el => el.classList.remove("is-hidden"))
+                document.querySelectorAll(".entity-needed").forEach(el => el.classList.remove("is-hidden"))
             }
             else{
-                //document.querySelectorAll(".source-needed").forEach(el => el.classList.add("is-hidden"))
+                //document.querySelectorAll(".entity-needed").forEach(el => el.classList.add("is-hidden"))
             }
         }
         // This listener is no longer needed.
@@ -223,7 +223,7 @@ function init(event){
         case "witnessForm":
             const entityType = annotationData.type ?? annotationData["@type"] ?? null
             if(entityType !== "Text"){
-                document.querySelectorAll(".source-needed").forEach(el => el.classList.add("is-hidden"))
+                document.querySelectorAll(".entity-needed").forEach(el => el.classList.add("is-hidden"))
                 const ev = new CustomEvent("Witness Details Error")
                 look.classList.add("text-error")
                 look.innerText = `The provided #entity of type '${entityType}' is not a 'Text'.`

@@ -85,13 +85,13 @@ function show(event){
         if(getURLParameter("witness-uri") || textWitnessID){
             const source = event.detail?.source?.value[0]
             if(source){
-                //document.querySelectorAll(".source-needed").forEach(el => el.classList.remove("is-hidden"))
+                //document.querySelectorAll(".entity-needed").forEach(el => el.classList.remove("is-hidden"))
             }
             else{
-                //document.querySelectorAll(".source-needed").forEach(el => el.classList.add("is-hidden"))
+                //document.querySelectorAll(".entity-needed").forEach(el => el.classList.add("is-hidden"))
             }
         }
-        document.querySelectorAll(".source-needed").forEach(el => el.classList.remove("is-hidden"))
+        document.querySelectorAll(".entity-needed").forEach(el => el.classList.remove("is-hidden"))
         // This listener is no longer needed.
         removeEventListener('deer-view-rendered', show)
     }
@@ -124,7 +124,7 @@ function init(event){
         case "witnessForm":
             const entityType = annotationData.type ?? annotationData["@type"] ?? null
             if(entityType !== "Text"){
-                document.querySelectorAll(".source-needed").forEach(el => el.classList.add("is-hidden"))
+                document.querySelectorAll(".entity-needed").forEach(el => el.classList.add("is-hidden"))
                 const ev = new CustomEvent("Witness Details Error")
                 look.classList.add("text-error")
                 look.innerText = `The provided #entity of type '${entityType}' is not a 'Text'.`
@@ -164,7 +164,7 @@ function init(event){
 
             loading.classList.add("is-hidden")
             witnessForm.classList.remove("is-hidden")
-            document.querySelectorAll(".source-needed").forEach(el => el.classList.remove("is-hidden"))
+            document.querySelectorAll(".entity-needed").forEach(el => el.classList.remove("is-hidden"))
             setFieldDisabled(true)
             break
         default:

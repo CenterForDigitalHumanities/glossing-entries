@@ -51,13 +51,13 @@
             Please be patient while we get things together...  
         </p>
     </div>
-    <bibliographic-citation-div class="source-needed"></bibliographic-citation-div>
-    <div class="redirectToWitness bg-light source-needed">
+    <bibliographic-citation-div class="entity-needed"></bibliographic-citation-div>
+    <div class="redirectToWitness bg-light entity-needed">
         <h4> Modify Fragment Metadata </h4>
         <p> <u>Redirect</u> to the Fragment Metadata page by clicking below. </p>
         <a class="addWitnessBtn button secondary" onclick="metadataForWitness(true)" style="margin: 5px; padding: 10px; border: none; border-radius: 4px;">Redirect to Modify Fragment Metadata</a>
     </div>
-    <form id="witnessForm" class="source-needed is-hidden bg-basic" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
+    <form id="witnessForm" class="entity-needed is-hidden bg-basic" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
         <h4> Provide Fragment Information </h4>
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">
@@ -104,8 +104,8 @@
 <!--         <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
         <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/> -->
         <div class="row">
-            <witness-text-selector class="lineSelector source-needed is-hidden col-7-md col-6-sm"> </witness-text-selector>
-            <deer-view class="source-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            <witness-text-selector class="lineSelector entity-needed is-hidden col-7-md col-6-sm"> </witness-text-selector>
+            <deer-view class="entity-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
                 Loading&hellip;
             </deer-view>  
         </div>
