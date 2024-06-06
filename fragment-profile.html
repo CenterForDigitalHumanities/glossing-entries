@@ -9,6 +9,7 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/text-witness-line-selector.js" type="module"></script>
+    <script src="js/bibliographicCitationView.js" type="module"></script>
     <script src="js/glossModal.js" type="module"></script>
     <script src="js/shared.js"></script>
     <style>
@@ -50,13 +51,14 @@
             Please be patient while we get things together...  
         </p>
     </div>
-    <bibliographic-citation-div class="source-needed is-hidden"></bibliographic-citation-div>
-    <div class="redirectToWitness bg-light source-needed is-hidden">
-        <h4> Create Described Witnesses </h4>
-        <p> Looking to create a more described Witness?  <u>Redirect</u> to the Fragment Metadata page by clicking below. </p>
-        <a class="addWitnessBtn button secondary" onclick="metadataForWitness(true)" style="margin: 5px; padding: 10px; border: none; border-radius: 4px;">Improve Fragment Metadata</a>
+    <bibliographic-citation-div class=""></bibliographic-citation-div>
+    <div class="redirectToWitness bg-light">
+        <h4> Modify Fragment Metadata </h4>
+        <p> <u>Redirect</u> to the Fragment Metadata page by clicking below. </p>
+        <a class="addWitnessBtn button secondary" onclick="metadataForWitness(true)" style="margin: 5px; padding: 10px; border: none; border-radius: 4px;">Redirect to Modify Fragment Metadata</a>
     </div>
     <form id="witnessForm" class="source-needed is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
+        <h4> Provide Fragment Information </h4>
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">
         <div class="row">
