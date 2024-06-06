@@ -252,6 +252,7 @@ function init(event){
 
             // Capture the render that occurs after the form submit now
             addEventListener('deer-form-rendered', formReset)
+            loading.classList.add("is-hidden")
             break
         default:
     }
