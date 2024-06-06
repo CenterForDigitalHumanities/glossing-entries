@@ -24,7 +24,7 @@ window.onload = () => {
         const submitBtn = witnessForm.querySelector("input[type='submit']")
         const deleteBtn = witnessForm.querySelector(".deleteWitness")
         loading.classList.remove("is-hidden")
-        submitBtn.value = "Update Witness"
+        submitBtn.value = "Update Witness Fragment"
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
         witnessForm.setAttribute("deer-id", textWitnessID)
@@ -91,10 +91,10 @@ function show(event){
         if(getURLParameter("witness-uri") || textWitnessID){
             const source = event.detail?.source?.value[0]
             if(source){
-                document.querySelectorAll(".source-needed").forEach(el => el.classList.remove("is-hidden"))
+                //document.querySelectorAll(".source-needed").forEach(el => el.classList.remove("is-hidden"))
             }
             else{
-                document.querySelectorAll(".source-needed").forEach(el => el.classList.add("is-hidden"))
+                //document.querySelectorAll(".source-needed").forEach(el => el.classList.add("is-hidden"))
             }
         }
         document.querySelectorAll(".source-needed").forEach(el => el.classList.remove("is-hidden"))

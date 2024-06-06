@@ -113,7 +113,7 @@ window.onload = () => {
         const submitBtn = witnessForm.querySelector("input[type='submit']")
         const deleteBtn = witnessForm.querySelector(".deleteWitness")
         loading.classList.remove("is-hidden")
-        submitBtn.value = "Update Witness"
+        submitBtn.value = "Update Witness Fragment"
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
         witnessForm.setAttribute("deer-id", textWitnessID)
@@ -183,12 +183,14 @@ function show(event){
                 document.querySelectorAll(".source-needed").forEach(el => el.classList.remove("is-hidden"))
             }
             else{
-                document.querySelectorAll(".source-needed").forEach(el => el.classList.add("is-hidden"))
+                //document.querySelectorAll(".source-needed").forEach(el => el.classList.add("is-hidden"))
             }
         }
         // This listener is no longer needed.
         removeEventListener('deer-view-rendered', show)
     }
+    loading.classList.add("is-hidden")
+    witnessForm.classList.remove("is-hidden")
 }
 
 /**
