@@ -112,7 +112,8 @@ window.onload = () => {
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
         const submitBtn = witnessForm.querySelector("input[type='submit']")
         const deleteBtn = witnessForm.querySelector(".deleteWitness")
-        loading.classList.remove("is-hidden")
+        needs.classList.add("is-hidden")
+        document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
         submitBtn.value = "Update Witness"
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
@@ -127,7 +128,7 @@ window.onload = () => {
             // special handler for ?wintess-uri=
             needs.classList.add("is-hidden")
             reset.classList.remove("is-hidden")
-            loading.classList.remove("is-hidden")
+            document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("witness-uri", witnessURI)
             dig_location.value = witnessURI
             dig_location.setAttribute("value", witnessURI)
@@ -176,16 +177,8 @@ addEventListener('deer-view-rendered', show)
 
 function show(event){
     if(event.target.id == "ngCollectionList"){
-        if(getURLParameter("witness-uri") || textWitnessID){
-            const source = event.detail?.source?.value[0]
-            if(source){
-                needs.classList.add("is-hidden")
-                document.querySelectorAll(".source-needed").forEach(el => el.classList.remove("is-hidden"))
-            }
-            else{
-                document.querySelectorAll(".source-needed").forEach(el => el.classList.add("is-hidden"))
-            }
-        }
+        loading.classList.add("is-hidden")
+        if(getURLParameter("witness-uri") || textWitnessID) witnessForm.classList.remove("is-hidden")
         // This listener is no longer needed.
         removeEventListener('deer-view-rendered', show)
     }
@@ -220,7 +213,7 @@ function init(event){
     switch (whatRecordForm) {
         case "witnessForm":
             // We will need to know the reference for addButton() so let's get it out there now.
-            referencedGlossID = annotationData["references"]?.value[0].replace(/^nOPePE:/,'nOPePE')
+            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
                 prefillReferences(annotationData["references"], ngCollectionList)
             }
@@ -776,7 +769,7 @@ function loadUserInput(ev, which){
         case "file":
             text = fileText.value
             needs.classList.add("is-hidden")
-            loading.classList.remove("is-hidden")
+            document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             loading.classList.add("is-hidden")
             witnessForm.classList.remove("is-hidden")
@@ -788,7 +781,7 @@ function loadUserInput(ev, which){
         case "cp":
             text = resourceText.value
             needs.classList.add("is-hidden")
-            loading.classList.remove("is-hidden")
+            document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             loading.classList.add("is-hidden")
             witnessForm.classList.remove("is-hidden")

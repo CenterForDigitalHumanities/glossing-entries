@@ -41,7 +41,7 @@
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2 class="bg-basic"> Gloss Textual Witness </h2>
-    <p class="bg-light"> 
+    <p class="bg-basic"> 
         Connect Virtual Glosses With Real World Text 
     </p>
     <p id="reset" class="bg-basic is-hidden"> 
@@ -78,12 +78,12 @@
         </div>        
     </div>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
-    <div id="loading" class="is-hidden">
+    <div id="loading" class="witness-needed is-hidden">
         <p class="loadingMsg"> 
             Please be patient while we get things together...  
         </p>
     </div>
-    <form id="witnessForm" class="is-hidden source-needed" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
+    <form id="witnessForm" class="is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">
         <div class="row">
@@ -113,7 +113,7 @@
                 The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
             </label>
 
-			<label class="col-3 col-2-md text-right">Gloss format:</label>
+            <label class="col-3 col-2-md text-right">Gloss format:</label>
             <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
                 <option value="none" selected>None</option>
                 <option value="marginal">Marginal</option>
@@ -129,9 +129,9 @@
         <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
         <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
         <div class="row">
-            <witness-text-selector class="lineSelector source-needed is-hidden col-7-md col-6-sm"> </witness-text-selector>
-            <deer-view class="source-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
-                Loading&hellip;
+            <witness-text-selector class="lineSelector witness-needed is-hidden col-7-md col-6-sm"> </witness-text-selector>
+            <deer-view class="witness-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            Loading&hellip;
             </deer-view>  
         </div>
     </form>
