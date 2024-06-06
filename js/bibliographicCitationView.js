@@ -90,7 +90,7 @@ class BibliographicCitationView extends HTMLElement {
                 gap: 20px; 
                 flex-wrap: wrap; 
                 border: 1px solid #ccc; 
-                border-radius: 8px; 
+                border-radius: 0.2em; 
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                 margin: 20px 0; 
             }
@@ -118,7 +118,7 @@ class BibliographicCitationView extends HTMLElement {
             }
             .referenceCard {
                 border: 1px solid #ccc;
-                border-radius: 8px;
+                border-radius: 0.2em;
                 background-color: #fff;
                 box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                 transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;

@@ -404,7 +404,7 @@ class ReferencesBrowser extends HTMLElement {
             gog-references-browser{
                 position: relative;
                 display: block;
-                border-radius: 8px;
+                border-radius: 0.2em;
                 padding: 20px;
             }
 

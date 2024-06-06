@@ -470,11 +470,21 @@ line.selected.just {
   background-color: white; 
   padding: 20px; 
   border: 1px solid #ccc; 
-  border-radius: 8px; 
+  border-radius: 0.2em; 
   margin-top: 1.25em;
 }
 
-form#named-gloss
+#needs{
+  background-color: white; 
+  padding: 20px; 
+  gap: 20px; 
+  flex-wrap: wrap; 
+  border: 1px solid #ccc; 
+  border-radius: 0.2em; 
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+form#named-gloss, form#named-manuscript, form#witnessForm
 {
   justify-content: center; 
   background-color: white; 
@@ -482,7 +492,7 @@ form#named-gloss
   gap: 20px; 
   flex-wrap: wrap; 
   border: 1px solid #ccc; 
-  border-radius: 8px; 
+  border-radius: 0.2em; 
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   margin: 0.7em;
   margin-left: auto;
@@ -491,7 +501,7 @@ form#named-gloss
 
 p.bg-light {
   padding: 0.5em;
-  border-radius: 0.5em;
+  border-radius: 0.2em;
   font-weight: bold;
   padding: 20px;
 }
