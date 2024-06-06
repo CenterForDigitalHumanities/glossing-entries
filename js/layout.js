@@ -527,7 +527,7 @@ class ReferencesBrowser extends HTMLElement {
                                 a.setAttribute("href", `gloss-transcription.html#${witnessURI}`)
                             }
                             else{
-                                a.setAttribute("href",`gloss-witness.html#${witnessURI}`)
+                                a.setAttribute("href",`fragment-profile.html#${witnessURI}`)
                             }
                             li.appendChild(a)
                             witnessList.appendChild(li)
