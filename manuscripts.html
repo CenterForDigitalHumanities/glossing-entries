@@ -14,62 +14,50 @@
 <body class="container">
     <gog-header class="container"></gog-header>
     <!-- A stub for the future "facet selector" to inform our filtering "state" technique -->
-    <section id="facetFilter" class="is-hidden">
-        <ul>
-            <li>Type of Resource</li>
-            <facet data-facet="resource-type" data-label="Manuscript document" data-count="76" class="">Manuscript document</facet>
-            <facet data-facet="resource-type" data-label="Manuscript book" data-count="31">Manuscript book</facet>
-            <li>Genre</li>
-            <facet data-facet="genre" data-label="Legal document" data-count="51" class="">Legal document</facet>
-            <facet data-facet="genre" data-label="Narrative" data-count="13" class="">Narrative</facet>
-        </ul>
-    </section>
-    <table>
-        <thead>
-            <tr>
-                <th style="cursor: pointer;">Reference </th>
-                <th style="cursor: pointer;">Title </th>
-                <th style="cursor: pointer;">Tag(s) </th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
-                <td></td>
-                <td>
-                    <a href="ng.html#http://localhost:3001/v1/id/66607b93099d14dacd1615dd" target="_blank"><span>ffffff</span></a>
-                </td>
-                <td></td>
-            </tr>
-            <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
-                <td></td>
-                <td>
-                    <a href="ng.html#http://localhost:3001/v1/id/66607b93099d14dacd1615dd" target="_blank"><span>ffffff</span></a>
-                </td>
-                <td></td>
-            </tr>
-            <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
-                <td></td>
-                <td>
-                    <a href="ng.html#http://localhost:3001/v1/id/66607b93099d14dacd1615dd" target="_blank"><span>ffffff</span></a>
-                </td>
-                <td></td>
-            </tr>
-            <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
-                <td></td>
-                <td>
-                    <a href="ng.html#http://localhost:3001/v1/id/66607b93099d14dacd1615dd" target="_blank"><span>ffffff</span></a>
-                </td>
-                <td></td>
-            </tr>
-            <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
-                <td></td>
-                <td>
-                    <a href="ng.html#http://localhost:3001/v1/id/66607b93099d14dacd1615dd" target="_blank"><span>ffffff</span></a>
-                </td>
-                <td></td>
-            </tr>
-        </tbody>
-    </table>
+    <h2 class="bg-basic"> Manuscripts </h2>
+    <small class="cachedNotice text-primary bg-basic"> 
+        These Glosses were cached.  To reload the data <a class="tag is-small">click here</a>. 
+    </small>
+    <div id="ngCollectionList">
+        <table class="bg-basic">
+            <thead>
+                <tr>
+                    <th style="cursor: pointer;">Citation </th>
+                    <th style="cursor: pointer;">Shelfmark </th>
+                    <th style="cursor: pointer;">Fragments </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
+                    <td>Laud. Misc 69:1-99</td>
+                    <td>
+                        <a href="" target="_blank">
+                            <span>Oxford, Bodleian Library, Laud. Misc. 69</span>
+                        </a>
+                    </td>
+                    <td>15</td>
+                </tr>
+                <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
+                    <td>Trinity B:1-10</td>
+                    <td>
+                        <a href="" target="_blank">
+                            <span>Cambridge, Trinity College B.1.10</span>
+                        </a>
+                    </td>
+                    <td>82</td>
+                </tr>
+                <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
+                    <td>BnF 14409:1-100</td>
+                    <td>
+                        <a href="" target="_blank">
+                            <span>Paris, BnF, lat. 14409</span>
+                        </a>
+                    </td>
+                    <td>44</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
     <!-- <deer-view id="ngCollectionList" deer-collection="GoG-Manuscripts"
         deer-link="ng.html#" deer-template="ngListFilterable" class="bg-basic">
         Loading&hellip;
