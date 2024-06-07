@@ -35,7 +35,6 @@ window.onload = () => {
         witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(witnessURI) {
             // special handler for ?wintess-uri=
-            needs.classList.add("is-hidden")
             reset.classList.remove("is-hidden")
             loading.classList.remove("is-hidden")
             document.querySelector(".lineSelector").setAttribute("witness-uri", witnessURI)

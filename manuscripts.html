@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Gallery of Manuscripts</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/layout.js" type="module"></script>
+    <script src="js/shared.js"></script>
+</head>
+
+<body class="container">
+    <gog-header class="container"></gog-header>
+    <!-- A stub for the future "facet selector" to inform our filtering "state" technique -->
+    <section id="facetFilter" class="is-hidden">
+        <ul>
+            <li>Type of Resource</li>
+            <facet data-facet="resource-type" data-label="Manuscript document" data-count="76" class="">Manuscript document</facet>
+            <facet data-facet="resource-type" data-label="Manuscript book" data-count="31">Manuscript book</facet>
+            <li>Genre</li>
+            <facet data-facet="genre" data-label="Legal document" data-count="51" class="">Legal document</facet>
+            <facet data-facet="genre" data-label="Narrative" data-count="13" class="">Narrative</facet>
+        </ul>
+    </section>
+    <table>
+        <thead>
+            <tr>
+                <th style="cursor: pointer;">Reference </th>
+                <th style="cursor: pointer;">Title </th>
+                <th style="cursor: pointer;">Tag(s) </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
+                <td></td>
+                <td>
+                    <a href="ng.html#http://localhost:3001/v1/id/66607b93099d14dacd1615dd" target="_blank"><span>ffffff</span></a>
+                </td>
+                <td></td>
+            </tr>
+            <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
+                <td></td>
+                <td>
+                    <a href="ng.html#http://localhost:3001/v1/id/66607b93099d14dacd1615dd" target="_blank"><span>ffffff</span></a>
+                </td>
+                <td></td>
+            </tr>
+            <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
+                <td></td>
+                <td>
+                    <a href="ng.html#http://localhost:3001/v1/id/66607b93099d14dacd1615dd" target="_blank"><span>ffffff</span></a>
+                </td>
+                <td></td>
+            </tr>
+            <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
+                <td></td>
+                <td>
+                    <a href="ng.html#http://localhost:3001/v1/id/66607b93099d14dacd1615dd" target="_blank"><span>ffffff</span></a>
+                </td>
+                <td></td>
+            </tr>
+            <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
+                <td></td>
+                <td>
+                    <a href="ng.html#http://localhost:3001/v1/id/66607b93099d14dacd1615dd" target="_blank"><span>ffffff</span></a>
+                </td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+    <!-- <deer-view id="ngCollectionList" deer-collection="GoG-Manuscripts"
+        deer-link="ng.html#" deer-template="ngListFilterable" class="bg-basic">
+        Loading&hellip;
+    </deer-view> -->
+    <gog-footer class="container">
+    </gog-footer>
+    <div id="globalFeedback" class="card is-center"></div>
+</body>
+<script>
+/**
+ * Make sure DEER forms do not submit when a user hits "Enter".
+ */
+document.querySelectorAll("form[deer-type]").forEach(form => {
+    form.addEventListener("keydown", (e) => {
+        if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+            if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                e.preventDefault()
+            }
+        }
+    }, true)
+})
+</script>
+
+</html>

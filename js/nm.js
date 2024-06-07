@@ -92,7 +92,7 @@ addEventListener('deer-form-rendered', event => {
             // supporting forms populated
             const entityType = annotationData.type ?? annotationData["@type"] ?? null
             if(entityType !== "Manuscript"){
-                document.querySelector(".witness-needed").classList.add("is-hidden")
+                document.querySelector(".manuscript-needed").classList.add("is-hidden")
                 const ev = new CustomEvent("Manuscript Details Error")
                 look.classList.add("text-error")
                 look.innerText = `The provided #entity of type '${entityType}' is not a 'Manuscript'.`

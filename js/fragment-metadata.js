@@ -125,7 +125,6 @@ window.onload = () => {
         witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(witnessURI) {
             // special handler for ?wintess-uri=
-            needs.classList.add("is-hidden")
             reset.classList.remove("is-hidden")
             loading.classList.remove("is-hidden")
             document.querySelector(".lineSelector").setAttribute("witness-uri", witnessURI)
@@ -179,7 +178,6 @@ function show(event){
         if(getURLParameter("witness-uri") || textWitnessID){
             const source = event.detail?.source?.value[0]
             if(source){
-                needs.classList.add("is-hidden")
                 document.querySelectorAll(".entity-needed").forEach(el => el.classList.remove("is-hidden"))
             }
             else{
@@ -789,7 +787,6 @@ function loadUserInput(ev, which){
         break
         case "file":
             text = fileText.value
-            needs.classList.add("is-hidden")
             loading.classList.remove("is-hidden")
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             loading.classList.add("is-hidden")
@@ -801,7 +798,6 @@ function loadUserInput(ev, which){
         break
         case "cp":
             text = resourceText.value
-            needs.classList.add("is-hidden")
             loading.classList.remove("is-hidden")
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             loading.classList.add("is-hidden")
