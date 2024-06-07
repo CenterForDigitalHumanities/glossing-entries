@@ -214,7 +214,7 @@ class BibliographicCitationView extends HTMLElement {
         </style>
         <div class="referenceDiv is-hidden">
             <div class="col-12 col-12-md">
-                <h4> Modify Citations </h4>
+                <h4> Bibliographic Citations </h4>
                 <p>
                     Gloss References are displayed below. Click the caret to see the rest of the reference. 
                     Click the pencil icon to edit the reference. Click the trash icon to remove the reference.<br>
