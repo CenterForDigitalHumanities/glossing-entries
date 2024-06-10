@@ -430,10 +430,12 @@ export default {
                             }
                         }
                         const approximateBar = elem.querySelector('#approximate-bar')
-                        if(approximateBar) approximateBar.classList.add('is-hidden')
-                        const parent = approximateBar.parentElement
-                        parent.removeChild(approximateBar)
-                        parent.insertAdjacentElement('afterbegin', approximateBar)
+                        if(approximateBar) {
+                            approximateBar.classList.add('is-hidden')
+                            const parent = approximateBar.parentElement
+                            parent.removeChild(approximateBar)
+                            parent.insertAdjacentElement('afterbegin', approximateBar)
+                        }
                         const items = elem.querySelectorAll('tbody tr')
                         items.forEach(tr=>{
                             if(tr === approximateBar) return
