@@ -429,7 +429,7 @@ export default {
                                 query[prop] = query[prop].trim()
                             }
                         }
-                        const approximateBar = elem.getElementById('approximate-bar')
+                        const approximateBar = elem.querySelector('#approximate-bar')
                         if(approximateBar) approximateBar.classList.add('is-hidden')
                         const parent = approximateBar.parentElement
                         parent.removeChild(approximateBar)
