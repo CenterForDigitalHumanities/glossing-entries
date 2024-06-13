@@ -126,7 +126,7 @@ function init(event){
                 globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Text'.`, false)
                 return
             }
-            referencedGloss.setAttribute("deer-id",annotationData["references"]?.value[0].replace(/^nOPePE:/,'nOPePE'))
+            referencedGloss.setAttribute("deer-id",annotationData["references"]?.value[0].replace(/^https?:/,'https:')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
                 prefillReferences(annotationData["references"], ngCollectionList)
             }

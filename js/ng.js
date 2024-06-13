@@ -540,7 +540,7 @@ async function deleteGloss(id=glossHashID) {
     const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
         return fetch(`${__constants.tiny}/delete`, {
             method: "DELETE",
-            body: JSON.stringify({"@id":annoUri.replace(/^nOPePE?:/,'nOPePE')}),
+            body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`

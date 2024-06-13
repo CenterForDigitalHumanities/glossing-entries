@@ -283,7 +283,7 @@ export default {
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
-                            const glossID = val["@id"].replace(/^nOPePE:/,'nOPePE')
+                            const glossID = val["@id"].replace(/^https?:/,'https:')
                             let li = document.createElement("td")
                             li.setAttribute("deer-id", glossID)
                             let a = document.createElement("a")
@@ -430,10 +430,12 @@ export default {
                             }
                         }
                         const approximateBar = elem.querySelector('#approximate-bar')
-                        approximateBar.classList.add('is-hidden')
-                        const parent = approximateBar.parentElement
-                        parent.removeChild(approximateBar)
-                        parent.insertAdjacentElement('afterbegin', approximateBar)
+                        if(approximateBar) {
+                            approximateBar.classList.add('is-hidden')
+                            const parent = approximateBar.parentElement
+                            parent.removeChild(approximateBar)
+                            parent.insertAdjacentElement('afterbegin', approximateBar)
+                        }
                         const items = elem.querySelectorAll('tbody tr')
                         items.forEach(tr=>{
                             if(tr === approximateBar) return
@@ -548,7 +550,7 @@ export default {
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
                             let inclusionBtn = document.createElement("input")
-                            const glossID = val['@id'].replace(/^nOPePE:/,'nOPePE')
+                            const glossID = val['@id'].replace(/^https?:/,'https:')
                             inclusionBtn.setAttribute("type", "button")
                             inclusionBtn.classList.add("toggleInclusion")
                             inclusionBtn.classList.add("button")
@@ -821,7 +823,7 @@ export default {
                     }
 
                     li.setAttribute("data-expanded", "true")
-                    cachedFilterableEntities.set(obj["@id"].replace(/^nOPePE:/,'nOPePE'), obj)
+                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/,'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
                     a.appendChild(span)
                     li.appendChild(a)
@@ -915,7 +917,7 @@ export default {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view")
                     // Be careful.  The publish list stores items via http://, but everything else is https://.  Beware the false mismatch.
-                    const glossID = obj["@id"].replace(/^nOPePE:/,'nOPePE')
+                    const glossID = obj["@id"].replace(/^https?:/,'https:')
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
                     const included = listCache.has(glossID)
@@ -1151,7 +1153,7 @@ function smartFilter() {
             sortIndex = i
             sortDirection = 1
         }
-    const approximateBar = document.querySelector('#approximate-bar')
+    const approximateBar = document.getElementById('approximate-bar')
     Array.from(ul.children[1].children).sort((a, b) => {
         if (a === approximateBar) return 1
         if (b === approximateBar) return -1
