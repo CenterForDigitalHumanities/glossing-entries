@@ -1,5 +1,4 @@
 const textWitnessID = window.location.hash.substr(1)
-let referencedGlossID = null
 
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("witness-text-error", function(event){
@@ -97,11 +96,6 @@ function show(event){
 }
 
 /**
- * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
- */ 
-addEventListener('deer-view-rendered', addButton)
-
-/**
  * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
  * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
  * @see deer-record.js DeerReport.constructor()  
@@ -133,7 +127,7 @@ function init(event){
                 return
             }
             // We will need to know the reference for addButton() so let's get it out there now.
-            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/,'https:')
+            referencedGloss.setAttribute("deer-id",annotationData["references"]?.value[0].replace(/^https?:/,'https:')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
                 prefillReferences(annotationData["references"], ngCollectionList)
             }
@@ -324,39 +318,6 @@ function preselectLines(linesArr, form) {
             tog.click()
         }
     })  
-}
-
-/**
- * After a filterableListItem loads, we need to determine what to do with its 'attach' button.
- * In create/update scenarios, this will result in the need to click a button
- * In loading scenarios, if a text witness URI was supplied to the page it will have a gloss which should appear as 'attached'.
- */ 
-function addButton(event) {
-    const template_container = event.target
-    const form_container = template_container.closest("form")
-    if(template_container.getAttribute("deer-template") !== "filterableListItem") return
-    const obj = event.detail
-    const gloss_li = template_container.firstElementChild
-    const createScenario = template_container.hasAttribute("create-scenario") ? true : false
-    const updateScenario = template_container.hasAttribute("update-scenario") ? true : false
-    // A new Gloss has been introduced and is done being cached.
-    let inclusionBtn = document.createElement("input")
-    inclusionBtn.setAttribute("type", "button")
-    inclusionBtn.setAttribute("data-id", obj["@id"])
-    let already = false
-    if(witnessesObj?.referencedGlosses){
-        already = witnessesObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
-    }
-    if(textWitnessID && referencedGlossID === obj["@id"]){
-        // Make this button appear as 'attached'
-        inclusionBtn.setAttribute("disabled", "")
-        inclusionBtn.setAttribute("value", "✓ attached")
-        inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-        inclusionBtn.classList.remove("primary")
-        inclusionBtn.classList.add("success")
-    }
-
-    gloss_li.prepend(inclusionBtn)
 }
 
 /**

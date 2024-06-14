@@ -430,10 +430,12 @@ export default {
                             }
                         }
                         const approximateBar = elem.querySelector('#approximate-bar')
-                        approximateBar.classList.add('is-hidden')
-                        const parent = approximateBar.parentElement
-                        parent.removeChild(approximateBar)
-                        parent.insertAdjacentElement('afterbegin', approximateBar)
+                        if(approximateBar) {
+                            approximateBar.classList.add('is-hidden')
+                            const parent = approximateBar.parentElement
+                            parent.removeChild(approximateBar)
+                            parent.insertAdjacentElement('afterbegin', approximateBar)
+                        }
                         const items = elem.querySelectorAll('tbody tr')
                         items.forEach(tr=>{
                             if(tr === approximateBar) return
@@ -1255,7 +1257,7 @@ function smartFilter() {
             sortIndex = i
             sortDirection = 1
         }
-    const approximateBar = document.querySelector('#approximate-bar')
+    const approximateBar = document.getElementById('approximate-bar')
     Array.from(ul.children[1].children).sort((a, b) => {
         if (a === approximateBar) return 1
         if (b === approximateBar) return -1

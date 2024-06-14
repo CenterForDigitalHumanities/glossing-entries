@@ -451,10 +451,10 @@ class ReferencesBrowser extends HTMLElement {
             Have a Witness or two in mind?  Provide shelfmarks below to create Witnesses when you submit this Gloss.<br>
             Witnesses queued to be created when you submit can be removed by clicking the '<span style="color:red;">x</span>' symbol.
         </p>
-        <div class="row">
+        <form id="GlossReferenceForm" class="row">
             <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
-            <button class="addWitnessTag button secondary smaller col-4 col-3-md"> Add Witness Reference </button>
-        </div>
+            <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="submit" value="Add Witness Reference" >
+        </form>
         <p class="bumper"> 
             Known and queued Witnesses of this Gloss are displayed below.  Click a known Witness for details about the Witness.
         </p>
@@ -590,7 +590,7 @@ class ReferencesBrowser extends HTMLElement {
             event.target.closest("li").remove()
         }
 
-        $this.querySelector(".addWitnessTag").addEventListener("click", $this.addReference)
+        $this.querySelector("#GlossReferenceForm").addEventListener("submit", $this.addReference)
     }
     static get observedAttributes() { return ['gloss-uri'] }
 }

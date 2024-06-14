@@ -8,12 +8,17 @@
     <script src="js/auth.js" type="module"></script>
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
-    <script src="js/text-witness-line-selector.js" type="module"></script>
+    <!-- <script src="js/text-witness-line-selector.js" type="module"></script> -->
     <script src="js/bibliographicCitationView.js" type="module"></script>
     <script src="js/shared.js"></script>
     <style>
-        input.required{
-            border: 1px solid black;
+        input[disabled],select[disabled],textarea[disabled]{
+            border: none;
+            background-color: transparent;
+            padding: 0;
+            display: inline;
+            font-size: 1em;
+            opacity: 1;
         }
         .pageContainer.is-toggled{
             visibility: hidden;
@@ -70,10 +75,10 @@
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">
         <div class="row">
-            <label class="col-3 col-2-md text-right is-hidden">Label:</label>
+            <label class="col-3 col-2-md text-right is-hidden">Label: </label>
             <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
 
-            <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
+            <label class="col-3 col-2-md text-right">Shelfmark: </label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
                         
             <!--             
@@ -81,10 +86,10 @@
                 <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
             -->
 
-            <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
+            <label class="col-3 col-2-md text-right" >Text: </label>
             <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight some text..."></textarea>
 
-            <label class="col-3 col-2-md text-right">Language:</label>
+            <label class="col-3 col-2-md text-right">Language: </label>
             <select custom-text-key="language" title="select language" class="col-9 col-4-md">
                 <option value="la" selected>Latin</option>
                 <option value="de">German</option>
@@ -112,8 +117,10 @@
 <!--         <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
         <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/> -->
         <div class="row">
-            <witness-text-selector class="lineSelector entity-needed is-hidden col-7-md col-6-sm"> </witness-text-selector>
-            <deer-view class="entity-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            <!-- <witness-text-selector class="lineSelector entity-needed is-hidden col-7-md col-6-sm"> </witness-text-selector> 
+            This could be a TPEN or text file. New component needed.
+            -->
+            <deer-view class="entity-needed is-hidden col-5-md col-6-sm" id="referencedGloss" deer-template="label">
                 Loading&hellip;
             </deer-view>  
         </div>
