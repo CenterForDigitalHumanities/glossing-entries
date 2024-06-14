@@ -94,7 +94,7 @@ addEventListener('deer-form-rendered', event => {
         case "named-gloss":
             // supporting forms populated
             const entityType = annotationData.type ?? annotationData["@type"] ?? null
-            if(entityType !== "Gloss"){
+            if(entityType !== "Gloss" && entityType !== "named-gloss"){
                 document.querySelector(".gloss-needed").classList.add("is-hidden")
                 const ev = new CustomEvent("Gloss Details Error")
                 look.classList.add("text-error")
@@ -540,7 +540,7 @@ async function deleteGloss(id=glossHashID) {
     const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
         return fetch(`${__constants.tiny}/delete`, {
             method: "DELETE",
-            body: JSON.stringify({"@id":annoUri.replace(/^nOPePE?:/,'nOPePE')}),
+            body: JSON.stringify({"@id":annoUri.replace(/^https?:/,'https:')}),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`

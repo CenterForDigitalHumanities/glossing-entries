@@ -142,7 +142,7 @@ function init(event){
             needs.classList.add("is-hidden")
             document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
             document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
-            referencedGlossID = annotationData["references"]?.value[0].replace(/^nOPePE:/,'nOPePE')
+            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/,'https:')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
                 prefillReferences(annotationData["references"], ngCollectionList)
             }
@@ -267,7 +267,7 @@ function show(event){
 }
 
 /**
- * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
+ * When a filterableListItem_glossSelector loads, add the 'attach' or 'attached' button to it.
  */ 
 addEventListener('deer-view-rendered', addButton)
 
@@ -620,21 +620,21 @@ addEventListener('gloss-modal-saved', event => {
     const list = view.querySelector("ul")
     const modal = event.target
     const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
-    const glossURI = gloss["@id"].replace(/^nOPePE:/,'nOPePE')
+    const glossURI = gloss["@id"].replace(/^https?:/,'https:')
     modal.classList.add("is-hidden")
 
     const li = document.createElement("li")
     const div = document.createElement("div")
     // Make this a deer-view so this Gloss is expanded and cached, resulting in more attributes for this element to be filtered on.
     div.classList.add("deer-view")
-    div.setAttribute("deer-template", "filterableListItem")
+    div.setAttribute("deer-template", "filterableListItem_glossSelector")
     div.setAttribute("deer-id", gloss["@id"])
     div.setAttribute("deer-link", "ng.html#")
     li.setAttribute("data-title", title)
     
     // We know the title already so this makes a handy placeholder :)
     li.innerHTML = `<span class="serifText"><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
-    // This helps filterableListItem know how to style the attach button, and also lets us know to change count/total loaded Glosses.
+    // This helps filterableListItem_glossSelector know how to style the attach button, and also lets us know to change count/total loaded Glosses.
     if(textWitnessID){
         div.setAttribute("update-scenario", "true")
     }
@@ -649,13 +649,13 @@ addEventListener('gloss-modal-saved', event => {
 })
 
 /**
- * After a filterableListItem loads, we need to determine what to do with its 'attach' button.
+ * After a filterableListItem_glossSelector loads, we need to determine what to do with its 'attach' button.
  * In create/update scenarios, this will result in the need to click a button
  * In loading scenarios, if a text witness URI was supplied to the page it will have a gloss which should appear as 'attached'.
  */ 
 function addButton(event) {
     const template_container = event.target
-    if(template_container.getAttribute("deer-template") !== "filterableListItem") return
+    if(template_container.getAttribute("deer-template") !== "filterableListItem_glossSelector") return
     const obj = event.detail
     const gloss_li = template_container.firstElementChild
     const createScenario = template_container.hasAttribute("create-scenario")
@@ -746,7 +746,7 @@ function addButton(event) {
 function paginateButtonsAfterSubmit(glossURIs){
     const previouslyChosen = document.querySelector(".toggleInclusion.success")
     glossURIs.forEach(glossURI => {
-        glossURI = glossURI.replace(/^nOPePE:/,'nOPePE')
+        glossURI = glossURI.replace(/^https?:/,'https:')
         document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(inclusionBtn => {
             inclusionBtn.classList.add("attached-to-source")
             inclusionBtn.setAttribute("value", "❢ attach")

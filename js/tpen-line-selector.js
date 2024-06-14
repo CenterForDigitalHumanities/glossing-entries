@@ -46,9 +46,6 @@ class TpenLineSelector extends HTMLElement {
             .tpenProjectLines.no-select{
                 user-select: none;
             }
-            .serifText {
-               font-family: "Eczar","Volkhov",serif !important;
-           }
            div[tpen-line-id]{
                 display: inline;
                 margin-right: 0.25em;

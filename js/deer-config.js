@@ -283,7 +283,7 @@ export default {
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
-                            const glossID = val["@id"].replace(/^nOPePE:/,'nOPePE')
+                            const glossID = val["@id"].replace(/^https?:/,'https:')
                             let li = document.createElement("td")
                             li.setAttribute("deer-id", glossID)
                             let a = document.createElement("a")
@@ -321,7 +321,7 @@ export default {
                                 span.innerText = deerUtils.getLabel(cachedObj) ? deerUtils.getLabel(cachedObj) : "Label Unprocessable"
                                 numloaded++
                                 let tr = document.createElement("tr")
-                                // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
+                                // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem_ngList (already have the data).
                                 if(filterPresent){
                                     tr.classList.add("is-hidden")
                                 }
@@ -336,7 +336,7 @@ export default {
                                 // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
                                 let div = document.createElement("tr")
                                 div.setAttribute("deer-link", "ng.html#")
-                                div.setAttribute("deer-template", "filterableListItem")
+                                div.setAttribute("deer-template", "filterableListItem_ngList")
                                 div.setAttribute("deer-id", glossID)
                                 if(filterPresent) div.classList.add("is-hidden")
                                 div.classList.add("deer-view")
@@ -478,6 +478,112 @@ export default {
         },
 
         /**
+         * This corresponds to an existing <li> element in ngListerFilterable or glossesSelectorForTextualWitness with a deer-id property.  These <li> elements need to be filterable.
+         * As such, they require information about the Gloss they represent, whose URI is the deer-id.
+         * That element is expand()ed in order to get the information for this element to be filterable.
+         * Since the object is expanded, if reasonable, it should be cached with its information (how would we know if it is out of date?)
+         * If a filter was present via the URL on page load, if it matches on this <li> the <li> should be filtered immediately.
+         */ 
+        filterableListItem_ngList: function (obj, options = {}) {
+            return{
+                html: ``,
+                then: (elem) => {
+                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    const containingListElem = elem.closest("deer-view")
+                    let filteringProps = Object.keys(obj)
+                    let li = document.createElement("td")
+                    let a = document.createElement("a")
+                    let span = document.createElement("span")
+                    span.classList.add("serifText")
+
+                    if(!li.hasAttribute("data-title")) {
+                        li.setAttribute("data-title", "[ unlabeled ]")
+                        li.setAttribute("data-unlabeled", "true")
+                    }
+
+                    li.setAttribute("data-expanded", "true")
+                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/,'https:'), obj)
+                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    a.appendChild(span)
+                    li.appendChild(a)
+                    elem.appendChild(li)
+                    modifyTableTR(elem, obj)
+                    
+                    const createScenario = elem.hasAttribute("create-scenario")
+                    const updateScenario = elem.hasAttribute("update-scenario")   
+                    const increaseTotal = ((createScenario || updateScenario))
+                    const filterPresent = containingListElem.$contentState
+                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
+                    span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
+                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("target", "_blank")
+                    // Turn each property into an attribute for the <li> element
+                    if(filterPresent) elem.classList.add("is-hidden")
+                    filteringProps.forEach( (prop) => {
+                        // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
+                        if(prop === "text")
+                            li.setAttribute("data-text", obj[prop]?.value?.textValue ?? "") 
+                        else if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`
+                            if(prop === "title" && !val){
+                                val = "[ unlabeled ]"
+                                li.setAttribute("data-unlabeled", "true")
+                            }
+                            li.setAttribute(attr, val)
+                        }
+                        if(elem.children[1].hasAttribute(`data-${prop}`) && filterPresent && filterObj.hasOwnProperty("text")) {
+                        const tr_mod = [elem.children[1].getAttribute(`data-${prop}`).toLowerCase(),
+                            elem.children[0].innerHTML.toLowerCase(),
+                            elem.children[2].innerHTML.toLowerCase()]
+                        const query_mod_aprox = approximateFilter(filterObj["text"].toLowerCase())
+                        if (tr_mod.map(x => approximateFilter(x).includes(query_mod_aprox)).some(x => x))
+                            elem.classList.remove("is-hidden")
+                        }    
+                    })
+
+                    // Pagination for the progress indicator element
+                    const totalsProgress = containingListElem.querySelector(".totalsProgress")
+                    const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
+                    let total = parseInt(totalsProgress.getAttribute("total"))
+                    if(increaseTotal) total++
+                    const cachedNotice = containingListElem.querySelector(".cachedNotice")
+                    const progressArea = containingListElem.querySelector(".progressArea")
+                    const modalBtn = containingListElem.querySelector("gloss-modal-button")
+                    const approximate = containingListElem.querySelector("#approximate")
+                    const filterInstructions = containingListElem.querySelector(".filterInstructions")
+                    totalsProgress.setAttribute("count", numloaded)
+                    totalsProgress.setAttribute("total", total)
+                    totalsProgress.innerHTML = `
+                        ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  
+                        You may click to select any Gloss loaded already.<br>
+                        A filter will become available when all items are loaded.`
+                    if(numloaded === total){
+                        cachedNotice.classList.remove("is-hidden")
+                        if(modalBtn) modalBtn.classList.remove("is-hidden")
+                        if(filterInstructions) filterInstructions.classList.remove("is-hidden")
+                        progressArea.classList.add("is-hidden")
+                        approximate.classList.remove("is-hidden")
+                        smartFilter()
+                        containingListElem.querySelectorAll("input[filter]").forEach(i => {
+                            // The filters that are used now need to be visible and selected / take on the string / etc.
+                            i.classList.remove("is-hidden")
+                            if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
+                                i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
+                                i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
+                                i.dispatchEvent(new Event('input', { bubbles: true }))
+                            }
+                        })
+                        containingListElem.setAttribute("ng-list-loaded", "true")
+                        deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
+                        hideSearchBar()
+                    }
+                }
+            }
+        },
+
+        /**
          * The Gloss selector for gloss-transcription.html.
          * Users should see the GoG-Named-Glosses collection.  They can filter the list of titles using a text input that matches on title.
          * The collection items have a button that, when clicked, attaches them to the T-PEN transcription text selected.
@@ -548,7 +654,7 @@ export default {
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
                             let inclusionBtn = document.createElement("input")
-                            const glossID = val['@id'].replace(/^nOPePE:/,'nOPePE')
+                            const glossID = val['@id'].replace(/^https?:/,'https:')
                             inclusionBtn.setAttribute("type", "button")
                             inclusionBtn.classList.add("toggleInclusion")
                             inclusionBtn.classList.add("button")
@@ -572,11 +678,12 @@ export default {
                             a.setAttribute("href", options.link+glossID)
                             a.setAttribute("target", "_blank")
                             let span = document.createElement("span")
+                            span.classList.add("serifText")
                             if(cachedFilterableEntities.get(glossID)){
                                 // We cached it in the past and are going to trust it right now.
                                 const cachedObj = cachedFilterableEntities.get(glossID)
                                 let filteringProps = Object.keys(cachedObj)
-                                // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
+                                // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem_glossSelector (already have the data).
                                 if(filterPresent){
                                     li.classList.add("is-hidden")
                                 }
@@ -613,7 +720,7 @@ export default {
                                 // This object was not cached so we do not have its properties.
                                 // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
                                 let div = document.createElement("div")
-                                div.setAttribute("deer-template", "filterableListItem")
+                                div.setAttribute("deer-template", "filterableListItem_glossSelector")
                                 div.setAttribute("deer-link", "ng.html#")
                                 div.setAttribute("deer-id", glossID)
                                 if(filterPresent) div.classList.add("is-hidden")
@@ -796,21 +903,14 @@ export default {
             }
         },
 
-        /**
-         * This corresponds to an existing <li> element in ngListerFilterable or glossesSelectorForTextualWitness with a deer-id property.  These <li> elements need to be filterable.
-         * As such, they require information about the Gloss they represent, whose URI is the deer-id.
-         * That element is expand()ed in order to get the information for this element to be filterable.
-         * Since the object is expanded, if reasonable, it should be cached with its information (how would we know if it is out of date?)
-         * If a filter was present via the URL on page load, if it matches on this <li> the <li> should be filtered immediately.
-         */ 
-        filterableListItem: function (obj, options = {}) {
+        filterableListItem_glossSelector: function (obj, options = {}) {
             return{
                 html: ``,
                 then: (elem) => {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view")
                     let filteringProps = Object.keys(obj)
-                    let li = document.createElement("td")
+                    let li = document.createElement("li")
                     let a = document.createElement("a")
                     let span = document.createElement("span")
                     span.classList.add("serifText")
@@ -821,12 +921,11 @@ export default {
                     }
 
                     li.setAttribute("data-expanded", "true")
-                    cachedFilterableEntities.set(obj["@id"].replace(/^nOPePE:/,'nOPePE'), obj)
+                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/,'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.appendChild(li)
-                    modifyTableTR(elem, obj)
                     
                     const createScenario = elem.hasAttribute("create-scenario")
                     const updateScenario = elem.hasAttribute("update-scenario")   
@@ -838,6 +937,7 @@ export default {
                     a.setAttribute("target", "_blank")
                     // Turn each property into an attribute for the <li> element
                     if(filterPresent) elem.classList.add("is-hidden")
+                
                     filteringProps.forEach( (prop) => {
                         // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
                         if(prop === "text")
@@ -852,15 +952,17 @@ export default {
                             }
                             li.setAttribute(attr, val)
                         }
-                        if(elem.children[1].hasAttribute(`data-${prop}`) && filterPresent && filterObj.hasOwnProperty("text")) {
-                        const tr_mod = [elem.children[1].getAttribute(`data-${prop}`).toLowerCase(),
-                            elem.children[0].innerHTML.toLowerCase(),
-                            elem.children[2].innerHTML.toLowerCase()]
-                        const query_mod_aprox = approximateFilter(filterObj["text"].toLowerCase())
-                        if (tr_mod.map(x => approximateFilter(x).includes(query_mod_aprox)).some(x => x))
-                            elem.classList.remove("is-hidden")
+                        if(li.hasAttribute(`data-${prop}`) && filterPresent && filterObj.hasOwnProperty(prop)) {
+                            //const query_mod_aprox = approximateFilter(filterObj[prop].toLowerCase())
+                            if(li.getAttribute(`data-${prop}`).toLowerCase().includes(filterObj[prop].toLowerCase()))
+                                elem.classList.remove("is-hidden")
                         }    
                     })
+                    if(!li.hasAttribute("data-title")) {
+                        li.setAttribute("data-title", "[ unlabeled ]")
+                        li.setAttribute("data-unlabeled", "true")
+                    }
+                    li.setAttribute("data-expanded", "true")
 
                     // Pagination for the progress indicator element
                     const totalsProgress = containingListElem.querySelector(".totalsProgress")
@@ -883,8 +985,8 @@ export default {
                         if(modalBtn) modalBtn.classList.remove("is-hidden")
                         if(filterInstructions) filterInstructions.classList.remove("is-hidden")
                         progressArea.classList.add("is-hidden")
-                        approximate.classList.remove("is-hidden")
-                        smartFilter()
+                        //approximate.classList.remove("is-hidden")
+                        //smartFilter()
                         containingListElem.querySelectorAll("input[filter]").forEach(i => {
                             // The filters that are used now need to be visible and selected / take on the string / etc.
                             i.classList.remove("is-hidden")
@@ -896,11 +998,13 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
-                        hideSearchBar()
+                        //hideSearchBar()
                     }
                 }
             }
         },
+
+        
         /**
          * This corresponds to an existing <li> element in managedlist with a deer-id property.  These <li> elements need to be filterable.
          * As such, they require information about the Gloss they represent, whose URI is the deer-id.
@@ -915,7 +1019,7 @@ export default {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view")
                     // Be careful.  The publish list stores items via http://, but everything else is https://.  Beware the false mismatch.
-                    const glossID = obj["@id"].replace(/^nOPePE:/,'nOPePE')
+                    const glossID = obj["@id"].replace(/^https?:/,'https:')
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
                     const included = listCache.has(glossID)
