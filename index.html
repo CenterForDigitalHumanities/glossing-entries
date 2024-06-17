@@ -29,24 +29,38 @@
             position: relative;
         }
 
+        .alert{
+            border-left: 4px solid #E0CB52;
+            background: #FCFAEE;
+            padding-top: 5px;
+            padding-bottom: 20px;
+            padding-left: 20px;
+            padding-right: 24px;
+        }
+
     </style>
 </head>
 
 <body class="container">
     <gog-header class="container"></gog-header>
     <div class="content container">
-        <p>
+        <h2> Gallery of Glosses Data Entry Portal </h2>
+        <p id="look" class="bg-light">
             Welcome to the Gallery of Glosses data entry & management portal.  Here you can study gloss transcriptions from T-PEN, generate and connect Glosses and decorate Glosses with descriptive metadata.  See the ways to get started below.
         </p>
-        <p>
+        <p class="alert">
             Note if you are not here for data entry or data management, you may be looking for the public site.  <a href="https://gallery-of-glosses.vercel.app/">Go there now!</a>
         </p>
+        <h4> Data Entry and Viewing Options </h4>
         <div class="options">
-            <a href="./gloss-transcription.html" class="button primary">Detect Glosses in T-PEN Transcriptions</a>
             <a href="./ng.html" class="button primary">Create a New Gloss</a>
             <a href="./glosses.html" class="button primary">Browse Gloss Collection</a>
-            <a href="./manage-glosses.html" class="button primary">Manage Gloss Collection</a>
-            <a href="./manuscripts.html" class="button primary">Browse Manuscripts with Glosses</a>
+            <a href="./nm.html" class="button primary">Create a Manuscript Witness</a>
+            <a href="./manuscripts.html" class="button primary">Browse Manuscripts With Glosses</a>
+            <a href="./gloss-transcription.html" class="button primary">Detect Glosses in T-PEN Transcriptions</a>
+            <a href="./gloss-witness.html" class="button primary">Detect Glosses in Text</a>
+            <a href="./nm.html" class="button primary">Manage Manuscript Witnesses</a>
+            <a href="./manuscripts.html" class="button primary">Manage Glosses</a>
         </div>
     </div>
     <gog-footer class="container"></gog-footer>

@@ -127,28 +127,28 @@ function init(event){
                 return
             }
             // We will need to know the reference for addButton() so let's get it out there now.
-            referencedGloss.setAttribute("deer-id",annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
-            if(ngCollectionList.hasAttribute("ng-list-loaded")){
-                prefillReferences(annotationData["references"], ngCollectionList)
-            }
-            else{
-                addEventListener('ng-list-loaded', ngListLoaded)
-                function ngListLoaded(event){
-                    if(event.target.id === "ngCollectionList"){
-                        prefillReferences(annotationData["references"], ngCollectionList)
-                        event.target.querySelector("gloss-modal-button").classList.remove("is-hidden")
-                        removeEventListener('ng-list-loaded', ngListLoaded)
-                    }
-                }
-            }
-            if(document.querySelector("witness-text-selector").hasAttribute("witness-text-loaded")){
-                preselectLines(annotationData["selections"], $elem)    
-            }
-            else{
-                addEventListener('witness-text-loaded', ev => {
-                    preselectLines(annotationData["selections"], $elem)
-                })
-            }
+            referencedGloss.setAttribute("deer-id",annotationData["references"]?.value[0].replace(/^https?:/, 'https:'))
+            // if(ngCollectionList.hasAttribute("ng-list-loaded")){
+            //     prefillReferences(annotationData["references"], ngCollectionList)
+            // }
+            // else{
+            //     addEventListener('ng-list-loaded', ngListLoaded)
+            //     function ngListLoaded(event){
+            //         if(event.target.id === "ngCollectionList"){
+            //             prefillReferences(annotationData["references"], ngCollectionList)
+            //             event.target.querySelector("gloss-modal-button").classList.remove("is-hidden")
+            //             removeEventListener('ng-list-loaded', ngListLoaded)
+            //         }
+            //     }
+            // }
+            // if(document.querySelector("witness-text-selector").hasAttribute("witness-text-loaded")){
+            //     preselectLines(annotationData["selections"], $elem)    
+            // }
+            // else{
+            //     addEventListener('witness-text-loaded', ev => {
+            //         preselectLines(annotationData["selections"], $elem)
+            //     })
+            // }
             prefillText(annotationData["text"], $elem)
             prefillDigitalLocations(annotationData["source"], $elem)
 

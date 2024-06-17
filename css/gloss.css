@@ -474,6 +474,18 @@ line.selected.just {
   margin-top: 1.25em;
 }
 
+.referencedGlossContainer{
+  padding: 20px; 
+  border: 1px solid #ccc; 
+  border-radius: 0.2em; 
+  margin-top: 1.25em;
+}
+
+#referencedGloss{
+  font-style: italic;
+  font-weight: bold;
+}
+
 #needs{
   background-color: white; 
   padding: 20px; 

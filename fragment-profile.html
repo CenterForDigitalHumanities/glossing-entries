@@ -64,14 +64,20 @@
             Please be patient while we get things together...
         </p>
     </div>
-    <bibliographic-citation-div class="entity-needed"></bibliographic-citation-div>
-    <div class="redirectToWitness bg-light entity-needed">
+    <bibliographic-citation-div class="entity-needed is-hidden"></bibliographic-citation-div>
+    <div class="redirectToWitness bg-light entity-needed is-hidden">
         <h4> Modify Fragment Metadata </h4>
         <p> <u>Redirect</u> to the Fragment Metadata page by clicking below. </p>
         <a class="addWitnessBtn button secondary" onclick="metadataForWitness(true)" style="margin: 5px; padding: 10px; border: none; border-radius: 4px;">Redirect to Modify Fragment Metadata</a>
     </div>
+    <div class="referencedGlossContainer bg-light entity-needed is-hidden">
+        <h4> Referenced Gloss </h4>
+        <deer-view class="" id="referencedGloss" deer-template="label">
+            Loading&hellip;
+        </deer-view>
+    </div>
     <form id="witnessForm" class="entity-needed is-hidden bg-basic" deer-type="Text" deer-context="http://purl.org/dc/terms">
-        <h4> View Fragment Information </h4>
+        <h4> View Witness Fragment Information </h4>
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">
         <div class="row">
@@ -106,11 +112,6 @@
             <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
-        </div>
-        <div class="row">
-            <deer-view class="entity-needed is-hidden col-5-md col-6-sm" id="referencedGloss" deer-template="label">
-                Loading&hellip;
-            </deer-view>
         </div>
     </form>
     <gog-footer class="row"></gog-footer>

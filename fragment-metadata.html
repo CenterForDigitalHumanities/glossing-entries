@@ -56,6 +56,36 @@
     <p id="look" class="bg-light">
         Witness Fragment Metadata
     </p>
+    <div id="needs" class="row bg-basic">
+        <div class="col">
+            <p class="howTo"> 
+                It looks like you haven't provided the URI of the web resource with the text.  
+                If you are not using the <code>?witness-uri=</code> URL parameter then please choose a way to provide the text content. 
+            </p>
+            <nav user-input class="tabs is-full">
+              <a name="uri" onclick="changeUserInput(event, 'uri')" class="ui-tab active">I want to provide a URI</a>
+              <a name="file" onclick="changeUserInput(event, 'file')" class="ui-tab">I want to upload a file</a>
+              <a name="cp" onclick="changeUserInput(event, 'cp')" class="ui-tab">I want to copy and paste</a>
+            </nav>
+            <div user-input="uri" class="userInput">
+                <input id="resourceURI" type="text" placeholder="The Text Witness URI"/>
+                <input id="loadURI" type="button" onclick="loadUserInput(event, 'uri')" value="Load URI" />    
+            </div>
+            <div user-input="file" class="userInput is-hidden">
+                <p class="howTo"> 
+                    The only supported file type is ".txt" at this time.
+                </p>
+                <input id="resourceFile" type="file" placeholder="Select a File"/>
+                <textarea disabled id="fileText"> No Typing or Pasting Text Here.  Awaiting file contents...</textarea>
+                <input id="loadFile" type="button" class="is-hidden" onclick="loadUserInput(event, 'file')" value="Use File Content" />
+            </div>
+            <div user-input="cp" class="userInput is-hidden">
+                <p class="howTo">Copy text from your source and paste it into this textarea.  You can also type out the text.</p>
+                <textarea placeholder=" Begin Typing or Paste the Text Here..." id="resourceText" class="taller"></textarea>
+                <input id="loadText" type="button" onclick="loadUserInput(event, 'cp')" value="Use Text" />
+            </div>
+        </div>        
+    </div>
     <bibliographic-citation-div class="entity-needed"></bibliographic-citation-div>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
     <div id="loading" class="is-hidden entity-needed">
