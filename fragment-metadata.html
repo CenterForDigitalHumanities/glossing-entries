@@ -45,11 +45,13 @@
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2 class="bg-basic"> Witness Fragment Metadata </h2>
-<!--     <p class="bg-light"> 
+    <!--     
+    <p class="bg-light"> 
         Connect Virtual Glosses With Real World Text 
-    </p> -->
-    <p id="reset" class="bg-basic is-hidden"> 
-        This page automatically applied a text resource.  If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
+    </p> 
+-->
+    <p id="reset" class="bg-basic is-hidden">
+        This page automatically applied a text resource. If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
     </p>
     <p id="look" class="bg-light">
         Witness Fragment Metadata
@@ -57,29 +59,25 @@
     <bibliographic-citation-div class="entity-needed"></bibliographic-citation-div>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
     <div id="loading" class="is-hidden entity-needed">
-        <p class="loadingMsg"> 
-            Please be patient while we get things together...  
+        <p class="loadingMsg">
+            Please be patient while we get things together...
         </p>
     </div>
-    <form id="witnessForm" class="is-hidden bg-basic entity-needed" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
+    <form id="witnessForm" class="is-hidden bg-basic entity-needed" deer-type="Text" deer-context="http://purl.org/dc/terms">
         <h4> Provide Fragment Information </h4>
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">
         <div class="row">
             <label class="col-3 col-2-md text-right is-hidden">Label:</label>
             <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
-
             <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
-                        
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
                 <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
             -->
-
-            <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
+            <label class="col-3 col-2-md text-right">Text: &#10082;</label>
             <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight some text..."></textarea>
-
             <label class="col-3 col-2-md text-right">Language:</label>
             <select custom-text-key="language" title="select language" class="col-9 col-4-md">
                 <option value="la" selected>Latin</option>
@@ -87,11 +85,9 @@
                 <option value="fr">French</option>
                 <option value="en">English</option>
             </select>
-
             <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
                 The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
             </label>
-
             <label class="col-3 col-2-md text-right">Gloss format:</label>
             <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
                 <option value="none" selected>None</option>
@@ -100,18 +96,17 @@
                 <option value="appendix">Appendix</option>
                 <option value="other">Other</option>
             </select>
-
             <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
-        <input class="is-hidden button primary" type="submit" value="Create Witness Fragment"/>
-        <input class="is-hidden button error deleteWitness" type="button" value="Delete Witness Fragment"/>
+        <input class="is-hidden button primary" type="submit" value="Create Witness Fragment" />
+        <input class="is-hidden button error deleteWitness" type="button" value="Delete Witness Fragment" />
         <div class="row">
             <witness-text-selector class="lineSelector entity-needed is-hidden col-7-md col-6-sm"> </witness-text-selector>
             <deer-view class="entity-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
                 Loading&hellip;
-            </deer-view>  
+            </deer-view>
         </div>
     </form>
     <gog-footer class="row"></gog-footer>
@@ -120,17 +115,18 @@
     <script src="js/fragment-metadata.js"></script>
 </body>
 <script>
-    /**
-     * Make sure DEER forms do not submit when a user hits "Enter".
-     */ 
-    document.querySelectorAll("form[deer-type]").forEach(form => {
-        form.addEventListener("keydown", (e)=> {
-            if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
-                if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
-                    e.preventDefault()
-                }
+/**
+ * Make sure DEER forms do not submit when a user hits "Enter".
+ */
+document.querySelectorAll("form[deer-type]").forEach(form => {
+    form.addEventListener("keydown", (e) => {
+        if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+            if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                e.preventDefault()
             }
-        }, true)
-    })
+        }
+    }, true)
+})
 </script>
+
 </html>

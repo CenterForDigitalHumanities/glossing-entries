@@ -451,7 +451,7 @@ class ReferencesBrowser extends HTMLElement {
             Have a Witness or two in mind?  Provide shelfmarks below to create Witnesses when you submit this Gloss.<br>
             Witnesses queued to be created when you submit can be removed by clicking the '<span style="color:red;">x</span>' symbol.
         </p>
-        <form id="GlossReferenceForm" class="row">
+        <form id="GlossReferenceForm" class="row bg-light">
             <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
             <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="submit" value="Add Witness Reference" >
         </form>

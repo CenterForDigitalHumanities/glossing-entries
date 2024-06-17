@@ -2,13 +2,13 @@ const textWitnessID = window.location.hash.substr(1)
 let referencedGlossID = null
 
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
-document.addEventListener("witness-text-error", function(event){
+document.addEventListener("witness-text-error", function(event) {
     const witnessURI = getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
     document.querySelector(".witnessText").innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${witnessURI} </b>`
 })
 
 // Make the text in the Gloss modal form the same as the one in the Witness form
-document.addEventListener("gloss-modal-visible", function(event){
+document.addEventListener("gloss-modal-visible", function(event) {
     const text = witnessForm.querySelector("textarea[custom-text-key='text']").value
     const glossTextElem = event.target.querySelector("textarea[name='glossText']")
     glossTextElem.value = text
@@ -20,19 +20,19 @@ document.addEventListener("gloss-modal-visible", function(event){
  * Reset all the Witness form elements so the form is ready to generate a new Witness.
  * This occurs after the user submits a new witness.
  * If they provided a witness URI in the hash, then this is an 'update scenario'. Do not perform the reset.
- */ 
-function setWitnessFormDefaults(){
+ */
+function setWitnessFormDefaults() {
     // Continue the session like normal if they had loaded up an existing witness and updated it.
-    if(textWitnessID) return 
-    
-    const form = witnessForm  
+    if (textWitnessID) return
+
+    const form = witnessForm
     form.removeAttribute("deer-id")
-    form.removeAttribute("deer-source")    
+    form.removeAttribute("deer-source")
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
     // form.querySelector("input[deer-key='creator']").value = "BryanRefactor"
-    
+
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
     labelElem.setAttribute("value", "")
@@ -100,7 +100,7 @@ function setWitnessFormDefaults(){
  * Attach all the event handlers to the custom key areas.
  * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
  * Set fixed value fields and make those inputs dirty.
- */ 
+ */
 window.onload = () => {
     setPublicCollections()
     setListings()
@@ -108,7 +108,7 @@ window.onload = () => {
     const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : false
     const dig_location = witnessForm.querySelector("input[custom-key='source']")
     const deleteWitnessButton = document.querySelector(".deleteWitness")
-    if(textWitnessID){
+    if (textWitnessID) {
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
         const submitBtn = witnessForm.querySelector("input[type='submit']")
         const deleteBtn = witnessForm.querySelector(".deleteWitness")
@@ -117,13 +117,12 @@ window.onload = () => {
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
         witnessForm.setAttribute("deer-id", textWitnessID)
-    }
-    else{
+    } else {
         // These items have default values that are dirty on fresh forms.
         dig_location.$isDirty = true
         witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
         witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
-        if(witnessURI) {
+        if (witnessURI) {
             // special handler for ?wintess-uri=
             reset.classList.remove("is-hidden")
             loading.classList.remove("is-hidden")
@@ -134,7 +133,7 @@ window.onload = () => {
     }
 
     // Support the '?tab=' URL parameter
-    if(loadTab){
+    if (loadTab) {
         document.querySelector(`.ui-tab[name="${loadTab}"]`).click()
     }
 
@@ -149,11 +148,10 @@ window.onload = () => {
     })
     // Note that this HTML element is a checkbox
     witnessForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
-        if(ev.target.checked){
+        if (ev.target.checked) {
             ev.target.value = "text/html"
             ev.target.setAttribute("value", "text/html")
-        }
-        else{
+        } else {
             ev.target.value = "text/plain"
             ev.target.setAttribute("value", "text/plain")
         }
@@ -161,7 +159,7 @@ window.onload = () => {
         ev.target.closest("form").$isDirty = true
     })
     deleteWitnessButton.addEventListener("click", async ev => {
-        if(await showCustomConfirm("The witness will be deleted.  This action cannot be undone.")){
+        if (await showCustomConfirm("The witness will be deleted.  This action cannot be undone.")) {
             deleteWitness()
         }
     })
@@ -170,17 +168,16 @@ window.onload = () => {
 /**
  * When the Gloss Collection List deer view loads its records (by finishing the paged query) we can show the witness form.
  * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
- */ 
+ */
 addEventListener('deer-view-rendered', show)
 
-function show(event){
-    if(event.target.id == "ngCollectionList"){
-        if(getURLParameter("witness-uri") || textWitnessID){
+function show(event) {
+    if (event.target.id == "ngCollectionList") {
+        if (getURLParameter("witness-uri") || textWitnessID) {
             const source = event.detail?.source?.value[0]
-            if(source){
+            if (source) {
                 document.querySelectorAll(".entity-needed").forEach(el => el.classList.remove("is-hidden"))
-            }
-            else{
+            } else {
                 //document.querySelectorAll(".entity-needed").forEach(el => el.classList.add("is-hidden"))
             }
         }
@@ -193,7 +190,7 @@ function show(event){
 
 /**
  * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
- */ 
+ */
 addEventListener('deer-view-rendered', addButton)
 
 /**
@@ -202,7 +199,7 @@ addEventListener('deer-view-rendered', addButton)
  * @see deer-record.js DeerReport.constructor()  
  */
 addEventListener('deer-form-rendered', init)
-if(!textWitnessID) {
+if (!textWitnessID) {
     // This event listener is no longer needed
     removeEventListener('deer-form-rendered', init)
 
@@ -212,15 +209,15 @@ if(!textWitnessID) {
 /**
  * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
  * Note this only needs to occur one time on page load.
- */ 
-function init(event){
+ */
+function init(event) {
     let whatRecordForm = event.target?.id
     let annotationData = event.detail ?? {}
     const $elem = event.target
     switch (whatRecordForm) {
         case "witnessForm":
             const entityType = annotationData.type ?? annotationData["@type"] ?? null
-            if(entityType !== "Text"){
+            if (entityType !== "Text") {
                 document.querySelectorAll(".entity-needed").forEach(el => el.classList.add("is-hidden"))
                 const ev = new CustomEvent("Witness Details Error")
                 look.classList.add("text-error")
@@ -231,24 +228,23 @@ function init(event){
                 return
             }
             // We will need to know the reference for addButton() so let's get it out there now.
-            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/,'https:')
-            if(ngCollectionList.hasAttribute("ng-list-loaded")){
+            referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
+            if (ngCollectionList.hasAttribute("ng-list-loaded")) {
                 prefillReferences(annotationData["references"], ngCollectionList)
-            }
-            else{
+            } else {
                 addEventListener('ng-list-loaded', ngListLoaded)
-                function ngListLoaded(event){
-                    if(event.target.id === "ngCollectionList"){
+
+                function ngListLoaded(event) {
+                    if (event.target.id === "ngCollectionList") {
                         prefillReferences(annotationData["references"], ngCollectionList)
                         event.target.querySelector("gloss-modal-button").classList.remove("is-hidden")
                         removeEventListener('ng-list-loaded', ngListLoaded)
                     }
                 }
             }
-            if(document.querySelector("witness-text-selector").hasAttribute("witness-text-loaded")){
-                preselectLines(annotationData["selections"], $elem)    
-            }
-            else{
+            if (document.querySelector("witness-text-selector").hasAttribute("witness-text-loaded")) {
+                preselectLines(annotationData["selections"], $elem)
+            } else {
                 addEventListener('witness-text-loaded', ev => {
                     preselectLines(annotationData["selections"], $elem)
                 })
@@ -271,7 +267,7 @@ function init(event){
  * After submission DEER will announce this form as rendered.
  * Set up all the default values to be ready for another submission.
  */
-function formReset(event){
+function formReset(event) {
     let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
     const $elem = event.target
     switch (whatRecordForm) {
@@ -298,28 +294,28 @@ function prefillText(textObj, form) {
         console.warn("Cannot set value for text and build UI.  There is no data.")
         return false
     }
-    if(![languageElem,formatElem,textElem].some(e=>e)) {
+    if (![languageElem, formatElem, textElem].some(e => e)) {
         console.warn("Nothing to fill.")
         return false
     }
     const source = textObj?.source
-    if(source?.citationSource){
-        form.querySelector("select[custom-text-key='language'")?.setAttribute("deer-source", source.citationSource ?? "") 
-        form.querySelector("input[custom-text-key='format'")?.setAttribute("deer-source", source.citationSource ?? "") 
-        form.querySelector("textarea[custom-text-key='text'")?.setAttribute("deer-source", source.citationSource ?? "") 
+    if (source?.citationSource) {
+        form.querySelector("select[custom-text-key='language'")?.setAttribute("deer-source", source.citationSource ?? "")
+        form.querySelector("input[custom-text-key='format'")?.setAttribute("deer-source", source.citationSource ?? "")
+        form.querySelector("textarea[custom-text-key='text'")?.setAttribute("deer-source", source.citationSource ?? "")
     }
     textObj = textObj.value ?? textObj
     const language = textObj.language
-    if(languageElem) {
+    if (languageElem) {
         languageElem.value = language
         languageElem.setAttribute("value", language)
     }
-    
+
     const format = textObj.format
-    if(format === "text/html"){
+    if (format === "text/html") {
         formatElem.checked = true
     }
-    if(formatElem) {
+    if (formatElem) {
         formatElem.value = format
         formatElem.setAttribute("value", "format")
     }
@@ -328,20 +324,20 @@ function prefillText(textObj, form) {
         console.warn("There is no text recorded for this witness")
         return false
     }
-    if(textElem){
+    if (textElem) {
         textElem.value = textVal
         textElem.setAttribute("value", textVal)
     }
 }
 
- /**
+/**
  * Helper function for the specialized references key, which is an Array.
  * An item of the array can be either a URI or plain text.  Set the
  * appropriate attribute based on which it is.
  * */
 function prefillDigitalLocations(locationsArr, form) {
     const locationElem = form.querySelector("input[custom-key='source']")
-    if(!locationElem) {
+    if (!locationElem) {
         console.warn("Nothing to fill")
         return false
     }
@@ -350,7 +346,7 @@ function prefillDigitalLocations(locationsArr, form) {
         return false
     }
     const source = locationsArr?.source
-    if(source?.citationSource){
+    if (source?.citationSource) {
         form.querySelector("input[custom-key='source']").setAttribute("deer-source", source.citationSource ?? "")
     }
     locationsArr = locationsArr?.value
@@ -360,10 +356,9 @@ function prefillDigitalLocations(locationsArr, form) {
     }
     locationElem.value = locationsArr[0]
     // If this is not a URI, then it also needs to populate the .witnessText element.
-    if(locationsArr[0].startsWith("http:") || locationsArr[0].startsWith("https:")){
+    if (locationsArr[0].startsWith("http:") || locationsArr[0].startsWith("https:")) {
         document.querySelector(".lineSelector").setAttribute("witness-uri", locationsArr[0])
-    }
-    else{
+    } else {
         document.querySelector(".lineSelector").setAttribute("witness-text", locationsArr[0])
     }
 }
@@ -376,7 +371,7 @@ function prefillReferences(referencesArr, form) {
     if (referencesArr === undefined) {
         console.warn("Cannot set value for references and build UI.  There is no data.")
         return false
-    }            
+    }
 
     const source = referencesArr?.source
     referencesArr = referencesArr?.value ?? referencesArr
@@ -390,11 +385,11 @@ function prefillReferences(referencesArr, form) {
     const ngLabel = elem.getAttribute("data-title")
     const filter = document.querySelector("input[filter]")
     const refElem = form.querySelector("input[custom-key='references']")
-    if(![elem,ngLabel,filter,refElem].some(e=>e)) {
+    if (![elem, ngLabel, filter, refElem].some(e => e)) {
         console.warn("Nothing to fill.")
         return false
     }
-    if(source?.citationSource){
+    if (source?.citationSource) {
         refElem.setAttribute("deer-source", source.citationSource ?? "")
     }
     refElem.value = referencesArr[0]
@@ -402,7 +397,7 @@ function prefillReferences(referencesArr, form) {
     filter.value = ngLabel.trim()
     filter.dispatchEvent(new Event('input', { bubbles: true }))
     const chosenGloss = document.querySelector(".chosenGloss")
-    if(chosenGloss) chosenGloss.value = ngLabel
+    if (chosenGloss) chosenGloss.value = ngLabel
 }
 
 /**
@@ -421,41 +416,41 @@ function preselectLines(linesArr, form) {
         return false
     }
     const selectionsElem = form.querySelector("input[custom-key='selections']")
-    if(source?.citationSource){
+    if (source?.citationSource) {
         selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
     }
     selectionsElem.value = linesArr[0]
-     //Now highlight the text
+    //Now highlight the text
     let range = document.createRange()
     let sel = window.getSelection()
     const text = linesArr[0]
-    let selection = text.split("#")[1].replace("char=", "").split(",")           
+    let selection = text.split("#")[1].replace("char=", "").split(",")
     const witness_text_elem = document.querySelector(".witnessText").firstElementChild
     range.setStart(witness_text_elem.firstChild, parseInt(selection[0]))
     range.setEnd(witness_text_elem.firstChild, parseInt(selection[1]))
     sel.removeAllRanges()
     sel.addRange(range)
     document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
-        if(!tog.classList.contains("is-toggled")){
+        if (!tog.classList.contains("is-toggled")) {
             tog.click()
         }
-    })  
+    })
 }
 
 /**
  * The DEER announcement for when all form fields have been saved or updated.
  * Extend this functionality by also saving or updating the custom fields.
  * 
- */ 
+ */
 addEventListener('deer-updated', event => {
     const $elem = event.target
     //Only care about witness form
-    if($elem?.id  !== "witnessForm") return
+    if ($elem?.id !== "witnessForm") return
     // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
     event.preventDefault()
     event.stopPropagation()
 
-    const entityID = event.detail["@id"]  
+    const entityID = event.detail["@id"]
     // These promise are for all the simple array values ('references' and 'selections')
     let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
         .filter(el => el.$isDirty)
@@ -466,28 +461,28 @@ addEventListener('deer-updated', event => {
                 "@type": "Annotation",
                 "body": {},
                 "target": entityID,
-                "creator" : window.GOG_USER["http://store.rerum.io/agent"]
+                "creator": window.GOG_USER["http://store.rerum.io/agent"]
             }
             anno.body[key] = { "value": el.value.split("__") }
-            if(el.hasAttribute("deer-source")) anno["@id"] = el.getAttribute("deer-source")
+            if (el.hasAttribute("deer-source")) anno["@id"] = el.getAttribute("deer-source")
             // If the form field has a deer-source, we need to update.  Otherwise, we create.
             return fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
-                method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
-                mode: "cors",
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                },
-                body: JSON.stringify(anno)
-            })
-            .then(res => res.json())
-            .then(a => {
-                el.setAttribute("deer-source", a["@id"])
-            })
-            .catch(err => {
-                console.error(`Could not generate Annotation for key '${key}'`)
-                console.error(err)
-            })
+                    method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
+                    mode: "cors",
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    },
+                    body: JSON.stringify(anno)
+                })
+                .then(res => res.json())
+                .then(a => {
+                    el.setAttribute("deer-source", a["@id"])
+                })
+                .catch(err => {
+                    console.error(`Could not generate Annotation for key '${key}'`)
+                    console.error(err)
+                })
         })
 
     // This gets the custom keys for the annotation.body.text which is an object
@@ -497,7 +492,7 @@ addEventListener('deer-updated', event => {
         $elem.querySelector("select[custom-text-key='language']"),
         $elem.querySelector("textarea[custom-text-key='text']")
     ]
-    if(customTextElems.filter(el => el.$isDirty).length > 0){
+    if (customTextElems.filter(el => el.$isDirty).length > 0) {
         // One of the text properties has changed so we need the text object
         const format = customTextElems[0].value
         const language = customTextElems[1].value
@@ -506,17 +501,17 @@ addEventListener('deer-updated', event => {
             "@context": "http://www.w3.org/ns/anno.jsonld",
             "@type": "Annotation",
             "body": {
-                "text":{
-                    "format" : format,
-                    "language" : language,
-                    "textValue" : text
+                "text": {
+                    "format": format,
+                    "language": language,
+                    "textValue": text
                 }
             },
             "target": entityID,
-            "creator" : window.GOG_USER["http://store.rerum.io/agent"]
+            "creator": window.GOG_USER["http://store.rerum.io/agent"]
         }
         const el = customTextElems[2]
-        if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
+        if (el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
         annotation_promises.push(
             fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
                 method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
@@ -538,17 +533,17 @@ addEventListener('deer-updated', event => {
         )
     }
     Promise.all(annotation_promises)
-    .then(success => {
-        console.log("FORM FULLY SAVED")
-        const ev = new CustomEvent("Gloss Textual Witness Submitted")
-        globalFeedbackBlip(ev, `Gloss Textual Witness Submitted!`, true)
-    })
-    .catch(err => {
-        console.error("ERROR PROCESSING SOME FORM FIELDS")
-        console.error(err)
-        const ev = new CustomEvent("Witness Save Error")
-        globalFeedbackBlip(ev, `Witness Save Error`, false)
-    })
+        .then(success => {
+            console.log("FORM FULLY SAVED")
+            const ev = new CustomEvent("Gloss Textual Witness Submitted")
+            globalFeedbackBlip(ev, `Gloss Textual Witness Submitted!`, true)
+        })
+        .catch(err => {
+            console.error("ERROR PROCESSING SOME FORM FIELDS")
+            console.error(err)
+            const ev = new CustomEvent("Witness Save Error")
+            globalFeedbackBlip(ev, `Witness Save Error`, false)
+        })
 })
 
 /**
@@ -557,7 +552,7 @@ addEventListener('deer-updated', event => {
  * If there already a 'selected' gloss it should no longer appear as selected. 
  */
 addEventListener('gloss-modal-saved', event => {
-    if(event.target.tagName !== "GLOSS-MODAL") return
+    if (event.target.tagName !== "GLOSS-MODAL") return
 
     const gloss = event.detail
     const form = witnessForm
@@ -568,7 +563,7 @@ addEventListener('gloss-modal-saved', event => {
     const totalsProgress = list.closest("deer-view").querySelector(".totalsProgress")
 
     const selectedBtn = document.querySelector(".toggleInclusion[disabled]")
-    if(selectedBtn){
+    if (selectedBtn) {
         selectedBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
         selectedBtn.setAttribute("value", "❢ attach")
         selectedBtn.setAttribute("class", "toggleInclusion attached-to-source button primary")
@@ -585,19 +580,18 @@ addEventListener('gloss-modal-saved', event => {
     div.setAttribute("deer-id", gloss["@id"])
     div.setAttribute("deer-link", "ng.html#")
     li.setAttribute("data-title", title)
-    
+
     // We know the title already so this makes a handy placeholder :)
     li.innerHTML = `<span><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
     // This helps filterableListItem know how to style the attach button, and also lets us know to change count/total loaded Glosses.
-    if(textWitnessID){
+    if (textWitnessID) {
         div.setAttribute("update-scenario", "true")
-    }
-    else{
+    } else {
         div.setAttribute("create-scenario", "true")
     }
     div.appendChild(li)
     list.appendChild(div)
-    
+
     setTimeout(function() {
         broadcast(undefined, "deer-view", div, { set: [div] })
     }, 1)
@@ -607,11 +601,11 @@ addEventListener('gloss-modal-saved', event => {
  * After a filterableListItem loads, we need to determine what to do with its 'attach' button.
  * In create/update scenarios, this will result in the need to click a button
  * In loading scenarios, if a text witness URI was supplied to the page it will have a gloss which should appear as 'attached'.
- */ 
+ */
 function addButton(event) {
     const template_container = event.target
     const form_container = template_container.closest("form")
-    if(template_container.getAttribute("deer-template") !== "filterableListItem") return
+    if (template_container.getAttribute("deer-template") !== "filterableListItem") return
     const obj = event.detail
     const gloss_li = template_container.firstElementChild
     const createScenario = template_container.hasAttribute("create-scenario") ? true : false
@@ -621,23 +615,22 @@ function addButton(event) {
     inclusionBtn.setAttribute("type", "button")
     inclusionBtn.setAttribute("data-id", obj["@id"])
     let already = false
-    if(witnessesObj?.referencedGlosses){
+    if (witnessesObj?.referencedGlosses) {
         already = witnessesObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
     }
-    if(updateScenario){
+    if (updateScenario) {
         inclusionBtn.setAttribute("disabled", "")
         inclusionBtn.setAttribute("value", "✓ attached")
         inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button success`)  
-    }
-    else{
+        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button success`)
+    } else {
         // Either a create scenario, or neither (just loading up)
         inclusionBtn.setAttribute("title", `${already ? "This gloss was attached in the past.  Be sure before you attach it." : "Attach This Gloss and Save" }`)
         inclusionBtn.setAttribute("value", `${already ? "❢" : "➥"} attach`)
         inclusionBtn.setAttribute("class", `toggleInclusion ${already} button primary`)
 
         // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
-        if(textWitnessID && referencedGlossID === obj["@id"]){
+        if (textWitnessID && referencedGlossID === obj["@id"]) {
             // Make this button appear as 'attached'
             inclusionBtn.setAttribute("disabled", "")
             inclusionBtn.setAttribute("value", "✓ attached")
@@ -652,83 +645,80 @@ function addButton(event) {
         const form = ev.target.closest("form")
         let blip = new CustomEvent("Blip")
         // There must be a shelfmark
-        if(!form.querySelector("input[deer-key='identifier']").value){
+        if (!form.querySelector("input[deer-key='identifier']").value) {
             //alert("You must provide a Shelfmark value.")
             blip = new CustomEvent("You must provide a Shelfmark value.")
             globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
             return
         }
         // There must be a selection
-        if(!form.querySelector("input[custom-key='selections']").value){
+        if (!form.querySelector("input[custom-key='selections']").value) {
             //alert("Select some text first")
             blip = new CustomEvent("Select some text first.")
             globalFeedbackBlip(blip, `Select some text first.`, false)
-            return   
+            return
         }
         const glossIncipit = ev.target.closest("li").getAttribute("data-title")
-        const note = ev.target.classList.contains("attached-to-source") 
-           ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
-           : `Save this textual witness for Gloss '${glossIncipit}'?`
-        if((createScenario || updateScenario) || await showCustomConfirm(note)){
+        const note = ev.target.classList.contains("attached-to-source") ?
+            `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?` :
+            `Save this textual witness for Gloss '${glossIncipit}'?`
+        if ((createScenario || updateScenario) || await showCustomConfirm(note)) {
             const customKey = form.querySelector("input[custom-key='references']")
             const uri = ev.target.getAttribute("data-id")
-            if(customKey.value !== uri){
-                customKey.value = uri 
-                customKey.setAttribute("value", uri) 
+            if (customKey.value !== uri) {
+                customKey.value = uri
+                customKey.setAttribute("value", uri)
                 customKey.$isDirty = true
                 form.$isDirty = true
-                form.querySelector("input[type='submit']").click()    
-            }
-            else{
+                form.querySelector("input[type='submit']").click()
+            } else {
                 //alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
                 blip = new CustomEvent(`This textual witness is already attached to Gloss '${glossIncipit}'`)
                 globalFeedbackBlip(ev, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
             }
-        }                    
+        }
     })
     gloss_li.prepend(inclusionBtn)
-    
-    if(createScenario) { inclusionBtn.click() }
-    else if(updateScenario) { 
+
+    if (createScenario) { inclusionBtn.click() } else if (updateScenario) {
         // Set the references input with the new gloss URI and update the form
         const refKey = witnessForm.querySelector("input[custom-key='references']")
-        if(refKey.value !== obj["@id"]){
+        if (refKey.value !== obj["@id"]) {
             refKey.value = obj["@id"]
-            refKey.setAttribute("value", obj["@id"]) 
+            refKey.setAttribute("value", obj["@id"])
             refKey.$isDirty = true
             witnessForm.$isDirty = true
-            witnessForm.querySelector("input[type='submit']").click() 
+            witnessForm.querySelector("input[type='submit']").click()
         }
     }
 }
 
 /**
  * Process the text from a file on the users local machine.
- */ 
-resourceFile.addEventListener("change", function(event){
+ */
+resourceFile.addEventListener("change", function(event) {
     let reader = new FileReader()
     //const allowed = [".txt", ".json", ".json-ld", ".xml", ".tei", ".tei-xml", ".rdf", ".rdfs", ".html"]
     const allowed = [".txt"]
     const file_extension = (ext) => allowed.includes(`.${resourceFile.value.split(".").pop()}`)
     const file_type_allowed = allowed.some(file_extension)
-    if(!file_type_allowed){
+    if (!file_type_allowed) {
         const ev = new CustomEvent(`'.${resourceFile.value.split(".").pop()}' is not a supported file type.`)
         globalFeedbackBlip(ev, `'.${resourceFile.value.split(".").pop()}' is not a supported file type.`, false)
         loadFile.classList.add("is-hidden")
         fileText.classList.remove("taller")
         fileText.value = " Awaiting file contents..."
-        return   
+        return
     }
-    reader.onload = function(ev){
-        if(reader.result){
+    reader.onload = function(ev) {
+        if (reader.result) {
             fileText.value = reader.result
             fileText.classList.add("taller")
             loadFile.classList.remove("is-hidden")
-            setTimeout( () => {
+            setTimeout(() => {
                 window.scrollTo({ "top": document.body.scrollHeight, "behavior": "smooth" })
             }, 500)
-        }
-        else{
+        } else {
             const ev = new CustomEvent("Could not load file contents or file was empty")
             globalFeedbackBlip(ev, `Could not load file contents or file was empty`, false)
             loadFile.classList.add("is-hidden")
@@ -742,21 +732,21 @@ resourceFile.addEventListener("change", function(event){
 
 /**
  * Change which user input method is showing based on the chosen tab.
- */ 
-function changeUserInput(event, which){
+ */
+function changeUserInput(event, which) {
     const inputs = document.querySelectorAll(".userInput")
     const active = event.target.parentElement.querySelector(".ui-tab.active")
     active.classList.remove("active")
     event.target.classList.add("active")
     const url = new URL(window.location.href)
     url.searchParams.set("tab", event.target.getAttribute("name"))
-    window.history.replaceState(null, null, url) 
+    window.history.replaceState(null, null, url)
     inputs.forEach(userInput => {
         userInput.classList.add("is-hidden")
-        if(userInput.getAttribute("user-input") === which){
+        if (userInput.getAttribute("user-input") === which) {
             userInput.classList.remove("is-hidden")
-            if(which === "cp"){
-                setTimeout( () => {
+            if (which === "cp") {
+                setTimeout(() => {
                     window.scrollTo({ "top": document.body.scrollHeight, "behavior": "smooth" })
                 }, 500)
             }
@@ -767,24 +757,23 @@ function changeUserInput(event, which){
 /**
  * Load the chosen user input.  Hide the #needs area.
  */
-function loadUserInput(ev, which){
+function loadUserInput(ev, which) {
     let text = ""
     const sourceElem = witnessForm.querySelector("input[custom-key='source']")
-    switch(which){
+    switch (which) {
         case "uri":
             // Recieve a Witness URI as input from #needs.  Reload the page with a set ?witness-uri URL parameter.
             let witnessURI = resourceURI.value ? resourceURI.value : getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
-            if(witnessURI){
+            if (witnessURI) {
                 let url = new URL(window.location.href)
                 url.searchParams.append("witness-uri", witnessURI)
                 window.location = url
-            }
-            else{
+            } else {
                 //alert("You must supply a URI via the witness-uri parameter or supply a value in the text input.")
                 const ev = new CustomEvent("You must supply a URI via the witness-uri parameter or supply a value in the text input.")
                 globalFeedbackBlip(ev, `You must supply a URI via the witness-uri parameter or supply a value in the text input.`, false)
             }
-        break
+            break
         case "file":
             text = fileText.value
             loading.classList.remove("is-hidden")
@@ -795,7 +784,7 @@ function loadUserInput(ev, which){
             sourceElem.value = text
             sourceElem.setAttribute("value", text)
             sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
-        break
+            break
         case "cp":
             text = resourceText.value
             loading.classList.remove("is-hidden")
@@ -806,7 +795,7 @@ function loadUserInput(ev, which){
             sourceElem.value = text
             sourceElem.setAttribute("value", text)
             sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
-        break
+            break
         default:
     }
 
@@ -814,7 +803,7 @@ function loadUserInput(ev, which){
 
 /**
  * Remove all URL parameters and restart the user flow on gloss-witness.html
- */ 
-function startOver(){
+ */
+function startOver() {
     window.location = window.location.origin + window.location.pathname
 }

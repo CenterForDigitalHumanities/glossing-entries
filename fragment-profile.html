@@ -60,8 +60,8 @@
     </p>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
     <div id="loading" class="is-hidden">
-        <p class="loadingMsg"> 
-            Please be patient while we get things together...  
+        <p class="loadingMsg">
+            Please be patient while we get things together...
         </p>
     </div>
     <bibliographic-citation-div class="entity-needed"></bibliographic-citation-div>
@@ -70,25 +70,21 @@
         <p> <u>Redirect</u> to the Fragment Metadata page by clicking below. </p>
         <a class="addWitnessBtn button secondary" onclick="metadataForWitness(true)" style="margin: 5px; padding: 10px; border: none; border-radius: 4px;">Redirect to Modify Fragment Metadata</a>
     </div>
-    <form id="witnessForm" class="entity-needed is-hidden bg-basic" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
+    <form id="witnessForm" class="entity-needed is-hidden bg-basic" deer-type="Text" deer-context="http://purl.org/dc/terms">
         <h4> View Fragment Information </h4>
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">
         <div class="row">
             <label class="col-3 col-2-md text-right is-hidden">Label: </label>
             <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
-
             <label class="col-3 col-2-md text-right">Shelfmark: </label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
-                        
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
                 <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
             -->
-
-            <label class="col-3 col-2-md text-right" >Text: </label>
+            <label class="col-3 col-2-md text-right">Text: </label>
             <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight some text..."></textarea>
-
             <label class="col-3 col-2-md text-right">Language: </label>
             <select custom-text-key="language" title="select language" class="col-9 col-4-md">
                 <option value="la" selected>Latin</option>
@@ -96,12 +92,10 @@
                 <option value="fr">French</option>
                 <option value="en">English</option>
             </select>
-
             <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
                 The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
             </label>
-
-			<label class="col-3 col-2-md text-right">Gloss format:</label>
+            <label class="col-3 col-2-md text-right">Gloss format:</label>
             <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
                 <option value="none" selected>None</option>
                 <option value="marginal">Marginal</option>
@@ -109,20 +103,14 @@
                 <option value="appendix">Appendix</option>
                 <option value="other">Other</option>
             </select>
-
             <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
-<!--         <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
-        <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/> -->
         <div class="row">
-            <!-- <witness-text-selector class="lineSelector entity-needed is-hidden col-7-md col-6-sm"> </witness-text-selector> 
-            This could be a TPEN or text file. New component needed.
-            -->
             <deer-view class="entity-needed is-hidden col-5-md col-6-sm" id="referencedGloss" deer-template="label">
                 Loading&hellip;
-            </deer-view>  
+            </deer-view>
         </div>
     </form>
     <gog-footer class="row"></gog-footer>
@@ -131,17 +119,18 @@
     <script src="js/fragment-profile.js"></script>
 </body>
 <script>
-    /**
-     * Make sure DEER forms do not submit when a user hits "Enter".
-     */ 
-    document.querySelectorAll("form[deer-type]").forEach(form => {
-        form.addEventListener("keydown", (e)=> {
-            if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
-                if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
-                    e.preventDefault()
-                }
+/**
+ * Make sure DEER forms do not submit when a user hits "Enter".
+ */
+document.querySelectorAll("form[deer-type]").forEach(form => {
+    form.addEventListener("keydown", (e) => {
+        if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+            if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                e.preventDefault()
             }
-        }, true)
-    })
+        }
+    }, true)
+})
 </script>
+
 </html>

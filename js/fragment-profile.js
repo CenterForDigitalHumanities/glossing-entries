@@ -127,7 +127,7 @@ function init(event){
                 return
             }
             // We will need to know the reference for addButton() so let's get it out there now.
-            referencedGloss.setAttribute("deer-id",annotationData["references"]?.value[0].replace(/^https?:/,'https:')
+            referencedGloss.setAttribute("deer-id",annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
                 prefillReferences(annotationData["references"], ngCollectionList)
             }

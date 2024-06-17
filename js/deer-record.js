@@ -38,7 +38,7 @@ async function renderChange(mutationsList) {
                 } catch (err) {/* fail silently if JSON parsing fails */ }
                 if (!obj ?? !obj["@id"]) {
                     // If no object found, fetch it from the network.
-                    id = id.replace(/^https?:/,'https:') // avoid mixed content
+                    id = id.replace(/^https?:/, 'https:') // avoid mixed content
                     obj = await fetch(id).then(response => response.json()).catch(error => error)
                     if (obj) {
                         // Store fetched object in local storage for future use.
