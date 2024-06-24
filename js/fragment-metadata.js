@@ -108,9 +108,10 @@ window.onload = () => {
     const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : false
     const deleteWitnessButton = document.querySelector(".deleteWitness")
     if (textWitnessID) {
-        // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
+        // FIXME remove this return when ready to release this interface.
         look.innerHTML += `<a href="gloss-transcription.html#${textWitnessID}"> If your Witness is for a T-PEN transcription click here to be redirected. </a>`
         return
+        // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
         const submitBtn = witnessForm.querySelector("input[type='submit']")
         const deleteBtn = witnessForm.querySelector(".deleteWitness")
         loading.classList.remove("is-hidden")
@@ -119,8 +120,9 @@ window.onload = () => {
         deleteBtn.classList.remove("is-hidden")
         witnessForm.setAttribute("deer-id", textWitnessID)
     } else {
-        // These items have default values that are dirty on fresh forms.
+        // FIXME remove this return when ready to release this interface.
         return
+        // These items have default values that are dirty on fresh forms.
         const dig_location = witnessForm.querySelector("input[custom-key='source']")
         dig_location.$isDirty = true
         witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
