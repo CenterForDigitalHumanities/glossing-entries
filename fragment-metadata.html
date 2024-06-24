@@ -45,18 +45,13 @@
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2 class="bg-basic"> Witness Fragment Metadata </h2>
-    <!--     
-    <p class="bg-light"> 
-        Connect Virtual Glosses With Real World Text 
-    </p> 
--->
     <p id="reset" class="bg-basic is-hidden">
         This page automatically applied a text resource. If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
     </p>
     <p id="look" class="bg-light">
-        Witness Fragment Metadata
+        This page is under construction.
     </p>
-    <div id="needs" class="row bg-basic">
+<!--     <div id="needs" class="row bg-basic">
         <div class="col">
             <p class="howTo"> 
                 It looks like you haven't provided the URI of the web resource with the text.  
@@ -87,7 +82,6 @@
         </div>        
     </div>
     <bibliographic-citation-div class="entity-needed"></bibliographic-citation-div>
-    <!-- Perhaps this could be a Custom Element widget of some kind -->
     <div id="loading" class="is-hidden entity-needed">
         <p class="loadingMsg">
             Please be patient while we get things together...
@@ -102,10 +96,6 @@
             <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
             <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
-            <!--             
-                <label class="col-3 col-2-md text-right">Depictions:</label>
-                <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
-            -->
             <label class="col-3 col-2-md text-right">Text: &#10082;</label>
             <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight some text..."></textarea>
             <label class="col-3 col-2-md text-right">Language:</label>
@@ -126,7 +116,6 @@
                 <option value="appendix">Appendix</option>
                 <option value="other">Other</option>
             </select>
-            <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
@@ -141,7 +130,7 @@
     </form>
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
-    <gloss-modal class="is-hidden"></gloss-modal>
+    <gloss-modal class="is-hidden"></gloss-modal> -->
     <script src="js/fragment-metadata.js"></script>
 </body>
 <script>
