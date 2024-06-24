@@ -416,6 +416,7 @@ export default {
                     function filterGlosses(queryString=''){
                         const numloaded = parseInt(totalsProgress.getAttribute("count"))
                         const total = parseInt(totalsProgress.getAttribute("total"))
+                        let parent = null
                         if(numloaded !== total){
                             //alert("All data must be loaded to use this filter.  Please wait.")
                             const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
@@ -432,7 +433,7 @@ export default {
                         const approximateBar = elem.querySelector('#approximate-bar')
                         if(approximateBar) {
                             approximateBar.classList.add('is-hidden')
-                            const parent = approximateBar.parentElement
+                            parent = approximateBar.parentElement
                             parent.removeChild(approximateBar)
                             parent.insertAdjacentElement('afterbegin', approximateBar)
                         }
@@ -453,8 +454,10 @@ export default {
                                         if(!tr_mod.map(x => x.includes(query_mod)).some(x => x))
                                             approximateBar.classList.remove("is-hidden")
                                         else{
-                                            parent.removeChild(tr)
-                                            parent.insertBefore(tr, approximateBar)
+                                            if(parent.tagName === "TBODY"){
+                                                parent.removeChild(tr)
+                                                parent.insertBefore(tr, approximateBar)
+                                            }
                                         }
                                     tr.classList[action](`is-hidden`,`un${action}-item`)
                                     setTimeout(()=>tr.classList.remove(`un${action}-item`),500)

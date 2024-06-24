@@ -538,3 +538,12 @@ textarea:disabled, select:disabled {
 .serifText {
   font-family: "Eczar","Volkhov",serif !important;
 }
+
+.alert{
+    border-left: 4px solid #E0CB52;
+    background: #FCFAEE;
+    padding-top: 5px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 24px;
+}

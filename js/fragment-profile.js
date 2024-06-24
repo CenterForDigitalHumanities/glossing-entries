@@ -16,8 +16,10 @@ window.onload = () => {
     setListings()
     const witnessURI = getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
     const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : false
-    const dig_location = witnessForm.querySelector("input[custom-key='source']")
     if(textWitnessID){
+        look.innerHTML += `<a href="gloss-transcription.html#${textWitnessID}"> If your Witness is for a T-PEN transcription click here to be redirected. </a>`
+        // FIXME remove this return when ready to release this interface.
+        return
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
         //const submitBtn = witnessForm.querySelector("input[type='submit']")
         //const deleteBtn = witnessForm.querySelector(".deleteWitness")
@@ -28,7 +30,10 @@ window.onload = () => {
         witnessForm.setAttribute("deer-id", textWitnessID)
     }
     else{
+        // FIXME remove this return when ready to release this interface.
+        return
         // This is an error.  A #id is required.
+        const dig_location = witnessForm.querySelector("input[custom-key='source']")
         dig_location.$isDirty = true
         witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
         witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
