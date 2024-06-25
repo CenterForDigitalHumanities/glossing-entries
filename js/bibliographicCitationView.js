@@ -90,7 +90,7 @@ class BibliographicCitationView extends HTMLElement {
                 gap: 20px; 
                 flex-wrap: wrap; 
                 border: 1px solid #ccc; 
-                border-radius: 8px; 
+                border-radius: 0.2em; 
                 box-shadow: 0 2px 5px rgba(0,0,0,0.1);
                 margin: 20px 0; 
             }
@@ -118,7 +118,7 @@ class BibliographicCitationView extends HTMLElement {
             }
             .referenceCard {
                 border: 1px solid #ccc;
-                border-radius: 8px;
+                border-radius: 0.2em;
                 background-color: #fff;
                 box-shadow: 0 4px 6px rgba(0,0,0,0.1);
                 transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
@@ -213,14 +213,18 @@ class BibliographicCitationView extends HTMLElement {
             }
         </style>
         <div class="referenceDiv is-hidden">
-            <div class="col">
-                <p class="col-12 col-12-md">Gloss References are displayed below. Click the caret to see the rest of the reference. Click the pencil icon to edit the reference. Click the trash icon to remove the reference.
+            <div class="col-12 col-12-md">
+                <h4> Bibliographic Citations </h4>
+                <p>
+                    Gloss References are displayed below. Click the caret to see the rest of the reference. 
+                    Click the pencil icon to edit the reference. Click the trash icon to remove the reference.<br>
+                    <i>Citations are created immediately when you click 'Add Citation'.</i>
                 </p>
                 <button id="openCitationModalButton" class="smaller"> New Citation </button>
-                <div class="selectedEntities col-12 col-12-md">
+                <div class="selectedEntities">
                 </div>
             </div>
-        </div?>
+        </div>
         <div id="bibliographicCitationModal" class="bib-citation-modal">
             <div class="bib-citation-modal-content">
                 <span class="bib-citation-close">&times;</span>

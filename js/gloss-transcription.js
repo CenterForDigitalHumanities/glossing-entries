@@ -1,5 +1,5 @@
 const textWitnessID = window.location.hash.substring(1)
-let tpenProjectURI = textWitnessID ? false : getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : false
+let tpenProjectURI = getURLParameter("tpen-project") ? decodeURIComponent(getURLParameter("tpen-project")) : null
 let referencedGlossID = null
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("tpen-lines-error", function(event){
@@ -47,6 +47,16 @@ window.onload = () => {
     const deleteWitnessButton = document.querySelector(".deleteWitness")
     addEventListener('tpen-lines-loaded', getAllWitnesses)
     if(tpenProjectURI) {
+        if(!tpenProjectURI.includes("t-pen.org")){
+            const ev = new CustomEvent("TPEN Project Error")
+            look.classList.add("text-error")
+            look.innerText=`Provided URI is not from T-PEN.  Only use T-PEN project or manifest URIs.`
+            witnessForm.remove()
+            loading.classList.add("is-hidden")
+            globalFeedbackBlip(ev, `Provided project URI is not from T-PEN.`, false)
+            needs.classList.add("is-hidden")
+            return
+        }
         document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
         needs.classList.add("is-hidden")
         document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
@@ -54,7 +64,6 @@ window.onload = () => {
         dig_location.setAttribute("value", tpenProjectURI)
     }
     if(textWitnessID){
-        needs.classList.add("is-hidden")
         const submitBtn = witnessForm.querySelector("input[type='submit']")
         const deleteBtn = witnessForm.querySelector(".deleteWitness")
         submitBtn.value = "Update Textual Witness"
@@ -117,7 +126,20 @@ function init(event){
     switch (whatRecordForm) {
         case "witnessForm":
             // We will need to know the reference for addButton() so let's get it out there now.
-            tpenProjectURI = annotationData.source.value[0]
+            const sourceURI = annotationData?.source?.value[0]
+            tpenProjectURI = tpenProjectURI ? tpenProjectURI : annotationData?.source?.value[0]
+            if(!tpenProjectURI) return
+            if(sourceURI && sourceURI !== tpenProjectURI){
+                const ev = new CustomEvent("TPEN Lines Error")
+                look.classList.add("text-error")
+                look.innerText=`Provided TPEN project URI does not match source URI.  There can only be one source.  Remove the ?tpen-project variable from the URL in your browser's address bar and refresh the page.`
+                witnessForm.remove()
+                loading.classList.add("is-hidden")
+                globalFeedbackBlip(ev, `TPEN source project mismatch.`, false)
+                needs.classList.add("is-hidden")
+                return
+            }
+            needs.classList.add("is-hidden")
             document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
             document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
             referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
@@ -245,7 +267,7 @@ function show(event){
 }
 
 /**
- * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
+ * When a filterableListItem_glossSelector loads, add the 'attach' or 'attached' button to it.
  */ 
 addEventListener('deer-view-rendered', addButton)
 
@@ -605,14 +627,14 @@ addEventListener('gloss-modal-saved', event => {
     const div = document.createElement("div")
     // Make this a deer-view so this Gloss is expanded and cached, resulting in more attributes for this element to be filtered on.
     div.classList.add("deer-view")
-    div.setAttribute("deer-template", "filterableListItem")
+    div.setAttribute("deer-template", "filterableListItem_glossSelector")
     div.setAttribute("deer-id", gloss["@id"])
     div.setAttribute("deer-link", "ng.html#")
     li.setAttribute("data-title", title)
     
     // We know the title already so this makes a handy placeholder :)
     li.innerHTML = `<span class="serifText"><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
-    // This helps filterableListItem know how to style the attach button, and also lets us know to change count/total loaded Glosses.
+    // This helps filterableListItem_glossSelector know how to style the attach button, and also lets us know to change count/total loaded Glosses.
     if(textWitnessID){
         div.setAttribute("update-scenario", "true")
     }
@@ -627,13 +649,13 @@ addEventListener('gloss-modal-saved', event => {
 })
 
 /**
- * After a filterableListItem loads, we need to determine what to do with its 'attach' button.
+ * After a filterableListItem_glossSelector loads, we need to determine what to do with its 'attach' button.
  * In create/update scenarios, this will result in the need to click a button
  * In loading scenarios, if a text witness URI was supplied to the page it will have a gloss which should appear as 'attached'.
  */ 
 function addButton(event) {
     const template_container = event.target
-    if(template_container.getAttribute("deer-template") !== "filterableListItem") return
+    if(template_container.getAttribute("deer-template") !== "filterableListItem_glossSelector") return
     const obj = event.detail
     const gloss_li = template_container.firstElementChild
     const createScenario = template_container.hasAttribute("create-scenario")

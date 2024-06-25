@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Gallery of Glosses</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/layout.js" type="module"></script>
+    <!-- <script src="js/text-witness-line-selector.js" type="module"></script> -->
+    <script src="js/bibliographicCitationView.js" type="module"></script>
+    <script src="js/shared.js"></script>
+    <style>
+        input[disabled],select[disabled],textarea[disabled]{
+            border: none;
+            background-color: transparent;
+            padding: 0;
+            display: inline;
+            font-size: 1em;
+            opacity: 1;
+        }
+        .pageContainer.is-toggled{
+            visibility: hidden;
+            height: 0px;
+        }
+        .loadingMsg{
+            color: white;
+            padding-top: 4em;
+        }
+        line:nth-child(2n) {
+            background-color: unset;
+        }
+        nav[user-input]{
+            margin-bottom: 1em;
+        }
+        nav[user-input] a{
+            cursor: pointer;
+        }
+        #reset{
+            cursor: pointer;
+        }
+        gloss-modal-button{
+            display: none;
+        }
+        .toggleInclusion.primary{
+            display: none;
+        }
+        #openCitationModalButton{
+            display: none;
+        }
+    </style>
+</head>
+
+<body class="container">
+    <gog-header class="container"></gog-header>
+    <h2 class="bg-basic"> Witness Fragment Profile </h2>
+    <p id="look" class="bg-light">
+        This page is under construction.
+    </p>
+    <script src="js/fragment-profile.js"></script>
+<!--
+    <div id="loading" class="is-hidden">
+        <p class="loadingMsg">
+            Please be patient while we get things together...
+        </p>
+    </div>
+    <bibliographic-citation-div class="entity-needed is-hidden"></bibliographic-citation-div>
+    <div class="redirectToWitness bg-light entity-needed is-hidden">
+        <h4> Modify Fragment Metadata </h4>
+        <p> <u>Redirect</u> to the Fragment Metadata page by clicking below. </p>
+        <a class="addWitnessBtn button secondary" onclick="metadataForWitness(true)" style="margin: 5px; padding: 10px; border: none; border-radius: 4px;">Redirect to Modify Fragment Metadata</a>
+    </div>
+    <div class="referencedGlossContainer bg-light entity-needed is-hidden">
+        <h4> Referenced Gloss </h4>
+        <deer-view class="" id="referencedGloss" deer-template="label">
+            Loading&hellip;
+        </deer-view>
+    </div>
+    <form id="witnessForm" class="entity-needed is-hidden bg-basic" deer-type="Text" deer-context="http://purl.org/dc/terms">
+        <h4> View Witness Fragment Information </h4>
+        <input is="auth-creator" type="hidden" deer-key="creator" />
+        <input type="hidden" custom-key="source">
+        <div class="row">
+            <label class="col-3 col-2-md text-right is-hidden">Label: </label>
+            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
+            <label class="col-3 col-2-md text-right">Shelfmark: </label>
+            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
+            <label class="col-3 col-2-md text-right">Text: </label>
+            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight some text..."></textarea>
+            <label class="col-3 col-2-md text-right">Language: </label>
+            <select custom-text-key="language" title="select language" class="col-9 col-4-md">
+                <option value="la" selected>Latin</option>
+                <option value="de">German</option>
+                <option value="fr">French</option>
+                <option value="en">English</option>
+            </select>
+            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
+                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
+            </label>
+            <label class="col-3 col-2-md text-right">Gloss format:</label>
+            <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
+                <option value="none" selected>None</option>
+                <option value="marginal">Marginal</option>
+                <option value="interlinear">Interlinear</option>
+                <option value="appendix">Appendix</option>
+                <option value="other">Other</option>
+            </select>
+            <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
+            <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
+        </div>
+    </form>
+    <gog-footer class="row"></gog-footer>
+    <div id="globalFeedback" class="card is-center"></div>
+    <gloss-modal class="is-hidden"></gloss-modal>
+    <script src="js/fragment-profile.js"></script>
+-->
+</body>
+<script>
+/**
+ * Make sure DEER forms do not submit when a user hits "Enter".
+ */
+document.querySelectorAll("form[deer-type]").forEach(form => {
+    form.addEventListener("keydown", (e) => {
+        if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+            if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                e.preventDefault()
+            }
+        }
+    }, true)
+})
+</script>
+
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Gallery of Manuscripts</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/layout.js" type="module"></script>
+    <script src="js/shared.js"></script>
+</head>
+
+<body class="container">
+    <gog-header class="container"></gog-header>
+    <!-- A stub for the future "facet selector" to inform our filtering "state" technique -->
+    <h2 class="bg-basic"> Manuscripts </h2>
+    <p id="look" class="bg-light">
+        This page is under construction.
+    </p>
+    <!-- <small class="cachedNotice text-primary bg-basic"> 
+        These Manuscripts were cached.  To reload the data <a class="tag is-small">click here</a>. 
+    </small>
+    <div id="ngCollectionList">
+        <table class="bg-basic">
+            <thead>
+                <tr>
+                    <th style="cursor: pointer;">Citation </th>
+                    <th style="cursor: pointer;">Shelfmark </th>
+                    <th style="cursor: pointer;">Fragments </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
+                    <td>Laud. Misc 69:1-99</td>
+                    <td>
+                        <a href="" target="_blank">
+                            <span>Oxford, Bodleian Library, Laud. Misc. 69</span>
+                        </a>
+                    </td>
+                    <td>15</td>
+                </tr>
+                <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
+                    <td>Trinity B:1-10</td>
+                    <td>
+                        <a href="" target="_blank">
+                            <span>Cambridge, Trinity College B.1.10</span>
+                        </a>
+                    </td>
+                    <td>82</td>
+                </tr>
+                <tr class="" style="border-bottom: 0.1em solid var(--color-lightGrey);">
+                    <td>BnF 14409:1-100</td>
+                    <td>
+                        <a href="" target="_blank">
+                            <span>Paris, BnF, lat. 14409</span>
+                        </a>
+                    </td>
+                    <td>44</td>
+                </tr>
+            </tbody>
+        </table>
+    </div> -->
+    <!-- <deer-view id="ngCollectionList" deer-collection="GoG-Manuscripts"
+        deer-link="ng.html#" deer-template="ngListFilterable" class="bg-basic">
+        Loading&hellip;
+    </deer-view> -->
+    <gog-footer class="container">
+    </gog-footer>
+    <div id="globalFeedback" class="card is-center"></div>
+</body>
+<script>
+/**
+ * Make sure DEER forms do not submit when a user hits "Enter".
+ */
+document.querySelectorAll("form[deer-type]").forEach(form => {
+    form.addEventListener("keydown", (e) => {
+        if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+            if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                e.preventDefault()
+            }
+        }
+    }, true)
+})
+</script>
+
+</html>
