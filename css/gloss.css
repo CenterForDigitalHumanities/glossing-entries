@@ -466,19 +466,37 @@ line.selected.just {
   margin-bottom: 1em;
 }
 
-.addWitnessDiv{
-  margin-bottom: 1em;
-  justify-content: center; 
+.redirectToWitness{
+  background-color: white; 
+  padding: 20px; 
+  border: 1px solid #ccc; 
+  border-radius: 0.2em; 
+  margin-top: 1.25em;
+}
+
+.referencedGlossContainer{
+  padding: 20px; 
+  border: 1px solid #ccc; 
+  border-radius: 0.2em; 
+  margin-top: 1.25em;
+}
+
+#referencedGloss{
+  font-style: italic;
+  font-weight: bold;
+}
+
+#needs{
   background-color: white; 
   padding: 20px; 
   gap: 20px; 
   flex-wrap: wrap; 
   border: 1px solid #ccc; 
-  border-radius: 8px; 
+  border-radius: 0.2em; 
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-form#named-gloss
+form#named-gloss, form#named-manuscript, form#witnessForm
 {
   justify-content: center; 
   background-color: white; 
@@ -486,7 +504,7 @@ form#named-gloss
   gap: 20px; 
   flex-wrap: wrap; 
   border: 1px solid #ccc; 
-  border-radius: 8px; 
+  border-radius: 0.2em; 
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
   margin: 0.7em;
   margin-left: auto;
@@ -495,9 +513,9 @@ form#named-gloss
 
 p.bg-light {
   padding: 0.5em;
-  text-align: center;
-  border-radius: 0.5em;
+  border-radius: 0.2em;
   font-weight: bold;
+  padding: 20px;
 }
 
 input#loadInput {
@@ -515,4 +533,17 @@ input#loadInput {
 textarea:disabled, select:disabled {
   cursor: not-allowed;
   opacity: .4;
+}
+
+.serifText {
+  font-family: "Eczar","Volkhov",serif !important;
+}
+
+.alert{
+    border-left: 4px solid #E0CB52;
+    background: #FCFAEE;
+    padding-top: 5px;
+    padding-bottom: 20px;
+    padding-left: 20px;
+    padding-right: 24px;
 }

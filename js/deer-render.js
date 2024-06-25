@@ -39,7 +39,7 @@ async function renderChange(mutationsList) {
                     obj = JSON.parse(localStorage.getItem(id))
                 } catch (err) { }
                 if (!obj?.["@id"]) {
-                    id = id.replace(/^https?:/,'https:') // avoid mixed content
+                    id = id.replace(/^https?:/, 'https:') // avoid mixed content
                     obj = await fetch(id).then(response => response.json()).catch(error => error)
                     if (obj) {
                         localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
@@ -1393,7 +1393,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 let mss = []
                 let missing = false
                 elem.listCache.forEach(uri => {
-                    uri = uri.replace(/^https?:/,'https:')
+                    uri = uri.replace(/^https?:/, 'https:')
                     let labelElement = document.querySelector(`li[deer-id='${uri}'] a span`)
                     if (labelElement) {
                         let label = labelElement.textContent.trim()
@@ -1647,7 +1647,7 @@ export default class DeerRender {
                 throw err
             } else {
                 if (this.id) {
-                    this.id = (!this.id.includes("localhost")) ? this.id.replace(/^https?:/,'https:') : this.id // avoid mixed content
+                    this.id = (!this.id.includes("localhost")) ? this.id.replace(/^https?:/, 'https:') : this.id // avoid mixed content
                     limiter(() => fetch(this.id).then(response => response.json()).then(obj => RENDER.element(this.elem, obj)).catch(err => err))
                 } else if (this.collection) {
                     // Look not only for direct objects, but also collection annotations

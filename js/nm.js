@@ -1,5 +1,5 @@
 
-const glossHashID = window.location.hash.substring(1)
+const manuscriptHashID = window.location.hash.substring(1)
 
 /**
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
@@ -16,16 +16,13 @@ window.onload = () => {
         }
     }
     
-    const glossForm = document.getElementById("named-gloss")
+    const witnessForm = document.getElementById("named-manuscript")
     if(hash) {
         setFieldDisabled(true)
-        document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
-        document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.remove("is-hidden"))
-        document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
-        glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
+        witnessForm.querySelector(".dropManuscript").classList.remove("is-hidden")
     }
-    const labelElem = glossForm.querySelector('input[deer-key="title"]')
-    const textElem = glossText
+    const labelElem = witnessForm.querySelector('input[deer-key="title"]')
+    const textElem = witnessText
     const textListener = textElem.addEventListener('input', ev => {
         if (textElem.value?.length > 5) {
             const words = textElem.value.split(' ')
@@ -43,30 +40,30 @@ window.onload = () => {
         }
         labelElem.$isDirty = true
     })
-    //textElem.addEventListener('blur', ev => checkForGlossesBtn.click())
-    checkForGlossesBtn.addEventListener('click', async ev => {
+    //textElem.addEventListener('blur', ev => checkForManuscriptsBtn.click())
+    checkForManuscriptsBtn.addEventListener('click', async ev => {
         const matches = await findMatchingIncipits(textElem.value.trim(), labelElem.value)
-        glossResult.innerHTML = matches.length ? "<p>Potential matches found!</p>" : "<p>Gloss appears unique!</p>"
+        manuscriptResult.innerHTML = matches.length ? "<p>Potential matches found!</p>" : "<p>Manuscript appears unique!</p>"
         matches.forEach(anno => {
-            glossResult.insertAdjacentHTML('beforeend', `<a href="#${anno.id.split('/').pop()}">${anno.title}</a>`)
+            manuscriptResult.insertAdjacentHTML('beforeend', `<a href="#${anno.id.split('/').pop()}">${anno.title}</a>`)
         })
     })
     if(!hash){
        // These items have default values that are dirty on fresh forms.
-        glossForm.querySelector("select[custom-text-key='language']").$isDirty = true
-        glossForm.querySelector("input[custom-text-key='format']").$isDirty = true
+        witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
+        witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
     }
     // mimic isDirty detection for these custom inputs
-    glossForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
+    witnessForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
         ev.target.$isDirty = true
-        glossForm.$isDirty = true
+        witnessForm.$isDirty = true
     })
-    glossForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
+    witnessForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
         ev.target.$isDirty = true
-        glossForm.$isDirty = true
+        witnessForm.$isDirty = true
     })
     // Note that this HTML element is a checkbox
-    glossForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+    witnessForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
         if(ev.target.checked){
             ev.target.value = "text/html"
             ev.target.setAttribute("value", "text/html")
@@ -76,7 +73,7 @@ window.onload = () => {
             ev.target.setAttribute("value", "text/plain")
         }
         ev.target.$isDirty = true
-        glossForm.$isDirty = true
+        witnessForm.$isDirty = true
     })
 }
 
@@ -91,22 +88,22 @@ addEventListener('deer-form-rendered', event => {
     let whatRecordForm = event.target.id
     let annotationData = event.detail
     switch (whatRecordForm) {
-        case "named-gloss":
+        case "named-manuscript":
             // supporting forms populated
             const entityType = annotationData.type ?? annotationData["@type"] ?? null
-            if(entityType !== "Gloss" && entityType !== "named-gloss"){
-                document.querySelector(".gloss-needed").classList.add("is-hidden")
-                const ev = new CustomEvent("Gloss Details Error")
+            if(entityType !== "Manuscript"){
+                document.querySelector(".manuscript-needed").classList.add("is-hidden")
+                const ev = new CustomEvent("Manuscript Details Error")
                 look.classList.add("text-error")
-                look.innerText = `The provided #entity of type '${entityType}' is not a 'Gloss'.`
-                globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Gloss'.`, false)
+                look.innerText = `The provided #entity of type '${entityType}' is not a 'Manuscript'.`
+                globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Manuscript'.`, false)
                 return
             }
             prefillTagsArea(annotationData["tags"], event.target)
             prefillThemesArea(annotationData["themes"], event.target)
             prefillText(annotationData["text"], event.target)
             if(event.detail.targetChapter && !event.detail["_section"]) {
-                // This conditional is solely to support Glossing Matthew data and accession it into the new encoding.
+                // This conditional is solely to support Witnessing Matthew data and accession it into the new encoding.
                 const canonRef = document.querySelector('[deer-key="canonicalReference"]')
                 canonRef.value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
                 canonRef.dispatchEvent(new Event('input', { bubbles: true }))
@@ -121,134 +118,20 @@ addEventListener('deer-form-rendered', event => {
 })
 
 /**
- * When a Gloss is submitted for creation or update it will contain a set of Witnesses to create.
- * All the Witnesses will know is what shelfmark the user wants to create with and what glossid it should connect with.
- *     - ?? Check for existing Witnesses with this shelfmark ??
- *     - Generate a Witness Entity
- *     - Generate an 'identifier' Annotation that targets the Witness Entity.  Its value is the provided shelfmark text.
- *     - Generate a 'references' Annotation that targets the Witness Entity.  Its value is the [provided gloss id]
- * 
- * @param glossid - the rerum URI of the created Gloss to connect this Witness to via a 'references' Annotation.
- * @return An array of created Witness entities.  Each witness is expanded to contain the Annotations created as well.
- */ 
-async function generateWitnessesOnSubmit(glossid){
-    // Must have a label/shelfmark/whatever.  This creates a Witness entity and the Annotation for the provided label.
-    if(!glossid) throw new Error("Must have a Gloss URI to generate witnesses")
-    const queued = document.getElementsByTagName("gog-references-browser")[0].querySelectorAll(".witness-queued")
-    let createdReferencesAnno = null
-    let createdIdentifierAnno = null
-    let createdWitness = null
-    let createdWitnesses = []
-    for await (const witness_li of queued){
-        const user_input = witness_li.innerText
-        let referencesObj = {
-            "@context":"http://www.w3.org/ns/anno.jsonld",
-            "@type":"Annotation",
-            "body":{
-                "references":{
-                    "value":[glossid]
-                }
-            },
-            "target": "TODO",
-            "creator": window.GOG_USER["http://store.rerum.io/agent"]
-        }
-        let identifierObj = {
-            "@context":"http://www.w3.org/ns/anno.jsonld",
-            "@type":"Annotation",
-            "body":{
-                "identifier":{
-                    "value":user_input
-                }
-            },
-            "target": "TODO",
-            "creator": window.GOG_USER["http://store.rerum.io/agent"]
-        }
-        const witnessObj = {
-            "@context": "http://purl.org/dc/terms",
-            "@type": "Text",
-            "creator": window.GOG_USER["http://store.rerum.io/agent"]
-        }
-        createdWitness = await fetch(`${__constants.tiny}/create`, {
-            method: "POST",
-            mode: 'cors',
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            },
-            body: JSON.stringify(witnessObj)
-        })
-        .then(res => res.json())
-        .catch(err => {throw err})
-
-        if(createdWitness["@id"]){
-            identifierObj.target = createdWitness["@id"]
-            referencesObj.target = createdWitness["@id"]
-            const a = witness_li.querySelector("a")
-            witness_li.setAttribute("deer-id", createdWitness["@id"])
-            //how do we know which one to link to: gloss-transcription or gloss-witness??
-            //The established way is to see if a source anno exists and if it's value has TPEN or not.
-            a.setAttribute("href", `gloss-transcription.html#${createdWitness["@id"]}`)
-            createdIdentifierAnno = await fetch(`${__constants.tiny}/create`, {
-                method: "POST",
-                mode: 'cors',
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                },
-                body: JSON.stringify(identifierObj)
-            })
-            .then(res => res.json())
-            .catch(err => {throw err})
-            createdReferencesAnno = await fetch(`${__constants.tiny}/create`, {
-                method: "POST",
-                mode: 'cors',
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                },
-                body: JSON.stringify(referencesObj)
-            })
-            .then(res => res.json())
-            .catch(err => {throw err})
-            witness_li.setAttribute("deer-source", createdReferencesAnno["@id"])
-            a.setAttribute("deer-source", createdIdentifierAnno["@id"])
-            witness_li.querySelector("span").remove()
-            witness_li.classList.remove("witness-queued")
-        }
-        createdWitness.identifier = {
-            "source":{
-                "citationSource":createdIdentifierAnno["@id"]
-            },
-            "value" : user_input
-        }
-        createdWitness.references = {
-            "source":{
-                "citationSource":createdReferencesAnno["@id"]
-            },
-            "value" : [glossid]
-        }
-        createdWitnesses.push(createdWitness)
-    }
-    return createdWitnesses
-}
-
-/**
  * The DEER announcement for when all form fields have been saved or updated.
  * Extend this functionality by also saving or updating the custom fields.
- * Extend this functionality by also saving any queued Witness shelfmarks.
+ * Extend this functionality by also saving any queued Manuscript shelfmarks.
  * 
  */ 
 addEventListener('deer-updated', async (event) => {
     const $elem = event.target
     //Only care about witness form
-    if($elem?.id  !== "named-gloss") return
+    if($elem?.id  !== "named-manuscript") return
     // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
     event.preventDefault()
     event.stopPropagation()
     let witness = null
     const entityID = event.detail["@id"]  
-    // PROPOSED quick witness generation and connection via the gog-references-browser.
-    const witnesses = await generateWitnessesOnSubmit(entityID)
 
     const customTextElems = [
         $elem.querySelector("input[custom-text-key='format']"),
@@ -296,8 +179,8 @@ addEventListener('deer-updated', async (event) => {
         })
         .then(success => {
             console.log("GLOSS FULLY SAVED")
-            const ev = new CustomEvent("Thank you for your Gloss Submission!")
-            globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
+            const ev = new CustomEvent("Thank you for your Manuscript Submission!")
+            globalFeedbackBlip(ev, `Thank you for your Manuscript Submission!`, true)
             const hash = window.location.hash.substring(1)
             if(!hash){
                 setTimeout(() => {
@@ -321,10 +204,10 @@ addEventListener('deer-updated', async (event) => {
  */ 
 addEventListener('expandError', event => {
     const uri = event.detail.uri
-    const ev = new CustomEvent("Gloss Details Error")
-    document.getElementById("named-gloss").classList.add("is-hidden")
+    const ev = new CustomEvent("Manuscript Details Error")
+    document.getElementById("named-manuscript").classList.add("is-hidden")
     look.classList.add("text-error")
-    look.innerText = "Could not get Gloss information."
+    look.innerText = "Could not get Manuscript information."
     document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.add("is-hidden"))
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
@@ -374,7 +257,7 @@ function parseSections() {
  * @param {HTMLFormElement} form - The form element where the tags area is located.
  * @returns {boolean} - Returns false if there is no tag data.
  */
-function prefillTagsArea(tagData, form = document.getElementById("named-gloss")) {
+function prefillTagsArea(tagData, form = document.getElementById("named-manuscript")) {
     if (tagData === undefined) {
         console.warn("Cannot set value for tags and build UI.  There is no data.")
         return false
@@ -383,7 +266,7 @@ function prefillTagsArea(tagData, form = document.getElementById("named-gloss"))
         tagData.hasOwnProperty("items") ? tagData.items :
             [tagData]
     if (arr_names.length === 0) {
-        console.warn("There are no tags recorded for this Gloss")
+        console.warn("There are no tags recorded for this Manuscript")
         return false
     }
     form.querySelector("input[deer-key='tags']").value = arr_names.join(",")
@@ -405,7 +288,7 @@ function prefillTagsArea(tagData, form = document.getElementById("named-gloss"))
  * @param {HTMLFormElement} form - The form element where the themes area is located.
  * @returns {boolean} - Returns false if there is no theme data.
  */
-function prefillThemesArea(themeData, form = document.getElementById("named-gloss")) {
+function prefillThemesArea(themeData, form = document.getElementById("named-manuscript")) {
     if (themeData === undefined) {
         console.warn("Cannot set value for themes and build UI.  There is no data.")
         return false
@@ -414,7 +297,7 @@ function prefillThemesArea(themeData, form = document.getElementById("named-glos
         themeData.hasOwnProperty("items") ? themeData.items :
             [themeData]
     if (arr_names.length === 0) {
-        console.warn("There are no themes recorded for this Gloss")
+        console.warn("There are no themes recorded for this Manuscript")
         return false
     }
     form.querySelector("input[deer-key='themes']").value = arr_names.join(",")
@@ -478,46 +361,29 @@ function prefillText(textObj, form) {
         textElem.setAttribute("value", textVal)
     }
 }
-/**
- * Redirects or opens a new tab to the witness page for the given gloss.
- * @param {boolean} tpen - Indicates whether to redirect to T-PEN for the witness page.
- */
-function witnessForGloss(tpen){
-    const title = document.getElementById("named-gloss").querySelector("input[deer-key='title']").value
-    if(!title) return
-    const encodedFilter = encodeContentState(JSON.stringify({"title" : title}))
-    if(tpen){
-        //window.location = `gloss-transcription.html?gog-filter=${encodedFilter}`
-        window.open(`gloss-transcription.html?gog-filter=${encodedFilter}`, "_blank")
-    }
-    else{
-        //window.location = `gloss-witness.html?gog-filter=${encodedFilter}`
-        window.open(`fragment-profile.html?gog-filter=${encodedFilter}`, "_blank")
-    }
-}
 
 /**
- * A Gloss entity is being deleted through the ng.html interface.  
- * Delete the Gloss, the Annotations targeting the Gloss, the Witnesses of the Gloss, and the Witnesses' Annotations.
- * Remove this Gloss from the public list.
+ * A Manuscript entity is being deleted through the ng.html interface.  
+ * Delete the Manuscript, the Annotations targeting the Manuscript, the Witnesses of the Manuscript, and the Witnesses' Annotations.
+ * Remove this Manuscript from the public list.
  * Paginate by redirecting to glosses.html.
  * 
- * @param id {String} The Gloss IRI.
+ * @param id {String} The Manuscript IRI.
  */
-async function deleteGloss(id=glossHashID) {
+async function deleteWitness(id=manuscriptHashID) {
     if(!id){
         alert(`No URI supplied for delete.  Cannot delete.`)
         return
     }
-    if(await isPublicGloss(id)){
-        const ev = new CustomEvent("Gloss is public")
-        globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
+    if(await isPublicWitness(id)){
+        const ev = new CustomEvent("Manuscript is public")
+        globalFeedbackBlip(ev, `This Manuscript is public and cannot be deleted from here.`, false)
         return
     }
-    let allWitnessesOfGloss = await getAllWitnessesOfGloss(id)
-    allWitnessesOfGloss = Array.from(allWitnessesOfGloss)
+    let allWitnessesOfWitness = await getAllWitnessesOfWitness(id)
+    allWitnessesOfWitness = Array.from(allWitnessesOfWitness)
     // Confirm they want to do this
-    if (!await showCustomConfirm(`Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)`)) return
+    if (!await showCustomConfirm(`Really delete this Manuscript and remove its Witnesses?\n(Cannot be undone)`)) return
 
     const historyWildcard = { "$exists": true, "$size": 0 }
 
@@ -557,7 +423,7 @@ async function deleteGloss(id=glossHashID) {
         })
     })
 
-    const allWitnessDeletes = allWitnessesOfGloss.map(witnessURI => {
+    const allWitnessDeletes = allWitnessesOfWitness.map(witnessURI => {
         return deleteWitness(witnessURI, false)
     })
 
@@ -592,8 +458,8 @@ async function deleteGloss(id=glossHashID) {
     })
     .then(r => {
         if(r.ok){
-            const ev = new CustomEvent("This Gloss has been deleted.")
-            globalFeedbackBlip(ev, `Gloss deleted.  You will be redirected.`, true)
+            const ev = new CustomEvent("This Manuscript has been deleted.")
+            globalFeedbackBlip(ev, `Manuscript deleted.  You will be redirected.`, true)
             addEventListener("globalFeedbackFinished", () => {
                 location.href = "glosses.html"
             })
@@ -603,7 +469,7 @@ async function deleteGloss(id=glossHashID) {
         }
     })
     .catch(err => {
-        alert(`There was an issue removing the Gloss with URI ${id}.  This item may still appear in collections.`)
+        alert(`There was an issue removing the Manuscript with URI ${id}.  This item may still appear in collections.`)
         console.log(err)
     })
 
