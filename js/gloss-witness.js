@@ -108,9 +108,6 @@ window.onload = () => {
     const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : false
     const deleteWitnessButton = document.querySelector(".deleteWitness")
     if(textWitnessID){
-        // FIXME remove this return when ready to release this interface.
-        look.innerHTML += `<a href="gloss-transcription.html#${textWitnessID}"> If your Witness is for a T-PEN transcription click here to be redirected. </a>`
-        return
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
         const submitBtn = witnessForm.querySelector("input[type='submit']")
         const deleteBtn = witnessForm.querySelector(".deleteWitness")
@@ -122,8 +119,6 @@ window.onload = () => {
         witnessForm.setAttribute("deer-id", textWitnessID)
     }
     else{
-        // FIXME remove this return when ready to release this interface.
-        return
         // These items have default values that are dirty on fresh forms.
         const dig_location = witnessForm.querySelector("input[custom-key='source']")
         dig_location.$isDirty = true
@@ -730,6 +725,11 @@ resourceFile.addEventListener("change", function(event){
  * Change which user input method is showing based on the chosen tab.
  */ 
 function changeUserInput(event, which){
+    if(which !== "uri"){
+        const ev = new CustomEvent("Under Construction")
+        globalFeedbackBlip(ev, `Undergoing development, try again later.`, false)
+        return    
+    }
     const inputs = document.querySelectorAll(".userInput")
     const active = event.target.parentElement.querySelector(".ui-tab.active")
     active.classList.remove("active")
