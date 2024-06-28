@@ -1,28 +1,28 @@
 /**
- * Defines a custom HTML element `<witness-text-selector>` that processes a T-PEN Manifest URI (Presentation API 2.1 only)
+ * Defines a custom HTML element `<source-text-selector>` that processes a T-PEN Manifest URI (Presentation API 2.1 only)
  * or direct text to generate a user interface allowing text selections. The selected text is intended to be stored
  * as a URI fragment using #char, potentially spanning multiple lines.
  * 
  * Attributes:
- * - `witness-uri`: A URI pointing to a resource containing the text for transcription.
- * - `witness-text`: Directly provided text content to be used for transcription if no URI is provided.
+ * - `source-uri`: A URI pointing to a resource containing the text for transcription.
+ * - `source-text`: Directly provided text content to be used for transcription if no URI is provided.
  * 
  * CSS Styling:
  * - The selected text is highlighted with an orange background.
  * - Toggle buttons are provided to hide/show text.
  * 
  * Events:
- * - Custom events like `witness-text-loaded` and `witness-text-error` are dispatched to signal the load status
+ * - Custom events like `source-text-loaded` and `source-text-error` are dispatched to signal the load status
  *   or errors in fetching or processing the text.
  * 
  * Usage:
- * - Place this element within an HTML document with optional attributes `witness-uri` or `witness-text`.
+ * - Place this element within an HTML document with optional attributes `source-uri` or `source-text`.
  * - Use JavaScript to listen for custom events and interact with the selected text.
  */
 class WitnessTextSelector extends HTMLElement {
     template = `
         <style>
-            witness-text-selector{
+            source-text-selector{
                 position: relative;
                 display: block;
             }
@@ -30,7 +30,7 @@ class WitnessTextSelector extends HTMLElement {
                 background-color: orange;
                 word-break: break-word;
            }
-           div[witness-text-id]{
+           div[source-text-id]{
                 display: inline;
            }
            h4 {
@@ -78,22 +78,22 @@ class WitnessTextSelector extends HTMLElement {
         super()
     }
     attributeChangedCallback(name, oldValue, newValue) {
-      if((name === "witness-uri" || name === "witness-text") && newValue && oldValue !== newValue){
+      if((name === "source-uri" || name === "source-text") && newValue && oldValue !== newValue){
         this.connectedCallback(name)
       }
     }
     async connectedCallback(which) {
         this.innerHTML = this.template
         const $this = this
-        const witnessURI = this.getAttribute("witness-uri")
-        const witnessText = this.getAttribute("witness-text")
+        const witnessURI = this.getAttribute("source-uri")
+        const witnessText = this.getAttribute("source-text")
         if(!witnessURI && !witnessText) return
 
         const customKey = this.querySelector("input[custom-key='selections']")
         const witnessTextElem = this.querySelector(".witnessText")
         let textForUI = witnessText
         
-        if(which === "witness-uri"){
+        if(which === "source-uri"){
            textForUI = await fetch(witnessURI)
             .then(response => {
                 if(response.ok){
@@ -115,8 +115,8 @@ class WitnessTextSelector extends HTMLElement {
             })
             .catch(err => {
                 console.error(err)
-                const e = new CustomEvent("witness-text-error", {bubbles: true })
-                $this.setAttribute("witness-text-error", "true")
+                const e = new CustomEvent("source-text-error", {bubbles: true })
+                $this.setAttribute("source-text-error", "true")
                 document.dispatchEvent(e)
                 return ""
             })    
@@ -183,12 +183,12 @@ class WitnessTextSelector extends HTMLElement {
                 console.log(selections)
             }
         }
-        const e = new CustomEvent("witness-text-loaded", {bubbles: true })
-        $this.setAttribute("witness-text-loaded", "true")
+        const e = new CustomEvent("source-text-loaded", {bubbles: true })
+        $this.setAttribute("source-text-loaded", "true")
         document.dispatchEvent(e)
         
     }
-    static get observedAttributes() { return ['witness-uri', 'witness-text'] }
+    static get observedAttributes() { return ['source-uri', 'source-text'] }
 }
 
-customElements.define('witness-text-selector', WitnessTextSelector)
+customElements.define('source-text-selector', WitnessTextSelector)

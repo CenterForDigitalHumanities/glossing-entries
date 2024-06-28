@@ -1,9 +1,10 @@
-const textWitnessID = window.location.hash.substr(1)
+const witnessFragmentID = window.location.hash.substr(1)
 let referencedGlossID = null
+let possibleWitnessDuplicates = []
 
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("witness-text-error", function(event){
-    const witnessURI = getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
+    const witnessURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : false
     document.querySelector(".witnessText").innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${witnessURI} </b>`
 })
 
@@ -17,13 +18,66 @@ document.addEventListener("gloss-modal-visible", function(event){
 })
 
 /**
+ * At the Witness Fragment level, there exists some selected text from a document.
+ * That document is a "Manuscript Witness".
+ * The source text belongs with that Manuscript Witness, not with the Witness Fragment.
+ * In general, there should only be one "Manuscript Witness" per unique source (we will track as an array tho, just in case)
+ * 
+ * When the page is supplied with the source text, query for Annotation with body.source.value = source_text
+ * If one or multiple come back, check their target.
+ * There should only be one unique target which indicates the Manuscript Witness for the source provided.
+ * In the case of multiple....??
+ * In the case of none, a Manuscript Witness needs to be generated.
+ * 
+ * @param source A String that is either a text body or a URI to a text resource.
+ */ 
+async function getManuscriptWitnessesWithSource(source){
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    const isURI = (urlString) => {
+          try { 
+            return Boolean(new URL(urlString))
+          }
+          catch(e){ 
+            return false
+          }
+      }
+
+    if(!isURI){
+        const ev = new CustomEvent("Under Construction")
+        globalFeedbackBlip(ev, `You can only provide sources as a URI for now.  Try again later.`, false)
+        return
+    }
+
+    // Each source annotation targets a Witness.
+    // Get all the source annotations whose value is this source string (URI or text string)
+    const sourceAnnosQuery = {
+        "body.source.value": httpsIdArray(source),
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+
+    const witnessUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
+    .then(annos => {
+        return new Set(annos.map(anno => anno.target))
+    })
+    .catch(err => {
+        console.error(err)
+        return Promise.reject([])
+    })
+
+    console.log(`The following Manuscript Witnesses already exist with source ${source}`)
+    console.log(witnessUriSet)
+
+}
+
+/**
  * Reset all the Witness form elements so the form is ready to generate a new Witness.
  * This occurs after the user submits a new witness.
  * If they provided a witness URI in the hash, then this is an 'update scenario'. Do not perform the reset.
  */ 
 function setWitnessFormDefaults(){
     // Continue the session like normal if they had loaded up an existing witness and updated it.
-    if(textWitnessID) return 
+    if(witnessFragmentID) return 
     
     const form = witnessForm  
     form.removeAttribute("deer-id")
@@ -74,7 +128,7 @@ function setWitnessFormDefaults(){
     referencesElem.$isDirty = false
 
     // The source value not change and would need to be captured on the next submit.
-    const sourceElem = form.querySelector("input[custom-key='source']")
+    const sourceElem = form.querySelector("input[witness-source]")
     sourceElem.removeAttribute("deer-source")
     sourceElem.$isDirty = true
 
@@ -101,13 +155,13 @@ function setWitnessFormDefaults(){
  * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
  * Set fixed value fields and make those inputs dirty.
  */ 
-window.onload = () => {
+window.onload = async () => {
     setPublicCollections()
     setListings()
-    const witnessURI = getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
+    const sourceURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : false
     const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : false
     const deleteWitnessButton = document.querySelector(".deleteWitness")
-    if(textWitnessID){
+    if(witnessFragmentID){
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
         const submitBtn = witnessForm.querySelector("input[type='submit']")
         const deleteBtn = witnessForm.querySelector(".deleteWitness")
@@ -116,22 +170,23 @@ window.onload = () => {
         submitBtn.value = "Update Witness"
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
-        witnessForm.setAttribute("deer-id", textWitnessID)
+        witnessForm.setAttribute("deer-id", witnessFragmentID)
     }
     else{
         // These items have default values that are dirty on fresh forms.
-        const dig_location = witnessForm.querySelector("input[custom-key='source']")
+        const dig_location = witnessForm.querySelector("input[witness-source]")
         dig_location.$isDirty = true
         witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
         witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
-        if(witnessURI) {
+        if(sourceURI) {
             // special handler for ?wintess-uri=
+            possibleWitnessDuplicates = await getManuscriptWitnessesWithSource(sourceURI)
             needs.classList.add("is-hidden")
             reset.classList.remove("is-hidden")
             document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
-            document.querySelector(".lineSelector").setAttribute("witness-uri", witnessURI)
-            dig_location.value = witnessURI
-            dig_location.setAttribute("value", witnessURI)
+            document.querySelector(".lineSelector").setAttribute("source-uri", sourceURI)
+            dig_location.value = sourceURI
+            dig_location.setAttribute("value", sourceURI)
         }
     }
 
@@ -178,7 +233,7 @@ addEventListener('deer-view-rendered', show)
 function show(event){
     if(event.target.id == "ngCollectionList"){
         loading.classList.add("is-hidden")
-        if(getURLParameter("witness-uri") || textWitnessID) witnessForm.classList.remove("is-hidden")
+        if(getURLParameter("source-uri") || witnessFragmentID) witnessForm.classList.remove("is-hidden")
         // This listener is no longer needed.
         removeEventListener('deer-view-rendered', show)
     }
@@ -195,7 +250,7 @@ addEventListener('deer-view-rendered', addButton)
  * @see deer-record.js DeerReport.constructor()  
  */
 addEventListener('deer-form-rendered', init)
-if(!textWitnessID) {
+if(!witnessFragmentID) {
     // This event listener is no longer needed
     removeEventListener('deer-form-rendered', init)
 
@@ -227,11 +282,11 @@ function init(event){
                     }
                 }
             }
-            if(document.querySelector("witness-text-selector").hasAttribute("witness-text-loaded")){
+            if(document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
                 preselectLines(annotationData["selections"], $elem)    
             }
             else{
-                addEventListener('witness-text-loaded', ev => {
+                addEventListener('source-text-loaded', ev => {
                     preselectLines(annotationData["selections"], $elem)
                 })
             }
@@ -321,7 +376,7 @@ function prefillText(textObj, form) {
  * appropriate attribute based on which it is.
  * */
 function prefillDigitalLocations(locationsArr, form) {
-    const locationElem = form.querySelector("input[custom-key='source']")
+    const locationElem = form.querySelector("input[witness-source]")
     if(!locationElem) {
         console.warn("Nothing to fill")
         return false
@@ -332,7 +387,7 @@ function prefillDigitalLocations(locationsArr, form) {
     }
     const source = locationsArr?.source
     if(source?.citationSource){
-        form.querySelector("input[custom-key='source']").setAttribute("deer-source", source.citationSource ?? "")
+        form.querySelector("input[witness-source]").setAttribute("deer-source", source.citationSource ?? "")
     }
     locationsArr = locationsArr?.value
     if (!locationsArr || !locationsArr.length) {
@@ -342,7 +397,7 @@ function prefillDigitalLocations(locationsArr, form) {
     locationElem.value = locationsArr[0]
     // If this is not a URI, then it also needs to populate the .witnessText element.
     if(locationsArr[0].startsWith("http:") || locationsArr[0].startsWith("https:")){
-        document.querySelector(".lineSelector").setAttribute("witness-uri", locationsArr[0])
+        document.querySelector(".lineSelector").setAttribute("source-uri", locationsArr[0])
     }
     else{
         document.querySelector(".lineSelector").setAttribute("witness-text", locationsArr[0])
@@ -437,7 +492,7 @@ addEventListener('deer-updated', event => {
     event.stopPropagation()
 
     const entityID = event.detail["@id"]  
-    // These promise are for all the simple array values ('references' and 'selections')
+    // These promise are for all the simple array values ('references' and 'selections' and 'source')
     let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
         .filter(el => el.$isDirty)
         .map(el => {
@@ -570,7 +625,7 @@ addEventListener('gloss-modal-saved', event => {
     // We know the title already so this makes a handy placeholder :)
     li.innerHTML = `<span><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
     // This helps filterableListItem know how to style the attach button, and also lets us know to change count/total loaded Glosses.
-    if(textWitnessID){
+    if(witnessFragmentID){
         div.setAttribute("update-scenario", "true")
     }
     else{
@@ -618,7 +673,7 @@ function addButton(event) {
         inclusionBtn.setAttribute("class", `toggleInclusion ${already} button primary`)
 
         // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
-        if(textWitnessID && referencedGlossID === obj["@id"]){
+        if(witnessFragmentID && referencedGlossID === obj["@id"]){
             // Make this button appear as 'attached'
             inclusionBtn.setAttribute("disabled", "")
             inclusionBtn.setAttribute("value", "✓ attached")
@@ -755,20 +810,20 @@ function changeUserInput(event, which){
  */
 function loadUserInput(ev, which){
     let text = ""
-    const sourceElem = witnessForm.querySelector("input[custom-key='source']")
+    const sourceElem = witnessForm.querySelector("input[witness-source]")
     switch(which){
         case "uri":
-            // Recieve a Witness URI as input from #needs.  Reload the page with a set ?witness-uri URL parameter.
-            let witnessURI = resourceURI.value ? resourceURI.value : getURLParameter("witness-uri") ? decodeURIComponent(getURLParameter("witness-uri")) : false
+            // Recieve a Witness URI as input from #needs.  Reload the page with a set ?source-uri URL parameter.
+            let witnessURI = resourceURI.value ? resourceURI.value : getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : false
             if(witnessURI){
                 let url = new URL(window.location.href)
-                url.searchParams.append("witness-uri", witnessURI)
+                url.searchParams.append("source-uri", witnessURI)
                 window.location = url
             }
             else{
-                //alert("You must supply a URI via the witness-uri parameter or supply a value in the text input.")
-                const ev = new CustomEvent("You must supply a URI via the witness-uri parameter or supply a value in the text input.")
-                globalFeedbackBlip(ev, `You must supply a URI via the witness-uri parameter or supply a value in the text input.`, false)
+                //alert("You must supply a URI via the source-uri parameter or supply a value in the text input.")
+                const ev = new CustomEvent("You must supply a URI via the source-uri parameter or supply a value in the text input.")
+                globalFeedbackBlip(ev, `You must supply a URI via the source-uri parameter or supply a value in the text input.`, false)
             }
         break
         case "file":
