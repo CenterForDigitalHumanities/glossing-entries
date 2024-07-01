@@ -85,15 +85,25 @@
             Please be patient while we get things together...  
         </p>
     </div>
-    <form id="witnessForm" class="is-hidden" deer-type="Text_Fragment" deer-context="http://purl.org/dc/terms"> 
+
+    <!-- Once a mansucript witness is known the shelfmark should become populated and disabled -->
+    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" witness-source>
+        <input type="hidden" deer-key="alernateType" value="GoG_ManuscriptWitness">
         <div class="row">
-            <label class="col-3 col-2-md text-right is-hidden">Label:</label>
-            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
-
             <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
+        </div>
+    </form>
+
+    <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
+    <form id="witnessFragmentForm" class="is-hidden" deer-type="Text_Fragment" deer-context="http://purl.org/dc/terms"> 
+        <input type="hidden" deer-key="alernateType" value="GoG_WitnessFragment">
+        <input type="hidden" deer-key="partOf" >
+        <div class="row">
+            <label class="col-3 col-2-md text-right is-hidden">Label:</label>
+            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md">
 
             <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
             <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight some text..."></textarea>
@@ -122,6 +132,13 @@
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
+        <div class="row">
+                <div class="col">
+                    <p> Before submitting you must check for an existing Witness for the source/shelfmark provided. </p>
+                    <button type="button" id="checkForGlossesBtn"> Check for Existing Manuscript Witnesses </button>
+                    <div id="glossResult"></div>
+                </div>
+            </div>
         <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
         <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
         <div class="row">

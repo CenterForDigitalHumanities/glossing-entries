@@ -10,7 +10,7 @@ document.addEventListener("witness-text-error", function(event){
 
 // Make the text in the Gloss modal form the same as the one in the Witness form
 document.addEventListener("gloss-modal-visible", function(event){
-    const text = witnessForm.querySelector("textarea[custom-text-key='text']").value
+    const text = witnessFragmentForm.querySelector("textarea[custom-text-key='text']").value
     const glossTextElem = event.target.querySelector("textarea[name='glossText']")
     glossTextElem.value = text
     glossTextElem.setAttribute("value", text)
@@ -65,6 +65,10 @@ async function getManuscriptWitnessesWithSource(source){
         return Promise.reject([])
     })
 
+    // TODO is the length 0??  We need to generate a Manuscript Witness.
+
+    // TODO is the length >1=?  What do?
+
     console.log(`The following Manuscript Witnesses already exist with source ${source}`)
     console.log(witnessUriSet)
 
@@ -79,7 +83,7 @@ function setWitnessFormDefaults(){
     // Continue the session like normal if they had loaded up an existing witness and updated it.
     if(witnessFragmentID) return 
     
-    const form = witnessForm  
+    const form = witnessFragmentForm  
     form.removeAttribute("deer-id")
     form.removeAttribute("deer-source")    
     form.$isDirty = true
@@ -94,7 +98,7 @@ function setWitnessFormDefaults(){
     labelElem.$isDirty = false
 
     // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
-    const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
+    const shelfmarkElem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
     shelfmarkElem.removeAttribute("deer-source")
     shelfmarkElem.$isDirty = true
 
@@ -128,7 +132,7 @@ function setWitnessFormDefaults(){
     referencesElem.$isDirty = false
 
     // The source value not change and would need to be captured on the next submit.
-    const sourceElem = form.querySelector("input[witness-source]")
+    const sourceElem = manuscriptWitnessForm.querySelector("input[witness-source]")
     sourceElem.removeAttribute("deer-source")
     sourceElem.$isDirty = true
 
@@ -163,21 +167,21 @@ window.onload = async () => {
     const deleteWitnessButton = document.querySelector(".deleteWitness")
     if(witnessFragmentID){
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
-        const submitBtn = witnessForm.querySelector("input[type='submit']")
-        const deleteBtn = witnessForm.querySelector(".deleteWitness")
+        const submitBtn = witnessFragmentForm.querySelector("input[type='submit']")
+        const deleteBtn = witnessFragmentForm.querySelector(".deleteWitness")
         needs.classList.add("is-hidden")
         document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
         submitBtn.value = "Update Witness"
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
-        witnessForm.setAttribute("deer-id", witnessFragmentID)
+        witnessFragmentForm.setAttribute("deer-id", witnessFragmentID)
     }
     else{
         // These items have default values that are dirty on fresh forms.
-        const dig_location = witnessForm.querySelector("input[witness-source]")
+        const dig_location = manuscriptWitnessForm.querySelector("input[witness-source]")
         dig_location.$isDirty = true
-        witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
-        witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
+        witnessFragmentForm.querySelector("select[custom-text-key='language']").$isDirty = true
+        witnessFragmentForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(sourceURI) {
             // special handler for ?wintess-uri=
             possibleWitnessDuplicates = await getManuscriptWitnessesWithSource(sourceURI)
@@ -196,16 +200,16 @@ window.onload = async () => {
     }
 
     // mimic isDirty detection for these custom inputs
-    witnessForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
+    witnessFragmentForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
-    witnessForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
+    witnessFragmentForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
     // Note that this HTML element is a checkbox
-    witnessForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+    witnessFragmentForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
         if(ev.target.checked){
             ev.target.value = "text/html"
             ev.target.setAttribute("value", "text/html")
@@ -233,7 +237,10 @@ addEventListener('deer-view-rendered', show)
 function show(event){
     if(event.target.id == "ngCollectionList"){
         loading.classList.add("is-hidden")
-        if(getURLParameter("source-uri") || witnessFragmentID) witnessForm.classList.remove("is-hidden")
+        if(getURLParameter("source-uri") || witnessFragmentID) {
+            witnessFragmentForm.classList.remove("is-hidden")
+            manuscriptWitnessForm.classList.remove("is-hidden")
+        }
         // This listener is no longer needed.
         removeEventListener('deer-view-rendered', show)
     }
@@ -266,7 +273,7 @@ function init(event){
     let annotationData = event.detail ?? {}
     const $elem = event.target
     switch (whatRecordForm) {
-        case "witnessForm":
+        case "witnessFragmentForm":
             // We will need to know the reference for addButton() so let's get it out there now.
             referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
             if(ngCollectionList.hasAttribute("ng-list-loaded")){
@@ -291,7 +298,7 @@ function init(event){
                 })
             }
             prefillText(annotationData["text"], $elem)
-            prefillDigitalLocations(annotationData["source"], $elem)
+            prefillDigitalLocations(annotationData["source"], manuscriptWitnessForm)
 
             // This event listener is no longer needed
             removeEventListener('deer-form-rendered', init)
@@ -311,7 +318,7 @@ function formReset(event){
     let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
     const $elem = event.target
     switch (whatRecordForm) {
-        case "witnessForm":
+        case "witnessFragmentForm":
             setWitnessFormDefaults()
             break
         case "gloss-modal-form":
@@ -387,7 +394,7 @@ function prefillDigitalLocations(locationsArr, form) {
     }
     const source = locationsArr?.source
     if(source?.citationSource){
-        form.querySelector("input[witness-source]").setAttribute("deer-source", source.citationSource ?? "")
+        locationElem.setAttribute("deer-source", source.citationSource ?? "")
     }
     locationsArr = locationsArr?.value
     if (!locationsArr || !locationsArr.length) {
@@ -486,7 +493,7 @@ function preselectLines(linesArr, form) {
 addEventListener('deer-updated', event => {
     const $elem = event.target
     //Only care about witness form
-    if($elem?.id  !== "witnessForm") return
+    if($elem?.id  !== "witnessFragmentForm") return
     // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
     event.preventDefault()
     event.stopPropagation()
@@ -596,7 +603,7 @@ addEventListener('gloss-modal-saved', event => {
     if(event.target.tagName !== "GLOSS-MODAL") return
 
     const gloss = event.detail
-    const form = witnessForm
+    const form = witnessFragmentForm
     const view = form.querySelector("deer-view[deer-template='glossesSelectorForTextualWitness']")
     const list = view.querySelector("ul")
     const modal = event.target
@@ -727,13 +734,13 @@ function addButton(event) {
     if(createScenario) { inclusionBtn.click() }
     else if(updateScenario) { 
         // Set the references input with the new gloss URI and update the form
-        const refKey = witnessForm.querySelector("input[custom-key='references']")
+        const refKey = witnessFragmentForm.querySelector("input[custom-key='references']")
         if(refKey.value !== obj["@id"]){
             refKey.value = obj["@id"]
             refKey.setAttribute("value", obj["@id"]) 
             refKey.$isDirty = true
-            witnessForm.$isDirty = true
-            witnessForm.querySelector("input[type='submit']").click() 
+            witnessFragmentForm.$isDirty = true
+            witnessFragmentForm.querySelector("input[type='submit']").click() 
         }
     }
 }
@@ -810,7 +817,7 @@ function changeUserInput(event, which){
  */
 function loadUserInput(ev, which){
     let text = ""
-    const sourceElem = witnessForm.querySelector("input[witness-source]")
+    const sourceElem = manuscriptWitnessForm.querySelector("input[witness-source]")
     switch(which){
         case "uri":
             // Recieve a Witness URI as input from #needs.  Reload the page with a set ?source-uri URL parameter.
@@ -832,7 +839,7 @@ function loadUserInput(ev, which){
             document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             loading.classList.add("is-hidden")
-            witnessForm.classList.remove("is-hidden")
+            witnessFragmentForm.classList.remove("is-hidden")
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElem.value = text
             sourceElem.setAttribute("value", text)
@@ -844,7 +851,7 @@ function loadUserInput(ev, which){
             document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             loading.classList.add("is-hidden")
-            witnessForm.classList.remove("is-hidden")
+            witnessFragmentForm.classList.remove("is-hidden")
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElem.value = text
             sourceElem.setAttribute("value", text)
