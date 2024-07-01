@@ -48,13 +48,13 @@
         This page automatically applied a text resource.  If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
     </p>
     <p id="look" class="bg-light">
-       Detect Witnesses in Text
+       Detect Glosses in Text
     </p>
     <div id="needs" class="row bg-basic">
         <div class="col">
             <p class="howTo"> 
                 It looks like you haven't provided the URI of the web resource with the text.  
-                If you are not using the <code>?witness-uri=</code> URL parameter then please choose a way to provide the text content whic contains the Glosses you would like to identify.   
+                If you are not using the <code>?source-uri=</code> URL parameter then please choose a way to provide the text content which contains the Glosses you would like to identify.   
             </p>
             <nav user-input class="tabs is-full">
               <a name="uri" onclick="changeUserInput(event, 'uri')" class="ui-tab active">I want to provide a URI</a>
@@ -87,7 +87,7 @@
     </div>
 
     <!-- Once a mansucript witness is known the shelfmark should become populated and disabled -->
-    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms">
+    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="Text_Witness" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" witness-source>
         <input type="hidden" deer-key="alernateType" value="GoG_ManuscriptWitness">
@@ -95,6 +95,7 @@
             <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
         </div>
+        <input class="is-hidden button primary" type="submit"/>
     </form>
 
     <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
@@ -102,7 +103,7 @@
         <input type="hidden" deer-key="alernateType" value="GoG_WitnessFragment">
         <input type="hidden" deer-key="partOf" >
         <div class="row">
-            <label class="col-3 col-2-md text-right is-hidden">Label:</label>
+            <label class="col-3 col-2-md text-right">Label:</label>
             <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md">
 
             <label class="col-3 col-2-md text-right" >Text: &#10082;</label>

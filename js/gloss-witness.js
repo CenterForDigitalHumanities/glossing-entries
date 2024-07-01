@@ -1,9 +1,9 @@
 const witnessFragmentID = window.location.hash.substr(1)
 let referencedGlossID = null
-let possibleWitnessDuplicates = []
+let existingManuscriptWitness = null
 
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
-document.addEventListener("witness-text-error", function(event){
+document.addEventListener("source-text-error", function(event){
     const witnessURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : false
     document.querySelector(".witnessText").innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${witnessURI} </b>`
 })
@@ -31,7 +31,7 @@ document.addEventListener("gloss-modal-visible", function(event){
  * 
  * @param source A String that is either a text body or a URI to a text resource.
  */ 
-async function getManuscriptWitnessesWithSource(source){
+async function getManuscriptWitnessFromSource(source){
     const historyWildcard = { "$exists": true, "$size": 0 }
     const isURI = (urlString) => {
           try { 
@@ -52,6 +52,7 @@ async function getManuscriptWitnessesWithSource(source){
     // Get all the source annotations whose value is this source string (URI or text string)
     const sourceAnnosQuery = {
         "body.source.value": httpsIdArray(source),
+        "@type":"Text_Witness",
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
@@ -62,15 +63,23 @@ async function getManuscriptWitnessesWithSource(source){
     })
     .catch(err => {
         console.error(err)
-        return Promise.reject([])
+        throw err
     })
-
-    // TODO is the length 0??  We need to generate a Manuscript Witness.
-
-    // TODO is the length >1=?  What do?
 
     console.log(`The following Manuscript Witnesses already exist with source ${source}`)
     console.log(witnessUriSet)
+
+    if(witnessUriSet.size === 0){
+        console.log("There is no Manuscript Witness with this source")
+        return
+    }
+    else if(witnessUriSet.size > 1){
+        console.log("There are many Manuscript Witnesses and a logical choice cannot be made.")
+        return
+    }
+    
+    // There should only be one unique entry.  If so, we just need to return the first next() in the set iterator.
+    return witnessUriSet.values().next().value
 
 }
 
@@ -184,7 +193,13 @@ window.onload = async () => {
         witnessFragmentForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(sourceURI) {
             // special handler for ?wintess-uri=
-            possibleWitnessDuplicates = await getManuscriptWitnessesWithSource(sourceURI)
+            existingManuscriptWitness = await getManuscriptWitnessFromSource(sourceURI)
+                .then(existingWitnessURI => existingWitnessURI)
+                .catch(err => {
+                    const ev = new CustomEvent("Query Error")
+                    globalFeedbackBlip(ev, `The check for existing Witnesses failed.`, false)
+                    throw err
+                })
             needs.classList.add("is-hidden")
             reset.classList.remove("is-hidden")
             document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
