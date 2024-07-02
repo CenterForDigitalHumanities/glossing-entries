@@ -87,6 +87,7 @@
     </div>
 
     <!-- Once a mansucript witness is known the shelfmark should become populated and disabled -->
+    <p> </p>
     <form id="manuscriptWitnessForm" class="is-hidden" deer-type="Text_Witness" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" witness-source>
@@ -95,7 +96,14 @@
             <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
         </div>
-        <input class="is-hidden button primary" type="submit"/>
+        <div id="manuscriptWitnessCheck" class="row">
+            <div class="col">
+                <p> You must load in a Manuscript Witness.  Enter a shelfmark below to get started. </p>
+                <button type="button" id="checkForManuscriptsBtn"> Check for Existing Manuscript Witnesses </button>
+                <div id="manuscriptsResult"></div>
+            </div>
+        </div>
+        <input class="is-hidden button primary" type="submit" value="Create Manuscript Witness and Continue"/>
     </form>
 
     <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
@@ -134,13 +142,6 @@
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
-        <div class="row">
-                <div class="col">
-                    <p> Before submitting you must check for an existing Witness for the source/shelfmark provided. </p>
-                    <button type="button" id="checkForGlossesBtn"> Check for Existing Manuscript Witnesses </button>
-                    <div id="glossResult"></div>
-                </div>
-            </div>
         <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
         <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
         <div class="row">

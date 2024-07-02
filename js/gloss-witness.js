@@ -1,6 +1,7 @@
 const witnessFragmentID = window.location.hash.substr(1)
 let referencedGlossID = null
 let existingManuscriptWitness = null
+let sourceURI = null
 
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("source-text-error", function(event){
@@ -15,6 +16,15 @@ document.addEventListener("gloss-modal-visible", function(event){
     glossTextElem.value = text
     glossTextElem.setAttribute("value", text)
     glossTextElem.dispatchEvent(new Event('input', { bubbles: true }))
+})
+
+checkForManuscriptsBtn.addEventListener('click', async ev => {
+    const shelfmarkElem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
+    const matches = await findMatchingManuscriptWitnesses(shelfmarkElem.value.trim(), labelElem.value)
+    manuscriptResult.innerHTML = matches.length ? "<p>Potential matches found!</p>" : "<p>Manuscript appears unique!</p>"
+    matches.forEach(anno => {
+        manuscriptResult.insertAdjacentHTML('beforeend', `<a href="#${anno.id.split('/').pop()}">${anno.title}</a>`)
+    })
 })
 
 /**
@@ -50,16 +60,22 @@ async function getManuscriptWitnessFromSource(source){
 
     // Each source annotation targets a Witness.
     // Get all the source annotations whose value is this source string (URI or text string)
+    // Note both the Manscript Witness and Witness Fragment will have this source, we just want to know the Manuscript Witnesses.
     const sourceAnnosQuery = {
         "body.source.value": httpsIdArray(source),
-        "@type":"Text_Witness",
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
 
     const witnessUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
-    .then(annos => {
-        return new Set(annos.map(anno => anno.target))
+    .then(async(annos) => {
+        const manuscriptWitnessesOnly = annos.map(async(anno) => {
+            const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
+            if(entity?.alternateType === "GoG_ManuscriptWitness"){
+                return anno.target
+            }
+        })
+        return new Set(manuscriptWitnessesOnly)
     })
     .catch(err => {
         console.error(err)
@@ -71,9 +87,9 @@ async function getManuscriptWitnessFromSource(source){
 
     if(witnessUriSet.size === 0){
         console.log("There is no Manuscript Witness with this source")
-
+        manuscriptWitnessForm.querySelector("input[type='submit']").classList.remove("is-hidden")
+        manuscriptWitnessCheck.classList.add("is-hidden")
         //TODO force the user to generate the Manuscript Witness first.  Capture source and identifier.
-
         return
     }
     else if(witnessUriSet.size > 1){
@@ -99,10 +115,14 @@ function setWitnessFormDefaults(){
     form.removeAttribute("deer-id")
     form.removeAttribute("deer-source")    
     form.$isDirty = true
-    form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
+    form.querySelectorAll("input[deer-source]").forEach(i => {
+        i.removeAttribute("deer-source")
+    })
+    form.querySelectorAll("textarea[deer-source]").forEach(t => {
+        t.removeAttribute("deer-source")
+    })
     // For when we test
-    form.querySelector("input[deer-key='creator']").value = "BryanRefactor"
-    manuscriptWitnessForm.querySelector("input[deer-key='creator']").value = "BryanRefactor"
+    document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanTryin")
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -111,9 +131,9 @@ function setWitnessFormDefaults(){
     labelElem.$isDirty = false
 
     // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
-    const shelfmarkElem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
-    shelfmarkElem.removeAttribute("deer-source")
-    shelfmarkElem.$isDirty = true
+    // const shelfmarkElem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
+    // shelfmarkElem.removeAttribute("deer-source")
+    // shelfmarkElem.$isDirty = true
 
     const formatElem = form.querySelector("input[custom-text-key='format']")
     formatElem.removeAttribute("deer-source")
@@ -177,7 +197,7 @@ function setWitnessFormDefaults(){
 window.onload = async () => {
     setPublicCollections()
     setListings()
-    const sourceURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : false
+    sourceURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : false
     const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : false
     const deleteWitnessButton = document.querySelector(".deleteWitness")
     if(witnessFragmentID){
@@ -514,40 +534,19 @@ function preselectLines(linesArr, form) {
     })  
 }
 
-async function generateManuscriptWitness(){
-    console.log("GENERATING WITNESS....soon")
-    return
-    let identifierObj = {
-        "@context":"http://www.w3.org/ns/anno.jsonld",
-        "@type":"Annotation",
-        "body":{
-            "identifier":{
-                "value":""
-            }
-        },
-        "target": "TODO",
-        "creator": window.GOG_USER["http://store.rerum.io/agent"]
-    }
-    const witnessObj = {
-        "@context": "http://purl.org/dc/terms",
-        "@type": "Text",
-        "creator": window.GOG_USER["http://store.rerum.io/agent"]
-    }
-    createdWitness = await fetch(`${__constants.tiny}/create`, {
-        method: "POST",
-        mode: 'cors',
-        headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Authorization": `Bearer ${window.GOG_USER.authorization}`
-        },
-        body: JSON.stringify(witnessObj)
+/**
+ * Enable/Disable all form fields
+ * @param {boolean} disabled - Set all form fields used to have this value for their `disabled` attribute
+ */
+function toggleFieldsDisabled(form, disabled=true){
+    form.querySelectorAll('input,textarea,select,button').forEach(e => {
+        if(disabled){
+            e.setAttribute("disabled", "")
+        }
+        else{
+            e.removeAttribute("disabled")
+        }
     })
-    .then(res => res.json())
-    .catch(err => {throw err})
-
-    if(createdWitness["@id"]){
-        identifierObj.target = createdWitness["@id"]
-    }
 }
 
 /**
@@ -563,6 +562,7 @@ addEventListener('deer-updated', event => {
         partOfElem.value = event.detail["@id"] 
         partOfElem.setAttribute("value", event.detail["@id"] )
         partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
+        toggleFieldsDisabled($elem, true)
         return
     }
     //Only care about witness form
@@ -894,10 +894,10 @@ function loadUserInput(ev, which){
     switch(which){
         case "uri":
             // Recieve a Witness URI as input from #needs.  Reload the page with a set ?source-uri URL parameter.
-            let witnessURI = resourceURI.value ? resourceURI.value : getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : false
-            if(witnessURI){
+            let providedSourceURI = resourceURI.value ? resourceURI.value : getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : false
+            if(providedSourceURI){
                 let url = new URL(window.location.href)
-                url.searchParams.append("source-uri", witnessURI)
+                url.searchParams.append("source-uri", providedSourceURI)
                 window.location = url
             }
             else{
