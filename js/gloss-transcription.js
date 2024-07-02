@@ -6,14 +6,15 @@ document.addEventListener("tpen-lines-error", function(event){
     const ev = new CustomEvent("TPEN Lines Error")
     look.classList.add("text-error")
     look.innerText=`Could not get T-PEN project ${tpenProjectURI}`
-    witnessForm.remove()
+    witnessFragmentForm.remove()
+    manuscriptWitnessForm.remove()
     loading.classList.add("is-hidden")
     globalFeedbackBlip(ev, `Error loading TPEN project '${tpenProjectURI}'`, false)
 })
 
 // Make the text in the Gloss modal form the same as the one in the Witness form
 document.addEventListener("gloss-modal-visible", function(event){
-    const text = witnessForm.querySelector("textarea[custom-text-key='text']").value
+    const text = witnessFragmentForm.querySelector("textarea[custom-text-key='text']").value
     const glossTextElem = event.target.querySelector("textarea[name='glossText']")
     glossTextElem.value = text
     glossTextElem.setAttribute("value", text)
@@ -30,7 +31,8 @@ addEventListener('expandError', event => {
     const ev = new CustomEvent("Transcription Witness Details Error")
     look.classList.add("text-error")
     look.innerText = "Could not get Transcription Witness information."
-    witnessForm.remove()
+    witnessFragmentForm.remove()
+    manuscriptWitnessForm.remove()
     loading.classList.add("is-hidden")
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
@@ -43,7 +45,7 @@ addEventListener('expandError', event => {
 window.onload = () => {
     setPublicCollections()
     setListings()
-    const dig_location = witnessForm.querySelector("input[custom-key='source']")
+    const dig_location = manuscriptWitnessForm.querySelector("input[custom-key='source']")
     const deleteWitnessButton = document.querySelector(".deleteWitness")
     addEventListener('tpen-lines-loaded', getAllWitnesses)
     if(tpenProjectURI) {
@@ -51,7 +53,8 @@ window.onload = () => {
             const ev = new CustomEvent("TPEN Project Error")
             look.classList.add("text-error")
             look.innerText=`Provided URI is not from T-PEN.  Only use T-PEN project or manifest URIs.`
-            witnessForm.remove()
+            witnessFragmentForm.remove()
+            manuscriptWitnessForm.remove()
             loading.classList.add("is-hidden")
             globalFeedbackBlip(ev, `Provided project URI is not from T-PEN.`, false)
             needs.classList.add("is-hidden")
@@ -64,12 +67,12 @@ window.onload = () => {
         dig_location.setAttribute("value", tpenProjectURI)
     }
     if(textWitnessID){
-        const submitBtn = witnessForm.querySelector("input[type='submit']")
-        const deleteBtn = witnessForm.querySelector(".deleteWitness")
+        const submitBtn = witnessFragmentForm.querySelector("input[type='submit']")
+        const deleteBtn = witnessFragmentForm.querySelector(".deleteWitness")
         submitBtn.value = "Update Textual Witness"
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
-        witnessForm.setAttribute("deer-id", textWitnessID)
+        witnessFragmentForm.setAttribute("deer-id", textWitnessID)
         deleteWitnessButton.addEventListener("click", async ev => {
             const customMessage = "The witness will be deleted. This action cannot be undone."
             if(await showCustomConfirm(customMessage)) {
@@ -80,21 +83,21 @@ window.onload = () => {
     else{
         // These items have default values that are dirty on fresh forms.
         dig_location.$isDirty = true
-        witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
-        witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
+        witnessFragmentForm.querySelector("select[custom-text-key='language']").$isDirty = true
+        witnessFragmentForm.querySelector("input[custom-text-key='format']").$isDirty = true
     }
 
     // mimic isDirty detection for these custom inputs
-    witnessForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
+    witnessFragmentForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
-    witnessForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
+    witnessFragmentForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
     // Note that this HTML element is a checkbox
-    witnessForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
+    witnessFragmentForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
         if(ev.target.checked){
             ev.target.value = "text/html"
             ev.target.setAttribute("value", "text/html")
@@ -124,7 +127,7 @@ function init(event){
     let annotationData = event.detail ?? {}
     const $elem = event.target
     switch (whatRecordForm) {
-        case "witnessForm":
+        case "witnessFragmentForm":
             // We will need to know the reference for addButton() so let's get it out there now.
             const sourceURI = annotationData?.source?.value[0]
             tpenProjectURI = tpenProjectURI ? tpenProjectURI : annotationData?.source?.value[0]
@@ -133,7 +136,8 @@ function init(event){
                 const ev = new CustomEvent("TPEN Lines Error")
                 look.classList.add("text-error")
                 look.innerText=`Provided TPEN project URI does not match source URI.  There can only be one source.  Remove the ?tpen-project variable from the URL in your browser's address bar and refresh the page.`
-                witnessForm.remove()
+                witnessFragmentForm.remove()
+                manuscriptWitnessForm.remove()
                 loading.classList.add("is-hidden")
                 globalFeedbackBlip(ev, `TPEN source project mismatch.`, false)
                 needs.classList.add("is-hidden")
@@ -183,7 +187,7 @@ function setWitnessFormDefaults(){
     // Continue the session like normal if they had loaded up an existing witness and updated it.
     if(textWitnessID) return 
     
-    const form = witnessForm
+    const form = witnessFragmentForm
     form.setAttribute("deer-id", "")
     form.setAttribute("deer-source", "")
     form.$isDirty = true
@@ -194,7 +198,7 @@ function setWitnessFormDefaults(){
         t.removeAttribute("deer-source")
     })
     // For when we test
-    // form.querySelector("input[deer-key='creator']").value = "BryanDelete"
+    form.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanTryin")
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -260,7 +264,10 @@ addEventListener('deer-view-rendered', show)
 function show(event){
     if(event.target.id == "ngCollectionList"){
         loading.classList.add("is-hidden")
-        if(tpenProjectURI) witnessForm.classList.remove("is-hidden")
+        if(tpenProjectURI) {
+            witnessFragmentForm.classList.remove("is-hidden")
+            manuscriptWitnessForm.classList.remove("is-hidden")
+        }
         // This listener is no longer needed.
         removeEventListener('deer-view-rendered', show)
     }
@@ -280,7 +287,7 @@ addEventListener('deer-form-rendered', formReset)
 function formReset(event){
     let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
     switch (whatRecordForm) {
-        case "witnessForm":
+        case "witnessFragmentForm":
             setWitnessFormDefaults()
             break
         case "gloss-modal-form":
@@ -502,7 +509,7 @@ function loadURI(){
 addEventListener('deer-updated', event => {
     const $elem = event.target
     //Only care about witness form
-    if($elem?.id  !== "witnessForm") return
+    if($elem?.id  !== "witnessFragmentForm") return
     // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
     event.preventDefault()
     event.stopPropagation()
@@ -615,7 +622,7 @@ addEventListener('gloss-modal-saved', event => {
     if(event.target.tagName !== "GLOSS-MODAL") return
 
     const gloss = event.detail
-    const form = witnessForm
+    const form = witnessFragmentForm
     const view = form.querySelector("deer-view[deer-template='glossesSelectorForTextualWitness']")
     const list = view.querySelector("ul")
     const modal = event.target
@@ -731,13 +738,14 @@ function addButton(event) {
     if(createScenario) { inclusionBtn.click() }
     else if(updateScenario) { 
         // Set the references input with the new gloss URI and update the form
-        const refKey = witnessForm.querySelector("input[custom-key='references']")
+        const refKey = witnessFragmentForm.querySelector("input[custom-key='references']")
         if(refKey.value !== obj["@id"]){
             refKey.value = obj["@id"]
             refKey.setAttribute("value", obj["@id"]) 
             refKey.$isDirty = true
-            witnessForm.$isDirty = true
-            witnessForm.querySelector("input[type='submit']").click() 
+            witnessFragmentForm.$isDirty = true
+            manuscriptWitnessForm.$isDirty = true
+            witnessFragmentForm.querySelector("input[type='submit']").click() 
         }
     }
 }

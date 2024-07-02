@@ -71,6 +71,9 @@ async function getManuscriptWitnessFromSource(source){
 
     if(witnessUriSet.size === 0){
         console.log("There is no Manuscript Witness with this source")
+
+        //TODO force the user to generate the Manuscript Witness first.  Capture source and identifier.
+
         return
     }
     else if(witnessUriSet.size > 1){
@@ -98,7 +101,8 @@ function setWitnessFormDefaults(){
     form.$isDirty = true
     form.querySelector("input[deer-key='creator']").removeAttribute("deer-source")
     // For when we test
-    // form.querySelector("input[deer-key='creator']").value = "BryanRefactor"
+    form.querySelector("input[deer-key='creator']").value = "BryanRefactor"
+    manuscriptWitnessForm.querySelector("input[deer-key='creator']").value = "BryanRefactor"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -141,10 +145,12 @@ function setWitnessFormDefaults(){
     referencesElem.$isDirty = false
 
     // The source value not change and would need to be captured on the next submit.
-    const sourceElem = manuscriptWitnessForm.querySelector("input[witness-source]")
-    sourceElem.removeAttribute("deer-source")
-    sourceElem.$isDirty = true
-
+    const sourceElems = document.querySelectorAll("input[witness-source]")
+    sourceElems.forEach(sourceElem => {
+        sourceElem.removeAttribute("deer-source")
+        sourceElem.$isDirty = true
+    })
+    
     // reset the Glosses filter
     const filter = form.querySelector('input[filter]')
     filter.value = ""
@@ -187,8 +193,10 @@ window.onload = async () => {
     }
     else{
         // These items have default values that are dirty on fresh forms.
-        const dig_location = manuscriptWitnessForm.querySelector("input[witness-source]")
-        dig_location.$isDirty = true
+        const dig_locations = document.querySelectorAll("input[witness-source]")
+        dig_locations.forEach(dig_location => {
+            dig_location.$isDirty = true
+        })
         witnessFragmentForm.querySelector("select[custom-text-key='language']").$isDirty = true
         witnessFragmentForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(sourceURI) {
@@ -204,8 +212,11 @@ window.onload = async () => {
             reset.classList.remove("is-hidden")
             document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("source-uri", sourceURI)
-            dig_location.value = sourceURI
-            dig_location.setAttribute("value", sourceURI)
+            dig_locations.forEach(dig_location => {
+                dig_location.value = sourceURI
+                dig_location.setAttribute("value", sourceURI)
+                dig_location.dispatchEvent(new Event('input', { bubbles: true }))
+            })
         }
     }
 
@@ -253,7 +264,7 @@ function show(event){
     if(event.target.id == "ngCollectionList"){
         loading.classList.add("is-hidden")
         if(getURLParameter("source-uri") || witnessFragmentID) {
-            witnessFragmentForm.classList.remove("is-hidden")
+            //witnessFragmentForm.classList.remove("is-hidden")
             manuscriptWitnessForm.classList.remove("is-hidden")
         }
         // This listener is no longer needed.
@@ -398,7 +409,7 @@ function prefillText(textObj, form) {
  * appropriate attribute based on which it is.
  * */
 function prefillDigitalLocations(locationsArr, form) {
-    const locationElem = form.querySelector("input[witness-source]")
+    const locationElems = document.querySelectorAll("input[witness-source]")
     if(!locationElem) {
         console.warn("Nothing to fill")
         return false
@@ -407,16 +418,19 @@ function prefillDigitalLocations(locationsArr, form) {
         console.warn("Cannot set value for digital locations and build UI.  There is no data.")
         return false
     }
-    const source = locationsArr?.source
-    if(source?.citationSource){
-        locationElem.setAttribute("deer-source", source.citationSource ?? "")
-    }
-    locationsArr = locationsArr?.value
     if (!locationsArr || !locationsArr.length) {
         console.warn("There are no digital locations recorded for this witness")
         return false
     }
-    locationElem.value = locationsArr[0]
+    const source = locationsArr?.source
+    locationsArr = locationsArr?.value
+    locationElems.forEach(locationElem => {
+        if(source?.citationSource){
+            locationElem.setAttribute("deer-source", source.citationSource ?? "")
+        }
+        locationElem.value = locationsArr[0]
+    })
+    
     // If this is not a URI, then it also needs to populate the .witnessText element.
     if(locationsArr[0].startsWith("http:") || locationsArr[0].startsWith("https:")){
         document.querySelector(".lineSelector").setAttribute("source-uri", locationsArr[0])
@@ -500,6 +514,42 @@ function preselectLines(linesArr, form) {
     })  
 }
 
+async function generateManuscriptWitness(){
+    console.log("GENERATING WITNESS....soon")
+    return
+    let identifierObj = {
+        "@context":"http://www.w3.org/ns/anno.jsonld",
+        "@type":"Annotation",
+        "body":{
+            "identifier":{
+                "value":""
+            }
+        },
+        "target": "TODO",
+        "creator": window.GOG_USER["http://store.rerum.io/agent"]
+    }
+    const witnessObj = {
+        "@context": "http://purl.org/dc/terms",
+        "@type": "Text",
+        "creator": window.GOG_USER["http://store.rerum.io/agent"]
+    }
+    createdWitness = await fetch(`${__constants.tiny}/create`, {
+        method: "POST",
+        mode: 'cors',
+        headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": `Bearer ${window.GOG_USER.authorization}`
+        },
+        body: JSON.stringify(witnessObj)
+    })
+    .then(res => res.json())
+    .catch(err => {throw err})
+
+    if(createdWitness["@id"]){
+        identifierObj.target = createdWitness["@id"]
+    }
+}
+
 /**
  * The DEER announcement for when all form fields have been saved or updated.
  * Extend this functionality by also saving or updating the custom fields.
@@ -507,6 +557,14 @@ function preselectLines(linesArr, form) {
  */ 
 addEventListener('deer-updated', event => {
     const $elem = event.target
+    if($elem?.id === "manuscriptWitnessForm"){
+        // We generated the Manuscript Witness and can use this ID as part of the fragment for submit
+        const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
+        partOfElem.value = event.detail["@id"] 
+        partOfElem.setAttribute("value", event.detail["@id"] )
+        partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
+        return
+    }
     //Only care about witness form
     if($elem?.id  !== "witnessFragmentForm") return
     // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
@@ -514,7 +572,7 @@ addEventListener('deer-updated', event => {
     event.stopPropagation()
 
     const entityID = event.detail["@id"]  
-    // These promise are for all the simple array values ('references' and 'selections' and 'source')
+    // These promise are for all the simple array values ('references' and 'selections')
     let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
         .filter(el => el.$isDirty)
         .map(el => {
@@ -832,7 +890,7 @@ function changeUserInput(event, which){
  */
 function loadUserInput(ev, which){
     let text = ""
-    const sourceElem = manuscriptWitnessForm.querySelector("input[witness-source]")
+    const sourceElems = document.querySelectorAll("input[witness-source]")
     switch(which){
         case "uri":
             // Recieve a Witness URI as input from #needs.  Reload the page with a set ?source-uri URL parameter.
@@ -854,11 +912,14 @@ function loadUserInput(ev, which){
             document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             loading.classList.add("is-hidden")
-            witnessFragmentForm.classList.remove("is-hidden")
+            // witnessFragmentForm.classList.remove("is-hidden")
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
-            sourceElem.value = text
-            sourceElem.setAttribute("value", text)
-            sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
+            sourceElems.forEach(sourceElem => {
+                sourceElem.value = text
+                sourceElem.setAttribute("value", text)
+                sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
+            })
+            
         break
         case "cp":
             text = resourceText.value
@@ -866,11 +927,13 @@ function loadUserInput(ev, which){
             document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             loading.classList.add("is-hidden")
-            witnessFragmentForm.classList.remove("is-hidden")
+            // witnessFragmentForm.classList.remove("is-hidden")
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
-            sourceElem.value = text
-            sourceElem.setAttribute("value", text)
-            sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
+            sourceElems.forEach(sourceElem => {
+                sourceElem.value = text
+                sourceElem.setAttribute("value", text)
+                sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
+            })
         break
         default:
     }

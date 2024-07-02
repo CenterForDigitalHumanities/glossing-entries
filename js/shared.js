@@ -74,16 +74,16 @@ customElements.define('custom-confirm-modal', CustomConfirmModal)
 let witnessesObj = {}
 
 //For when we test, so we can easily find and blow away junk data
-// setTimeout(() => {
-//     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="BryanDelete"
-//         el.setAttribute("value", "BryanDelete")
-//     })
-//     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "BryanDelete")
-//     })
-//     window.GOG_USER["http://store.rerum.io/agent"] = "BryanDelete"
-// }, 4000)
+setTimeout(() => {
+    document.querySelectorAll("input[deer-key='creator']").forEach(el => {
+        el.value="BryanTryin"
+        el.setAttribute("value", "BryanTryin")
+    })
+    document.querySelectorAll("form").forEach(el => {
+        el.setAttribute("deer-creator", "BryanTryin")
+    })
+    window.GOG_USER["http://store.rerum.io/agent"] = "BryanTryin"
+}, 4000)
 
 let __constants = {}
 setConstants()
