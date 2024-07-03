@@ -90,27 +90,33 @@
     <p> </p>
     <form id="manuscriptWitnessForm" class="is-hidden" deer-type="Text_Witness" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
-        <input type="hidden" witness-source>
-        <input type="hidden" deer-key="alernateType" value="GoG_ManuscriptWitness">
+        <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
+        <input type="hidden" deer-key="alternateType" value="GoG_ManuscriptWitness">
+        <input type="hidden" deer-key="source" witness-source>
         <div class="row">
             <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
         </div>
         <div id="manuscriptWitnessCheck" class="row">
             <div class="col">
-                <p> You must load in a Manuscript Witness.  Enter a shelfmark below to get started. </p>
-                <button type="button" id="checkForManuscriptsBtn"> Check for Existing Manuscript Witnesses </button>
-                <div id="manuscriptsResult"></div>
+                <div class="manuscript-needed">
+                    <p> You must load in a Manuscript Witness.  Enter a shelfmark below to get started. </p>
+                    <input type="button" id="checkForManuscriptsBtn" class="button secondary" value="Check for Existing Manuscript Witnesses"/>
+                </div>
+                <div class="manuscript-found is-hidden">
+                    <h4> Manuscripts Found.  Choose a Manuscript from below or create a new one. </h4>
+                    <div id="manuscriptsResult" class="manuscript-found"></div>
+                </div>
             </div>
         </div>
-        <input class="is-hidden button primary" type="submit" value="Create Manuscript Witness and Continue"/>
+        <input class="is-hidden button primary" type="submit" value="Create New Manuscript Witness and Continue"/>
     </form>
 
     <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
     <form id="witnessFragmentForm" class="is-hidden" deer-type="Text_Fragment" deer-context="http://purl.org/dc/terms"> 
-        <input type="hidden" deer-key="alernateType" value="GoG_WitnessFragment">
+        <input type="hidden" deer-key="alternateType" value="GoG_WitnessFragment">
         <input type="hidden" deer-key="partOf" >
-        <input type="hidden" witness-source>
+        <input type="hidden" deer-key="source" witness-source>
         <div class="row">
             <label class="col-3 col-2-md text-right">Label:</label>
             <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md">

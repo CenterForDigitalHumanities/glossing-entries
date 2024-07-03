@@ -18,12 +18,14 @@ document.addEventListener("gloss-modal-visible", function(event){
     glossTextElem.dispatchEvent(new Event('input', { bubbles: true }))
 })
 
-checkForManuscriptsBtn.addEventListener('click', async ev => {
+checkForManuscriptsBtn.addEventListener('click', async (ev) => {
     const shelfmarkElem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
-    const matches = await findMatchingManuscriptWitnesses(shelfmarkElem.value.trim(), labelElem.value)
-    manuscriptResult.innerHTML = matches.length ? "<p>Potential matches found!</p>" : "<p>Manuscript appears unique!</p>"
-    matches.forEach(anno => {
-        manuscriptResult.insertAdjacentHTML('beforeend', `<a href="#${anno.id.split('/').pop()}">${anno.title}</a>`)
+    const matches = await getManuscriptWitnessesFromShelfmark(shelfmarkElem.value.trim())
+    // Unfortunately the entities have no primitive label or title.  We would need to query for it or use a deer view here that will expand the entity.
+    //manuscriptsResult.innerHTML = matches.length ? "<p>Potential matches found!</p>" : "<p>Manuscript appears unique!</p>"
+    if(!matches.length) return
+    matches.forEach(id => {
+        manuscriptsResult.insertAdjacentHTML('beforeend', `<a href="witness-profile.html#${id.split('/').pop()}">${id}</a>`)
     })
 })
 
@@ -87,8 +89,8 @@ async function getManuscriptWitnessFromSource(source){
 
     if(witnessUriSet.size === 0){
         console.log("There is no Manuscript Witness with this source")
-        manuscriptWitnessForm.querySelector("input[type='submit']").classList.remove("is-hidden")
-        manuscriptWitnessCheck.classList.add("is-hidden")
+        //manuscriptWitnessForm.querySelector("input[type='submit']").classList.remove("is-hidden")
+        //manuscriptWitnessCheck.classList.add("is-hidden")
         //TODO force the user to generate the Manuscript Witness first.  Capture source and identifier.
         return
     }
@@ -98,8 +100,50 @@ async function getManuscriptWitnessFromSource(source){
     }
     
     // There should only be one unique entry.  If so, we just need to return the first next() in the set iterator.
+    // return [...witnessUriSet.values()]
     return witnessUriSet.values().next().value
+}
 
+async function getManuscriptWitnessesFromShelfmark(shelfmark){
+    const historyWildcard = { "$exists": true, "$size": 0 }
+
+    // Each shelfmark annotation targets a Witness entity.
+    // Get all the shelfmark annotations whose value is this shelfmark string
+    // Note both the Manscript Witness and Witness Fragment will have this shelfmark, we just want to know the Manuscript Witnesses.
+    const sourceAnnosQuery = {
+        "body.identifier.value": httpsIdArray(shelfmark),
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+
+    const witnessUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
+    .then(async(annos) => {
+        let manuscriptWitnessesOnly = new Set()
+        for await (const anno of annos){
+            const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
+            if(entity?.alternateType === "GoG_ManuscriptWitness"){
+                manuscriptWitnessesOnly.add(anno.target)
+            }
+        }
+        return manuscriptWitnessesOnly
+    })
+    .catch(err => {
+        console.error(err)
+        throw err
+    })
+
+    if(witnessUriSet.size === 0){
+        console.log(`There is no Manuscript Witness with this shelfmark: '${shelfmark}'`)
+        // TODO force the user to generate the Manuscript Witness first.  Capture source and identifier.
+    }
+    else{
+        console.log("There are some Manuscript Witnesses and a choice must be made.")
+        manuscriptWitnessForm.querySelectorAll(".manuscript-needed").forEach(el => el.classList.add("is-hidden"))
+        manuscriptWitnessForm.querySelectorAll(".manuscript-found").forEach(el => el.classList.remove("is-hidden"))
+        // TODO offer the user a choice on which to pick.
+    }
+    
+    return [...witnessUriSet.values()]
 }
 
 /**
@@ -237,7 +281,12 @@ window.onload = async () => {
                 dig_location.setAttribute("value", sourceURI)
                 dig_location.dispatchEvent(new Event('input', { bubbles: true }))
             })
+            if(existingManuscriptWitness){
+                maunscriptWitnessCheck.classList.add("is-hidden")
+                manuscriptWitnessForm.setAttribute("deer-id", existingManuscriptWitness)
+            }
         }
+
     }
 
     // Support the '?tab=' URL parameter
