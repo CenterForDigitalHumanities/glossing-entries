@@ -20,10 +20,21 @@ document.addEventListener("gloss-modal-visible", function(event){
 
 checkForManuscriptsBtn.addEventListener('click', async (ev) => {
     const shelfmarkElem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
+    if(shelfmarkElem.hasAttribute("disabled")){
+        shelfmarkElem.removeAttribute("disabled")
+        checkForManuscriptsBtn.value = "Check for Existing Manuscript Witnesses"
+        submitManuscriptsBtn.classList.add("is-hidden")
+        return
+    }
     const matches = await getManuscriptWitnessesFromShelfmark(shelfmarkElem.value.trim())
-    // Unfortunately the entities have no primitive label or title.  We would need to query for it or use a deer view here that will expand the entity.
-    //manuscriptsResult.innerHTML = matches.length ? "<p>Potential matches found!</p>" : "<p>Manuscript appears unique!</p>"
-    if(!matches.length) return
+    if(!matches.length) {
+        checkForManuscriptsBtn.value = "Change Shelfmark"
+        submitManuscriptsBtn.classList.remove("is-hidden")
+        // Once a shelfmark is decided they should not change it unless they restart the process...
+        shelfmarkElem.setAttribute("disabled", "")
+        return
+    }
+    submitManuscriptsBtn.classList.add("is-hidden")
     matches.forEach(id => {
         manuscriptsResult.insertAdjacentHTML('beforeend', `<a href="witness-profile.html#${id.split('/').pop()}">${id}</a>`)
     })
@@ -104,8 +115,13 @@ async function getManuscriptWitnessFromSource(source){
     return witnessUriSet.values().next().value
 }
 
-async function getManuscriptWitnessesFromShelfmark(shelfmark){
+async function getManuscriptWitnessesFromShelfmark(shelfmark=null){
     const historyWildcard = { "$exists": true, "$size": 0 }
+    if(!shelfmark){
+        const ev = new CustomEvent("No shelfmark provided")
+        globalFeedbackBlip(ev, `You must provide a shelfmark value.`, false)
+        return
+    }
 
     // Each shelfmark annotation targets a Witness entity.
     // Get all the shelfmark annotations whose value is this shelfmark string

@@ -87,21 +87,15 @@
     </div>
 
     <!-- Once a mansucript witness is known the shelfmark should become populated and disabled -->
-    <p> </p>
     <form id="manuscriptWitnessForm" class="is-hidden" deer-type="Text_Witness" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
         <input type="hidden" deer-key="alternateType" value="GoG_ManuscriptWitness">
         <input type="hidden" deer-key="source" witness-source>
-        <div class="row">
-            <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
-            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
-        </div>
         <div id="manuscriptWitnessCheck" class="row">
             <div class="col">
                 <div class="manuscript-needed">
-                    <p> You must load in a Manuscript Witness.  Enter a shelfmark below to get started. </p>
-                    <input type="button" id="checkForManuscriptsBtn" class="button secondary" value="Check for Existing Manuscript Witnesses"/>
+                    <p> You must load in a Manuscript Witness.  Enter a shelfmark below to get started.  When finished, click the button to check for existing Witnesses.</p>
                 </div>
                 <div class="manuscript-found is-hidden">
                     <h4> Manuscripts Found.  Choose a Manuscript from below or create a new one. </h4>
@@ -109,7 +103,20 @@
                 </div>
             </div>
         </div>
-        <input class="is-hidden button primary" type="submit" value="Create New Manuscript Witness and Continue"/>
+        <div class="row">
+            <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
+            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
+        </div>
+        <div class="row">
+            <div class="col">
+                <input id="checkForManuscriptsBtn" type="button"  class="button secondary" value="Check for Existing Manuscript Witnesses"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <input id="submitManuscriptsBtn" class="is-hidden button primary" type="submit" value="Create New Manuscript Witness and Continue"/>
+            </div>
+        </div>
     </form>
 
     <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
