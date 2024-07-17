@@ -6,8 +6,7 @@ const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab
 
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("source-text-error", function(event){
-    const witnessURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : false
-    document.querySelector(".witnessText").innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${witnessURI} </b>`
+    document.querySelector(".witnessText").innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${sourceURI} </b>`
 })
 
 // Make the text in the Gloss modal form the same as the one in the Witness form
@@ -303,10 +302,6 @@ window.onload = async () => {
             if(existingManuscriptWitness){
                 manuscriptWitnessCheck.classList.add("is-hidden")
                 manuscriptWitnessForm.setAttribute("deer-id", existingManuscriptWitness)
-                //toggleFieldsDisabled(manuscriptWitnessForm, true)
-                //witnessFragmentForm.classList.remove("is-hidden")
-                //providedShelfmark.innerText = witnessFragmentForm.querySelector("input[deer-key='identifier']").value
-                //providedShelfmark.setAttribute("href", `witness-profile.html#${$elem.getAttribute("deer-id")}`)
             }
         }
 
@@ -355,7 +350,7 @@ addEventListener('deer-view-rendered', show)
 function show(event){
     if(event.target.id == "ngCollectionList"){
         loading.classList.add("is-hidden")
-        if(getURLParameter("source-uri") || witnessFragmentID) {
+        if(sourceURI || witnessFragmentID) {
             manuscriptWitnessForm.classList.remove("is-hidden")
         }
         else{
@@ -436,7 +431,9 @@ function initWitnessForm(event){
     if(whatRecordForm !== "manuscriptWitnessForm") return
     const knownShelfmark = annotationData.identifier.value
     if(knownShelfmark){
-        toggleFieldsDisabled($elem, true)
+        //toggleFieldsDisabled($elem, true)
+        //$elem.querySelectorAll("input[type='button']").forEach(btn => btn.classList.add("is-hidden"))
+        $elem.classList.add("is-hidden")
         witnessFragmentForm.classList.remove("is-hidden")
         providedShelfmark.innerText = knownShelfmark
         providedShelfmark.setAttribute("href", `manuscript-details.html#${annotationData["@id"]}`)
@@ -644,27 +641,30 @@ function toggleFieldsDisabled(form, disabled=true){
  * 
  */ 
 addEventListener('deer-updated', event => {
+    // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
+    event.preventDefault()
+    event.stopPropagation()
     const $elem = event.target
     if($elem?.id === "manuscriptWitnessForm"){
+        // TODO also grab the custom-key='source' from this form and create it as a simple array value Annotation.
+        // see gloss-transcription.js deer-update, or the annotation_promises below.
+
+
         // We generated the Manuscript Witness and can use this ID as part of the fragment for submit
         const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
         partOfElem.value = event.detail["@id"] 
         partOfElem.setAttribute("value", event.detail["@id"] )
         partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
-        // We could also hide instead of disable
-        // $elem.classList.add("is-hideen")
         toggleFieldsDisabled($elem, true)
+        $elem.querySelectorAll("input[type='button']").forEach(btn => btn.classList.add("is-hidden"))
         witnessFragmentForm.classList.remove("is-hidden")
-        providedShelfmark.innerText = manuscriptWitnessForm.querySelector("input[deer-key='identifier']").value
+        // manuscriptWitnessForm.querySelector("input[deer-key='identifier']").value
+        providedShelfmark.innerText = event.detail?.identifier?.value
         providedShelfmark.setAttribute("href", `manuscript-details.html#${event.detail["@id"]}`)
         return
     }
-    //Only care about witness form
-    if($elem?.id  !== "witnessFragmentForm") return
-    // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
-    event.preventDefault()
-    event.stopPropagation()
-
+    else if($elem?.id  !== "witnessFragmentForm") return
+    
     const entityID = event.detail["@id"]  
     // These promise are for all the simple array values ('references' and 'selections')
     let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
@@ -988,7 +988,7 @@ function loadUserInput(ev, which){
     switch(which){
         case "uri":
             // Recieve a Witness URI as input from #needs.  Reload the page with a set ?source-uri URL parameter.
-            let providedSourceURI = resourceURI.value ? resourceURI.value : getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : false
+            let providedSourceURI = resourceURI.value ? resourceURI.value : sourceURI ? sourceURI : null
             if(providedSourceURI){
                 let url = new URL(window.location.href)
                 url.searchParams.append("source-uri", providedSourceURI)
