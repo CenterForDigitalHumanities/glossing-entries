@@ -50,7 +50,7 @@
     <p id="look" class="bg-light">
        Detect Glosses in Text
     </p>
-    <div id="needs" class="row bg-basic">
+    <div id="needs" class="row bg-basic is-hidden">
         <div class="col">
             <p class="howTo"> 
                 It looks like you haven't provided the URI of the web resource with the text.  
@@ -80,26 +80,25 @@
             </div>
         </div>        
     </div>
-    <div id="loading" class="witness-needed is-hidden">
+    <div id="loading" class="witness-needed">
         <p class="loadingMsg"> 
             Please be patient while we get things together...  
         </p>
     </div>
 
     <!-- Once a mansucript witness is known the shelfmark should become populated and disabled -->
-    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="Text_Witness" deer-context="http://purl.org/dc/terms">
+    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="TextWitness" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
-        <input type="hidden" deer-key="alternateType" value="GoG_ManuscriptWitness">
         <input type="hidden" deer-key="source" witness-source>
         <div id="manuscriptWitnessCheck" class="row">
             <div class="col">
                 <div class="manuscript-needed">
                     <p> You must load in a Manuscript Witness.  Enter a shelfmark below to get started.  When finished, click the button to check for existing Witnesses.</p>
                 </div>
-                <div class="manuscript-found is-hidden">
+                <div id="manuscriptsFound" class="is-hidden">
                     <h4> Manuscripts Found.  Choose a Manuscript from below or create a new one. </h4>
-                    <div id="manuscriptsResult" class="manuscript-found"></div>
+                    <div id="manuscriptsResult"></div>
                 </div>
             </div>
         </div>
@@ -120,8 +119,14 @@
     </form>
 
     <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
-    <form id="witnessFragmentForm" class="is-hidden" deer-type="Text_Fragment" deer-context="http://purl.org/dc/terms"> 
-        <input type="hidden" deer-key="alternateType" value="GoG_WitnessFragment">
+    <form id="witnessFragmentForm" class="is-hidden" deer-type="TextFragment" deer-context="http://purl.org/dc/terms"> 
+        <div class="row">
+            <div class="col">
+                <p>
+                    Manuscript <a target="_blank" id="providedShelfmark"> N/A </a> Loaded In.
+                <p>
+            </div>
+        </div>
         <input type="hidden" deer-key="partOf" >
         <input type="hidden" deer-key="source" witness-source>
         <div class="row">
@@ -164,6 +169,7 @@
             </deer-view>  
         </div>
     </form>
+    
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <gloss-modal class="is-hidden"></gloss-modal>

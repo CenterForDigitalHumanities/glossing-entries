@@ -46,7 +46,7 @@ export default {
     // Selectors for identifying different types of input elements in the DOM.
     INPUTS: ["input", "textarea", "dataset", "select"], // array of selectors, identifies inputs with .value
     CONTAINERS: ["ItemList", "ItemListElement", "List", "Set", "list", "set", "@list", "@set"], // array of supported list and set types the app will dig into for array values
-    PRIMITIVES: ["alernateType"],
+    PRIMITIVES: [],
 
     GENERATOR: __constants.generator, // The value for __rerum.generatedBy.  It should be the same as the agent encoded in the logged in user's Bearer Token.
 
