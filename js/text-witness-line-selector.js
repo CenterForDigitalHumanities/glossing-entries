@@ -129,7 +129,14 @@ class WitnessTextSelector extends HTMLElement {
         just_text = textForUI.replace(/(\r\n|\n|\r)/gm, "")
         plaintext.innerText = just_text
         witnessTextElem.appendChild(plaintext)
+        plaintext.onmousedown = clearMarks
         plaintext.onmouseup = captureSelectedPlainText
+
+        function clearMarks(e){
+            const lineElem = e.target
+            let unmarkup = new Mark(lineElem)
+            unmarkup.unmark({"className" : "persists"})
+        }
 
         /**
          * Capture the user selection data after they have used the cursor to select some text.
@@ -143,8 +150,8 @@ class WitnessTextSelector extends HTMLElement {
             // Only when it's the 'left click' or noted primary button
             if(e.button > 0) return
             const lineElem = e.target
-            let unmarkup = new Mark(lineElem)
-            unmarkup.unmark({"className" : "persists"})
+            // let unmarkup = new Mark(lineElem)
+            // unmarkup.unmark({"className" : "persists"})
 
             let s = window.getSelection ? window.getSelection() : document.selection
             // Only if there is an actual text selection
