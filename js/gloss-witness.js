@@ -345,21 +345,21 @@ window.onload = async () => {
  * When the Gloss Collection List deer view loads its records (by finishing the paged query) we can show the witness form.
  * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
  */ 
-addEventListener('deer-view-rendered', show)
+// addEventListener('deer-view-rendered', show)
 
-function show(event){
-    if(event.target.id == "ngCollectionList"){
-        loading.classList.add("is-hidden")
-        if(sourceURI || witnessFragmentID) {
-            manuscriptWitnessForm.classList.remove("is-hidden")
-        }
-        else{
-            needs.classList.remove("is-hidden")
-        }
-        // This listener is no longer needed.
-        removeEventListener('deer-view-rendered', show)
-    }
-}
+// function show(event){
+//     if(event.target.id == "ngCollectionList"){
+//         loading.classList.add("is-hidden")
+//         if(sourceURI || witnessFragmentID) {
+//             manuscriptWitnessForm.classList.remove("is-hidden")
+//         }
+//         else{
+//             needs.classList.remove("is-hidden")
+//         }
+//         // This listener is no longer needed.
+//         removeEventListener('deer-view-rendered', show)
+//     }
+// }
 
 /**
  * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
@@ -371,12 +371,14 @@ addEventListener('deer-view-rendered', addButton)
  * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
  * @see deer-record.js DeerReport.constructor()  
  */
-
 if(witnessFragmentID){
     addEventListener('deer-form-rendered', initFragmentForm)
 }
 else if(sourceURI){
     addEventListener('deer-form-rendered', initWitnessForm)
+}
+else{
+    loading.classList.add("is-hidden")
 }
 
 /**
@@ -412,7 +414,8 @@ function initFragmentForm(event){
     }
     prefillText(annotationData["text"], $elem)
     prefillDigitalLocations(annotationData["source"], $elem)
-
+    $elem.classList.remove("is-hidden")
+    loading.classList.add("is-hidden")
     // This event listener is no longer needed
     removeEventListener('deer-form-rendered', initFragmentForm)
 
@@ -438,6 +441,10 @@ function initWitnessForm(event){
         providedShelfmark.innerText = knownShelfmark
         providedShelfmark.setAttribute("href", `manuscript-details.html#${annotationData["@id"]}`)
     }
+    else{
+        $elem.classList.remove("is-hidden")
+    }
+    loading.classList.add("is-hidden")
     // This event listener is no longer needed
     removeEventListener('deer-form-rendered', initWitnessForm)
 }
@@ -646,10 +653,14 @@ addEventListener('deer-updated', event => {
     event.stopPropagation()
     const $elem = event.target
     const entityID = event.detail["@id"]  
+
+    // Hmm maybe do this separation of handling a bit different.
     if($elem?.id === "manuscriptWitnessForm"){
-        // TODO also grab the custom-key='source' from this form and create it as a simple array value Annotation.
-        // see gloss-transcription.js deer-update, or the annotation_promises below.
         const sourceElem = $elem.querySelector("input[custom-key='source']")
+        if(!sourceElem.value){
+            // Do We need to catch and handle?  Not sure yet.
+            console.error("This is real bad.  There is no source, and that should not be possible.")
+        }
         const sourceAnno = {
             "@context": "http://www.w3.org/ns/anno.jsonld",
             "@type": "Annotation",
@@ -696,7 +707,6 @@ addEventListener('deer-updated', event => {
     }
     else if($elem?.id  !== "witnessFragmentForm") return
     
-    const entityID = event.detail["@id"]  
     // These promise are for all the simple array values ('references' and 'selections')
     let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
         .filter(el => el.$isDirty)
