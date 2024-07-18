@@ -303,6 +303,10 @@ window.onload = async () => {
                 manuscriptWitnessCheck.classList.add("is-hidden")
                 manuscriptWitnessForm.setAttribute("deer-id", existingManuscriptWitness)
             }
+            else{
+                loading.classList.add("is-hidden")
+                manuscriptWitnessForm.classList.remove("is-hidden")
+            }
         }
 
     }
@@ -378,6 +382,7 @@ else if(sourceURI){
     addEventListener('deer-form-rendered', initWitnessForm)
 }
 else{
+    needs.classList.remove("is-hidden")
     loading.classList.add("is-hidden")
 }
 
