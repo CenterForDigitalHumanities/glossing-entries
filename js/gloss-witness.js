@@ -645,10 +645,22 @@ addEventListener('deer-updated', event => {
     event.preventDefault()
     event.stopPropagation()
     const $elem = event.target
+    const entityID = event.detail["@id"]  
     if($elem?.id === "manuscriptWitnessForm"){
         // TODO also grab the custom-key='source' from this form and create it as a simple array value Annotation.
         // see gloss-transcription.js deer-update, or the annotation_promises below.
-
+        const sourceElem = $elem.querySelector("input[custom-key='source']")
+        const sourceAnno = {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "@type": "Annotation",
+            "body": {
+                "source":{
+                    "value":[sourceElem.value]
+                }
+            },
+            "target": entityID,
+            "creator" : window.GOG_USER["http://store.rerum.io/agent"]
+        }
 
         // We generated the Manuscript Witness and can use this ID as part of the fragment for submit
         const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
@@ -658,9 +670,28 @@ addEventListener('deer-updated', event => {
         toggleFieldsDisabled($elem, true)
         $elem.querySelectorAll("input[type='button']").forEach(btn => btn.classList.add("is-hidden"))
         witnessFragmentForm.classList.remove("is-hidden")
-        // manuscriptWitnessForm.querySelector("input[deer-key='identifier']").value
         providedShelfmark.innerText = event.detail?.identifier?.value
         providedShelfmark.setAttribute("href", `manuscript-details.html#${event.detail["@id"]}`)
+        fetch(`${__constants.tiny}/create`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+            body: JSON.stringify(sourceAnno)
+        })
+        .then(success => {
+            console.log("Manuscript Witness Fully Saved")
+            const ev = new CustomEvent("Manuscript Witness Submitted")
+            globalFeedbackBlip(ev, `Manuscript Witness Submitted!`, true)
+        })
+        .catch(err => {
+            console.error("Manuscript Witness Source Error")
+            console.error(err)
+            const ev = new CustomEvent("Manuscript Witness Source Error")
+            globalFeedbackBlip(ev, `Manuscript Witness Source Error`, false)
+        })
         return
     }
     else if($elem?.id  !== "witnessFragmentForm") return
