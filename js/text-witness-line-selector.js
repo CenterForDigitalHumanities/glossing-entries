@@ -131,60 +131,6 @@ class WitnessTextSelector extends HTMLElement {
         witnessTextElem.appendChild(plaintext)
         plaintext.onmouseup = captureSelectedPlainText
 
-        plaintext.onmouseup = function(e) {
-            const s = document.getSelection()
-            const filter = document.querySelector("input[filter]")
-            const selectedText = document.getSelection() ? document.getSelection().toString() : ""
-            const firstword = selectedText.split(" ")[0]
-            let selections = []
-            if(selectedText){
-                // The filter may not be in the DOM when the user is selecting text.
-                // Only use the filter if it is !.is-hidden
-                selections.push(`${selectedText}#char=${document.getSelection().baseOffset},${document.getSelection().extentOffset}`)
-                if(filter && !filter.classList.contains("is-hidden")){
-                    filter.value = firstword
-                    filter.setAttribute("value", firstword)
-                    filter.dispatchEvent(new Event('input', { bubbles: true }))
-                }
-
-                const textInput = document.querySelector("textarea[custom-text-key='text']")
-                textInput.setAttribute("value", selectedText)
-                textInput.value = selectedText
-                textInput.dispatchEvent(new Event('input', { bubbles: true }))
-
-                let witnessLabel = selectedText.slice(0, 16)
-                const labelElem = document.querySelector("input[deer-key='title']")
-                const shelfmark = document.querySelector("input[deer-key='identifier']").value
-                // Generate a programmatic label
-                if(witnessLabel){
-                    if(shelfmark){
-                        witnessLabel += `...(${shelfmark})`
-                    }
-                    else{
-                        witnessLabel += `...(${Date.now()})`
-                    }    
-                    if(labelElem.value !== witnessLabel){
-                        labelElem.value = witnessLabel
-                        labelElem.setAttribute("value", witnessLabel)
-                        labelElem.dispatchEvent(new Event('input', { bubbles: true }))
-                    }
-                }
-                else{
-                   // A side effect of this is that a label cannot be unset by a typical DEER form update.
-                   labelElem.value = "" 
-                   labelElem.setAttribute("value", "")
-                   labelElem.$isDirty = false
-                }     
-                if(customKey.value !== selectedText){
-                    customKey.value = selections.join("__")
-                    customKey.$isDirty = true
-                    $this.closest("form").$isDirty = true
-                }               
-                console.log("You made the following text selection")
-                console.log(selections)
-            }
-        }
-
         /**
          * Capture the user selection data after they have used the cursor to select some text.
          * This can happen via a click-and-drag or a double click.  It can happen across line and page elements.
@@ -197,6 +143,9 @@ class WitnessTextSelector extends HTMLElement {
             // Only when it's the 'left click' or noted primary button
             if(e.button > 0) return
             const lineElem = e.target
+            let unmarkup = new Mark(lineElem)
+            unmarkup.unmark({"className" : "persists"})
+
             let s = window.getSelection ? window.getSelection() : document.selection
             // Only if there is an actual text selection
             const selectedText = s.toString() ? s.toString() : ""
@@ -211,8 +160,8 @@ class WitnessTextSelector extends HTMLElement {
             const lengthOfSelection = extentOffset - baseOffset
 
             // Set the selections input on the form
-            if(customKey.value !== selections.join("__")){
-                customKey.value = selections.join("__") 
+            if(customKey.value !== selectedText){
+                customKey.value = selectedText
                 customKey.$isDirty = true
                 $form.$isDirty = true
             }
@@ -245,7 +194,7 @@ class WitnessTextSelector extends HTMLElement {
             // Mark the user selection so it persists
             const markup = new Mark(lineElem)
                 markup.markRanges([{
-                    start: selection[0],
+                    start: baseOffset,
                     length: lengthOfSelection
                 }],
                 {
