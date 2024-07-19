@@ -91,17 +91,14 @@ async function getManuscriptWitnessFromSource(source){
     })
 
     console.log(`The following Manuscript Witnesses already exist with source ${source}`)
-    console.log(witnessUriSet)
+    console.log([...witnessUriSet.values()])
 
     if(witnessUriSet.size === 0){
-        console.log("There is no Manuscript Witness with this source")
-        //manuscriptWitnessForm.querySelector("input[type='submit']").classList.remove("is-hidden")
-        //manuscriptWitnessCheck.classList.add("is-hidden")
-        //TODO force the user to generate the Manuscript Witness first.  Capture source and identifier.
+        console.error("There is no Manuscript Witness with this source")
         return
     }
     else if(witnessUriSet.size > 1){
-        console.log("There are many Manuscript Witnesses and a logical choice cannot be made.")
+        console.error("There are many Manuscript Witnesses and a logical choice cannot be made.")
         return
     }
     
@@ -143,14 +140,15 @@ async function getManuscriptWitnessesFromShelfmark(shelfmark=null){
         throw err
     })
 
+    console.log(`The following Manuscript Witnesses already exist with shelfmark ${shelfmark}`)
+    console.log([...witnessUriSet.values()])
+
     if(witnessUriSet.size === 0){
         console.log(`There is no Manuscript Witness with this shelfmark: '${shelfmark}'`)
-        // TODO force the user to generate the Manuscript Witness first.  Capture source and identifier.
     }
     else{
         console.log("There are some Manuscript Witnesses and a choice must be made.")
         manuscriptWitnessForm.querySelectorAll(".manuscript-needed").forEach(el => el.classList.add("is-hidden"))
-        manuscriptWitnessForm.querySelectorAll(".manuscript-found").forEach(el => el.classList.remove("is-hidden"))
         // TODO offer the user a choice on which to pick.
     }
     
@@ -445,6 +443,10 @@ function initWitnessForm(event){
         witnessFragmentForm.classList.remove("is-hidden")
         providedShelfmark.innerText = knownShelfmark
         providedShelfmark.setAttribute("href", `manuscript-details.html#${annotationData["@id"]}`)
+        const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
+        partOfElem.value = annotationData["@id"]
+        partOfElem.setAttribute("value", event.detail["@id"] )
+        partOfElem.dispatchEvent(new Event('input', { bubbles: true })) 
     }
     else{
         $elem.classList.remove("is-hidden")

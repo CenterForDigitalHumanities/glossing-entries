@@ -156,7 +156,9 @@ class WitnessTextSelector extends HTMLElement {
             let s = window.getSelection ? window.getSelection() : document.selection
             // Only if there is an actual text selection
             const selectedText = s.toString() ? s.toString() : ""
-            if(!selectedText) return
+            if(!selectedText) {
+                return
+            }
             const $form = lineElem.closest("form")
             const customKey = $this.querySelector("input[custom-key='selections']")
             const filter = document.querySelector("input[filter]")
@@ -165,10 +167,12 @@ class WitnessTextSelector extends HTMLElement {
             const baseOffset = s.baseOffset
             const extentOffset =  s.extentOffset
             const lengthOfSelection = extentOffset - baseOffset
+            const fragmentSelector = `#char=${baseOffset},${extentOffset-1}`
+            const resourceFragment = witnessURI + fragmentSelector
 
             // Set the selections input on the form
-            if(customKey.value !== selectedText){
-                customKey.value = selectedText
+            if(!customKey.value.includes(resourceFragment)){
+                customKey.value = resourceFragment
                 customKey.$isDirty = true
                 $form.$isDirty = true
             }
