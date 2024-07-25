@@ -331,6 +331,7 @@ window.onload = async () => {
         deleteBtn.classList.remove("is-hidden")
         witnessFragmentForm.setAttribute("deer-id", witnessFragmentID)
         manuscriptWitnessForm.setAttribute("deer-id", existingManuscriptWitness)
+        // Note that we need to set the source-uri attribute for <source-text-selector> still
     }
     else{
         // These items have default values that are dirty on fresh forms.
@@ -438,6 +439,8 @@ function initFragmentForm(event){
     let annotationData = event.detail ?? {}
     const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
+    const sourceURI = annotationData?.source?.value
+    if(sourceURI) document.querySelector("source-text-selector").setAttribute("source-uri", sourceURI) 
     referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
     if(ngCollectionList.hasAttribute("ng-list-loaded")){
         prefillReferences(annotationData["references"], ngCollectionList)
@@ -646,6 +649,79 @@ function prefillReferences(referencesArr, form) {
 }
 
 /**
+ * Mark the line selections through mark.js and prepare selection form input.
+ * 
+ * @param linesArr - A single Witness's text selection.  A flat array of TPEN Project Line id's containing a textual fragment selection #char=x,y.
+ * @param form - The form containing the selection input
+ * @param togglePages - A flag for whether or not to fire the page toggling UI.  Happens when loading up a witness via the browser hash. 
+ */
+function preselectLines(linesArr, form, togglePages) {
+
+    function quickDecode(html) {
+        // This helps with detecting the persists mark and knowing not to write over it.
+        const txt = document.createElement("textarea")
+        txt.innerHTML = html
+        const val = txt.value
+        txt.remove()
+        return val
+    }
+
+    const source = linesArr.source ?? null
+    if (linesArr === undefined) {
+        console.warn("Cannot highlight lines in UI.  There is no data.")
+        return false
+    }
+    linesArr = linesArr.value ?? linesArr
+    if (linesArr.length === 0) {
+        console.warn("There are no lines recorded for this witness")
+        return false
+    }
+    const selectionsElem = form.querySelector("input[custom-key='selections']")
+    let remark_map = {}
+    if(source?.citationSource){
+        selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
+    }
+    if(textWitnessID) selectionsElem.value = linesArr.join("__")
+
+    // Now Mark the lines
+    linesArr.forEach(line => {
+        try{
+            const lineid = line.split("#")[0]
+            const selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
+            const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
+            // Do not accidentally overrule a .persists mark (the mark for #witnessURI).  It is both .persists and .pre-select, but .persists takes precedence. 
+            const checkInner = quickDecode(lineElem.innerHTML)
+            if(checkInner.indexOf('<mark data-markjs="true" class="persists">') === selection[0]) return
+            if(togglePages) lineElem.parentElement.previousElementSibling.classList.add("has-selection")
+            const remark_map = unmarkTPENLineElement(lineElem)
+            lineElem.classList.add("has-selection")
+            const textLength = lineElem.textContent.length
+            const lengthOfSelection = (selection[0] === selection[1]) 
+                ? 1
+                : (selection[1] - selection[0]) + 1
+            const markup = new Mark(lineElem)
+            let options = togglePages ? {className:"persists"} : {className:"pre-select"}
+            options.exclude = [".persists"]
+            markup.markRanges([{
+                start: selection[0],
+                length: lengthOfSelection
+            }], options)    
+            remarkTPENLineElements(remark_map)
+        }
+        catch(err){
+            console.error(err)
+        }
+    })
+    if(togglePages){
+        document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
+            if(!tog.classList.contains("is-toggled")){
+                tog.click()
+            }
+        })    
+    }
+}
+
+/**
  * Helper function for the specialized references key, which is an Array of URIs.
  * It needs to apply the filter with this Gloss's Label.
  * */
@@ -657,29 +733,28 @@ function preselectLines(linesArr, form) {
     }
     linesArr = linesArr.value ?? linesArr
     if (linesArr.length === 0) {
-        console.warn("There are no text selections recorded for this witness")
+        console.warn("There are no lines recorded for this witness")
         return false
     }
+    const lineid = linesArr[0].split("#")[0]
+    const selection = linesArr[0].split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
     const selectionsElem = form.querySelector("input[custom-key='selections']")
+    const lineElem = form.querySelector(".textContent")
     if(source?.citationSource){
         selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
     }
     selectionsElem.value = linesArr[0]
-     //Now highlight the text
-    let range = document.createRange()
-    let sel = window.getSelection()
-    const text = linesArr[0]
-    let selection = text.split("#")[1].replace("char=", "").split(",")           
-    const witness_text_elem = document.querySelector(".witnessText").firstElementChild
-    range.setStart(witness_text_elem.firstChild, parseInt(selection[0]))
-    range.setEnd(witness_text_elem.firstChild, parseInt(selection[1]))
-    sel.removeAllRanges()
-    sel.addRange(range)
-    document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
-        if(!tog.classList.contains("is-toggled")){
-            tog.click()
-        }
-    })  
+
+    const lengthOfSelection = (selection[0] === selection[1]) 
+        ? 1
+        : (selection[1] - selection[0]) + 1
+    const markup = new Mark(lineElem)
+    let options = {className:"pre-select"}
+    options.exclude = [".persists"]
+    markup.markRanges([{
+        start: selection[0],
+        length: lengthOfSelection
+    }], options)    
 }
 
 /**
