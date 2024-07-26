@@ -19,7 +19,9 @@ document.addEventListener("gloss-modal-visible", function(event){
 })
 
 function populateManuscriptWitnessChoices(matches){
+    if (!matches) return
     if(typeof matches === "string") matches = [matches]
+    manuscriptsResult.innerHTML = ""
     matches.forEach(id => {
         const choice = document.createElement("div")
         const view = document.createElement("deer-view")
@@ -32,6 +34,8 @@ function populateManuscriptWitnessChoices(matches){
         manuscriptsResult.appendChild(choice)
         broadcast(undefined, "deer-view", view, { set: [view] })
     })
+    submitManuscriptsBtn.classList.remove("is-hidden")
+    checkForManuscriptsBtn.value = "Check Again"
 }
 
 checkForManuscriptsBtn.addEventListener('click', async (ev) => {
@@ -43,18 +47,18 @@ checkForManuscriptsBtn.addEventListener('click', async (ev) => {
         manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.remove("is-hidden"))
         return
     }
+
     const match = await getManuscriptWitnessFromShelfmark(shelfmarkElem.value.trim())
     if(!match) {
         checkForManuscriptsBtn.value = "No Witnesses Found.  Change Shelfmark to Try Again."
-        submitManuscriptsBtn.classList.remove("is-hidden")
         shelfmarkElem.setAttribute("disabled", "")
         manuscriptsFound.classList.add("is-hidden")
-        manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
+        manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.remove("is-hidden"))
         manuscriptsResult.innerHTML = ""
+        submitManuscriptsBtn.classList.remove("is-hidden")
         return
     }
     populateManuscriptWitnessChoices(match)
-    submitManuscriptsBtn.classList.add("is-hidden")
     manuscriptsFound.classList.remove("is-hidden")
     manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
 })
@@ -74,8 +78,9 @@ function chooseManuscriptWitness(ev){
     providedShelfmark.setAttribute("href", `manuscript-details.html#${manuscriptID}`)
     existingManuscriptWitness = manuscriptID
     manuscriptsFound.classList.add("is-hidden")
-    manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.remove("is-hidden"))
-    document.querySelectorAll(".manuscript-needed").forEach(el => el.classList.remove("is-hidden"))
+    manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
+    document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
+    if(sourceURI) document.querySelector("source-text-selector").setAttribute("source-uri", sourceURI)
     console.log("Manuscript Witness Has Been Loaded In")
     const e = new CustomEvent("Manuscript Witness Loaded")
     globalFeedbackBlip(e, `Manuscript Witness Loaded`, true)
