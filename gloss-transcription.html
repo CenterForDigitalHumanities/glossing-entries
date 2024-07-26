@@ -53,13 +53,15 @@
             <label class="col-3 col-2-md text-right is-hidden">Label:</label>
             <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
 
-            <label class="col-3 col-2-md text-right">Shelfmark: &#10082;</label>
-            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required">
+            <label class="col-3 col-2-md text-right">Shelfmark or Short Citation: &#10082;</label>
+            <input type="text" deer-key="identifier" required placeholder="Manuscript shelfmark or bibliographic citation of author and title for the witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’" class="col-9 col-10-md required">
                         
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
                 <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
-            -->
+                -->
+            <label class="col-3 col-2-md text-right" >Folio or Page:</label>
+            <input type="text" deer-key="_folio" required placeholder="Folio or page number from this witness where the gloss is found" class="col-9 col-10-md">
 
             <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
             <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight transcription text..."></textarea>
@@ -72,10 +74,6 @@
                 <option value="en">English</option>
             </select>
 
-            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
-                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
-            </label>
-
 			<label class="col-3 col-2-md text-right">Gloss format:</label>
             <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
                 <option value="none" selected>None</option>
@@ -84,7 +82,70 @@
                 <option value="appendix">Appendix</option>
                 <option value="other">Other</option>
             </select>
+            
+			<label class="col-3 col-2-md text-right">Gloss location:</label>
+            <select deer-key="_glossLocation" title="Hold CTRL to select multiple" multiple class="col-9 col-4-md">
+                <option value="top">Top</option>
+                <option value="center">Center</option>
+                <option value="bottom">Bottom</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+                <option value="other">Other</option>
+            </select>
 
+            <label class="col-3 col-2-md text-right">Glossator hand:</label>
+            <select deer-key="_glossatorHand" title="glossator" class="col-9 col-4-md">
+                <option value="original" selected>original</option>
+                <option value="later">later</option>
+            </select>
+
+            <label class="col-3 col-2-md text-right" >Image Link:
+                <small><a href="https://ncsu-libraries.github.io/iiif-crop-tool/" target="_blank">crop tool</a></small>
+            </label>
+            <input type="text" deer-key="depiction" required placeholder="Paste an image URL or IIIF selector link" class="col-9 col-10-md">
+
+            <div class="row">
+                <gog-tag-widget class="col">
+        <style>
+            .themeTag {
+                margin-bottom: 15px;
+            }
+            .removeTag:after {
+                content: 'x';
+                color: red;
+                padding: 1px 1px 1px 7px;
+                cursor: pointer;
+
+            }
+            .removeTag:hover {
+                font-weight: bolder;
+                font-size: 115%;
+            }
+
+            button.smaller {
+                padding: 0px 5px;
+                height: 2.2em;
+            }
+            .selectedEntities {
+                border-left: 1px dotted black;
+                border-bottom: 1px dotted black;
+                border-right: 1px dotted black;
+                padding: 4px;
+            }
+        </style>
+        <p class="col-12 col-12-md">Gloss tags are displayed below the input. Click the red 'x' to remove the tag.
+        </p>
+        <input type="hidden" deer-key="tags" deer-input-type="Set">
+        <label class="col-3 col-2-md text-right">Tag Name</label>
+        <input type="text" class="col-9 col-4-md tagInput" placeholder="Add one tag at a time">
+        <button class="smaller"> Add Tag </button>
+        <div class="selectedEntities col-12 col-12-md"></div>
+    </gog-tag-widget>
+    
+    <label class="col-3 col-2-md text-right" >Notes</label>
+    <textarea deer-key="_notes" rows="2" class="col-9 col-10-md" placeholder="Optional notes about this gloss instance"></textarea>
+
+            </div>
             <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
