@@ -18,96 +18,71 @@ document.addEventListener("gloss-modal-visible", function(event){
     glossTextElem.dispatchEvent(new Event('input', { bubbles: true }))
 })
 
+function populateManuscriptWitnessChoices(matches){
+    if(typeof matches === "string") matches = [matches]
+    matches.forEach(id => {
+        const choice = document.createElement("div")
+        const view = document.createElement("deer-view")
+        view.setAttribute("deer-id", id)
+        view.setAttribute("deer-template", "shelfmark")
+        view.innerText = "loading..."
+        choice.setAttribute("manuscript", id)
+        choice.addEventListener("click", chooseManuscriptWitness)
+        choice.appendChild(view)
+        manuscriptsResult.appendChild(choice)
+        broadcast(undefined, "deer-view", view, { set: [view] })
+    })
+}
+
 checkForManuscriptsBtn.addEventListener('click', async (ev) => {
     const shelfmarkElem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
     if(shelfmarkElem.hasAttribute("disabled")){
         shelfmarkElem.removeAttribute("disabled")
         checkForManuscriptsBtn.value = "Check for Existing Manuscript Witnesses"
         submitManuscriptsBtn.classList.add("is-hidden")
+        manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.remove("is-hidden"))
         return
     }
-    const matches = await getManuscriptWitnessesFromShelfmark(shelfmarkElem.value.trim())
-    if(!matches.length) {
+    const match = await getManuscriptWitnessFromShelfmark(shelfmarkElem.value.trim())
+    if(!match) {
         checkForManuscriptsBtn.value = "No Witnesses Found.  Change Shelfmark to Try Again."
         submitManuscriptsBtn.classList.remove("is-hidden")
         shelfmarkElem.setAttribute("disabled", "")
         manuscriptsFound.classList.add("is-hidden")
+        manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
         manuscriptsResult.innerHTML = ""
         return
     }
+    populateManuscriptWitnessChoices(match)
     submitManuscriptsBtn.classList.add("is-hidden")
-    matches.forEach(id => {
-        manuscriptsResult.insertAdjacentHTML('beforeend', `<a href="witness-profile.html#${id.split('/').pop()}">${id}</a>`)
-    })
     manuscriptsFound.classList.remove("is-hidden")
+    manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
 })
 
-/**
- * At the Witness Fragment level, there exists some selected text from a document.
- * That document is a "Manuscript Witness".
- * In general, there should only be one "Manuscript Witness" per unique source (we will track as an array tho, just in case)
- * 
- * @param source A String that is either a text body or a URI to a text resource with a text body.
- */ 
-async function getManuscriptWitnessFromSource(source){
-    const historyWildcard = { "$exists": true, "$size": 0 }
-    const isURI = (urlString) => {
-          try { 
-            return Boolean(new URL(urlString))
-          }
-          catch(e){ 
-            return false
-          }
-      }
-
-    if(!isURI){
-        const ev = new CustomEvent("Under Construction")
-        globalFeedbackBlip(ev, `You can only provide sources as a URI for now.  Try again later.`, false)
-        return
-    }
-
-    // Each source annotation targets a Witness.
-    // Get all the source annotations whose value is this source string (URI or text string)
-    // Note both the Manscript Witness and Witness Fragment will have this source, we just want to know the Manuscript Witnesses.
-    const sourceAnnosQuery = {
-        "body.source.value": httpsIdArray(source),
-        "__rerum.history.next": historyWildcard,
-        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-    }
-
-    const witnessUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
-    .then(async(annos) => {
-        const manuscriptWitnessesOnly = annos.map(async(anno) => {
-            const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "TextWitness"){
-                return anno.target
-            }
-        })
-        return new Set(manuscriptWitnessesOnly)
-    })
-    .catch(err => {
-        console.error(err)
-        throw err
-    })
-
-    console.log(`The following Manuscript Witnesses already exist with source ${source}`)
-    console.log([...witnessUriSet.values()])
-
-    if(witnessUriSet.size === 0){
-        console.error("There is no Manuscript Witness with this source")
-        return
-    }
-    else if(witnessUriSet.size > 1){
-        console.error("There are many Manuscript Witnesses and a logical choice cannot be made.")
-        return
-    }
-    
-    // There should only be one unique entry.  If so, we just need to return the first next() in the set iterator.
-    // return [...witnessUriSet.values()]
-    return witnessUriSet.values().next().value
+function chooseManuscriptWitness(ev){
+    const manuscriptChoiceElem = ev.target.tagName === "DEER-VIEW" ? ev.target.parentElement : ev.target
+    const manuscriptID = manuscriptChoiceElem.getAttribute("manuscript")
+    const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
+    const shelfmark = manuscriptChoiceElem.querySelector("deer-view").innerText
+    partOfElem.value = manuscriptID
+    partOfElem.setAttribute("value", manuscriptID )
+    partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
+    toggleFieldsDisabled(manuscriptWitnessForm, true)
+    manuscriptWitnessForm.querySelectorAll("input[type='button']").forEach(btn => btn.classList.add("is-hidden"))
+    witnessFragmentForm.classList.remove("is-hidden")
+    providedShelfmark.innerText = shelfmark
+    providedShelfmark.setAttribute("href", `manuscript-details.html#${manuscriptID}`)
+    existingManuscriptWitness = manuscriptID
+    manuscriptsFound.classList.add("is-hidden")
+    manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.remove("is-hidden"))
+    document.querySelectorAll(".manuscript-needed").forEach(el => el.classList.remove("is-hidden"))
+    console.log("Manuscript Witness Has Been Loaded In")
+    const e = new CustomEvent("Manuscript Witness Loaded")
+    globalFeedbackBlip(e, `Manuscript Witness Loaded`, true)
+    return
 }
 
-async function getManuscriptWitnessesFromShelfmark(shelfmark=null){
+async function getManuscriptWitnessFromShelfmark(shelfmark=null){
     const historyWildcard = { "$exists": true, "$size": 0 }
     if(!shelfmark){
         const ev = new CustomEvent("No shelfmark provided")
@@ -118,13 +93,13 @@ async function getManuscriptWitnessesFromShelfmark(shelfmark=null){
     // Each shelfmark annotation targets a Witness entity.
     // Get all the shelfmark annotations whose value is this shelfmark string
     // Note both the Manscript Witness and Witness Fragment will have this shelfmark, we just want to know the Manuscript Witnesses.
-    const sourceAnnosQuery = {
+    const shelfmarkAnnosQuery = {
         "body.identifier.value": httpsIdArray(shelfmark),
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
 
-    const witnessUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
+    const manuscriptUriSet = await getPagedQuery(100, 0, shelfmarkAnnosQuery)
     .then(async(annos) => {
         let manuscriptWitnessesOnly = new Set()
         for await (const anno of annos){
@@ -141,27 +116,29 @@ async function getManuscriptWitnessesFromShelfmark(shelfmark=null){
     })
 
     console.log(`The following Manuscript Witnesses already exist with shelfmark ${shelfmark}`)
-    console.log([...witnessUriSet.values()])
+    console.log([...manuscriptUriSet.values()])
 
-    if(witnessUriSet.size === 0){
-        console.log(`There is no Manuscript Witness with this shelfmark: '${shelfmark}'`)
+    if(manuscriptUriSet.size === 0){
+        console.error(`There is no Manuscript Witness with this shelfmark`)
+        return
     }
-    else{
-        console.log("There are some Manuscript Witnesses and a choice must be made.")
-        manuscriptWitnessForm.querySelectorAll(".manuscript-needed").forEach(el => el.classList.add("is-hidden"))
-        // TODO offer the user a choice on which to pick.
+    else if (manuscriptUriSet.size > 1){
+        console.error("There are multiple Manuscript Witnesses with this shelfmark and there should only be one.  This is an error.")
+        return
     }
     
-    return [...witnessUriSet.values()]
+    // There should only be one unique entry.  If so, we just need to return the first next() in the set iterator.
+    return manuscriptUriSet.values().next().value
 }
 
-async function getManuscriptWitnessesFromFragment(fragmentURI){
+async function getManuscriptWitnessFromFragment(fragmentURI=null){
+    if(!fragmentURI){
+        const ev = new CustomEvent("No Text Fragment URI provided")
+        globalFeedbackBlip(ev, `You must provide the text fragment URI.`, false)
+        return
+    }
     const historyWildcard = { "$exists": true, "$size": 0 }
     // A fragment will have partOf Annotation(s) targeting it.  They will list the Manuscript Witness URI.
-
-    // Each shelfmark annotation targets a Witness entity.
-    // Get all the shelfmark annotations whose value is this shelfmark string
-    // Note both the Manscript Witness and Witness Fragment will have this shelfmark, we just want to know the Manuscript Witnesses.
     const partOfAnnosQuery = {
         "body.partOf.value": {"$exists":true},
         "target": httpsIdArray(fragmentURI),
@@ -169,7 +146,7 @@ async function getManuscriptWitnessesFromFragment(fragmentURI){
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
 
-    const witnessUriSet = await getPagedQuery(100, 0, partOfAnnosQuery)
+    const manuscriptUriSet = await getPagedQuery(100, 0, partOfAnnosQuery)
     .then(async(annos) => {
         let manuscriptWitnessesOnly = new Set()
         for await (const anno of annos){
@@ -186,22 +163,107 @@ async function getManuscriptWitnessesFromFragment(fragmentURI){
     })
 
     console.log(`This Witness Fragment is part of the following Manuscript Witness`)
-    console.log(witnessUriSet.values())
+    console.log(manuscriptUriSet.values())
 
-    if(witnessUriSet.size === 0){
+    if(manuscriptUriSet.size === 0){
         console.error(`There is no Manuscript Witness for this Witness Fragment`)
-        manuscriptWitnessForm.querySelectorAll(".manuscript-needed").forEach(el => el.classList.add("is-hidden"))
         return
     }
-    else if (witnessUriSet.size > 1){
+    else if (manuscriptUriSet.size > 1){
         console.error("There are multiple Manuscript Witnesses and a choice must be made.")
-        manuscriptWitnessForm.querySelectorAll(".manuscript-needed").forEach(el => el.classList.add("is-hidden"))
         return
     }
     
     // There should only be one unique entry.  If so, we just need to return the first next() in the set iterator.
-    // return [...witnessUriSet.values()]
-    return witnessUriSet.values().next().value
+    return manuscriptUriSet.values().next().value
+}
+
+async function getManuscriptWitnessFromSource(source=null){
+    if(!source){
+        const ev = new CustomEvent("No source provided")
+        globalFeedbackBlip(ev, `You must provide a source.`, false)
+        return
+    }
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    const isURI = (urlString) => {
+          try { 
+            return Boolean(new URL(urlString))
+          }
+          catch(e){ 
+            return false
+          }
+      }
+
+    if(!isURI){
+        const ev = new CustomEvent("Under Construction")
+        globalFeedbackBlip(ev, `You can only provide sources as a URI for now.  Try again later.`, false)
+        return
+    }
+    let manuscriptUriSet = null
+
+    // Each source annotation targets a Witness.  Only need one because they will all target the same Witness
+    const sourceAnnosQuery = {
+        "body.source.value": httpsIdArray(source),
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+
+    const fragmentUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
+    .then(async(annos) => {
+        const fragmentsOnly = annos.map(async(anno) => {
+            const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
+            if(entity["@type"] && entity["@type"] === "TextFragment"){
+                return anno.target
+            }
+        })
+        return new Set(fragmentsOnly)
+    })
+    .catch(err => {
+        console.error(err)
+        throw err
+    })
+
+    if(fragmentUriSet.size === 0){
+        console.error("There is no Manuscript Witness with this source")
+        return
+    }
+
+    // There are many fragments with this source.  Those fragments are all a part of one Manuscript Witness.
+    // We only need to check for the partOf Annotation on one fragment, even though we know them all.
+    const fragmentURI = fragmentUriSet.values().next().value
+
+    //each fragment has partOf Annotations letting you know the Manuscripts it is a part of.
+    const partOfAnnosQuery = {
+        "body.partOf.value": {"$exists":true},
+        "target": httpsIdArray(fragmentURI),
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    manuscriptUriSet = await getPagedQuery(100, 0, partOfAnnosQuery)
+    .then(async(annos) => {
+        let manuscriptWitnessesOnly = new Set()
+        for await (const anno of annos){
+            const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(err => {throw err})
+            if(entity["@type"] && entity["@type"] === "TextWitness"){
+                manuscriptWitnessesOnly.add(anno.body.partOf.value)
+            }
+        }
+        return manuscriptWitnessesOnly
+    })
+    .catch(err => {
+        console.error(err)
+        throw err
+    })
+    
+    if(manuscriptUriSet.size === 0){
+        console.error("There is no Manuscript Witness with this source")
+        return
+    }
+    else if(fragmentUriSet.size > 1){
+        console.error("There are many Manuscript Witnesses when we only expect one.")
+        return
+    }
+    return manuscriptUriSet.values().next().value
 }
 
 /**
@@ -301,7 +363,6 @@ window.onload = async () => {
     setListings()
     if(witnessFragmentID){
         sourceURI = null
-        
     }
     else if(sourceURI){
         
@@ -311,11 +372,13 @@ window.onload = async () => {
         loading.classList.add("is-hidden")
     }
     const deleteWitnessButton = document.querySelector(".deleteWitness")
+
     if(witnessFragmentID){
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
         addEventListener('deer-form-rendered', initFragmentForm)
         addEventListener('deer-form-rendered', initWitnessForm)
-        existingManuscriptWitness = await getManuscriptWitnessesFromFragment(witnessFragmentID)
+        addEventListener('source-text-loaded', getAllWitnessFragmentsOfManuscript)
+        existingManuscriptWitness = await getManuscriptWitnessFromFragment(witnessFragmentID)
         .then(existingWitnessURI => existingWitnessURI)
         .catch(err => {
             const ev = new CustomEvent("Query Error")
@@ -343,31 +406,12 @@ window.onload = async () => {
         witnessFragmentForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(sourceURI) {
             // special handler for ?wintess-uri=
+            addEventListener('source-text-loaded', getAllWitnessFragmentsOfSource)
             addEventListener('deer-form-rendered', initWitnessForm)
-            existingManuscriptWitness = await getManuscriptWitnessFromSource(sourceURI)
-                .then(existingWitnessURI => existingWitnessURI)
-                .catch(err => {
-                    const ev = new CustomEvent("Query Error")
-                    globalFeedbackBlip(ev, `The check for existing Witnesses failed.`, false)
-                    throw err
-                })
-            needs.classList.add("is-hidden")
-            reset.classList.remove("is-hidden")
-            document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
-            document.querySelector(".lineSelector").setAttribute("source-uri", sourceURI)
-            dig_locations.forEach(dig_location => {
-                dig_location.value = sourceURI
-                dig_location.setAttribute("value", sourceURI)
-                dig_location.dispatchEvent(new Event('input', { bubbles: true }))
-            })
-            if(existingManuscriptWitness){
-                manuscriptWitnessCheck.classList.add("is-hidden")
-                manuscriptWitnessForm.setAttribute("deer-id", existingManuscriptWitness)
-            }
-            else{
-                loading.classList.add("is-hidden")
-                manuscriptWitnessForm.classList.remove("is-hidden")
-            }
+            const match = await getManuscriptWitnessFromSource(sourceURI)
+            loading.classList.add("is-hidden")
+            manuscriptWitnessForm.classList.remove("is-hidden")
+            if(match) populateManuscriptWitnessChoices(match)
         }
     }
 
@@ -786,23 +830,6 @@ addEventListener('deer-updated', event => {
 
     // Hmm maybe do this separation of handling a bit different.
     if($elem?.id === "manuscriptWitnessForm"){
-        const sourceElem = $elem.querySelector("input[custom-key='source']")
-        if(!sourceElem.value){
-            // Do We need to catch and handle?  Not sure yet.
-            console.error("This is real bad.  There is no source, and that should not be possible.")
-        }
-        const sourceAnno = {
-            "@context": "http://www.w3.org/ns/anno.jsonld",
-            "@type": "Annotation",
-            "body": {
-                "source":{
-                    "value":[sourceElem.value]
-                }
-            },
-            "target": entityID,
-            "creator" : window.GOG_USER["http://store.rerum.io/agent"]
-        }
-
         // We generated the Manuscript Witness and can use this ID as part of the fragment for submit
         const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
         partOfElem.value = event.detail["@id"] 
@@ -813,26 +840,9 @@ addEventListener('deer-updated', event => {
         witnessFragmentForm.classList.remove("is-hidden")
         providedShelfmark.innerText = event.detail?.identifier?.value
         providedShelfmark.setAttribute("href", `manuscript-details.html#${event.detail["@id"]}`)
-        fetch(`${__constants.tiny}/create`, {
-            method: "POST",
-            mode: "cors",
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            },
-            body: JSON.stringify(sourceAnno)
-        })
-        .then(success => {
-            console.log("Manuscript Witness Fully Saved")
-            const ev = new CustomEvent("Manuscript Witness Submitted")
-            globalFeedbackBlip(ev, `Manuscript Witness Submitted!`, true)
-        })
-        .catch(err => {
-            console.error("Manuscript Witness Source Error")
-            console.error(err)
-            const ev = new CustomEvent("Manuscript Witness Source Error")
-            globalFeedbackBlip(ev, `Manuscript Witness Source Error`, false)
-        })
+        console.log("Manuscript Witness Fully Saved")
+        const ev = new CustomEvent("Manuscript Witness Submitted")
+        globalFeedbackBlip(ev, `Manuscript Witness Submitted!`, true)
         return
     }
     else if($elem?.id  !== "witnessFragmentForm") return
@@ -1005,9 +1015,9 @@ function addButton(event) {
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")
     inclusionBtn.setAttribute("data-id", obj["@id"])
-    let already = false
-    if(witnessesObj?.referencedGlosses){
-        already = witnessesObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
+    let already = ""
+    if(witnessFragmentsObj?.referencedGlosses){
+        already = witnessFragmentsObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
     }
     if(updateScenario){
         inclusionBtn.setAttribute("disabled", "")
@@ -1242,4 +1252,267 @@ function paginateButtonsAfterSubmit(glossURIs){
  */ 
 function startOver(){
     window.location = window.location.origin + window.location.pathname
+}
+
+/**
+ * @param source A String that is either a text body or a URI to a text resource.
+ */ 
+async function getAllWitnessFragmentsOfManuscript(mID){
+    if(!document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
+        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
+    }
+    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
+    if(Object.keys(witnessFragmentsObj).length > 0){
+        for(const witnessInfo in Object.values(witnessFragmentsObj)){
+            witnessInfo.glosses.forEach(glossURI => {
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
+                    btn.classList.add("attached-to-source")
+                })    
+            })
+            preselectLines(witnessInfo.selections, witnessForm, false)
+        }
+        return
+    }
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    const isURI = (urlString) => {
+          try { 
+            return Boolean(new URL(urlString))
+          }
+          catch(e){ 
+            return false
+          }
+      }
+
+    // Each Fragment is partOf a Manuscript.
+    const fragmentAnnosQuery = {
+        "body.partOf.value": httpsIdArray(mID),
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+
+    const fragmentUriSet = await getPagedQuery(100, 0, fragmentAnnosQuery)
+    .then(annos => {
+        return new Set(annos.map(anno => anno.target))
+    })
+    .catch(err => {
+        console.error(err)
+        return Promise.reject([])
+    })
+
+    let glossUriSet = new Set()
+    // Each witness has Gloss and Selections
+    
+    let all = []
+    for (const fragmentURI of fragmentUriSet){
+        // Each Witness has an Annotation whose body.value references [a Gloss]
+        const referencesAnnosQuery = {
+            "target" : httpsIdArray(fragmentURI),
+            "body.references.value": { $exists:true },
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        // It also has selections we need to highlight
+        const selectionsAnnosQuery = {
+            "target" : httpsIdArray(fragmentURI),
+            "body.selections.value": { $exists:true },
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(referencesAnnosQuery)
+        })
+        .then(response => response.json())
+        .then(annos => {
+            if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
+            witnessFragmentsObj[fragmentURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
+            glossUriSet = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
+            return Promise.resolve(witnessFragmentsObj)
+        })
+        .catch(err => {
+            console.error(err)
+            return Promise.reject([])
+        }))
+
+        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(selectionsAnnosQuery)
+        })
+        .then(response => response.json())
+        .then(annos => {
+            if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
+            const existingSelections = witnessFragmentsObj[fragmentURI].selections ? witnessFragmentsObj[fragmentURI].selections : []
+            witnessFragmentsObj[fragmentURI].selections = [...existingSelections, ...annos.map(anno => anno.body.selections.value).flat()]
+            return Promise.resolve(witnessFragmentsObj)
+        })
+        .catch(err => {
+            console.error(err)
+            return Promise.reject([])
+        })
+        )
+    }
+
+    // This has the asyncronous behavior necessary to build witnessFragmentsObj.
+    Promise.all(all)
+    .then(success => {
+        witnessFragmentsObj.referencedGlosses = glossUriSet
+        for(const fragmentURI in witnessFragmentsObj){
+            if(fragmentURI === "referencedGlosses") continue
+            const witnessInfo = witnessFragmentsObj[fragmentURI]
+            witnessInfo.glosses.forEach(glossURI => {
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
+                    btn.classList.add("attached-to-source")
+                })    
+            })
+            preselectLines(witnessInfo.selections, manuscriptWitnessForm, false)
+        }
+    })
+    .catch(err => {
+        console.error("Witnesses Object Error")
+        console.error(err)
+        const ev = new CustomEvent("Witnesses Object Error")
+        globalFeedbackBlip(ev, `Witnesses Object Error`, false)
+    })
+}
+
+/**
+ * @param source A String that is either a text body or a URI to a text resource.
+ */ 
+async function getAllWitnessFragmentsOfSource(){
+    if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
+        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
+    }
+    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
+    if(Object.keys(witnessFragmentsObj).length > 0){
+        for(const witnessInfo in Object.values(witnessFragmentsObj)){
+            witnessInfo.glosses.forEach(glossURI => {
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
+                    btn.classList.add("attached-to-source")
+                })    
+            })
+            preselectLines(witnessInfo.selections, witnessForm, false)
+        }
+        return
+    }
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    const isURI = (urlString) => {
+          try { 
+            return Boolean(new URL(urlString))
+          }
+          catch(e){ 
+            return false
+          }
+      }
+
+    // Each source annotation targets a Witness.
+    // Get all the source annotations whose value is this source string (URI or text string)
+    const sourceAnnosQuery = {
+        "body.source.value": httpsIdArray(sourceURI),
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+
+    const fragmentUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
+    .then(annos => {
+        return new Set(annos.map(anno => anno.target))
+    })
+    .catch(err => {
+        console.error(err)
+        return Promise.reject([])
+    })
+
+    let glossUriSet = new Set()
+    // Each witness has Gloss and Selections
+    
+    let all = []
+    for (const fragmentURI of fragmentUriSet){
+        // Each Witness has an Annotation whose body.value references [a Gloss]
+        const referencesAnnosQuery = {
+            "target" : httpsIdArray(fragmentURI),
+            "body.references.value": { $exists:true },
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        // It also has selections we need to highlight
+        const selectionsAnnosQuery = {
+            "target" : httpsIdArray(fragmentURI),
+            "body.selections.value": { $exists:true },
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(referencesAnnosQuery)
+        })
+        .then(response => response.json())
+        .then(annos => {
+            if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
+            witnessFragmentsObj[fragmentURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
+            glossUriSet = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
+            return Promise.resolve(witnessFragmentsObj)
+        })
+        .catch(err => {
+            console.error(err)
+            return Promise.reject([])
+        }))
+
+        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(selectionsAnnosQuery)
+        })
+        .then(response => response.json())
+        .then(annos => {
+            if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
+            const existingSelections = witnessFragmentsObj[fragmentURI].selections ? witnessFragmentsObj[fragmentURI].selections : []
+            witnessFragmentsObj[fragmentURI].selections = [...existingSelections, ...annos.map(anno => anno.body.selections.value).flat()]
+            return Promise.resolve(witnessFragmentsObj)
+        })
+        .catch(err => {
+            console.error(err)
+            return Promise.reject([])
+        })
+        )
+    }
+
+    // This has the asyncronous behavior necessary to build witnessFragmentsObj.
+    Promise.all(all)
+    .then(success => {
+        witnessFragmentsObj.referencedGlosses = glossUriSet
+        for(const fragmentURI in witnessFragmentsObj){
+            if(fragmentURI === "referencedGlosses") continue
+            const witnessInfo = witnessFragmentsObj[fragmentURI]
+            witnessInfo.glosses.forEach(glossURI => {
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
+                    btn.classList.add("attached-to-source")
+                })    
+            })
+            preselectLines(witnessInfo.selections, witnessForm, false)
+        }
+    })
+    .catch(err => {
+        console.error("Witnesses Object Error")
+        console.error(err)
+        const ev = new CustomEvent("Witnesses Object Error")
+        globalFeedbackBlip(ev, `Witnesses Object Error`, false)
+    })
 }

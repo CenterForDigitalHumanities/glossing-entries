@@ -71,7 +71,7 @@ customElements.define('custom-confirm-modal', CustomConfirmModal)
 /**
  * Shared front end functionality across the HTML pages.
  */
-let witnessesObj = {}
+let witnessFragmentsObj = {}
 
 //For when we test, so we can easily find and blow away junk data
 setTimeout(() => {
@@ -350,6 +350,7 @@ async function findMatchingIncipits(incipit, titleStart) {
         })
 }
 
+
 /**
  * @param source A String that is either a text body or a URI to a text resource.
  */ 
@@ -358,8 +359,8 @@ async function getAllWitnessesOfSource(source){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
     }
     // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
-    if(Object.keys(witnessesObj).length > 0){
-        for(const witnessInfo in Object.values(witnessesObj)){
+    if(Object.keys(witnessFragmentsObj).length > 0){
+        for(const witnessInfo in Object.values(witnessFragmentsObj)){
             witnessInfo.glosses.forEach(glossURI => {
                 // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
                 document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
@@ -426,10 +427,10 @@ async function getAllWitnessesOfSource(source){
         })
         .then(response => response.json())
         .then(annos => {
-            if(!witnessesObj.hasOwnProperty(witnessURI)) witnessesObj[witnessURI] = {}
-            witnessesObj[witnessURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
+            if(!witnessFragmentsObj.hasOwnProperty(witnessURI)) witnessFragmentsObj[witnessURI] = {}
+            witnessFragmentsObj[witnessURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
             glossUriSet = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
-            return Promise.resolve(witnessesObj)
+            return Promise.resolve(witnessFragmentsObj)
         })
         .catch(err => {
             console.error(err)
@@ -446,10 +447,10 @@ async function getAllWitnessesOfSource(source){
         })
         .then(response => response.json())
         .then(annos => {
-            if(!witnessesObj.hasOwnProperty(witnessURI)) witnessesObj[witnessURI] = {}
-            const existingSelections = witnessesObj[witnessURI].selections ? witnessesObj[witnessURI].selections : []
-            witnessesObj[witnessURI].selections = [...existingSelections, ...annos.map(anno => anno.body.selections.value).flat()]
-            return Promise.resolve(witnessesObj)
+            if(!witnessFragmentsObj.hasOwnProperty(witnessURI)) witnessFragmentsObj[witnessURI] = {}
+            const existingSelections = witnessFragmentsObj[witnessURI].selections ? witnessFragmentsObj[witnessURI].selections : []
+            witnessFragmentsObj[witnessURI].selections = [...existingSelections, ...annos.map(anno => anno.body.selections.value).flat()]
+            return Promise.resolve(witnessFragmentsObj)
         })
         .catch(err => {
             console.error(err)
@@ -458,13 +459,13 @@ async function getAllWitnessesOfSource(source){
         )
     }
 
-    // This has the asyncronous behavior necessary to build witnessesObj.
+    // This has the asyncronous behavior necessary to build witnessFragmentsObj.
     Promise.all(all)
     .then(success => {
-        witnessesObj.referencedGlosses = glossUriSet
-        for(const witnessURI in witnessesObj){
+        witnessFragmentsObj.referencedGlosses = glossUriSet
+        for(const witnessURI in witnessFragmentsObj){
             if(witnessURI === "referencedGlosses") continue
-            const witnessInfo = witnessesObj[witnessURI]
+            const witnessInfo = witnessFragmentsObj[witnessURI]
             witnessInfo.glosses.forEach(glossURI => {
                 // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
                 document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
