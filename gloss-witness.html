@@ -36,6 +36,10 @@
         #reset{
             cursor: pointer;
         }
+        #manuscriptsResult .tag{
+            cursor: pointer;
+            text-transform: none;
+        }
     </style>
 </head>
 
@@ -127,7 +131,7 @@
     <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
     <form id="witnessFragmentForm" class="is-hidden" deer-type="TextFragment" deer-context="http://purl.org/dc/terms"> 
         <p> 
-            Fill out the form below to create a Witness Fragment for the Manuscript loaded in.  Note the Manuscript remains the same for each Fragment you submit. 
+            Fill out the form below to create a Witness Fragment for the Manuscript loaded in.  Submit the Fragment by identifying a Gloss and clicking '➥ attach'.  Note the Manuscript remains the same for each Fragment you submit. 
         </p>
         <input type="hidden" deer-key="partOf" >
         <input type="hidden" deer-key="source" witness-source>

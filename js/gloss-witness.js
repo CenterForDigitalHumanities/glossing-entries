@@ -29,6 +29,7 @@ function populateManuscriptWitnessChoices(matches){
         view.setAttribute("deer-template", "shelfmark")
         view.innerText = "loading..."
         choice.setAttribute("manuscript", id)
+        choice.classList.add("tag")
         choice.addEventListener("click", chooseManuscriptWitness)
         choice.appendChild(view)
         manuscriptsResult.appendChild(choice)
@@ -72,10 +73,12 @@ function chooseManuscriptWitness(ev){
     partOfElem.setAttribute("value", manuscriptID )
     partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
     toggleFieldsDisabled(manuscriptWitnessForm, true)
-    manuscriptWitnessForm.querySelectorAll("input[type='button']").forEach(btn => btn.classList.add("is-hidden"))
+    manuscriptWitnessForm.querySelectorAll(".button").forEach(btn => btn.classList.add("is-hidden"))
+    manuscriptWitnessForm.classList.add("bg-light")
     witnessFragmentForm.classList.remove("is-hidden")
     providedShelfmark.innerText = shelfmark
     providedShelfmark.setAttribute("href", `manuscript-details.html#${manuscriptID}`)
+    providedShelfmark.parentElement.classList.remove("is-hidden")
     existingManuscriptWitness = manuscriptID
     manuscriptsFound.classList.add("is-hidden")
     manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
@@ -370,7 +373,12 @@ window.onload = async () => {
         sourceURI = null
     }
     else if(sourceURI){
-        
+        const sourceElems = document.querySelectorAll("input[witness-source]")
+        sourceElems.forEach(sourceElem => {
+            sourceElem.value = sourceURI
+            sourceElem.setAttribute("value", sourceURI)
+            sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
+        })
     }
     else{
         needs.classList.remove("is-hidden")
@@ -403,10 +411,6 @@ window.onload = async () => {
     }
     else{
         // These items have default values that are dirty on fresh forms.
-        const dig_locations = document.querySelectorAll("input[witness-source]")
-        dig_locations.forEach(dig_location => {
-            dig_location.$isDirty = true
-        })
         witnessFragmentForm.querySelector("select[custom-text-key='language']").$isDirty = true
         witnessFragmentForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(sourceURI) {
@@ -537,11 +541,14 @@ function initWitnessForm(event){
     const knownShelfmark = annotationData.identifier.value
     if(knownShelfmark){
         //toggleFieldsDisabled($elem, true)
-        //$elem.querySelectorAll("input[type='button']").forEach(btn => btn.classList.add("is-hidden"))
-        $elem.classList.add("is-hidden")
+        //$elem.classList.add("is-hidden")
+        $elem.querySelectorAll("input[type='button']").forEach(btn => btn.classList.add("is-hidden"))
         witnessFragmentForm.classList.remove("is-hidden")
+        $elem.classList.add("bg-light")
         providedShelfmark.innerText = knownShelfmark
         providedShelfmark.setAttribute("href", `manuscript-details.html#${annotationData["@id"]}`)
+        providedShelfmark.parentElement.classList.remove("is-hidden")
+        manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
         const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
         partOfElem.value = annotationData["@id"]
         partOfElem.setAttribute("value", event.detail["@id"] )
@@ -842,7 +849,9 @@ addEventListener('deer-updated', event => {
         partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
         toggleFieldsDisabled($elem, true)
         $elem.querySelectorAll("input[type='button']").forEach(btn => btn.classList.add("is-hidden"))
+        $elem.classList.add("bg-light")
         witnessFragmentForm.classList.remove("is-hidden")
+        manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
         providedShelfmark.innerText = event.detail?.identifier?.value
         providedShelfmark.setAttribute("href", `manuscript-details.html#${event.detail["@id"]}`)
         console.log("Manuscript Witness Fully Saved")
