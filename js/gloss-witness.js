@@ -37,6 +37,7 @@ function populateManuscriptWitnessChoices(matches){
     })
     submitManuscriptsBtn.classList.remove("is-hidden")
     checkForManuscriptsBtn.value = "Check Again"
+    manuscriptsFound.classList.remove("is-hidden")
 }
 
 checkForManuscriptsBtn.addEventListener('click', async (ev) => {
@@ -60,7 +61,6 @@ checkForManuscriptsBtn.addEventListener('click', async (ev) => {
         return
     }
     populateManuscriptWitnessChoices(match)
-    manuscriptsFound.classList.remove("is-hidden")
     manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
 })
 
@@ -69,6 +69,7 @@ function chooseManuscriptWitness(ev){
     const manuscriptID = manuscriptChoiceElem.getAttribute("manuscript")
     const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
     const shelfmark = manuscriptChoiceElem.querySelector("deer-view").innerText
+    manuscriptWitnessForm.querySelector("input[deer-key='identifier']").value = shelfmark
     partOfElem.value = manuscriptID
     partOfElem.setAttribute("value", manuscriptID )
     partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
@@ -83,7 +84,6 @@ function chooseManuscriptWitness(ev){
     manuscriptsFound.classList.add("is-hidden")
     manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
     document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
-    if(sourceURI) document.querySelector("source-text-selector").setAttribute("source-uri", sourceURI)
     console.log("Manuscript Witness Has Been Loaded In")
     const e = new CustomEvent("Manuscript Witness Loaded")
     globalFeedbackBlip(e, `Manuscript Witness Loaded`, true)
@@ -218,12 +218,13 @@ async function getManuscriptWitnessFromSource(source=null){
 
     const fragmentUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
     .then(async(annos) => {
-        const fragmentsOnly = annos.map(async(anno) => {
+        const fragments = annos.map(async(anno) => {
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
             if(entity["@type"] && entity["@type"] === "TextFragment"){
                 return anno.target
             }
         })
+        const fragmentsOnly = await Promise.all(fragments).catch(err => {throw err} )
         return new Set(fragmentsOnly)
     })
     .catch(err => {
@@ -267,7 +268,7 @@ async function getManuscriptWitnessFromSource(source=null){
         console.error("There is no Manuscript Witness with this source")
         return
     }
-    else if(fragmentUriSet.size > 1){
+    else if(manuscriptUriSet.size > 1){
         console.error("There are many Manuscript Witnesses when we only expect one.")
         return
     }
@@ -337,7 +338,7 @@ function setWitnessFormDefaults(){
     referencesElem.$isDirty = false
 
     // The source value not change and would need to be captured on the next submit.
-    const sourceElems = document.querySelectorAll("input[witness-source]")
+    const sourceElems = form.querySelectorAll("input[witness-source]")
     sourceElems.forEach(sourceElem => {
         sourceElem.removeAttribute("deer-source")
         sourceElem.$isDirty = true
@@ -379,6 +380,7 @@ window.onload = async () => {
             sourceElem.setAttribute("value", sourceURI)
             sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
         })
+        document.querySelector("source-text-selector").setAttribute("source-uri", sourceURI)
     }
     else{
         needs.classList.remove("is-hidden")
@@ -493,7 +495,6 @@ function initFragmentForm(event){
     const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
     const sourceURI = annotationData?.source?.value
-    if(sourceURI) document.querySelector("source-text-selector").setAttribute("source-uri", sourceURI) 
     referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
     if(ngCollectionList.hasAttribute("ng-list-loaded")){
         prefillReferences(annotationData["references"], ngCollectionList)
@@ -542,13 +543,13 @@ function initWitnessForm(event){
     if(knownShelfmark){
         //toggleFieldsDisabled($elem, true)
         //$elem.classList.add("is-hidden")
-        $elem.querySelectorAll("input[type='button']").forEach(btn => btn.classList.add("is-hidden"))
+        $elem.querySelectorAll(".button").forEach(btn => btn.classList.add("is-hidden"))
         witnessFragmentForm.classList.remove("is-hidden")
         $elem.classList.add("bg-light")
         providedShelfmark.innerText = knownShelfmark
         providedShelfmark.setAttribute("href", `manuscript-details.html#${annotationData["@id"]}`)
         providedShelfmark.parentElement.classList.remove("is-hidden")
-        manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
+        $elem.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
         const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
         partOfElem.value = annotationData["@id"]
         partOfElem.setAttribute("value", event.detail["@id"] )
@@ -848,7 +849,7 @@ addEventListener('deer-updated', event => {
         partOfElem.setAttribute("value", event.detail["@id"] )
         partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
         toggleFieldsDisabled($elem, true)
-        $elem.querySelectorAll("input[type='button']").forEach(btn => btn.classList.add("is-hidden"))
+        $elem.querySelectorAll(".button").forEach(btn => btn.classList.add("is-hidden"))
         $elem.classList.add("bg-light")
         witnessFragmentForm.classList.remove("is-hidden")
         manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
@@ -1284,7 +1285,7 @@ async function getAllWitnessFragmentsOfManuscript(mID){
                     btn.classList.add("attached-to-source")
                 })    
             })
-            preselectLines(witnessInfo.selections, witnessForm, false)
+            preselectLines(witnessInfo.selections, witnessFragmentForm, false)
         }
         return
     }
@@ -1415,7 +1416,7 @@ async function getAllWitnessFragmentsOfSource(){
                     btn.classList.add("attached-to-source")
                 })    
             })
-            preselectLines(witnessInfo.selections, witnessForm, false)
+            preselectLines(witnessInfo.selections, witnessFragmentForm, false)
         }
         return
     }
@@ -1520,7 +1521,7 @@ async function getAllWitnessFragmentsOfSource(){
                     btn.classList.add("attached-to-source")
                 })    
             })
-            preselectLines(witnessInfo.selections, witnessForm, false)
+            preselectLines(witnessInfo.selections, witnessFragmentForm, false)
         }
     })
     .catch(err => {
