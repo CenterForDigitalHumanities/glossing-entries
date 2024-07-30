@@ -280,7 +280,7 @@ async function getManuscriptWitnessFromSource(source=null){
  * This occurs after the user submits a new witness.
  * If they provided a witness URI in the hash, then this is an 'update scenario'. Do not perform the reset.
  */ 
-function setWitnessFormDefaults(){
+function setFragmentFormDefaults(){
     // Continue the session like normal if they had loaded up an existing witness and updated it.
     if(witnessFragmentID) return 
     
@@ -296,22 +296,11 @@ function setWitnessFormDefaults(){
     })
     // For when we test
     document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanTryin")
-    
-    const labelElem = form.querySelector("input[deer-key='title']")
-    labelElem.value = ""
-    labelElem.setAttribute("value", "")
-    labelElem.removeAttribute("deer-source")
-    labelElem.$isDirty = false
 
     // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
-    // const shelfmarkElem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
-    // shelfmarkElem.removeAttribute("deer-source")
-    // shelfmarkElem.$isDirty = true
-
-    const formatElem = form.querySelector("input[custom-text-key='format']")
-    formatElem.removeAttribute("deer-source")
-    formatElem.checked = false
-    formatElem.$isDirty = true
+    const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
+    shelfmarkElem.removeAttribute("deer-source")
+    shelfmarkElem.$isDirty = true
 
     const textElem = form.querySelector("textarea[custom-text-key='text']")
     textElem.value = ""
@@ -339,11 +328,9 @@ function setWitnessFormDefaults(){
 
     // The source value not change and would need to be captured on the next submit.
     const sourceElems = form.querySelectorAll("input[witness-source]")
-    sourceElems.forEach(sourceElem => {
-        sourceElem.removeAttribute("deer-source")
-        sourceElem.$isDirty = true
-    })
-    
+    sourceElem.removeAttribute("deer-source")
+    sourceElem.$isDirty = true
+
     // reset the Glosses filter
     const filter = form.querySelector('input[filter]')
     filter.value = ""
@@ -359,7 +346,14 @@ function setWitnessFormDefaults(){
             sel.empty()
         }
     }
-    console.log("WITNESS FORM RESET")
+
+    //remove marks
+    const lineElem = document.querySelector(".textContent")
+    let unmarkup = new Mark(lineElem)
+    unmarkup.unmark({"className" : "persists"})
+    unmarkup.unmark({"className" : "pre-select"})
+
+    console.log("FRAGMENT FORM RESET")
 }
 
 /**
@@ -752,8 +746,6 @@ function preselectLines(linesArr, form, togglePages) {
             // Do not accidentally overrule a .persists mark (the mark for #witnessURI).  It is both .persists and .pre-select, but .persists takes precedence. 
             const checkInner = quickDecode(lineElem.innerHTML)
             if(checkInner.indexOf('<mark data-markjs="true" class="persists">') === selection[0]) return
-            if(togglePages) lineElem.parentElement.previousElementSibling.classList.add("has-selection")
-            const remark_map = unmarkTPENLineElement(lineElem)
             lineElem.classList.add("has-selection")
             const textLength = lineElem.textContent.length
             const lengthOfSelection = (selection[0] === selection[1]) 
@@ -772,13 +764,6 @@ function preselectLines(linesArr, form, togglePages) {
             console.error(err)
         }
     })
-    if(togglePages){
-        document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
-            if(!tog.classList.contains("is-toggled")){
-                tog.click()
-            }
-        })    
-    }
 }
 
 /**

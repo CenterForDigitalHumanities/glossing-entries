@@ -137,6 +137,7 @@ class WitnessTextSelector extends HTMLElement {
             const lineElem = e.target
             let unmarkup = new Mark(lineElem)
             unmarkup.unmark({"className" : "persists"})
+            unmarkup.unmark({"className" : "pre-select"})
         }
 
         /**
