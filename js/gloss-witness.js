@@ -703,70 +703,6 @@ function prefillReferences(referencesArr, form) {
 }
 
 /**
- * Mark the line selections through mark.js and prepare selection form input.
- * 
- * @param linesArr - A single Witness's text selection.  A flat array of TPEN Project Line id's containing a textual fragment selection #char=x,y.
- * @param form - The form containing the selection input
- * @param togglePages - A flag for whether or not to fire the page toggling UI.  Happens when loading up a witness via the browser hash. 
- */
-function preselectLines(linesArr, form, togglePages) {
-
-    function quickDecode(html) {
-        // This helps with detecting the persists mark and knowing not to write over it.
-        const txt = document.createElement("textarea")
-        txt.innerHTML = html
-        const val = txt.value
-        txt.remove()
-        return val
-    }
-
-    const source = linesArr.source ?? null
-    if (linesArr === undefined) {
-        console.warn("Cannot highlight lines in UI.  There is no data.")
-        return false
-    }
-    linesArr = linesArr.value ?? linesArr
-    if (linesArr.length === 0) {
-        console.warn("There are no lines recorded for this witness")
-        return false
-    }
-    const selectionsElem = form.querySelector("input[custom-key='selections']")
-    let remark_map = {}
-    if(source?.citationSource){
-        selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
-    }
-    if(textWitnessID) selectionsElem.value = linesArr.join("__")
-
-    // Now Mark the lines
-    linesArr.forEach(line => {
-        try{
-            const lineid = line.split("#")[0]
-            const selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
-            const lineElem = document.querySelector(`div[tpen-project-line-id="${lineid}"]`)
-            // Do not accidentally overrule a .persists mark (the mark for #witnessURI).  It is both .persists and .pre-select, but .persists takes precedence. 
-            const checkInner = quickDecode(lineElem.innerHTML)
-            if(checkInner.indexOf('<mark data-markjs="true" class="persists">') === selection[0]) return
-            lineElem.classList.add("has-selection")
-            const textLength = lineElem.textContent.length
-            const lengthOfSelection = (selection[0] === selection[1]) 
-                ? 1
-                : (selection[1] - selection[0]) + 1
-            const markup = new Mark(lineElem)
-            let options = togglePages ? {className:"persists"} : {className:"pre-select"}
-            options.exclude = [".persists"]
-            markup.markRanges([{
-                start: selection[0],
-                length: lengthOfSelection
-            }], options)    
-            remarkTPENLineElements(remark_map)
-        }
-        catch(err){
-            console.error(err)
-        }
-    })
-}
-
-/**
  * Helper function for the specialized references key, which is an Array of URIs.
  * It needs to apply the filter with this Gloss's Label.
  * */
@@ -1260,7 +1196,7 @@ function startOver(){
 /**
  * @param source A String that is either a text body or a URI to a text resource.
  */ 
-async function getAllWitnessFragmentsOfManuscript(mID){
+async function getAllWitnessFragmentsOfManuscript(event){
     if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
     }
@@ -1273,7 +1209,7 @@ async function getAllWitnessFragmentsOfManuscript(mID){
                     btn.classList.add("attached-to-source")
                 })    
             })
-            preselectLines(witnessInfo.selections, witnessFragmentForm, false)
+            //preselectLines(witnessInfo.selections, witnessFragmentForm)
         }
         return
     }
@@ -1289,7 +1225,7 @@ async function getAllWitnessFragmentsOfManuscript(mID){
 
     // Each Fragment is partOf a Manuscript.
     const fragmentAnnosQuery = {
-        "body.partOf.value": httpsIdArray(mID),
+        "body.partOf.value": httpsIdArray(existingManuscriptWitness),
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
@@ -1377,7 +1313,7 @@ async function getAllWitnessFragmentsOfManuscript(mID){
                     btn.classList.add("attached-to-source")
                 })    
             })
-            preselectLines(witnessInfo.selections, manuscriptWitnessForm, false)
+            //preselectLines(witnessInfo.selections, manuscriptWitnessForm)
         }
     })
     .catch(err => {
@@ -1404,7 +1340,7 @@ async function getAllWitnessFragmentsOfSource(){
                     btn.classList.add("attached-to-source")
                 })    
             })
-            preselectLines(witnessInfo.selections, witnessFragmentForm, false)
+            preselectLines(witnessInfo.selections, witnessFragmentForm)
         }
         return
     }
@@ -1509,7 +1445,7 @@ async function getAllWitnessFragmentsOfSource(){
                     btn.classList.add("attached-to-source")
                 })    
             })
-            preselectLines(witnessInfo.selections, witnessFragmentForm, false)
+           preselectLines(witnessInfo.selections, witnessFragmentForm)
         }
     })
     .catch(err => {
