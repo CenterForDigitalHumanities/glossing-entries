@@ -492,9 +492,11 @@ addEventListener('deer-view-rendered', addButton)
 function initFragmentForm(event){
     let whatRecordForm = event.target?.id
     let annotationData = event.detail ?? {}
+    const textSelectionElem = document.querySelector("source-text-selector")
     const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
     const sourceURI = annotationData?.source?.value
+    if(sourceURI)
     referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
     if(ngCollectionList.hasAttribute("ng-list-loaded")){
         prefillReferences(annotationData["references"], ngCollectionList)
@@ -509,10 +511,11 @@ function initFragmentForm(event){
             }
         }
     }
-    if(document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
+    if(textSelectionElem.hasAttribute("source-text-loaded")){
         preselectLines(annotationData["selections"], $elem)    
     }
     else{
+        if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
         addEventListener('source-text-loaded', ev => {
             preselectLines(annotationData["selections"], $elem)
         })
@@ -1273,7 +1276,7 @@ function startOver(){
  * @param source A String that is either a text body or a URI to a text resource.
  */ 
 async function getAllWitnessFragmentsOfManuscript(mID){
-    if(!document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
+    if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
     }
     // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
