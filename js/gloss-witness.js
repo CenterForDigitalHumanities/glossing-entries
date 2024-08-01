@@ -451,7 +451,6 @@ window.onload = async () => {
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
         addEventListener('deer-form-rendered', initFragmentForm)
         addEventListener('deer-form-rendered', initWitnessForm)
-        addEventListener('source-text-loaded', getAllWitnessFragmentsOfManuscript)
         existingManuscriptWitness = await getManuscriptWitnessFromFragment(witnessFragmentID)
         .then(existingWitnessURI => existingWitnessURI)
         .catch(err => {
@@ -563,12 +562,14 @@ function initFragmentForm(event){
         }
     }
     if(textSelectionElem.hasAttribute("source-text-loaded")){
-        preselectLines(annotationData["selections"], $elem)    
+        //TODO this is the 'green' selection
+        //preselectLines(annotationData["selections"], $elem)    
     }
     else{
         if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
         addEventListener('source-text-loaded', ev => {
-            preselectLines(annotationData["selections"], $elem)
+           //TODO this is the 'green' selection
+           // preselectLines(annotationData["selections"], $elem)
         })
     }
     prefillText(annotationData["text"], $elem)
@@ -593,6 +594,7 @@ function initWitnessForm(event){
     let annotationData = event.detail ?? {}
     const $elem = event.target
     if(whatRecordForm !== "manuscriptWitnessForm") return
+    addEventListener('source-text-loaded', getAllWitnessFragmentsOfManuscript)
     const knownShelfmark = annotationData.identifier.value
     if(knownShelfmark){
         activateFragmentForm(annotationData["@id"], knownShelfmark)
@@ -747,9 +749,11 @@ function prefillReferences(referencesArr, form) {
 /**
  * Helper function for the specialized references key, which is an Array of URIs.
  * It needs to apply the filter with this Gloss's Label.
+ * 
  * */
 function preselectLines(linesArr, form) {
     const source = linesArr.source ?? null
+
     if (linesArr === undefined) {
         console.warn("Cannot highlight lines in UI.  There is no data.")
         return false
@@ -759,10 +763,14 @@ function preselectLines(linesArr, form) {
         console.warn("There are no lines recorded for this witness")
         return false
     }
+    const lineElem = form.querySelector(".textContent")
+    const checkInner = quickDecode(lineElem.innerHTML)
+    if(checkInner.indexOf('<mark data-markjs="true" class="persists">') === selection[0]) return
+    const remark_map = unmarkLineElement(lineElem)    
     const lineid = linesArr[0].split("#")[0]
     const selection = linesArr[0].split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
     const selectionsElem = form.querySelector("input[custom-key='selections']")
-    const lineElem = form.querySelector(".textContent")
+    
     if(source?.citationSource){
         selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
     }
@@ -778,6 +786,7 @@ function preselectLines(linesArr, form) {
         start: selection[0],
         length: lengthOfSelection
     }], options)    
+    remarkLineElement(remark_map)
 }
 
 /**
@@ -1250,7 +1259,7 @@ async function getAllWitnessFragmentsOfManuscript(event){
                     btn.classList.add("attached-to-source")
                 })    
             })
-            //preselectLines(witnessInfo.selections, witnessFragmentForm)
+            preselectLines(witnessInfo.selections, witnessFragmentForm)
         }
         return
     }
@@ -1354,6 +1363,7 @@ async function getAllWitnessFragmentsOfManuscript(event){
                     btn.classList.add("attached-to-source")
                 })    
             })
+            preselectLines(witnessInfo.selections, witnessFragmentForm)
         }
         // hmm why not event.target?
         document.querySelector("source-text-selector").classList.remove("is-not-visible")
@@ -1503,4 +1513,145 @@ async function getAllWitnessFragmentsOfSource(event){
         const ev = new CustomEvent("Witnesses Object Error")
         globalFeedbackBlip(ev, `Witnesses Object Error`, false)
     })
+}
+
+/**
+ * Used with preselectLines().  This line element may already contain a mark.  That mark needs to be removed.
+ * Each mark removed will need to be restored later.
+ */ 
+function unmarkLineElement(lineElem){
+    return
+    let remark_map = {}
+    let persistent_map = {}
+    const lineid = lineElem.getAttribute("tpen-line-id")
+    remark_map[lineid] = []
+    persistent_map[lineid] = []
+    for(const mark of lineElem.querySelectorAll(".pre-select")){
+       remark_map[lineid].push(mark.textContent)
+    }
+    for(const mark of lineElem.querySelectorAll(".persists")){
+        persistent_map[lineElem.getAttribute("tpen-line-id")].push(mark.textContent)
+    }
+    const unmarkup = new Mark(lineElem)
+    unmarkup.unmark({"className" : "pre-select"})
+    unmarkup.unmark({"className" : "persists"})
+    const o = {
+        "pre-select" : remark_map,
+        "persists" : persistent_map
+    }
+    return o
+}
+
+/**
+ * Used with capstureSelectedText().  There is a range of line elements and any one of them may already contain a mark.  
+ * Each mark needs to be removed.  Each mark removed will need to be restored later.
+ */ 
+function unmarkLineElements(startEl, stopEl){
+    return
+    let unmarkup = new Mark(startEl)
+    let remark_map = {}
+    let persistent_map = {}
+    const stopID = stopEl.getAttribute("tpen-line-id")
+    // Upstream from this the selection in startEl is checked for a <mark>.  We know it does not have a <mark> here.
+    remark_map[startEl.getAttribute("tpen-line-id")] = []
+    persistent_map[startEl.getAttribute("tpen-line-id")] = []
+    for(const mark of startEl.querySelectorAll(".pre-select")){
+        // For each thing you want to unmark, grab the text so we can remark it
+        remark_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
+    }
+     for(const mark of startEl.querySelectorAll(".persists")){
+        // For each thing you want to unmark, grab the text so we can remark it
+        persistent_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
+    }
+    unmarkup.unmark({"className" : "pre-select"})
+    unmarkup.unmark({"className" : "persists"})
+    if(stopID !== startEl.getAttribute("tpen-line-id")){
+        // The selection happened over multiple lines.  Any of those lines may contain a <mark>.  If they do, it is an invalid selection.
+        let nextEl = startEl.nextElementSibling
+        while(nextEl.getAttribute("tpen-line-id") !== stopID){
+            if(nextEl.nextElementSibling){
+                nextEl = nextEl.nextElementSibling
+            }
+            else{
+                //We are at the end of a page and are going on to the next page.  Get to the next page element and get the first line element.
+                nextEl = nextEl.closest(".pageContainer").nextElementSibling.nextElementSibling.nextElementSibling.firstChild
+            }
+            if(nextEl.querySelector("mark") && stopID !== nextEl.getAttribute("tpen-line-id")){
+                // The user selection contains a <mark> and is invalid.
+                const ev = new CustomEvent("Your selection contained text marked for another selection.  Make a different selection.")
+                globalFeedbackBlip(ev, `Your selection contained text marked for another selection.  Make a different selection.`, false)
+                // remove browser's text selection
+                undoBrowserSelection(s)
+                // rebuild valid marks that were removed
+                remarkTPENLineElements(remark_map)
+                return null
+            }
+            remark_map[nextEl.getAttribute("tpen-line-id")] = []
+            // For each thing you want to unmark, grab the text so we can remark it
+            for(const mark of nextEl.querySelectorAll(".pre-select")){
+                remark_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
+            }
+            for(const mark of nextEl.querySelectorAll(".persists")){
+                persistent_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
+            }
+            unmarkup = new Mark(nextEl)
+            unmarkup.unmark({"className" : "pre-select"})
+            unmarkup.unmark({"className" : "persists"})
+        }
+        // Upstream from this the selection in stopEl is checked for a <mark>.  We know it does not have a <mark> here.
+        remark_map[stopEl.getAttribute("tpen-line-id")] = []
+        for(const mark of stopEl.querySelectorAll(".pre-select")){
+            // For each thing you want to unmark, grab the text so we can remark it
+            remark_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
+        }
+        for(const mark of stopEl.querySelectorAll(".persists")){
+            // For each thing you want to unmark, grab the text so we can remark it
+            persistent_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
+        }
+        unmarkup = new Mark(stopEl)
+        unmarkup.unmark({"className" : "pre-select"})
+        unmarkup.unmark({"className" : "persists"})
+    }
+    return {
+        "pre-select" : remark_map,
+        "persists" : persistent_map
+    }
+}
+
+/**
+ * Replace Marks that were undone during selection object get and set scenarios.
+ * 
+ * @param markData A Map of line ids that correlate to a line element.  The value is an array of strings to Mark within the line element.
+ */ 
+function remarkLineElements(markData){
+    return
+    // restore the marks that were there before the user did the selection
+    for(const id in markData["pre-select"]){
+        const restoreMarkElem = document.querySelector(`div[tpen-line-id="${id}"]`)
+        const markit = new Mark(restoreMarkElem)
+        const strings = markData["pre-select"][id]
+        strings.forEach(str => {
+            markit.mark(str, {
+                diacritics : true,
+                separateWordSearch : false,
+                className : "pre-select",
+                acrossElements : true,
+                accuracy: "complimentary"
+            })    
+        })
+    }
+    for(const id in markData.persists){
+        const restoreMarkElem = document.querySelector(`div[tpen-line-id="${id}"]`)
+        const markit = new Mark(restoreMarkElem)
+        const strings = markData.persists[id]
+        strings.forEach(str => {
+            markit.mark(str, {
+                diacritics : true,
+                separateWordSearch : false,
+                className : "persists",
+                acrossElements : true,
+                accuracy: "complimentary"
+            })    
+        })
+    }
 }

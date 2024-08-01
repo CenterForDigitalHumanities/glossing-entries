@@ -67,6 +67,9 @@ class WitnessTextSelector extends HTMLElement {
                 visibility: hidden;
                 height: 0px;
            }
+           .persists{
+                background-color : var(--color-success);
+           }
         </style>
 
         <h2> Select Witness Text </h2>
