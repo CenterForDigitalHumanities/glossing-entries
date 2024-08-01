@@ -143,7 +143,7 @@ class WitnessTextSelector extends HTMLElement {
             const lineElem = e.target
             let unmarkup = new Mark(lineElem)
             unmarkup.unmark({"className" : "persists"})
-            unmarkup.unmark({"className" : "pre-select"})
+            //unmarkup.unmark({"className" : "pre-select"})
         }
 
         /**
@@ -165,6 +165,13 @@ class WitnessTextSelector extends HTMLElement {
             // Only if there is an actual text selection
             const selectedText = s.toString() ? s.toString() : ""
             if(!selectedText) {
+                return
+            }
+            if(s.baseNode.parentElement.tagName === "MARK" || s.extentNode.parentElement.tagName === "MARK"){
+                const ev = new CustomEvent("Your selection contained text marked for another selection.  Make a different selection.")
+                globalFeedbackBlip(ev, `Your selection contained text marked for another selection.  Make a different selection.`, false)
+                //remove browser's text selection
+                undoBrowserSelection(s)
                 return
             }
             const $form = lineElem.closest("form")

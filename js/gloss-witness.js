@@ -356,6 +356,11 @@ function setFragmentFormDefaults(){
     shelfmarkElem.removeAttribute("deer-source")
     shelfmarkElem.$isDirty = true
 
+    // It remains a partOf the same Manifest.
+    const partOfElem = form.querySelector("input[deer-key='partOf']")
+    partOfElem.removeAttribute("deer-source")
+    partOfElem.$isDirty = true
+
     const textElem = form.querySelector("textarea[custom-text-key='text']")
     textElem.value = ""
     textElem.setAttribute("value", "")
@@ -407,11 +412,10 @@ function setFragmentFormDefaults(){
         }
     }
 
-    //remove marks
+    //Change the .persist marks to .pre-select marks now represent the existing selection.
     const lineElem = document.querySelector(".textContent")
-    let unmarkup = new Mark(lineElem)
-    unmarkup.unmark({"className" : "persists"})
-    unmarkup.unmark({"className" : "pre-select"})
+    lineElem.querySelector(".persists").classList.add("pre-select")
+    lineElem.querySelector(".persists").classList.remove("persists")
 
     console.log("FRAGMENT FORM RESET")
 }
