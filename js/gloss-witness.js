@@ -1220,7 +1220,6 @@ function paginateButtonsAfterSubmit(glossURIs){
 
 /**
  * Remove all URL parameters and restart the user flow on gloss-witness.html
- * FIXME not used anywhere but maybe we want to offer this to the user in a button or something.
  */ 
 function startOver(){
     window.location = window.location.origin + window.location.pathname
