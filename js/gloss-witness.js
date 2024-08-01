@@ -526,7 +526,7 @@ addEventListener('deer-view-rendered', showNgList)
 
 function showNgList(event){
     if(event.target.id === "ngCollectionList"){
-        event.target.classList.remove("is-hidden")
+        event.target.classList.remove("is-not-visible")
         // This listener is no longer needed.
         removeEventListener('deer-view-rendered', showNgList)
     }
@@ -1353,7 +1353,7 @@ async function getAllWitnessFragmentsOfManuscript(event){
             })
         }
         // hmm why not event.target?
-        document.querySelector("source-text-selector").classList.remove("is-hidden")
+        document.querySelector("source-text-selector").classList.remove("is-not-visible")
     })
     .catch(err => {
         console.error("Witnesses Object Error")
@@ -1491,7 +1491,7 @@ async function getAllWitnessFragmentsOfSource(event){
             })
             preselectLines(witnessInfo.selections, witnessFragmentForm)
             // hmm why not event.target?
-            document.querySelector("source-text-selector").classList.remove("is-hidden")
+            document.querySelector("source-text-selector").classList.remove("is-not-visible")
         }
     })
     .catch(err => {

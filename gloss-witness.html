@@ -47,6 +47,9 @@
         gloss-modal-button{
             display: none !important;
         }
+        .is-not-visible{
+            visibility: hidden;
+        }
     </style>
 </head>
 
@@ -177,9 +180,9 @@
         <input class="is-hidden button primary" type="submit" value="Create Selection Fragment"/>
         <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
         <div class="row">
-            <source-text-selector class="lineSelector is-hidden col-7-md col-6-sm"> </source-text-selector>
-            <deer-view class="is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
-            Loading&hellip;
+            <source-text-selector class="lineSelector col-7-md col-6-sm"> </source-text-selector>
+            <deer-view class="col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            Loading Gloss Picker&hellip;
             </deer-view>  
         </div>
     </form>

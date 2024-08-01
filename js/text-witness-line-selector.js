@@ -72,7 +72,7 @@ class WitnessTextSelector extends HTMLElement {
         <h2> Select Witness Text </h2>
         <input type="hidden" custom-key="selections" />
         <div title="Collapse Witness Text Area" class="toggle is-hidden">&#9660;</div>
-        <div class="witnessText col"></div>
+        <div class="witnessText col"> Loading Source Text&hellip; </div>
     `
     constructor() {
         super()
@@ -129,6 +129,7 @@ class WitnessTextSelector extends HTMLElement {
         // Newlines (/r and /n) result in <br> separations when doing elem.innerText.  This makes it more difficult to do Selection selectors.
         just_text = textForUI.replace(/(\r\n|\n|\r)/gm, "")
         plaintext.innerText = just_text
+        witnessTextElem.innerText = ""
         witnessTextElem.appendChild(plaintext)
         plaintext.onmousedown = clearMarks
         plaintext.onmouseup = captureSelectedPlainText
