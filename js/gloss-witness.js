@@ -475,6 +475,7 @@ window.onload = async () => {
             addEventListener('deer-form-rendered', initWitnessForm)
             const match = await getManuscriptWitnessFromSource(sourceURI)
             manuscriptWitnessForm.classList.remove("is-hidden")
+            loading.classList.add("is-hidden")
             if(match) populateManuscriptWitnessChoices(match)
         }
     }
@@ -543,7 +544,6 @@ function initFragmentForm(event){
     const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
     const sourceURI = annotationData?.source?.value
-    if(sourceURI)
     referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
     if(ngCollectionList.hasAttribute("ng-list-loaded")){
         prefillReferences(annotationData["references"], ngCollectionList)
