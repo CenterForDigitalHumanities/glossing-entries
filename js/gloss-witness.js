@@ -474,7 +474,6 @@ window.onload = async () => {
             addEventListener('source-text-loaded', getAllWitnessFragmentsOfSource)
             addEventListener('deer-form-rendered', initWitnessForm)
             const match = await getManuscriptWitnessFromSource(sourceURI)
-            loading.classList.add("is-hidden")
             manuscriptWitnessForm.classList.remove("is-hidden")
             if(match) populateManuscriptWitnessChoices(match)
         }
@@ -518,6 +517,20 @@ window.onload = async () => {
  * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
  */ 
 addEventListener('deer-view-rendered', addButton)
+
+/**
+ * When the Gloss Collection List deer view loads its records (by finishing the paged query) we can show the witness form.
+ * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
+ */ 
+addEventListener('deer-view-rendered', showNgList)
+
+function showNgList(event){
+    if(event.target.id === "ngCollectionList"){
+        event.target.classList.remove("is-hidden")
+        // This listener is no longer needed.
+        removeEventListener('deer-view-rendered', showNgList)
+    }
+}
 
 /**
  * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
@@ -1146,7 +1159,6 @@ function loadUserInput(ev, which){
             needs.classList.add("is-hidden")
             document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
-            loading.classList.add("is-hidden")
             // witnessFragmentForm.classList.remove("is-hidden")
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElems.forEach(sourceElem => {
@@ -1161,7 +1173,6 @@ function loadUserInput(ev, which){
             needs.classList.add("is-hidden")
             document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
-            loading.classList.add("is-hidden")
             // witnessFragmentForm.classList.remove("is-hidden")
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElems.forEach(sourceElem => {
@@ -1341,6 +1352,8 @@ async function getAllWitnessFragmentsOfManuscript(event){
                 })    
             })
         }
+        // hmm why not event.target?
+        document.querySelector("source-text-selector").classList.remove("is-hidden")
     })
     .catch(err => {
         console.error("Witnesses Object Error")
@@ -1476,7 +1489,9 @@ async function getAllWitnessFragmentsOfSource(event){
                     btn.classList.add("attached-to-source")
                 })    
             })
-           preselectLines(witnessInfo.selections, witnessFragmentForm)
+            preselectLines(witnessInfo.selections, witnessFragmentForm)
+            // hmm why not event.target?
+            document.querySelector("source-text-selector").classList.remove("is-hidden")
         }
     })
     .catch(err => {
