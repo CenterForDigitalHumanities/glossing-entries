@@ -18,6 +18,13 @@ document.addEventListener("gloss-modal-visible", function(event){
     glossTextElem.dispatchEvent(new Event('input', { bubbles: true }))
 })
 
+/**
+ * A search was performed for Manuscript Witnesses with a given shelfmark.
+ * There are 0 to (potentially) many Manuscript Witnesses with the given shelfmark, though we only expect one.
+ * Turns those Manuscript Witnesses into actionable buttons so the user can pick one to make Fragments for.
+ * 
+ * @param matches A string Manuscript Witness URI or an Array of those strings.
+ */
 function populateManuscriptWitnessChoices(matches){
     if (!matches) return
     if(typeof matches === "string") matches = [matches]
@@ -40,6 +47,10 @@ function populateManuscriptWitnessChoices(matches){
     manuscriptsFound.classList.remove("is-hidden")
 }
 
+/**
+ * Check for existing Manuscript Witnesses with the provided shelfmark.
+ * Paginate so the user can choose an existing Manuscript Witness, or make a new one.
+ */ 
 checkForManuscriptsBtn.addEventListener('click', async (ev) => {
     const shelfmarkElem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
     if(shelfmarkElem.hasAttribute("disabled")){
@@ -64,16 +75,21 @@ checkForManuscriptsBtn.addEventListener('click', async (ev) => {
     manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
 })
 
-function chooseManuscriptWitness(ev){
-    const manuscriptChoiceElem = ev.target.tagName === "DEER-VIEW" ? ev.target.parentElement : ev.target
-    const manuscriptID = manuscriptChoiceElem.getAttribute("manuscript")
+/**
+ * Once a Manuscript Witness is known, the Manuscript Witness Form should be deactivated.
+ * The Witness Fragment form should be activated allowing users to make Witness Fragments for the Manuscript Witness.
+ */ 
+function activateFragmentForm(manuscriptID, shelfmark){
+    if(!(manuscriptID && shelfmark)) return
     const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
-    const shelfmark = manuscriptChoiceElem.querySelector("deer-view").innerText
-    manuscriptWitnessForm.querySelector("input[deer-key='identifier']").value = shelfmark
+    const shelfmarkElem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
+    if(!shelfmarkElem.value){
+        // Just populating, don't need an event or to make it dirty because the form it is in is not submittable.
+        shelfmarkElem.value = shelfmark
+    }
     partOfElem.value = manuscriptID
     partOfElem.setAttribute("value", manuscriptID )
     partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
-    toggleFieldsDisabled(manuscriptWitnessForm, true)
     manuscriptWitnessForm.querySelectorAll(".button").forEach(btn => btn.classList.add("is-hidden"))
     manuscriptWitnessForm.classList.add("bg-light")
     witnessFragmentForm.classList.remove("is-hidden")
@@ -81,8 +97,21 @@ function chooseManuscriptWitness(ev){
     providedShelfmark.setAttribute("href", `manuscript-details.html#${manuscriptID}`)
     providedShelfmark.parentElement.classList.remove("is-hidden")
     existingManuscriptWitness = manuscriptID
-    manuscriptsFound.classList.add("is-hidden")
+    toggleFieldsDisabled(manuscriptWitnessForm, true)
     manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
+    manuscriptWitnessForm.querySelectorAll(".button").forEach(btn => btn.classList.add("is-hidden"))
+    manuscriptWitnessForm.classList.add("bg-light")
+}
+
+/**
+ * Paginate after a user clicks an actionable button that chooses a Manuscript Witness.
+ */ 
+function chooseManuscriptWitness(ev){
+    const manuscriptChoiceElem = ev.target.tagName === "DEER-VIEW" ? ev.target.parentElement : ev.target
+    const manuscriptID = manuscriptChoiceElem.getAttribute("manuscript")
+    const shelfmark = manuscriptChoiceElem.querySelector("deer-view").innerText
+    activateFragmentForm(manuscriptID, shelfmark)
+    manuscriptsFound.classList.add("is-hidden")
     document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
     console.log("Manuscript Witness Has Been Loaded In")
     const e = new CustomEvent("Manuscript Witness Loaded")
@@ -90,6 +119,15 @@ function chooseManuscriptWitness(ev){
     return
 }
 
+/**
+ * For a given shelfmark, query RERUM to find matching Manuscript Witness entities.
+ * There are 0 to many body.identifier Annotations with the shelfmark value.
+ * The target values of those Annotations are shelfmark URIs.
+ * Make a Set out of those target URIs be wary if the size is greater than 1.
+ * 
+ * @param shelfmark - A string representing the shelfmark value
+ * @return Set of Manuscript Witnesses that have this shelfmark (should just be 1)
+ */ 
 async function getManuscriptWitnessFromShelfmark(shelfmark=null){
     const historyWildcard = { "$exists": true, "$size": 0 }
     if(!shelfmark){
@@ -139,6 +177,14 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
     return manuscriptUriSet.values().next().value
 }
 
+/**
+ * For a given Witness Fragment URI, query RERUM to find the Manuscript Witness it is a part of.
+ * There is 1 body.partOf Annotation (leaf) whose target value is this Witness Fragment URI.
+ * Make a Set out of that URI, and be wary if the size is greater than 1.
+ * 
+ * @param fragmentURI - A string URI of a Witness Fragment entity
+ * @return Set of Manuscript Witnesses that this Witness Fragment is a partOf (should just be 1)
+ */ 
 async function getManuscriptWitnessFromFragment(fragmentURI=null){
     if(!fragmentURI){
         const ev = new CustomEvent("No Text Fragment URI provided")
@@ -186,6 +232,15 @@ async function getManuscriptWitnessFromFragment(fragmentURI=null){
     return manuscriptUriSet.values().next().value
 }
 
+/**
+ * For a given URI, query RERUM to find the Manuscript Witness it belongs to.
+ * There are 0 to many body.source Annotations (leaf) whose target value is some Witness Fragment URI.
+ * There is 1 body.partOf Annotation (leaf) whose target value is this Witness Fragment URI.
+ * Make a Set out of that Witness Fragment URI, and be wary if the size is greater than 1.
+ * 
+ * @param source - A string URI representing an internet resource (textual)
+ * @return Set of Manuscript Witnesses that have Witness Fragments with this source (should just be 1)
+ */ 
 async function getManuscriptWitnessFromSource(source=null){
     if(!source){
         const ev = new CustomEvent("No source provided")
@@ -238,7 +293,7 @@ async function getManuscriptWitnessFromSource(source=null){
     }
 
     // There are many fragments with this source.  Those fragments are all a part of one Manuscript Witness.
-    // We only need to check for the partOf Annotation on one fragment, even though we know them all.
+    // We only need to check for the partOf Annotation on one fragment, since they are all the same.
     const fragmentURI = fragmentUriSet.values().next().value
 
     //each fragment has partOf Annotations letting you know the Manuscripts it is a part of.
@@ -276,9 +331,8 @@ async function getManuscriptWitnessFromSource(source=null){
 }
 
 /**
- * Reset all the Witness form elements so the form is ready to generate a new Witness.
- * This occurs after the user submits a new witness.
- * If they provided a witness URI in the hash, then this is an 'update scenario'. Do not perform the reset.
+ * Reset all the Witness Fragment form elements so the form is ready to generate another Witness Fragment.
+ * If they provided a witness URI in the hash, then this is an 'update scenario' for the fragment. Do not perform the reset.
  */ 
 function setFragmentFormDefaults(){
     // Continue the session like normal if they had loaded up an existing witness and updated it.
@@ -326,8 +380,14 @@ function setFragmentFormDefaults(){
     referencesElem.removeAttribute("deer-source")
     referencesElem.$isDirty = false
 
+    const glossFormatElem = form.querySelector("select[deer-key='_glossFormat']")
+    glossFormatElem.value = ""
+    glossFormatElem.setAttribute("value", "")
+    glossFormatElem.removeAttribute("deer-source")
+    glossFormatElem.$isDirty = false
+
     // The source value not change and would need to be captured on the next submit.
-    const sourceElems = form.querySelectorAll("input[witness-source]")
+    const sourceElem = form.querySelector("input[witness-source]")
     sourceElem.removeAttribute("deer-source")
     sourceElem.$isDirty = true
 
@@ -365,6 +425,7 @@ window.onload = async () => {
     setPublicCollections()
     setListings()
     if(witnessFragmentID){
+        // We will trust the source the db tells us belongs to this Witness Fragment.  Ignore ?source-uri
         sourceURI = null
     }
     else if(sourceURI){
@@ -403,7 +464,6 @@ window.onload = async () => {
         deleteBtn.classList.remove("is-hidden")
         witnessFragmentForm.setAttribute("deer-id", witnessFragmentID)
         manuscriptWitnessForm.setAttribute("deer-id", existingManuscriptWitness)
-        // Note that we need to set the source-uri attribute for <source-text-selector> still
     }
     else{
         // These items have default values that are dirty on fresh forms.
@@ -455,26 +515,6 @@ window.onload = async () => {
 }
 
 /**
- * When the Gloss Collection List deer view loads its records (by finishing the paged query) we can show the witness form.
- * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
- */ 
-// addEventListener('deer-view-rendered', show)
-
-// function show(event){
-//     if(event.target.id == "ngCollectionList"){
-//         loading.classList.add("is-hidden")
-//         if(sourceURI || witnessFragmentID) {
-//             manuscriptWitnessForm.classList.remove("is-hidden")
-//         }
-//         else{
-//             needs.classList.remove("is-hidden")
-//         }
-//         // This listener is no longer needed.
-//         removeEventListener('deer-view-rendered', show)
-//     }
-// }
-
-/**
  * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
  */ 
 addEventListener('deer-view-rendered', addButton)
@@ -521,7 +561,7 @@ function initFragmentForm(event){
     removeEventListener('deer-form-rendered', initFragmentForm)
 
     // Capture the render that occurs after the form submit now
-    addEventListener('deer-form-rendered', formReset)
+    addEventListener('deer-form-rendered', glossFormReset)
 
     // Initialize the Witness form when it recieves the Manuscript Witness URI
     addEventListener('deer-form-rendered', initWitnessForm)
@@ -538,19 +578,7 @@ function initWitnessForm(event){
     if(whatRecordForm !== "manuscriptWitnessForm") return
     const knownShelfmark = annotationData.identifier.value
     if(knownShelfmark){
-        //toggleFieldsDisabled($elem, true)
-        //$elem.classList.add("is-hidden")
-        $elem.querySelectorAll(".button").forEach(btn => btn.classList.add("is-hidden"))
-        witnessFragmentForm.classList.remove("is-hidden")
-        $elem.classList.add("bg-light")
-        providedShelfmark.innerText = knownShelfmark
-        providedShelfmark.setAttribute("href", `manuscript-details.html#${annotationData["@id"]}`)
-        providedShelfmark.parentElement.classList.remove("is-hidden")
-        $elem.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
-        const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
-        partOfElem.value = annotationData["@id"]
-        partOfElem.setAttribute("value", event.detail["@id"] )
-        partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
+        activateFragmentForm(annotationData["@id"], knownShelfmark)
         prefillDigitalLocations(annotationData["source"], $elem)
     }
     else{
@@ -565,13 +593,10 @@ function initWitnessForm(event){
  * After submission DEER will announce this form as rendered.
  * Set up all the default values to be ready for another submission.
  */
-function formReset(event){
+function glossFormReset(event){
     let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
     const $elem = event.target
     switch (whatRecordForm) {
-        case "witnessFragmentForm":
-            setWitnessFormDefaults()
-            break
         case "gloss-modal-form":
             // This element has its own reset function defined in its Custom Element
             document.querySelector("gloss-modal").reset()
@@ -756,7 +781,6 @@ function toggleFieldsDisabled(form, disabled=true){
 /**
  * The DEER announcement for when all form fields have been saved or updated.
  * Extend this functionality by also saving or updating the custom fields.
- * 
  */ 
 addEventListener('deer-updated', event => {
     // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
@@ -764,24 +788,15 @@ addEventListener('deer-updated', event => {
     event.stopPropagation()
     const $elem = event.target
     const entityID = event.detail["@id"]  
-
+    const shelfmark = $elem.querySelector("input[deer-key='identifier']").value
     // Hmm maybe do this separation of handling a bit different.
     if($elem?.id === "manuscriptWitnessForm"){
         // We generated the Manuscript Witness and can use this ID as part of the fragment for submit
-        const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
-        partOfElem.value = event.detail["@id"] 
-        partOfElem.setAttribute("value", event.detail["@id"] )
-        partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
-        toggleFieldsDisabled($elem, true)
-        $elem.querySelectorAll(".button").forEach(btn => btn.classList.add("is-hidden"))
-        $elem.classList.add("bg-light")
-        witnessFragmentForm.classList.remove("is-hidden")
-        manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
-        providedShelfmark.innerText = event.detail?.identifier?.value
-        providedShelfmark.setAttribute("href", `manuscript-details.html#${event.detail["@id"]}`)
+        activateFragmentForm(event.detail["@id"], shelfmark)
         console.log("Manuscript Witness Fully Saved")
         const ev = new CustomEvent("Manuscript Witness Submitted")
-        globalFeedbackBlip(ev, `Manuscript Witness Submitted!`, true)
+        globalFeedbackBlip(ev, `Manuscript Witness Saved and Loaded In`, true)
+        document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
         return
     }
     else if($elem?.id  !== "witnessFragmentForm") return
@@ -876,6 +891,7 @@ addEventListener('deer-updated', event => {
         console.log("FORM FULLY SAVED")
         const ev = new CustomEvent("Gloss Textual Witness Submitted")
         globalFeedbackBlip(ev, `Gloss Textual Witness Submitted!`, true)
+        setFragmentFormDefaults()
     })
     .catch(err => {
         console.error("ERROR PROCESSING SOME FORM FIELDS")
@@ -1038,6 +1054,7 @@ function addButton(event) {
 
 /**
  * Process the text from a file on the users local machine.
+ * FIXME only supporting .txt files right now
  */ 
 resourceFile.addEventListener("change", function(event){
     let reader = new FileReader()
@@ -1157,7 +1174,11 @@ function loadUserInput(ev, which){
     }
 }
 
-// Paginate the '➥ attach' and possibly '✓ attached' button(s) after a Witness submission.
+/**
+ * Paginate the '➥ attach' and possibly '✓ attached' button(s) after a Witness submission.
+ * 
+ * @param glossURIs - An array of string Gloss URIs relating to the 'attach' buttons that need to change.
+ */ 
 function paginateButtonsAfterSubmit(glossURIs){
     const previouslyChosen = document.querySelector(".toggleInclusion.success")
     glossURIs.forEach(glossURI => {
@@ -1188,13 +1209,19 @@ function paginateButtonsAfterSubmit(glossURIs){
 
 /**
  * Remove all URL parameters and restart the user flow on gloss-witness.html
+ * FIXME not used anywhere but maybe we want to offer this to the user in a button or something.
  */ 
 function startOver(){
     window.location = window.location.origin + window.location.pathname
 }
 
 /**
- * @param source A String that is either a text body or a URI to a text resource.
+ * After a source text loads we need to know if there are any existing Witness Fragments for it.
+ * We use that information to preselect text and paginate 'attach' buttons in the Gloss picker.
+ * In this case, we know the existingManuscriptWitness
+ * Query RERUM or cache for those Witness Fragments.  We need to know their references and selections.
+ *  
+ * @param event - source-text-loaded
  */ 
 async function getAllWitnessFragmentsOfManuscript(event){
     if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
@@ -1313,7 +1340,6 @@ async function getAllWitnessFragmentsOfManuscript(event){
                     btn.classList.add("attached-to-source")
                 })    
             })
-            //preselectLines(witnessInfo.selections, manuscriptWitnessForm)
         }
     })
     .catch(err => {
@@ -1325,9 +1351,14 @@ async function getAllWitnessFragmentsOfManuscript(event){
 }
 
 /**
- * @param source A String that is either a text body or a URI to a text resource.
+ * After a source text loads we need to know if there are any existing Witness Fragments for it.
+ * We use that information to preselect text and paginate 'attach' buttons in the Gloss picker.
+ * In this case, we know the source URI.
+ * Query RERUM or cache for those Witness Fragments.  We need to know their references and selections.
+ *  
+ * @param event - source-text-loaded 
  */ 
-async function getAllWitnessFragmentsOfSource(){
+async function getAllWitnessFragmentsOfSource(event){
     if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
     }
