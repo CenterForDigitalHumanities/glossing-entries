@@ -128,8 +128,9 @@ class WitnessTextSelector extends HTMLElement {
         let just_text = ""
         // Newlines (/r and /n) result in <br> separations when doing elem.innerText.  
         // This makes it more difficult to do Selection selectors.
-        //just_text = textForUI.replace(/(\r\n|\n|\r)/gm, "")
-        just_text = textForUI
+        // Let's make this it's own scope.
+        just_text = textForUI.replace(/(\r\n|\n|\r)/gm, "")
+        //just_text = textForUI
         plaintext.innerText = just_text
         witnessTextElem.innerHTML = ""
         witnessTextElem.appendChild(plaintext)
