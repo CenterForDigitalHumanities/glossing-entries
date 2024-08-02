@@ -563,13 +563,13 @@ function initFragmentForm(event){
     }
     if(textSelectionElem.hasAttribute("source-text-loaded")){
         //TODO this is the 'green' selection
-        //preselectLines(annotationData["selections"], $elem)    
+        preselectLines(annotationData["selections"], $elem, true)    
     }
     else{
         if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
         addEventListener('source-text-loaded', ev => {
            //TODO this is the 'green' selection
-           // preselectLines(annotationData["selections"], $elem)
+           preselectLines(annotationData["selections"], $elem, true)
         })
     }
     prefillText(annotationData["text"], $elem)
@@ -753,7 +753,7 @@ function prefillReferences(referencesArr, form) {
  * It needs to apply the filter with this Gloss's Label.
  * 
  * */
-function preselectLines(linesArr, form) {
+function preselectLines(linesArr, form, persist=false) {
     function quickDecode(html) {
         // This helps with detecting the persists mark and knowing not to write over it.
         const txt = document.createElement("textarea")
@@ -779,7 +779,7 @@ function preselectLines(linesArr, form) {
     const selectionsElem = form.querySelector("input[custom-key='selections']")
     const checkInner = quickDecode(lineElem.innerHTML)
     if(checkInner.indexOf('<mark data-markjs="true" class="persists">') === selection[0]) return
-    //const remark_map = unmarkLineElement(lineElem)    
+    const remark_map = unmarkLineElement(lineElem)    
       
     if(source?.citationSource){
         selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
@@ -790,13 +790,13 @@ function preselectLines(linesArr, form) {
         ? 1
         : (selection[1] - selection[0]) + 1
     const markup = new Mark(lineElem)
-    let options = {className:"pre-select"}
+    let options = persist ? {className:"persists"} : {className:"pre-select"}
     options.exclude = [".persists"]
     markup.markRanges([{
         start: selection[0],
         length: lengthOfSelection
     }], options)    
-    //remarkLineElements(remark_map)
+    remarkLineElements(remark_map)
 }
 
 /**
