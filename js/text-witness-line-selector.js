@@ -161,8 +161,6 @@ class WitnessTextSelector extends HTMLElement {
             // Only when it's the 'left click' or noted primary button
             if(e.button > 0) return
             const lineElem = e.target
-            // let unmarkup = new Mark(lineElem)
-            // unmarkup.unmark({"className" : "persists"})
 
             let s = window.getSelection ? window.getSelection() : document.selection
             // Only if there is an actual text selection
@@ -180,6 +178,10 @@ class WitnessTextSelector extends HTMLElement {
             const $form = lineElem.closest("form")
             const customKey = $this.querySelector("input[custom-key='selections']")
             const filter = document.querySelector("input[filter]")
+
+            // For each line elem in this selection, get rid of the <mark>.  Then rebuild the selection.
+            const remark_map = unmarkLineElement(lineElem)
+            if(remark_map === null) return
 
             // Build the selection object from which to set the selection input in the form.
             const baseOffset = s.baseOffset
@@ -222,17 +224,19 @@ class WitnessTextSelector extends HTMLElement {
 
             // Mark the user selection so it persists
             const markup = new Mark(lineElem)
-                markup.markRanges([{
-                    start: baseOffset,
-                    length: lengthOfSelection
-                }],
-                {
-                    "className" : "persists"
-                })    
+            markup.markRanges([{
+                start: baseOffset,
+                length: lengthOfSelection
+            }],
+            {
+                "className" : "persists"
+            })    
 
             // remove browser's text selection because it is Mark'd
             if (s) undoBrowserSelection(s)
 
+            // restore the marks that were there before the user did the selection
+            remarkLineElements(remark_map)
         }
 
         const e = new CustomEvent("source-text-loaded", {bubbles: true })
