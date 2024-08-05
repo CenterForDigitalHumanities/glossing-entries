@@ -752,8 +752,10 @@ function prefillReferences(referencesArr, form) {
 
 
 /**
- * Helper function for the specialized references key, which is an Array of URIs.
- * It needs to apply the filter with this Gloss's Label.
+ * Highlight previously selected text with a yellow or green color use mark.js
+ * If a #TextFragment entity is loaded there will be a green selection.
+ * The lines that make up that selection are provided fragmentSelections
+ * If those fragmentSelections 'match' the array of lines to select, then this is the green selection.
  * 
  * @param linesArr - An array of uri#start,end selectors that select all the lines that have the text of a Text Fragment.  Note a single Fragment can span multiple 'lines' of a text structured with 'lines'.
  * @param fragmentSelections - The specific selection of a loaded Text Fragment.  It will be in linesArr when we are preselecting lines that are the selection value of the Text Fragment.
