@@ -82,11 +82,15 @@ checkForManuscriptsBtn.addEventListener('click', async (ev) => {
 function activateFragmentForm(manuscriptID, shelfmark){
     if(!(manuscriptID && shelfmark)) return
     const partOfElem = witnessFragmentForm.querySelector("input[deer-key='partOf']")
-    const shelfmarkElem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
-    if(!shelfmarkElem.value){
+    const witness_shelfmark_elem = manuscriptWitnessForm.querySelector("input[deer-key='identifier']")
+    const fragment_shelfmark_elem = witnessFragmentForm.querySelector("input[deer-key='identifier']")
+    if(!witness_shelfmark_elem.value){
         // Just populating, don't need an event or to make it dirty because the form it is in is not submittable.
-        shelfmarkElem.value = shelfmark
+        witness_shelfmark_elem.value = shelfmark
     }
+    fragment_shelfmark_elem.value = shelfmark
+    fragment_shelfmark_elem.dispatchEvent(new Event('input', { bubbles: true }))
+    fragment_shelfmark_elem.setAttribute("disabled", "")
     partOfElem.value = manuscriptID
     partOfElem.setAttribute("value", manuscriptID )
     partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
@@ -547,7 +551,8 @@ function initFragmentForm(event){
     const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
     sourceURI = annotationData?.source?.value
-    referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
+    referencedGlossID = annotationData?.references?.value[0].replace(/^https?:/, 'https:')
+    let selections = annotationData?.selections?.value
     if(ngCollectionList.hasAttribute("ng-list-loaded")){
         prefillReferences(annotationData["references"], ngCollectionList)
     }
@@ -563,14 +568,13 @@ function initFragmentForm(event){
     }
     if(textSelectionElem.hasAttribute("source-text-loaded")){
         //TODO this is the 'green' selection
-        preselectLines(annotationData["selections"], $elem, true)    
+        getAllWitnessFragmentsOfSource(selections)
     }
     else{
-        if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
         addEventListener('source-text-loaded', ev => {
-           //TODO this is the 'green' selection
-           preselectLines(annotationData["selections"], $elem, true)
+           getAllWitnessFragmentsOfSource(selections)
         })
+        if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
     }
     prefillText(annotationData["text"], $elem)
     $elem.classList.remove("is-hidden")
@@ -594,7 +598,7 @@ function initWitnessForm(event){
     let annotationData = event.detail ?? {}
     const $elem = event.target
     if(whatRecordForm !== "manuscriptWitnessForm") return
-    addEventListener('source-text-loaded', getAllWitnessFragmentsOfManuscript)
+    if(!witnessFragmentID) addEventListener('source-text-loaded', getAllWitnessFragmentsOfManuscript)
     const knownShelfmark = annotationData.identifier.value
     if(knownShelfmark){
         activateFragmentForm(annotationData["@id"], knownShelfmark)
@@ -752,51 +756,49 @@ function prefillReferences(referencesArr, form) {
  * Helper function for the specialized references key, which is an Array of URIs.
  * It needs to apply the filter with this Gloss's Label.
  * 
- * */
-function preselectLines(linesArr, form, persist=false) {
-    function quickDecode(html) {
-        // This helps with detecting the persists mark and knowing not to write over it.
-        const txt = document.createElement("textarea")
-        txt.innerHTML = html
-        const val = txt.value
-        txt.remove()
-        return val
-    }
-    const source = linesArr.source ?? null
-
+ * @param linesArr - An array of uri#start,end selectors that select all the lines that have the text of a Text Fragment.  Note a single Fragment can span multiple 'lines' of a text structured with 'lines'.
+ * @param fragmentSelections - The specific selection of a loaded Text Fragment.  It will be in linesArr when we are preselecting lines that are the selection value of the Text Fragment.
+ */
+function preselectLines(linesArr, form, fragmentSelections=null) {
+    
     if (linesArr === undefined) {
         console.warn("Cannot highlight lines in UI.  There is no data.")
         return false
     }
     linesArr = linesArr.value ?? linesArr
-    if (linesArr.length === 0) {
+    if (!Array.isArray(linesArr) || linesArr.length === 0) {
         console.warn("There are no lines recorded for this witness")
         return false
     }
-    const lineElem = form.querySelector(".textContent")
-    const lineid = linesArr[0].split("#")[0]
-    const selection = linesArr[0].split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))
-    const selectionsElem = form.querySelector("input[custom-key='selections']")
-    const checkInner = quickDecode(lineElem.innerHTML)
-    if(checkInner.indexOf('<mark data-markjs="true" class="persists">') === selection[0]) return
-    const remark_map = unmarkLineElement(lineElem)    
-      
-    if(source?.citationSource){
-        selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
-    }
-    selectionsElem.value = linesArr[0]
 
-    const lengthOfSelection = (selection[0] === selection[1]) 
+    /**
+     * The check for whether it should be green or yellow.
+     * If a #TextFragment entity is loaded, it's selection should be specifically noted.  
+     * Those are provided as fragmentSelections
+     * If those fragmentSelections 'match' the array of lines to select, then this is the green selection.
+     */ 
+    const activeSelection = fragmentSelections && linesArr.every(l=>fragmentSelections.includes(l)) && fragmentSelections.every(l=>linesArr.includes(l))
+
+    const lineElem = form.querySelector(".textContent")
+    const selectionsElem = form.querySelector("input[custom-key='selections']")
+    const remark_map = unmarkLineElement(lineElem)
+    let selectionsValue = linesArr.reduce((acc, curr) => acc + `_${curr}`, "")
+    selectionsValue = selectionsValue.slice(1)
+    selectionsElem.value = selectionsValue
+    for (const line of linesArr){
+        const selection = line.split("#")[1].replace("char=", "").split(",").map(num => parseInt(num))    
+        const lengthOfSelection = (selection[0] === selection[1]) 
         ? 1
         : (selection[1] - selection[0]) + 1
-    const markup = new Mark(lineElem)
-    let options = persist ? {className:"persists"} : {className:"pre-select"}
-    options.exclude = [".persists"]
-    markup.markRanges([{
-        start: selection[0],
-        length: lengthOfSelection
-    }], options)    
-    remarkLineElements(remark_map)
+        const markup = new Mark(lineElem)
+        let options = activeSelection ? {className:"persists"} : {className:"pre-select"}
+        options.exclude = [".persists"]
+        markup.markRanges([{
+            start: selection[0],
+            length: lengthOfSelection
+        }], options)    
+        remarkLineElements(remark_map)
+    }
 }
 
 /**
@@ -1260,19 +1262,6 @@ async function getAllWitnessFragmentsOfManuscript(event){
     if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
     }
-    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
-    if(Object.keys(witnessFragmentsObj).length > 0){
-        for(const witnessInfo in Object.values(witnessFragmentsObj)){
-            witnessInfo.glosses.forEach(glossURI => {
-                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
-                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
-                    btn.classList.add("attached-to-source")
-                })    
-            })
-            preselectLines(witnessInfo.selections, witnessFragmentForm)
-        }
-        return
-    }
     const historyWildcard = { "$exists": true, "$size": 0 }
     const isURI = (urlString) => {
           try { 
@@ -1350,7 +1339,9 @@ async function getAllWitnessFragmentsOfManuscript(event){
         .then(annos => {
             if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
             const existingSelections = witnessFragmentsObj[fragmentURI].selections ? witnessFragmentsObj[fragmentURI].selections : []
-            witnessFragmentsObj[fragmentURI].selections = [...existingSelections, ...annos.map(anno => anno.body.selections.value).flat()]
+            const moreSelections = annos.map(anno => anno.body.selections.value).flat()
+            const selections = new Set([...existingSelections, ...moreSelections])
+            witnessFragmentsObj[fragmentURI].selections = [...selections.values()]
             return Promise.resolve(witnessFragmentsObj)
         })
         .catch(err => {
@@ -1394,22 +1385,10 @@ async function getAllWitnessFragmentsOfManuscript(event){
  *  
  * @param event - source-text-loaded 
  */ 
-async function getAllWitnessFragmentsOfSource(event){
+async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
+    if(!Array.isArray(fragmentSelections)) fragmentSelections=null
     if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
-    }
-    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
-    if(Object.keys(witnessFragmentsObj).length > 0){
-        for(const witnessInfo in Object.values(witnessFragmentsObj)){
-            witnessInfo.glosses.forEach(glossURI => {
-                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
-                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
-                    btn.classList.add("attached-to-source")
-                })    
-            })
-            preselectLines(witnessInfo.selections, witnessFragmentForm)
-        }
-        return
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
     const isURI = (urlString) => {
@@ -1489,7 +1468,9 @@ async function getAllWitnessFragmentsOfSource(event){
         .then(annos => {
             if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
             const existingSelections = witnessFragmentsObj[fragmentURI].selections ? witnessFragmentsObj[fragmentURI].selections : []
-            witnessFragmentsObj[fragmentURI].selections = [...existingSelections, ...annos.map(anno => anno.body.selections.value).flat()]
+            const moreSelections = annos.map(anno => anno.body.selections.value).flat()
+            const selections = new Set([...existingSelections, ...moreSelections])
+            witnessFragmentsObj[fragmentURI].selections = [...selections.values()]
             return Promise.resolve(witnessFragmentsObj)
         })
         .catch(err => {
@@ -1512,7 +1493,7 @@ async function getAllWitnessFragmentsOfSource(event){
                     btn.classList.add("attached-to-source")
                 })    
             })
-            preselectLines(witnessInfo.selections, witnessFragmentForm)
+            preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
             // hmm why not event.target?
             document.querySelector("source-text-selector").classList.remove("is-not-visible")
         }

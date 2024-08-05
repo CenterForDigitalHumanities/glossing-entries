@@ -135,8 +135,8 @@ class WitnessTextSelector extends HTMLElement {
         //just_text = textForUI.replace(/(\r\n|\n|\r)/gm, "")
         just_text = textForUI
         //plaintext.innerText = just_text
-        plaintext.textContent = just_text
         //plaintext.innerHTML = just_text
+        plaintext.textContent = just_text
         witnessTextElem.innerHTML = ""
         witnessTextElem.appendChild(plaintext)
         plaintext.onmousedown = clearMarks

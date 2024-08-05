@@ -82,6 +82,7 @@ setTimeout(() => {
     document.querySelectorAll("form").forEach(el => {
         el.setAttribute("deer-creator", "BryanTryin")
     })
+    if(!window.GOG_USER) window.GOG_USER = {}
     window.GOG_USER["http://store.rerum.io/agent"] = "BryanTryin"
 }, 4000)
 
