@@ -552,7 +552,7 @@ function initFragmentForm(event){
     if(whatRecordForm !== "witnessFragmentForm") return
     sourceURI = annotationData?.source?.value
     referencedGlossID = annotationData?.references?.value[0].replace(/^https?:/, 'https:')
-    let selections = annotationData?.selections?.value
+    let selections = annotationData?.selections
     if(ngCollectionList.hasAttribute("ng-list-loaded")){
         prefillReferences(annotationData["references"], ngCollectionList)
     }
@@ -567,7 +567,6 @@ function initFragmentForm(event){
         }
     }
     if(textSelectionElem.hasAttribute("source-text-loaded")){
-        //TODO this is the 'green' selection
         getAllWitnessFragmentsOfSource(selections)
     }
     else{
@@ -759,13 +758,15 @@ function prefillReferences(referencesArr, form) {
  * @param linesArr - An array of uri#start,end selectors that select all the lines that have the text of a Text Fragment.  Note a single Fragment can span multiple 'lines' of a text structured with 'lines'.
  * @param fragmentSelections - The specific selection of a loaded Text Fragment.  It will be in linesArr when we are preselecting lines that are the selection value of the Text Fragment.
  */
-function preselectLines(linesArr, form, fragmentSelections=null) {
-    
+function preselectLines(linesArr, form, fragmentSelections) {
+    if(!fragmentSelections?.source && fragmentSelections?.value) fragmentSelections = null
     if (linesArr === undefined) {
         console.warn("Cannot highlight lines in UI.  There is no data.")
         return false
     }
+    const source = fragmentSelections.source ?? null
     linesArr = linesArr.value ?? linesArr
+    fragmentSelections = fragmentSelections.value ?? fragmentSelections
     if (!Array.isArray(linesArr) || linesArr.length === 0) {
         console.warn("There are no lines recorded for this witness")
         return false
@@ -781,6 +782,9 @@ function preselectLines(linesArr, form, fragmentSelections=null) {
 
     const lineElem = form.querySelector(".textContent")
     const selectionsElem = form.querySelector("input[custom-key='selections']")
+    if(source?.citationSource){
+        selectionsElem.setAttribute("deer-source", source.citationSource ?? "")
+    }
     const remark_map = unmarkLineElement(lineElem)
     let selectionsValue = linesArr.reduce((acc, curr) => acc + `_${curr}`, "")
     selectionsValue = selectionsValue.slice(1)
@@ -1262,6 +1266,19 @@ async function getAllWitnessFragmentsOfManuscript(event){
     if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
     }
+    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
+    if(Object.keys(witnessFragmentsObj).length > 0){
+        for(const witnessInfo in Object.values(witnessFragmentsObj)){
+            witnessInfo.glosses.forEach(glossURI => {
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
+                    btn.classList.add("attached-to-source")
+                })    
+            })
+            preselectLines(witnessInfo.selections, witnessFragmentForm)
+        }
+        return
+    }
     const historyWildcard = { "$exists": true, "$size": 0 }
     const isURI = (urlString) => {
           try { 
@@ -1386,9 +1403,21 @@ async function getAllWitnessFragmentsOfManuscript(event){
  * @param event - source-text-loaded 
  */ 
 async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
-    if(!Array.isArray(fragmentSelections)) fragmentSelections=null
     if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
+    }
+    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
+    if(Object.keys(witnessFragmentsObj).length > 0){
+        for(const witnessInfo in Object.values(witnessFragmentsObj)){
+            witnessInfo.glosses.forEach(glossURI => {
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
+                    btn.classList.add("attached-to-source")
+                })    
+            })
+            preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
+        }
+        return
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
     const isURI = (urlString) => {
