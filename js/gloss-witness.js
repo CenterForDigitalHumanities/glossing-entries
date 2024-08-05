@@ -478,7 +478,7 @@ window.onload = async () => {
         witnessFragmentForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(sourceURI) {
             // special handler for ?wintess-uri=
-            addEventListener('source-text-loaded', getAllWitnessFragmentsOfSource)
+            addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource())
             addEventListener('deer-form-rendered', initWitnessForm)
             const match = await getManuscriptWitnessFromSource(sourceURI)
             manuscriptWitnessForm.classList.remove("is-hidden")
@@ -766,9 +766,9 @@ function preselectLines(linesArr, form, fragmentSelections) {
         console.warn("Cannot highlight lines in UI.  There is no data.")
         return false
     }
-    const source = fragmentSelections.source ?? null
+    const source = fragmentSelections?.source ?? null
     linesArr = linesArr.value ?? linesArr
-    fragmentSelections = fragmentSelections.value ?? fragmentSelections
+    fragmentSelections = fragmentSelections?.value ?? fragmentSelections
     if (!Array.isArray(linesArr) || linesArr.length === 0) {
         console.warn("There are no lines recorded for this witness")
         return false
