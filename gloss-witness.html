@@ -64,7 +64,7 @@
         This page automatically applied a text resource.  If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
     </p>
     <p id="look" class="bg-light">
-       Detect Glosses in Text
+       Detect Glosses in Text.  Please load in a Manuscript.
     </p>
     <div id="needs" class="row bg-basic is-hidden">
         <div class="col">
@@ -113,9 +113,6 @@
                     <p class="detect-witness"> 
                         You must load in a Manuscript Witness.  Enter a shelfmark below to get started.  When finished, click the button to check for existing Witnesses.
                     </p>
-                    <p class="is-hidden">
-                        Manuscript <a target="_blank" id="providedShelfmark"> N/A </a> Loaded In.
-                    <p>
                 </div>
                 <div id="manuscriptsFound" class="is-hidden">
                     <h4> Manuscripts Found.  Choose a Manuscript from below or create a new one. </h4>
@@ -140,7 +137,7 @@
     </form>
 
     <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
-    <form id="witnessFragmentForm" class="is-hidden" deer-type="TextFragment" deer-context="http://purl.org/dc/terms"> 
+    <form id="witnessFragmentForm" class="is-hidden" deer-type="TextFragment" deer-context="http://purl.org/dc/terms">
         <p> 
             Fill out the form below to create a Witness Fragment for the Manuscript loaded in.  Submit the Fragment by identifying a Gloss and clicking '➥ attach'.  Note the Manuscript remains the same for each Fragment you submit. 
         </p>

@@ -97,14 +97,16 @@ function activateFragmentForm(manuscriptID, shelfmark){
     manuscriptWitnessForm.querySelectorAll(".button").forEach(btn => btn.classList.add("is-hidden"))
     manuscriptWitnessForm.classList.add("bg-light")
     witnessFragmentForm.classList.remove("is-hidden")
-    providedShelfmark.innerText = shelfmark
-    providedShelfmark.setAttribute("href", `manuscript-details.html#${manuscriptID}`)
-    providedShelfmark.parentElement.classList.remove("is-hidden")
+    look.innerHTML = `Manuscript <a target="_blank" href="manuscript-details.html#${manuscriptID}" id="providedShelfmark"> ${shelfmark} </a> Loaded In.`
+    //providedShelfmark.innerText = shelfmark
+    //providedShelfmark.setAttribute("href", `manuscript-details.html#${manuscriptID}`)
+    //providedShelfmark.parentElement.classList.remove("is-hidden")
     existingManuscriptWitness = manuscriptID
     toggleFieldsDisabled(manuscriptWitnessForm, true)
     manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
     manuscriptWitnessForm.querySelectorAll(".button").forEach(btn => btn.classList.add("is-hidden"))
     manuscriptWitnessForm.classList.add("bg-light")
+    addEventListener('deer-form-rendered', fragmentFormReset)
 }
 
 /**
@@ -343,7 +345,7 @@ function setFragmentFormDefaults(){
     if(witnessFragmentID) return 
     
     const form = witnessFragmentForm  
-    form.removeAttribute("deer-id")
+    form.setAttribute("deer-id", "")
     form.removeAttribute("deer-source")    
     form.$isDirty = true
     form.querySelectorAll("input[deer-source]").forEach(i => {
@@ -351,6 +353,9 @@ function setFragmentFormDefaults(){
     })
     form.querySelectorAll("textarea[deer-source]").forEach(t => {
         t.removeAttribute("deer-source")
+    })
+    form.querySelectorAll("select").forEach(s => {
+        s.removeAttribute("deer-source")
     })
     // For when we test
     document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanTryin")
@@ -390,8 +395,7 @@ function setFragmentFormDefaults(){
     referencesElem.$isDirty = false
 
     const glossFormatElem = form.querySelector("select[deer-key='_glossFormat']")
-    glossFormatElem.value = ""
-    glossFormatElem.setAttribute("value", "")
+    glossFormatElem.value = "none"
     glossFormatElem.removeAttribute("deer-source")
     glossFormatElem.$isDirty = false
 
@@ -418,8 +422,8 @@ function setFragmentFormDefaults(){
 
     //Change the .persist marks to .pre-select marks now represent the existing selection.
     const lineElem = document.querySelector(".textContent")
-    lineElem.querySelector(".persists").classList.add("pre-select")
-    lineElem.querySelector(".persists").classList.remove("persists")
+    lineElem.querySelector(".persists")?.classList.add("pre-select")
+    lineElem.querySelector(".persists")?.classList.remove("persists")
 
     console.log("FRAGMENT FORM RESET")
 }
@@ -454,7 +458,6 @@ window.onload = async () => {
     if(witnessFragmentID){
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
         addEventListener('deer-form-rendered', initFragmentForm)
-        addEventListener('deer-form-rendered', initWitnessForm)
         existingManuscriptWitness = await getManuscriptWitnessFromFragment(witnessFragmentID)
         .then(existingWitnessURI => existingWitnessURI)
         .catch(err => {
@@ -479,7 +482,6 @@ window.onload = async () => {
         if(sourceURI) {
             // special handler for ?wintess-uri=
             addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource())
-            addEventListener('deer-form-rendered', initWitnessForm)
             const match = await getManuscriptWitnessFromSource(sourceURI)
             manuscriptWitnessForm.classList.remove("is-hidden")
             loading.classList.add("is-hidden")
@@ -580,35 +582,27 @@ function initFragmentForm(event){
     loading.classList.add("is-hidden")
     // This event listener is no longer needed
     removeEventListener('deer-form-rendered', initFragmentForm)
-
-    // Capture the render that occurs after the form submit now
-    addEventListener('deer-form-rendered', glossFormReset)
-
     // Initialize the Witness form when it recieves the Manuscript Witness URI
-    addEventListener('deer-form-rendered', initWitnessForm)
+    
 }
 
 /**
- * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
- * Note this only needs to occur one time on page load.
- */ 
-function initWitnessForm(event){
-    let whatRecordForm = event.target?.id
-    let annotationData = event.detail ?? {}
-    const $elem = event.target
-    if(whatRecordForm !== "manuscriptWitnessForm") return
-    if(!witnessFragmentID) addEventListener('source-text-loaded', getAllWitnessFragmentsOfManuscript)
-    const knownShelfmark = annotationData.identifier.value
-    if(knownShelfmark){
-        activateFragmentForm(annotationData["@id"], knownShelfmark)
-        prefillDigitalLocations(annotationData["source"], $elem)
+ * On page load and after submission DEER will announce this form as rendered.
+ * Set up all the default values.
+ */
+addEventListener('deer-form-rendered', glossFormReset)
+
+function glossFormReset(event){
+    let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
+    if(whatRecordForm === "gloss-modal-form") document.querySelector("gloss-modal").reset()
+}
+
+function fragmentFormReset(event){
+    let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
+    if(whatRecordForm === "witnessFragmentForm"){
+        setFragmentFormDefaults()
+        //removeEventListener('deer-form-rendered', fragmentFormReset)
     }
-    else{
-        $elem.classList.remove("is-hidden")
-    }
-    loading.classList.add("is-hidden")
-    // This event listener is no longer needed
-    removeEventListener('deer-form-rendered', initWitnessForm)
 }
 
 /**
@@ -935,7 +929,6 @@ addEventListener('deer-updated', event => {
         console.log("FORM FULLY SAVED")
         const ev = new CustomEvent("Gloss Textual Witness Submitted")
         globalFeedbackBlip(ev, `Gloss Textual Witness Submitted!`, true)
-        setFragmentFormDefaults()
     })
     .catch(err => {
         console.error("ERROR PROCESSING SOME FORM FIELDS")
