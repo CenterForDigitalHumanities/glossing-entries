@@ -18,6 +18,45 @@ document.addEventListener("gloss-modal-visible", function(event){
     glossTextElem.dispatchEvent(new Event('input', { bubbles: true }))
 })
 
+async function initiateMatch(manuscriptWitnessID){
+    if(!manuscriptWitnessID) return
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    const shelfmarkAnnosQuery = {
+        "body.identifier.value": {"$exists":true},
+        "target": manuscriptWitnessID,
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+        method: "POST",
+        mode: 'cors',
+        headers: {
+            "Content-Type": "application/json;charset=utf-8"
+        },
+        body: JSON.stringify(shelfmarkAnnosQuery)
+    })
+    .then(response => response.json())
+    .then(annos => {
+        if(annos.length === 0){
+            console.error("This is awkward.  There are no shelfmarks for this Manuscript Witness")
+        }
+        else if(annos.length > 1){
+            console.error("This is awkward.  There are multiple shelfmarks for this Manuscript Witness")
+        }
+        const shelfmark = annos[0].body.identifier.value
+        activateFragmentForm(manuscriptWitnessID, shelfmark)
+        loading.classList.add("is-hidden")
+        console.log("Manuscript Witness Has Been Loaded In")
+        const e = new CustomEvent("Manuscript Witness Loaded")
+        globalFeedbackBlip(e, `Manuscript Witness Loaded`, true)
+    })
+    .catch(err => {
+        console.error(`Error loading in the manuscript '${manuscriptWitnessID}'`)
+        const e = new CustomEvent("Manuscript Witness Error")
+        globalFeedbackBlip(e, `Could Not Load In Manuscript Witness`, False)
+    })
+}
+
 /**
  * A search was performed for Manuscript Witnesses with a given shelfmark.
  * There are 0 to (potentially) many Manuscript Witnesses with the given shelfmark, though we only expect one.
@@ -98,14 +137,8 @@ function activateFragmentForm(manuscriptID, shelfmark){
     manuscriptWitnessForm.classList.add("bg-light")
     witnessFragmentForm.classList.remove("is-hidden")
     look.innerHTML = `Manuscript <a target="_blank" href="manuscript-details.html#${manuscriptID}" id="providedShelfmark"> ${shelfmark} </a> Loaded In.`
-    //providedShelfmark.innerText = shelfmark
-    //providedShelfmark.setAttribute("href", `manuscript-details.html#${manuscriptID}`)
-    //providedShelfmark.parentElement.classList.remove("is-hidden")
     existingManuscriptWitness = manuscriptID
-    toggleFieldsDisabled(manuscriptWitnessForm, true)
-    manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
-    manuscriptWitnessForm.querySelectorAll(".button").forEach(btn => btn.classList.add("is-hidden"))
-    manuscriptWitnessForm.classList.add("bg-light")
+    manuscriptWitnessForm.classList.add("is-hidden")
     addEventListener('deer-form-rendered', fragmentFormReset)
 }
 
@@ -117,8 +150,6 @@ function chooseManuscriptWitness(ev){
     const manuscriptID = manuscriptChoiceElem.getAttribute("manuscript")
     const shelfmark = manuscriptChoiceElem.querySelector("deer-view").innerText
     activateFragmentForm(manuscriptID, shelfmark)
-    manuscriptsFound.classList.add("is-hidden")
-    document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
     console.log("Manuscript Witness Has Been Loaded In")
     const e = new CustomEvent("Manuscript Witness Loaded")
     globalFeedbackBlip(e, `Manuscript Witness Loaded`, true)
@@ -468,7 +499,6 @@ window.onload = async () => {
         const submitBtn = witnessFragmentForm.querySelector("input[type='submit']")
         const deleteBtn = witnessFragmentForm.querySelector(".deleteWitness")
         needs.classList.add("is-hidden")
-        document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
         submitBtn.value = "Update Witness"
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
@@ -483,9 +513,13 @@ window.onload = async () => {
             // special handler for ?wintess-uri=
             addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource())
             const match = await getManuscriptWitnessFromSource(sourceURI)
-            manuscriptWitnessForm.classList.remove("is-hidden")
-            loading.classList.add("is-hidden")
-            if(match) populateManuscriptWitnessChoices(match)
+            if(match) {
+                initiateMatch(match)
+            }
+            else{
+                loading.classList.add("is-hidden")
+                manuscriptWitnessForm.classList.remove("is-hidden")
+            }
         }
     }
 
@@ -834,7 +868,6 @@ addEventListener('deer-updated', event => {
         console.log("Manuscript Witness Fully Saved")
         const ev = new CustomEvent("Manuscript Witness Submitted")
         globalFeedbackBlip(ev, `Manuscript Witness Saved and Loaded In`, true)
-        document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
         return
     }
     else if($elem?.id  !== "witnessFragmentForm") return
@@ -1181,7 +1214,6 @@ function loadUserInput(ev, which){
         case "file":
             text = fileText.value
             needs.classList.add("is-hidden")
-            document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             // witnessFragmentForm.classList.remove("is-hidden")
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
@@ -1195,7 +1227,6 @@ function loadUserInput(ev, which){
         case "cp":
             text = resourceText.value
             needs.classList.add("is-hidden")
-            document.querySelectorAll(".witness-needed").forEach(el => el.classList.remove("is-hidden"))
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
             // witnessFragmentForm.classList.remove("is-hidden")
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
