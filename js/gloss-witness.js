@@ -45,7 +45,6 @@ async function initiateMatch(manuscriptWitnessID){
         }
         const shelfmark = annos[0].body.identifier.value
         activateFragmentForm(manuscriptWitnessID, shelfmark)
-        loading.classList.add("is-hidden")
         console.log("Manuscript Witness Has Been Loaded In")
         const e = new CustomEvent("Manuscript Witness Loaded")
         globalFeedbackBlip(e, `Manuscript Witness Loaded`, true)
@@ -133,11 +132,10 @@ function activateFragmentForm(manuscriptID, shelfmark){
     partOfElem.value = manuscriptID
     partOfElem.setAttribute("value", manuscriptID )
     partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
-    manuscriptWitnessForm.querySelectorAll(".button").forEach(btn => btn.classList.add("is-hidden"))
-    manuscriptWitnessForm.classList.add("bg-light")
-    witnessFragmentForm.classList.remove("is-hidden")
     look.innerHTML = `Manuscript <a target="_blank" href="manuscript-details.html#${manuscriptID}" id="providedShelfmark"> ${shelfmark} </a> Loaded In.`
     existingManuscriptWitness = manuscriptID
+    loading.classList.add("is-hidden")
+    witnessFragmentForm.classList.remove("is-hidden")
     manuscriptWitnessForm.classList.add("is-hidden")
     addEventListener('deer-form-rendered', fragmentFormReset)
 }
@@ -612,8 +610,13 @@ function initFragmentForm(event){
         if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
     }
     prefillText(annotationData["text"], $elem)
-    $elem.classList.remove("is-hidden")
-    loading.classList.add("is-hidden")
+    
+    if(!witnessFragmentID) {
+        // In this case, everything that needs to load to make sense has already loaded.
+        // In other cases, we need to wait until the end of getAllWitnessFragmentsOfSource
+        $elem.classList.remove("is-hidden")
+        loading.classList.add("is-hidden")
+    }
     // This event listener is no longer needed
     removeEventListener('deer-form-rendered', initFragmentForm)
     // Initialize the Witness form when it recieves the Manuscript Witness URI
@@ -1552,6 +1555,11 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
             // hmm why not event.target?
             document.querySelector("source-text-selector").classList.remove("is-not-visible")
         }
+        if(witnessFragmentID){
+            loading.classList.add("is-hidden")
+            witnessFragmentForm.classList.remove("is-hidden")
+        }
+        
     })
     .catch(err => {
         console.error("Witnesses Object Error")
