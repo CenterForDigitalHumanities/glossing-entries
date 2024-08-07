@@ -863,7 +863,7 @@ addEventListener('deer-updated', event => {
     event.stopPropagation()
     const $elem = event.target
     const entityID = event.detail["@id"]  
-    const shelfmark = $elem.querySelector("input[deer-key='identifier']").value
+    const shelfmark = $elem.querySelector("input[deer-key='identifier']")?.value
     // Hmm maybe do this separation of handling a bit different.
     if($elem?.id === "manuscriptWitnessForm"){
         // We generated the Manuscript Witness and can use this ID as part of the fragment for submit
@@ -988,30 +988,21 @@ addEventListener('gloss-modal-saved', event => {
     const list = view.querySelector("ul")
     const modal = event.target
     const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
-    const totalsProgress = list.closest("deer-view").querySelector(".totalsProgress")
-
-    const selectedBtn = document.querySelector(".toggleInclusion[disabled]")
-    if(selectedBtn){
-        selectedBtn.setAttribute("title", "This gloss was attached in the past.  Be sure before you attach it.")
-        selectedBtn.setAttribute("value", "❢ attach")
-        selectedBtn.setAttribute("class", "toggleInclusion attached-to-source button primary")
-        selectedBtn.removeAttribute("disabled")
-    }
-
+    const glossURI = gloss["@id"].replace(/^https?:/, 'https:')
     modal.classList.add("is-hidden")
 
     const li = document.createElement("li")
     const div = document.createElement("div")
     // Make this a deer-view so this Gloss is expanded and cached, resulting in more attributes for this element to be filtered on.
     div.classList.add("deer-view")
-    div.setAttribute("deer-template", "filterableListItem")
+    div.setAttribute("deer-template", "filterableListItem_glossSelector")
     div.setAttribute("deer-id", gloss["@id"])
     div.setAttribute("deer-link", "ng.html#")
     li.setAttribute("data-title", title)
     
     // We know the title already so this makes a handy placeholder :)
-    li.innerHTML = `<span><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
-    // This helps filterableListItem know how to style the attach button, and also lets us know to change count/total loaded Glosses.
+    li.innerHTML = `<span class="serifText"><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
+    // This helps filterableListItem_glossSelector know how to style the attach button, and also lets us know to change count/total loaded Glosses.
     if(witnessFragmentID){
         div.setAttribute("update-scenario", "true")
     }
@@ -1020,30 +1011,28 @@ addEventListener('gloss-modal-saved', event => {
     }
     div.appendChild(li)
     list.appendChild(div)
-    
     setTimeout(function() {
         broadcast(undefined, "deer-view", div, { set: [div] })
     }, 1)
 })
 
 /**
- * After a filterableListItem loads, we need to determine what to do with its 'attach' button.
+ * After a filterableListItem_glossSelector loads, we need to determine what to do with its 'attach' button.
  * In create/update scenarios, this will result in the need to click a button
  * In loading scenarios, if a text witness URI was supplied to the page it will have a gloss which should appear as 'attached'.
  */ 
 function addButton(event) {
     const template_container = event.target
-    const form_container = template_container.closest("form")
-    if(template_container.getAttribute("deer-template") !== "filterableListItem") return
+    if(template_container.getAttribute("deer-template") !== "filterableListItem_glossSelector") return
     const obj = event.detail
     const gloss_li = template_container.firstElementChild
-    const createScenario = template_container.hasAttribute("create-scenario") ? true : false
-    const updateScenario = template_container.hasAttribute("update-scenario") ? true : false
+    const createScenario = template_container.hasAttribute("create-scenario")
+    const updateScenario = template_container.hasAttribute("update-scenario")
     // A new Gloss has been introduced and is done being cached.
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")
     inclusionBtn.setAttribute("data-id", obj["@id"])
-    let already = ""
+    let already = false
     if(witnessFragmentsObj?.referencedGlosses){
         already = witnessFragmentsObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
     }
@@ -1076,14 +1065,12 @@ function addButton(event) {
         let blip = new CustomEvent("Blip")
         // There must be a shelfmark
         if(!form.querySelector("input[deer-key='identifier']").value){
-            //alert("You must provide a Shelfmark value.")
             blip = new CustomEvent("You must provide a Shelfmark value.")
             globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
             return
         }
         // There must be a selection
         if(!form.querySelector("input[custom-key='selections']").value){
-            //alert("Select some text first")
             blip = new CustomEvent("Select some text first.")
             globalFeedbackBlip(blip, `Select some text first.`, false)
             return   
@@ -1103,8 +1090,6 @@ function addButton(event) {
                 form.querySelector("input[type='submit']").click()    
             }
             else{
-                //alert(`This textual witness is already attached to Gloss '${glossIncipit}'`)
-                blip = new CustomEvent(`This textual witness is already attached to Gloss '${glossIncipit}'`)
                 globalFeedbackBlip(ev, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
             }
         }                    
@@ -1114,13 +1099,13 @@ function addButton(event) {
     if(createScenario) { inclusionBtn.click() }
     else if(updateScenario) { 
         // Set the references input with the new gloss URI and update the form
-        const refKey = witnessFragmentForm.querySelector("input[custom-key='references']")
+        const refKey = witnessForm.querySelector("input[custom-key='references']")
         if(refKey.value !== obj["@id"]){
             refKey.value = obj["@id"]
             refKey.setAttribute("value", obj["@id"]) 
             refKey.$isDirty = true
-            witnessFragmentForm.$isDirty = true
-            witnessFragmentForm.querySelector("input[type='submit']").click() 
+            witnessForm.$isDirty = true
+            witnessForm.querySelector("input[type='submit']").click() 
         }
     }
 }

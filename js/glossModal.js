@@ -306,7 +306,7 @@ class GlossModal extends HTMLElement {
                 el.$isDirty = false
             })
 
-            const textLangElem = form.querySelector("select[name='textLang']")
+            const textLangElem = $form.querySelector("select[name='textLang']")
             textLangElem.setAttribute("value","la")
             textLangElem.value = "la"
 
