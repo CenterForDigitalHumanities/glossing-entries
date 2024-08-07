@@ -112,8 +112,9 @@ class WitnessTextSelector extends HTMLElement {
                     return response.text()
                 }
                 else{
-                    const err = new Error(`Could not get witness text from ${witnessURI}`)
-                    throw err
+                    const e = new CustomEvent("source-text-error", {bubbles: true })
+                    $this.setAttribute("source-text-error", "true")
+                    document.dispatchEvent(e)
                 }
             })
             .catch(err => {

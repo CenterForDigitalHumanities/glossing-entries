@@ -7,6 +7,11 @@ const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("source-text-error", function(event){
     document.querySelector(".witnessText").innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${sourceURI} </b>`
+    const ev = new CustomEvent(`Could not get Witness Text Data from ${sourceURI}`)
+    globalFeedbackBlip(ev, `Could not get Witness Text Data from ${sourceURI}.  Resetting...`, false)
+    setTimeout( () => {
+        startOver()
+    }, 2500)
 })
 
 // Make the text in the Gloss modal form the same as the one in the Witness form
