@@ -35,7 +35,7 @@ async function initiateMatch(manuscriptWitnessID){
     const historyWildcard = { "$exists": true, "$size": 0 }
     const shelfmarkAnnosQuery = {
         "body.identifier.value": {"$exists":true},
-        "target": manuscriptWitnessID,
+        "target": httpsIdArray(manuscriptWitnessID),
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
@@ -113,7 +113,7 @@ checkForManuscriptsBtn.addEventListener('click', async (ev) => {
     }
     const match = await getManuscriptWitnessFromShelfmark(shelfmarkElem.value.trim())
     if(!match) {
-        checkForManuscriptsBtn.value = "No Witnesses Found.  Change Shelfmark to Try Again."
+        checkForManuscriptsBtn.value = "Click to Change Shelfmark and Search Again."
         shelfmarkElem.setAttribute("disabled", "")
         manuscriptsFound.classList.add("is-hidden")
         manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.remove("is-hidden"))
@@ -197,7 +197,7 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
         for await (const anno of annos){
             // Check what type the entities are.  We only care about Manuscript Witnesses here.
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "TextWitness"){
+            if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
                 manuscriptWitnessesOnly.add(anno.target)
             }
         }
@@ -252,7 +252,7 @@ async function getManuscriptWitnessFromFragment(fragmentURI=null){
         let manuscriptWitnessesOnly = new Set()
         for await (const anno of annos){
             const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "TextWitness"){
+            if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
                 manuscriptWitnessesOnly.add(anno.body.partOf.value)
             }
         }
@@ -355,7 +355,7 @@ async function getManuscriptWitnessFromSource(source=null){
         let manuscriptWitnessesOnly = new Set()
         for await (const anno of annos){
             const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "TextWitness"){
+            if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
                 manuscriptWitnessesOnly.add(anno.body.partOf.value)
             }
         }
@@ -562,7 +562,7 @@ window.onload = async () => {
     })
     deleteWitnessButton.addEventListener("click", async ev => {
         if(await showCustomConfirm("The witness will be deleted.  This action cannot be undone.")){
-            deleteWitness()
+            deleteWitnessFragment(true)
         }
     })
 }
@@ -1043,7 +1043,7 @@ function addButton(event) {
         inclusionBtn.setAttribute("class", `toggleInclusion ${already} button primary`)
 
         // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
-        if(witnessFragmentID && referencedGlossID === obj["@id"]){
+        if(witnessFragmentID && referencedGlossID === obj["@id"].replace(/^https?:/, 'https:')){
             // Make this button appear as 'attached'
             inclusionBtn.setAttribute("disabled", "")
             inclusionBtn.setAttribute("value", "✓ attached")
@@ -1343,6 +1343,7 @@ async function getAllWitnessFragmentsOfManuscript(event){
         })
         .then(response => response.json())
         .then(annos => {
+            // Keep this information in the witnessFragmentsObj from shared.js
             if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
             witnessFragmentsObj[fragmentURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
             glossUriSet = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
@@ -1363,6 +1364,7 @@ async function getAllWitnessFragmentsOfManuscript(event){
         })
         .then(response => response.json())
         .then(annos => {
+            // Keep this information in the witnessFragmentsObj from shared.js
             if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
             const existingSelections = witnessFragmentsObj[fragmentURI].selections ? witnessFragmentsObj[fragmentURI].selections : []
             const moreSelections = annos.map(anno => anno.body.selections.value).flat()
@@ -1380,6 +1382,7 @@ async function getAllWitnessFragmentsOfManuscript(event){
     // This has the asyncronous behavior necessary to build witnessFragmentsObj.
     Promise.all(all)
     .then(success => {
+        // Keep this information in the witnessFragmentsObj from shared.js
         witnessFragmentsObj.referencedGlosses = glossUriSet
         for(const fragmentURI in witnessFragmentsObj){
             if(fragmentURI === "referencedGlosses") continue
@@ -1484,6 +1487,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
         })
         .then(response => response.json())
         .then(annos => {
+            // Keep this information in the witnessFragmentsObj from shared.js
             if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
             witnessFragmentsObj[fragmentURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
             glossUriSet = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
@@ -1504,6 +1508,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
         })
         .then(response => response.json())
         .then(annos => {
+            // Keep this information in the witnessFragmentsObj from shared.js
             if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
             const existingSelections = witnessFragmentsObj[fragmentURI].selections ? witnessFragmentsObj[fragmentURI].selections : []
             const moreSelections = annos.map(anno => anno.body.selections.value).flat()
@@ -1518,7 +1523,6 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
         )
     }
 
-    // This has the asyncronous behavior necessary to build witnessFragmentsObj.
     Promise.all(all)
     .then(success => {
         witnessFragmentsObj.referencedGlosses = glossUriSet
@@ -1689,3 +1693,94 @@ function remarkLineElements(markData){
 //         "persists" : persistent_map
 //     }
 // }
+
+/**
+ *  Delete a Witness of a Gloss through gloss-transcription.html, gloss-witness.html or manage-glosses.html.  
+ *  This will delete the Witness entity itself and its Annotations.  
+ *  It will no longer appear as a Witness to the Gloss in any UI.
+ * 
+ *  @deprecated - The structures of Witness and Witness Fragments has changed.  This is still used on gloss-transcription.html.
+ *  @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
+*/
+async function deleteWitnessFragment(redirect){
+    if(!witnessFragmentID) return
+    // No extra clicks while you await.
+    if(redirect) document.querySelector(".deleteWitness").setAttribute("disabled", "true")
+    const annos_query = {
+        "target" : httpsIdArray(witnessFragmentID),
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    let anno_ids =
+        await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8"                },
+            body: JSON.stringify(annos_query)
+        })
+        .then(resp => resp.json()) 
+        .then(annos => annos.map(anno => anno["@id"]))
+        .catch(err => {
+            return null
+        })
+
+    // This is bad enough to stop here, we will not continue on towards deleting the entity.
+    if(anno_ids === null) throw new Error("Cannot find Entity Annotations")
+
+    let delete_calls = anno_ids.map(annoUri => {
+        return fetch(`${__constants.tiny}/delete`, {
+            method: "DELETE",
+            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            }
+        })
+        .then(r => {
+            if(!r.ok) throw new Error(r.text)
+        })
+        .catch(err => {
+            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
+            console.log(err)
+        })
+    })
+
+    delete_calls.push(
+        fetch(`${__constants.tiny}/delete`, {
+            method: "DELETE",
+            body: JSON.stringify({"@id" : witnessFragmentID.replace(/^https?:/, 'https:')}),
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+        })
+        .then(r => {
+            if(!r.ok) throw new Error(r.text)
+        })
+        .catch(err => {
+            console.warn(`There was an issue removing the Witness: ${witnessFragmentID}`)
+            console.log(err)
+        })
+    )
+
+    if(redirect){
+        Promise.all(delete_calls).then(success => {
+            addEventListener("globalFeedbackFinished", ev=> {
+                startOver()
+            })
+            const ev = new CustomEvent("Witness Deleted.  You will be redirected.")
+            globalFeedbackBlip(ev, `Witness Deleted.  You will be redirected.`, true)
+        })
+        .catch(err => {
+            // OK they may be orphaned.  We will continue on towards deleting the entity.
+            console.warn("There was an issue removing connected Annotations.")
+            console.error(err)
+            const ev = new CustomEvent("Error Deleting Witness")
+            globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
+        })    
+        return
+    }
+    else{
+        return delete_calls
+    }
+}

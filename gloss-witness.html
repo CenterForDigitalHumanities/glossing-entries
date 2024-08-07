@@ -97,7 +97,7 @@
     </div>
 
     <!-- Once a mansucript witness is known the shelfmark should become populated and disabled -->
-    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="TextWitness" deer-context="http://purl.org/dc/terms">
+    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
         <!-- <input type="hidden" custom-key="source" witness-source> -->
@@ -125,7 +125,7 @@
         </div>
         <div class="row">
             <div class="col">
-                <input id="submitManuscriptsBtn" class="is-hidden button primary" type="submit" value="Create New Manuscript Witness and Continue"/>
+                <input id="submitManuscriptsBtn" class="is-hidden button primary" type="submit" value="Create Manuscript Witness and Continue"/>
             </div>
         </div>
     </form>
@@ -170,7 +170,7 @@
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
         <input class="is-hidden button primary" type="submit" value="Create Selection Fragment"/>
-        <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
+        <input class="is-hidden button error deleteWitness" type="button" value="Delete Witness Fragment"/>
         <div class="row">
             <source-text-selector class="lineSelector col-7-md col-6-sm"> </source-text-selector>
             <deer-view class="col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
