@@ -130,9 +130,13 @@ class WitnessTextSelector extends HTMLElement {
         const plaintext = document.createElement("div")
         plaintext.classList.add("textContent")
         let just_text = ""
-        // Newlines (/r and /n) result in <br> separations when doing elem.innerText.  
-        // This makes it more difficult to do Selection selectors.
-        // Let's make this it's own scope.
+
+        /**
+         * Newlines (/r and /n) result in <br> separations when doing elem.innerText or elem.innerHTML  
+         * This makes it more difficult to do Selection selectors and Mark marks.
+         * 
+         * FIXME: For now, we process things as plain text and ignore newlines and other structural text markers.
+         */ 
         //just_text = textForUI.replace(/(\r\n|\n|\r)/gm, "")
         just_text = textForUI
         //plaintext.innerText = just_text
@@ -147,7 +151,6 @@ class WitnessTextSelector extends HTMLElement {
             const lineElem = e.target
             let unmarkup = new Mark(lineElem)
             unmarkup.unmark({"className" : "persists"})
-            //unmarkup.unmark({"className" : "pre-select"})
         }
 
         /**

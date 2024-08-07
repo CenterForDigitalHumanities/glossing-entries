@@ -4,7 +4,7 @@ let existingManuscriptWitness = null
 let sourceURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : null
 const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : null
 
-// UI for when the provided T-PEN URI does not resolve or cannot be processed.
+// UI for when the provided text source URI does not resolve or cannot be processed.
 document.addEventListener("source-text-error", function(event){
     document.querySelector(".witnessText").innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${sourceURI} </b>`
     const ev = new CustomEvent(`Could not get Witness Text Data from ${sourceURI}`)
@@ -14,7 +14,7 @@ document.addEventListener("source-text-error", function(event){
     }, 2500)
 })
 
-// Make the text in the Gloss modal form the same as the one in the Witness form
+// Make the text in the Gloss modal form the same as the one in the Witness Fragment form
 document.addEventListener("gloss-modal-visible", function(event){
     const text = witnessFragmentForm.querySelector("textarea[custom-text-key='text']").value
     const glossTextElem = event.target.querySelector("textarea[name='glossText']")
@@ -23,6 +23,13 @@ document.addEventListener("gloss-modal-visible", function(event){
     glossTextElem.dispatchEvent(new Event('input', { bubbles: true }))
 })
 
+/**
+ * Instead of offering users the picker to choose a Manuscript Witness, programatically choose it instead.
+ * This happens when a Manuscript Witness is found from a provided soure so that the user cannot possibly
+ * make another Manuscript Witness connected to the provided source.
+ * 
+ * @param manuscriptWitnessID - URI of a Manuscript Witness.
+ */ 
 async function initiateMatch(manuscriptWitnessID){
     if(!manuscriptWitnessID) return
     const historyWildcard = { "$exists": true, "$size": 0 }
@@ -32,6 +39,7 @@ async function initiateMatch(manuscriptWitnessID){
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
+    // We need to know the shelfmark to activate the Witness Fragment form because they MUST match.
     fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
         method: "POST",
         mode: 'cors',
@@ -57,13 +65,13 @@ async function initiateMatch(manuscriptWitnessID){
     .catch(err => {
         console.error(`Error loading in the manuscript '${manuscriptWitnessID}'`)
         const e = new CustomEvent("Manuscript Witness Error")
-        globalFeedbackBlip(e, `Could Not Load In Manuscript Witness`, False)
+        globalFeedbackBlip(e, `Could Not Load In Manuscript Witness`, false)
     })
 }
 
 /**
  * A search was performed for Manuscript Witnesses with a given shelfmark.
- * There are 0 to (potentially) many Manuscript Witnesses with the given shelfmark, though we only expect one.
+ * We only expect one Manuscript Witnesses with the given shelfmark, but the functionality below can handle more than one.
  * Turns those Manuscript Witnesses into actionable buttons so the user can pick one to make Fragments for.
  * 
  * @param matches A string Manuscript Witness URI or an Array of those strings.
@@ -103,7 +111,6 @@ checkForManuscriptsBtn.addEventListener('click', async (ev) => {
         manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.remove("is-hidden"))
         return
     }
-
     const match = await getManuscriptWitnessFromShelfmark(shelfmarkElem.value.trim())
     if(!match) {
         checkForManuscriptsBtn.value = "No Witnesses Found.  Change Shelfmark to Try Again."
@@ -121,6 +128,9 @@ checkForManuscriptsBtn.addEventListener('click', async (ev) => {
 /**
  * Once a Manuscript Witness is known, the Manuscript Witness Form should be deactivated.
  * The Witness Fragment form should be activated allowing users to make Witness Fragments for the Manuscript Witness.
+ * 
+ * @param manuscriptID - Manuscript Witness URI that the Fragments will be a part of
+ * @param shelfmark - The shelfmark for that Manuscript Witness.  The shelfmark for each fragment MUST match.
  */ 
 function activateFragmentForm(manuscriptID, shelfmark){
     if(!(manuscriptID && shelfmark)) return
@@ -162,11 +172,11 @@ function chooseManuscriptWitness(ev){
 /**
  * For a given shelfmark, query RERUM to find matching Manuscript Witness entities.
  * There are 0 to many body.identifier Annotations with the shelfmark value.
- * The target values of those Annotations are shelfmark URIs.
- * Make a Set out of those target URIs be wary if the size is greater than 1.
+ * The target values of those Annotations are Manuscript Witness URIs.
+ * Make a Set out of those target URIs and be wary if the size is greater than 1.
  * 
  * @param shelfmark - A string representing the shelfmark value
- * @return Set of Manuscript Witnesses that have this shelfmark (should just be 1)
+ * @return the Manuscript Witness URI
  */ 
 async function getManuscriptWitnessFromShelfmark(shelfmark=null){
     const historyWildcard = { "$exists": true, "$size": 0 }
@@ -175,10 +185,6 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
         globalFeedbackBlip(ev, `You must provide a shelfmark value.`, false)
         return
     }
-
-    // Each shelfmark annotation targets a Witness entity.
-    // Get all the shelfmark annotations whose value is this shelfmark string
-    // Note both the Manscript Witness and Witness Fragment will have this shelfmark, we just want to know the Manuscript Witnesses.
     const shelfmarkAnnosQuery = {
         "body.identifier.value": httpsIdArray(shelfmark),
         "__rerum.history.next": historyWildcard,
@@ -189,6 +195,7 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
     .then(async(annos) => {
         let manuscriptWitnessesOnly = new Set()
         for await (const anno of annos){
+            // Check what type the entities are.  We only care about Manuscript Witnesses here.
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
             if(entity["@type"] && entity["@type"] === "TextWitness"){
                 manuscriptWitnessesOnly.add(anno.target)
@@ -223,7 +230,7 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
  * Make a Set out of that URI, and be wary if the size is greater than 1.
  * 
  * @param fragmentURI - A string URI of a Witness Fragment entity
- * @return Set of Manuscript Witnesses that this Witness Fragment is a partOf (should just be 1)
+ * @return the Manuscript Witness URI
  */ 
 async function getManuscriptWitnessFromFragment(fragmentURI=null){
     if(!fragmentURI){
@@ -279,7 +286,7 @@ async function getManuscriptWitnessFromFragment(fragmentURI=null){
  * Make a Set out of that Witness Fragment URI, and be wary if the size is greater than 1.
  * 
  * @param source - A string URI representing an internet resource (textual)
- * @return Set of Manuscript Witnesses that have Witness Fragments with this source (should just be 1)
+ * @return the Manuscript Witness URI
  */ 
 async function getManuscriptWitnessFromSource(source=null){
     if(!source){
@@ -623,9 +630,7 @@ function initFragmentForm(event){
         loading.classList.add("is-hidden")
     }
     // This event listener is no longer needed
-    removeEventListener('deer-form-rendered', initFragmentForm)
-    // Initialize the Witness form when it recieves the Manuscript Witness URI
-    
+    removeEventListener('deer-form-rendered', initFragmentForm)    
 }
 
 /**
@@ -641,10 +646,7 @@ function glossFormReset(event){
 
 function fragmentFormReset(event){
     let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
-    if(whatRecordForm === "witnessFragmentForm"){
-        setFragmentFormDefaults()
-        //removeEventListener('deer-form-rendered', fragmentFormReset)
-    }
+    if(whatRecordForm === "witnessFragmentForm") setFragmentFormDefaults()
 }
 
 /**
@@ -653,20 +655,16 @@ function fragmentFormReset(event){
  */
 function glossFormReset(event){
     let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
-    const $elem = event.target
-    switch (whatRecordForm) {
-        case "gloss-modal-form":
-            // This element has its own reset function defined in its Custom Element
-            document.querySelector("gloss-modal").reset()
-            break
-        default:
-    }
+    if(whatRecordForm === "gloss-modal-form") document.querySelector("gloss-modal").reset()
 }
 
 /**
  * Helper function for the specialized text key, which is an Object.
  * Note that format is hard coded to text/plain for now.
- * */
+ * 
+ * @param textObj - Contains all the pieces of the Text annotation (source, language, textValue, format)
+ * @param form - The form that contains the text input
+ */
 function prefillText(textObj, form) {
     const languageElem = form.querySelector("select[custom-text-key='language'")
     const formatElem = form.querySelector("input[custom-text-key='format'")
@@ -715,7 +713,10 @@ function prefillText(textObj, form) {
  * Helper function for the specialized references key, which is an Array.
  * An item of the array can be either a URI or plain text.  Set the
  * appropriate attribute based on which it is.
- * */
+ * 
+ * @param locationsArr - A location Annotation whos body is a source array (of one)
+ * @param form - The form that contains the source input
+ */
 function prefillDigitalLocations(locationsArr, form) {
     const locationElems = form.querySelectorAll("input[witness-source]")
     if(!locationElems) {
@@ -751,6 +752,9 @@ function prefillDigitalLocations(locationsArr, form) {
 /**
  * Helper function for the specialized references key, which is an Array of URIs.
  * It needs to apply the filter with this Gloss's Label..
+ * 
+ * @param referencesArr - A references Annotation whos body is an array (of one)
+ * @param form - The form that contains the source input
  * */
 function prefillReferences(referencesArr, form) {
     if (referencesArr === undefined) {
@@ -790,7 +794,7 @@ function prefillReferences(referencesArr, form) {
 /**
  * Highlight previously selected text with a yellow or green color use mark.js
  * If a #TextFragment entity is loaded there will be a green selection.
- * The lines that make up that selection are provided fragmentSelections
+ * The lines that make up that selection are provided as fragmentSelections
  * If those fragmentSelections 'match' the array of lines to select, then this is the green selection.
  * 
  * @param linesArr - An array of uri#start,end selectors that select all the lines that have the text of a Text Fragment.  Note a single Fragment can span multiple 'lines' of a text structured with 'lines'.
@@ -841,21 +845,6 @@ function preselectLines(linesArr, form, fragmentSelections) {
         }], options)    
         remarkLineElements(remark_map)
     }
-}
-
-/**
- * Enable/Disable all form fields
- * @param {boolean} disabled - Set all form fields used to have this value for their `disabled` attribute
- */
-function toggleFieldsDisabled(form, disabled=true){
-    form.querySelectorAll('input,textarea,select,button').forEach(e => {
-        if(disabled){
-            e.setAttribute("disabled", "")
-        }
-        else{
-            e.removeAttribute("disabled")
-        }
-    })
 }
 
 /**
@@ -1156,6 +1145,7 @@ resourceFile.addEventListener("change", function(event){
 
 /**
  * Change which user input method is showing based on the chosen tab.
+ * FIXME only supporting URI input right now
  */ 
 function changeUserInput(event, which){
     if(which !== "uri"){
@@ -1625,6 +1615,8 @@ function remarkLineElements(markData){
 /**
  * Used with capstureSelectedText().  There is a range of line elements and any one of them may already contain a mark.  
  * Each mark needs to be removed.  Each mark removed will need to be restored later.
+ * 
+ * Unused because our plaintext is "all one line".  As soon as we structure it, this scenario will occur regularly.
  */ 
 // function unmarkLineElements(startEl, stopEl){
 //     return
