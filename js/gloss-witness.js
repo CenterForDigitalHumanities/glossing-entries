@@ -147,7 +147,7 @@ function activateFragmentForm(manuscriptID, shelfmark){
     partOfElem.value = manuscriptID
     partOfElem.setAttribute("value", manuscriptID )
     partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
-    look.innerHTML = `Manuscript <a target="_blank" href="manuscript-details.html#${manuscriptID}" id="providedShelfmark"> ${shelfmark} </a> Loaded In.`
+    look.innerHTML = `Manuscript <a target="_blank" href="manuscript-details.html#${manuscriptID}"> ${shelfmark} </a> Loaded In.`
     existingManuscriptWitness = manuscriptID
     loading.classList.add("is-hidden")
     witnessFragmentForm.classList.remove("is-hidden")
