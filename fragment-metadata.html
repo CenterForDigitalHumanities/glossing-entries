@@ -1,151 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<head>
-    <title>Gallery of Glosses</title>
-    <link rel="stylesheet" href="css/gloss.css">
-    <link href="favicon.ico" rel="icon" type="image/x-icon" />
-    <script src="js/auth.js" type="module"></script>
-    <script src="js/deer.js" type="module"></script>
-    <script src="js/layout.js" type="module"></script>
-    <script src="js/text-witness-line-selector.js" type="module"></script>
-    <script src="js/bibliographicCitationView.js" type="module"></script>
-    <script src="js/glossModal.js" type="module"></script>
-    <script src="js/shared.js"></script>
-    <style>
-        input.required{
-            border: 1px solid black;
-        }
-        .pageContainer.is-toggled{
-            visibility: hidden;
-            height: 0px;
-        }
-        .loadingMsg{
-            color: white;
-            padding-top: 4em;
-        }
-        line:nth-child(2n) {
-            background-color: unset;
-        }
-        nav[user-input]{
-            margin-bottom: 1em;
-        }
-        nav[user-input] a{
-            cursor: pointer;
-        }
-        #reset{
-            cursor: pointer;
-        }
-        #needs{
-            margin-bottom: 3em;
-        }
-    </style>
-</head>
+    <head>
+        <meta charset="utf-8">
+        <title>Gallery of Glosses</title>
+        <link rel="stylesheet" href="css/gloss.css">
+        <link href="favicon.ico" rel="icon" type="image/x-icon" />
+        <script src="js/auth.js" type="module"></script>
+        <script src="js/deer.js" type="module"></script>
+        <script src="js/layout.js" type="module"></script>
+        <script src="js/shared.js"></script>
+    </head>
 
-<body class="container">
-    <gog-header class="container"></gog-header>
-    <h2 class="bg-basic"> Witness Fragment Metadata </h2>
-    <p id="reset" class="bg-basic is-hidden">
-        This page automatically applied a text resource. If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
-    </p>
-    <p id="look" class="bg-light">
-        This page is under construction.
-    </p>
-<!--     <div id="needs" class="row bg-basic">
-        <div class="col">
-            <p class="howTo"> 
-                It looks like you haven't provided the URI of the web resource with the text.  
-                If you are not using the <code>?witness-uri=</code> URL parameter then please choose a way to provide the text content. 
-            </p>
-            <nav user-input class="tabs is-full">
-              <a name="uri" onclick="changeUserInput(event, 'uri')" class="ui-tab active">I want to provide a URI</a>
-              <a name="file" onclick="changeUserInput(event, 'file')" class="ui-tab">I want to upload a file</a>
-              <a name="cp" onclick="changeUserInput(event, 'cp')" class="ui-tab">I want to copy and paste</a>
-            </nav>
-            <div user-input="uri" class="userInput">
-                <input id="resourceURI" type="text" placeholder="The Text Witness URI"/>
-                <input id="loadURI" type="button" onclick="loadUserInput(event, 'uri')" value="Load URI" />    
-            </div>
-            <div user-input="file" class="userInput is-hidden">
-                <p class="howTo"> 
-                    The only supported file type is ".txt" at this time.
-                </p>
-                <input id="resourceFile" type="file" placeholder="Select a File"/>
-                <textarea disabled id="fileText"> No Typing or Pasting Text Here.  Awaiting file contents...</textarea>
-                <input id="loadFile" type="button" class="is-hidden" onclick="loadUserInput(event, 'file')" value="Use File Content" />
-            </div>
-            <div user-input="cp" class="userInput is-hidden">
-                <p class="howTo">Copy text from your source and paste it into this textarea.  You can also type out the text.</p>
-                <textarea placeholder=" Begin Typing or Paste the Text Here..." id="resourceText" class="taller"></textarea>
-                <input id="loadText" type="button" onclick="loadUserInput(event, 'cp')" value="Use Text" />
-            </div>
-        </div>        
-    </div>
-    <bibliographic-citation-div class="entity-needed"></bibliographic-citation-div>
-    <div id="loading" class="is-hidden entity-needed">
-        <p class="loadingMsg">
-            Please be patient while we get things together...
-        </p>
-    </div>
-    <form id="witnessForm" class="is-hidden bg-basic entity-needed" deer-type="Text" deer-context="http://purl.org/dc/terms">
-        <h4> Provide Fragment Information </h4>
-        <input is="auth-creator" type="hidden" deer-key="creator" />
-        <input type="hidden" custom-key="source">
-        <div class="row">
-            <label class="col-3 col-2-md text-right is-hidden">Label:</label>
-            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
-            <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
-            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
-            <label class="col-3 col-2-md text-right">Text: &#10082;</label>
-            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight some text..."></textarea>
-            <label class="col-3 col-2-md text-right">Language:</label>
-            <select custom-text-key="language" title="select language" class="col-9 col-4-md">
-                <option value="la" selected>Latin</option>
-                <option value="de">German</option>
-                <option value="fr">French</option>
-                <option value="en">English</option>
-            </select>
-            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
-                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
-            </label>
-            <label class="col-3 col-2-md text-right">Gloss format:</label>
-            <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
-                <option value="none" selected>None</option>
-                <option value="marginal">Marginal</option>
-                <option value="interlinear">Interlinear</option>
-                <option value="appendix">Appendix</option>
-                <option value="other">Other</option>
-            </select>
-            <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
-            <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
-        </div>
-        <input class="is-hidden button primary" type="submit" value="Create Witness Fragment" />
-        <input class="is-hidden button error deleteWitness" type="button" value="Delete Witness Fragment" />
-        <div class="row">
-            <witness-text-selector class="lineSelector entity-needed is-hidden col-7-md col-6-sm"> </witness-text-selector>
-            <deer-view class="entity-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
-                Loading&hellip;
-            </deer-view>
-        </div>
-    </form>
-    <gog-footer class="row"></gog-footer>
-    <div id="globalFeedback" class="card is-center"></div>
-    <gloss-modal class="is-hidden"></gloss-modal> -->
-    <script src="js/fragment-metadata.js"></script>
-</body>
-<script>
-/**
- * Make sure DEER forms do not submit when a user hits "Enter".
- */
-document.querySelectorAll("form[deer-type]").forEach(form => {
-    form.addEventListener("keydown", (e) => {
-        if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
-            if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
-                e.preventDefault()
-            }
-        }
-    }, true)
-})
-</script>
+    <body class="container">
+        <gog-header class="container"></gog-header>
+        <h2 class="bg-basic"> Witness Fragment Metadata </h2>
+        <p class="bg-basic"> This page is not ready.  Check back later. </p>
+        <gog-footer class="container"></gog-footer>
+        <div id="globalFeedback" class="card is-center"></div>
+        <script src="js/fragment-metadata.js"></script>
+    </body>
 
 </html>

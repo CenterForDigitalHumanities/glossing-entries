@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta charset="utf-8">
     <title>Gallery of Glosses</title>
     <link rel="stylesheet" href="css/gloss.css">
     <link href="favicon.ico" rel="icon" type="image/x-icon" />
@@ -11,6 +12,7 @@
     <script src="js/text-witness-line-selector.js" type="module"></script>
     <script src="js/glossModal.js" type="module"></script>
     <script src="js/shared.js"></script>
+    <script src="js/mark.min.js"></script>
     <style>
         input.required{
             border: 1px solid black;
@@ -35,26 +37,33 @@
         #reset{
             cursor: pointer;
         }
+        #manuscriptsResult .tag{
+            cursor: pointer;
+            text-transform: none;
+        }
+        #manuscriptsResult .tag:hover{
+            color: var(--color-success);
+            border-color: var(--color-success);
+        }
+        .is-not-visible{
+            visibility: hidden;
+        }
     </style>
 </head>
 
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2 class="bg-basic"> Gloss Textual Witness </h2>
-    <!-- <p class="bg-basic"> 
-        Connect Virtual Glosses With Real World Text 
-    </p> -->
     <p id="reset" class="bg-basic is-hidden"> 
         This page automatically applied a text resource.  If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
     </p>
     <p id="look" class="bg-light">
-       This page is under construction.
+       Connect Virtual Glosses With Real World Text.  Please load in a Manuscript.
     </p>
-<!--     <div id="needs" class="row bg-basic">
+    <div id="needs" class="row bg-basic is-hidden">
         <div class="col">
             <p class="howTo"> 
-                It looks like you haven't provided the URI of the web resource with the text.  
-                If you are not using the <code>?witness-uri=</code> URL parameter then please choose a way to provide the text content. 
+                It looks like you haven't provided a Manuscript Witness or text content yet.  Please choose a way to provide the text content which contains the Glosses you would like to identify.  We will check for existing Manuscript Witnesses with that content.
             </p>
             <nav user-input class="tabs is-full">
               <a name="uri" onclick="changeUserInput(event, 'uri')" class="ui-tab active">I want to provide a URI</a>
@@ -62,7 +71,7 @@
               <a name="cp" onclick="changeUserInput(event, 'cp')" class="ui-tab">I want to copy and paste</a>
             </nav>
             <div user-input="uri" class="userInput">
-                <input id="resourceURI" type="text" placeholder="The Text Witness URI"/>
+                <input id="resourceURI" type="text" placeholder="Provide URI of Web Resource"/>
                 <input id="loadURI" type="button" onclick="loadUserInput(event, 'uri')" value="Load URI" />    
             </div>
             <div user-input="file" class="userInput is-hidden">
@@ -80,20 +89,57 @@
             </div>
         </div>        
     </div>
-    <div id="loading" class="witness-needed is-hidden">
+    <div id="loading">
         <p class="loadingMsg"> 
             Please be patient while we get things together...  
         </p>
     </div>
-    <form id="witnessForm" class="is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
-        <input is="auth-creator" type="hidden" deer-key="creator" />
-        <input type="hidden" custom-key="source">
-        <div class="row">
-            <label class="col-3 col-2-md text-right is-hidden">Label:</label>
-            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
 
+    <!-- Once a mansucript witness is known the shelfmark should become populated and disabled -->
+    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms">
+        <input is="auth-creator" type="hidden" deer-key="creator" />
+        <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
+        <!-- <input type="hidden" custom-key="source" witness-source> -->
+        <div id="manuscriptWitnessCheck" class="row">
+            <div class="col">
+                <div>
+                    <p class="detect-witness"> 
+                        You must load in a Manuscript Witness.  Enter a shelfmark below to get started.  When finished, click the button to check for existing Witnesses.
+                    </p>
+                </div>
+                <div id="manuscriptsFound" class="is-hidden">
+                    <h4> Manuscripts Found.  Choose a Manuscript from below or create a new one. </h4>
+                    <div id="manuscriptsResult"></div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
             <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
+        </div>
+        <div class="row">
+            <div class="col">
+                <input id="checkForManuscriptsBtn" type="button"  class="button secondary" value="Check for Existing Manuscript Witnesses"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <input id="submitManuscriptsBtn" class="is-hidden button primary" type="submit" value="Create Manuscript Witness and Continue"/>
+            </div>
+        </div>
+    </form>
+
+    <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
+    <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment" deer-context="http://purl.org/dc/terms">
+        <p> 
+            Fill out the form below to create a Witness Fragment for the Manuscript loaded in.  Submit the Fragment by identifying a Gloss and clicking '➥ attach'.  Note the Manuscript remains the same for each Fragment you submit. 
+        </p>
+        <input type="hidden" deer-key="partOf" >
+        <input type="hidden" deer-key="source" witness-source>
+        <div class="row">
+
+            <label class="col-3 col-2-md text-right">Shelfmark: &#10082;</label>
+            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required">
 
             <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
             <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight some text..."></textarea>
@@ -122,18 +168,19 @@
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
-        <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
-        <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
+        <input class="is-hidden button primary" type="submit" value="Create Selection Fragment"/>
+        <input class="is-hidden button error deleteWitness" type="button" value="Delete Witness Fragment"/>
         <div class="row">
-            <witness-text-selector class="lineSelector witness-needed is-hidden col-7-md col-6-sm"> </witness-text-selector>
-            <deer-view class="witness-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
-            Loading&hellip;
+            <source-text-selector class="lineSelector col-7-md col-6-sm"> </source-text-selector>
+            <deer-view class="col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            Loading Gloss Picker&hellip;
             </deer-view>  
         </div>
     </form>
+    
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
-    <gloss-modal class="is-hidden"></gloss-modal> -->
+    <gloss-modal class="is-hidden"></gloss-modal>
     <script src="js/gloss-witness.js"></script>
 </body>
 <script>

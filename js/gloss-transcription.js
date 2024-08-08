@@ -665,8 +665,8 @@ function addButton(event) {
     inclusionBtn.setAttribute("type", "button")
     inclusionBtn.setAttribute("data-id", obj["@id"])
     let already = false
-    if(witnessesObj?.referencedGlosses){
-        already = witnessesObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
+    if(witnessFragmentsObj?.referencedGlosses){
+        already = witnessFragmentsObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
     }
     if(updateScenario){
         inclusionBtn.setAttribute("disabled", "")
