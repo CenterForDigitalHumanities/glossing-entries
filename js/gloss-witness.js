@@ -116,7 +116,7 @@ checkForManuscriptsBtn.addEventListener('click', async (ev) => {
     }
     const match = await getManuscriptWitnessFromShelfmark(shelfmarkElem.value.trim())
     if(!match) {
-        checkForManuscriptsBtn.value = "Click to Change Shelfmark and Search Again."
+        checkForManuscriptsBtn.value = "Click to Change Shelfmark and Search Again"
         shelfmarkElem.setAttribute("disabled", "")
         manuscriptsFound.classList.add("is-hidden")
         manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.remove("is-hidden"))
@@ -150,7 +150,7 @@ function activateFragmentForm(manuscriptID, shelfmark){
     partOfElem.value = manuscriptID
     partOfElem.setAttribute("value", manuscriptID )
     partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
-    look.innerHTML = `Manuscript <a target="_blank" href="manuscript-details.html#${manuscriptID}"> ${shelfmark} </a> Loaded In.`
+    look.innerHTML = `Manuscript <a target="_blank" href="manuscript-details.html#${manuscriptID}"> ${shelfmark} </a> Loaded In`
     existingManuscriptWitness = manuscriptID
     loading.classList.add("is-hidden")
     witnessFragmentForm.classList.remove("is-hidden")
@@ -211,11 +211,11 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
     })
 
     if(manuscriptUriSet.size === 0){
-        console.error(`There is no Manuscript Witness with this shelfmark`)
+        console.log(`There is no Manuscript Witness with shelfmark '${shelfmark}'`)
         return
     }
     else if (manuscriptUriSet.size > 1){
-        console.error("There are multiple Manuscript Witnesses with this shelfmark and there should only be one.  This is an error.")
+        console.log("There are multiple Manuscript Witnesses with this shelfmark and there should only be one.  This is an error.")
         return
     }
     
@@ -263,11 +263,11 @@ async function getManuscriptWitnessFromFragment(fragmentURI=null){
     })
 
     if(manuscriptUriSet.size === 0){
-        console.error(`There is no Manuscript Witness for this Witness Fragment`)
+        console.log(`There is no Manuscript Witness for fragment '${fragmentURI}'`)
         return
     }
     else if (manuscriptUriSet.size > 1){
-        console.error("There are multiple Manuscript Witnesses and a choice must be made.")
+        console.log("There are multiple Manuscript Witnesses and a choice must be made.")
         return
     }
     
@@ -318,7 +318,7 @@ async function getManuscriptWitnessFromSource(source=null){
     .then(async(annos) => {
         const fragments = annos.map(async(anno) => {
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "TextFragment"){
+            if(entity["@type"] && entity["@type"] === "WitnessFragment"){
                 return anno.target
             }
         })
@@ -331,7 +331,7 @@ async function getManuscriptWitnessFromSource(source=null){
     })
 
     if(fragmentUriSet.size === 0){
-        console.error("There is no Manuscript Witness with this source")
+        console.log(`There is no Manuscript Witness with source '${source}'`)
         return
     }
 
@@ -363,11 +363,11 @@ async function getManuscriptWitnessFromSource(source=null){
     })
     
     if(manuscriptUriSet.size === 0){
-        console.error("There is no Manuscript Witness with this source")
+        console.log(`There is no Manuscript Witness with source '${source}'`)
         return
     }
     else if(manuscriptUriSet.size > 1){
-        console.error("There are many Manuscript Witnesses when we only expect one.")
+        console.log("There are many Manuscript Witnesses when we only expect one.")
         return
     }
     return manuscriptUriSet.values().next().value
@@ -782,7 +782,7 @@ function prefillReferences(referencesArr, form) {
 
 /**
  * Highlight previously selected text with a yellow or green color use mark.js
- * If a #TextFragment entity is loaded there will be a green selection.
+ * If a #WitnessFragment entity is loaded there will be a green selection.
  * The lines that make up that selection are provided as fragmentSelections
  * If those fragmentSelections 'match' the array of lines to select, then this is the green selection.
  * 
@@ -805,7 +805,7 @@ function preselectLines(linesArr, form, fragmentSelections) {
 
     /**
      * The check for whether it should be green or yellow.
-     * If a #TextFragment entity is loaded, its selection should be specifically noted in fragmentSelections.
+     * If a #WitnessFragment entity is loaded, its selection should be specifically noted in fragmentSelections.
      * If those fragmentSelections 'match' the array of lines to select, then this is the green selection.
      */ 
     const activeSelection = fragmentSelections && linesArr.every(l=>fragmentSelections.includes(l)) && fragmentSelections.every(l=>linesArr.includes(l))
@@ -945,14 +945,14 @@ addEventListener('deer-updated', event => {
     Promise.all(annotation_promises)
     .then(success => {
         console.log("FORM FULLY SAVED")
-        const ev = new CustomEvent("Gloss Textual Witness Submitted")
-        globalFeedbackBlip(ev, `Gloss Textual Witness Submitted!`, true)
+        const ev = new CustomEvent("Witness Fragment Submitted")
+        globalFeedbackBlip(ev, `Witness Fragment Submitted!`, true)
     })
     .catch(err => {
         console.error("ERROR PROCESSING SOME FORM FIELDS")
         console.error(err)
-        const ev = new CustomEvent("Witness Save Error")
-        globalFeedbackBlip(ev, `Witness Save Error`, false)
+        const ev = new CustomEvent("Witness Fragment Save Error")
+        globalFeedbackBlip(ev, `Witness Fragment Save Error`, false)
     })
 })
 
@@ -1678,8 +1678,8 @@ async function deleteWitnessFragment(redirect){
             addEventListener("globalFeedbackFinished", ev=> {
                 startOver()
             })
-            const ev = new CustomEvent("Witness Deleted.  You will be redirected.")
-            globalFeedbackBlip(ev, `Witness Deleted.  You will be redirected.`, true)
+            const ev = new CustomEvent("Witness Fragment Deleted.  You will be redirected.")
+            globalFeedbackBlip(ev, `Witness Fragment Deleted.  You will be redirected.`, true)
         })
         .catch(err => {
             // OK they may be orphaned.  We will continue on towards deleting the entity.
