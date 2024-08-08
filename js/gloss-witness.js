@@ -4,7 +4,9 @@ let existingManuscriptWitness = null
 let sourceURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : null
 const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : null
 
-// UI for when the provided text source URI does not resolve or cannot be processed.
+/**
+ * UI for when the provided text source URI does not resolve or cannot be processed.
+ */
 document.addEventListener("source-text-error", function(event){
     document.querySelector(".witnessText").innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${sourceURI} </b>`
     const ev = new CustomEvent(`Could not get Witness Text Data from ${sourceURI}`)
@@ -14,7 +16,9 @@ document.addEventListener("source-text-error", function(event){
     }, 2500)
 })
 
-// Make the text in the Gloss modal form the same as the one in the Witness Fragment form
+/**
+ * Make the text in the Gloss modal form the same as the one in the Witness Fragment form
+ */
 document.addEventListener("gloss-modal-visible", function(event){
     const text = witnessFragmentForm.querySelector("textarea[custom-text-key='text']").value
     const glossTextElem = event.target.querySelector("textarea[name='glossText']")
@@ -58,7 +62,6 @@ async function initiateMatch(manuscriptWitnessID){
         }
         const shelfmark = annos[0].body.identifier.value
         activateFragmentForm(manuscriptWitnessID, shelfmark)
-        console.log("Manuscript Witness Has Been Loaded In")
         const e = new CustomEvent("Manuscript Witness Loaded")
         globalFeedbackBlip(e, `Manuscript Witness Loaded`, true)
     })
@@ -163,7 +166,6 @@ function chooseManuscriptWitness(ev){
     const manuscriptID = manuscriptChoiceElem.getAttribute("manuscript")
     const shelfmark = manuscriptChoiceElem.querySelector("deer-view").innerText
     activateFragmentForm(manuscriptID, shelfmark)
-    console.log("Manuscript Witness Has Been Loaded In")
     const e = new CustomEvent("Manuscript Witness Loaded")
     globalFeedbackBlip(e, `Manuscript Witness Loaded`, true)
     return
@@ -172,7 +174,7 @@ function chooseManuscriptWitness(ev){
 /**
  * For a given shelfmark, query RERUM to find matching Manuscript Witness entities.
  * There are 0 to many body.identifier Annotations with the shelfmark value.
- * The target values of those Annotations are Manuscript Witness URIs.
+ * The 'target' value of those Annotations are Manuscript Witness URIs.
  * Make a Set out of those target URIs and be wary if the size is greater than 1.
  * 
  * @param shelfmark - A string representing the shelfmark value
@@ -207,9 +209,6 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
         console.error(err)
         throw err
     })
-
-    console.log(`The following Manuscript Witnesses already exist with shelfmark ${shelfmark}`)
-    console.log([...manuscriptUriSet.values()])
 
     if(manuscriptUriSet.size === 0){
         console.error(`There is no Manuscript Witness with this shelfmark`)
@@ -262,9 +261,6 @@ async function getManuscriptWitnessFromFragment(fragmentURI=null){
         console.error(err)
         throw err
     })
-
-    console.log(`This Witness Fragment is part of the following Manuscript Witness`)
-    console.log(manuscriptUriSet.values())
 
     if(manuscriptUriSet.size === 0){
         console.error(`There is no Manuscript Witness for this Witness Fragment`)
@@ -568,7 +564,7 @@ window.onload = async () => {
 }
 
 /**
- * When a filterableListItem loads, add the 'attach' or 'attached' button to it.
+ * When a filterableListItem_glossSelector loads, add the 'attach' or 'attached' button to it.
  */ 
 addEventListener('deer-view-rendered', addButton)
 
@@ -581,7 +577,6 @@ addEventListener('deer-view-rendered', showNgList)
 function showNgList(event){
     if(event.target.id === "ngCollectionList"){
         event.target.classList.remove("is-not-visible")
-        // This listener is no longer needed.
         removeEventListener('deer-view-rendered', showNgList)
     }
 }
@@ -624,12 +619,11 @@ function initFragmentForm(event){
     prefillText(annotationData["text"], $elem)
     
     if(!witnessFragmentID) {
-        // In this case, everything that needs to load to make sense has already loaded.
+        // In this case, everything that needs to load has already loaded.
         // In other cases, we need to wait until the end of getAllWitnessFragmentsOfSource
         $elem.classList.remove("is-hidden")
         loading.classList.add("is-hidden")
     }
-    // This event listener is no longer needed
     removeEventListener('deer-form-rendered', initFragmentForm)    
 }
 
@@ -639,23 +633,20 @@ function initFragmentForm(event){
  */
 addEventListener('deer-form-rendered', glossFormReset)
 
+/**
+ * Reset the gloss modal form to its default values so that it is ready to submit another one.
+ */ 
 function glossFormReset(event){
     let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
     if(whatRecordForm === "gloss-modal-form") document.querySelector("gloss-modal").reset()
-}
-
-function fragmentFormReset(event){
-    let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
-    if(whatRecordForm === "witnessFragmentForm") setFragmentFormDefaults()
 }
 
 /**
- * After submission DEER will announce this form as rendered.
- * Set up all the default values to be ready for another submission.
- */
-function glossFormReset(event){
+ * Reset the witness fragment form to its default values so that it is ready to submit another one.
+ */ 
+function fragmentFormReset(event){
     let whatRecordForm = event.target.id ? event.target.id : event.target.getAttribute("name")
-    if(whatRecordForm === "gloss-modal-form") document.querySelector("gloss-modal").reset()
+    if(whatRecordForm === "witnessFragmentForm") setFragmentFormDefaults()
 }
 
 /**
@@ -789,8 +780,6 @@ function prefillReferences(referencesArr, form) {
     if(chosenGloss) chosenGloss.value = ngLabel
 }
 
-
-
 /**
  * Highlight previously selected text with a yellow or green color use mark.js
  * If a #TextFragment entity is loaded there will be a green selection.
@@ -816,8 +805,7 @@ function preselectLines(linesArr, form, fragmentSelections) {
 
     /**
      * The check for whether it should be green or yellow.
-     * If a #TextFragment entity is loaded, it's selection should be specifically noted.  
-     * Those are provided as fragmentSelections
+     * If a #TextFragment entity is loaded, its selection should be specifically noted in fragmentSelections.
      * If those fragmentSelections 'match' the array of lines to select, then this is the green selection.
      */ 
     const activeSelection = fragmentSelections && linesArr.every(l=>fragmentSelections.includes(l)) && fragmentSelections.every(l=>linesArr.includes(l))
@@ -1146,6 +1134,8 @@ resourceFile.addEventListener("change", function(event){
 /**
  * Change which user input method is showing based on the chosen tab.
  * FIXME only supporting URI input right now
+ * 
+ * @param which - The string 'uri', 'file', or 'cp'
  */ 
 function changeUserInput(event, which){
     if(which !== "uri"){
@@ -1175,6 +1165,8 @@ function changeUserInput(event, which){
 
 /**
  * Load the chosen user input.  Hide the #needs area.
+ * 
+ * @param which - The string 'uri', 'file', or 'cp'
  */
 function loadUserInput(ev, which){
     let text = ""
@@ -1268,7 +1260,9 @@ function startOver(){
  * We use that information to preselect text and paginate 'attach' buttons in the Gloss picker.
  * In this case, we know the existingManuscriptWitness
  * Query RERUM or cache for those Witness Fragments.  We need to know their references and selections.
- *  
+ * 
+ * @NOTE this ended up not being used, but it could be useful.
+ * 
  * @param event - source-text-loaded
  */ 
 async function getAllWitnessFragmentsOfManuscript(event){
@@ -1314,9 +1308,7 @@ async function getAllWitnessFragmentsOfManuscript(event){
         return Promise.reject([])
     })
 
-    let glossUriSet = new Set()
-    // Each witness has Gloss and Selections
-    
+    let glossUriSet = new Set()    
     let all = []
     for (const fragmentURI of fragmentUriSet){
         // Each Witness has an Annotation whose body.value references [a Gloss]
@@ -1395,7 +1387,6 @@ async function getAllWitnessFragmentsOfManuscript(event){
             })
             preselectLines(witnessInfo.selections, witnessFragmentForm)
         }
-        // hmm why not event.target?
         document.querySelector("source-text-selector").classList.remove("is-not-visible")
     })
     .catch(err => {
@@ -1458,9 +1449,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
         return Promise.reject([])
     })
 
-    let glossUriSet = new Set()
-    // Each witness has Gloss and Selections
-    
+    let glossUriSet = new Set()    
     let all = []
     for (const fragmentURI of fragmentUriSet){
         // Each Witness has an Annotation whose body.value references [a Gloss]
@@ -1536,7 +1525,6 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
                 })    
             })
             preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
-            // hmm why not event.target?
             document.querySelector("source-text-selector").classList.remove("is-not-visible")
         }
         if(witnessFragmentID){
@@ -1615,84 +1603,6 @@ function remarkLineElements(markData){
         })
     }
 }
-
-/**
- * Used with capstureSelectedText().  There is a range of line elements and any one of them may already contain a mark.  
- * Each mark needs to be removed.  Each mark removed will need to be restored later.
- * 
- * Unused because our plaintext is "all one line".  As soon as we structure it, this scenario will occur regularly.
- */ 
-// function unmarkLineElements(startEl, stopEl){
-//     return
-//     let unmarkup = new Mark(startEl)
-//     let remark_map = {}
-//     let persistent_map = {}
-//     const stopID = stopEl.getAttribute("tpen-line-id")
-//     // Upstream from this the selection in startEl is checked for a <mark>.  We know it does not have a <mark> here.
-//     remark_map[startEl.getAttribute("tpen-line-id")] = []
-//     persistent_map[startEl.getAttribute("tpen-line-id")] = []
-//     for(const mark of startEl.querySelectorAll(".pre-select")){
-//         // For each thing you want to unmark, grab the text so we can remark it
-//         remark_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
-//     }
-//      for(const mark of startEl.querySelectorAll(".persists")){
-//         // For each thing you want to unmark, grab the text so we can remark it
-//         persistent_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
-//     }
-//     unmarkup.unmark({"className" : "pre-select"})
-//     unmarkup.unmark({"className" : "persists"})
-//     if(stopID !== startEl.getAttribute("tpen-line-id")){
-//         // The selection happened over multiple lines.  Any of those lines may contain a <mark>.  If they do, it is an invalid selection.
-//         let nextEl = startEl.nextElementSibling
-//         while(nextEl.getAttribute("tpen-line-id") !== stopID){
-//             if(nextEl.nextElementSibling){
-//                 nextEl = nextEl.nextElementSibling
-//             }
-//             else{
-//                 //We are at the end of a page and are going on to the next page.  Get to the next page element and get the first line element.
-//                 nextEl = nextEl.closest(".pageContainer").nextElementSibling.nextElementSibling.nextElementSibling.firstChild
-//             }
-//             if(nextEl.querySelector("mark") && stopID !== nextEl.getAttribute("tpen-line-id")){
-//                 // The user selection contains a <mark> and is invalid.
-//                 const ev = new CustomEvent("Your selection contained text marked for another selection.  Make a different selection.")
-//                 globalFeedbackBlip(ev, `Your selection contained text marked for another selection.  Make a different selection.`, false)
-//                 // remove browser's text selection
-//                 undoBrowserSelection(s)
-//                 // rebuild valid marks that were removed
-//                 remarkTPENLineElements(remark_map)
-//                 return null
-//             }
-//             remark_map[nextEl.getAttribute("tpen-line-id")] = []
-//             // For each thing you want to unmark, grab the text so we can remark it
-//             for(const mark of nextEl.querySelectorAll(".pre-select")){
-//                 remark_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
-//             }
-//             for(const mark of nextEl.querySelectorAll(".persists")){
-//                 persistent_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
-//             }
-//             unmarkup = new Mark(nextEl)
-//             unmarkup.unmark({"className" : "pre-select"})
-//             unmarkup.unmark({"className" : "persists"})
-//         }
-//         // Upstream from this the selection in stopEl is checked for a <mark>.  We know it does not have a <mark> here.
-//         remark_map[stopEl.getAttribute("tpen-line-id")] = []
-//         for(const mark of stopEl.querySelectorAll(".pre-select")){
-//             // For each thing you want to unmark, grab the text so we can remark it
-//             remark_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
-//         }
-//         for(const mark of stopEl.querySelectorAll(".persists")){
-//             // For each thing you want to unmark, grab the text so we can remark it
-//             persistent_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
-//         }
-//         unmarkup = new Mark(stopEl)
-//         unmarkup.unmark({"className" : "pre-select"})
-//         unmarkup.unmark({"className" : "persists"})
-//     }
-//     return {
-//         "pre-select" : remark_map,
-//         "persists" : persistent_map
-//     }
-// }
 
 /**
  *  Delete a Witness of a Gloss through gloss-transcription.html, gloss-witness.html or manage-glosses.html.  
@@ -1784,3 +1694,82 @@ async function deleteWitnessFragment(redirect){
         return delete_calls
     }
 }
+
+
+/**
+ * Used with capstureSelectedText().  There is a range of line elements and any one of them may already contain a mark.  
+ * Each mark needs to be removed.  Each mark removed will need to be restored later.
+ * 
+ * Unused because our plaintext is "all one line".  As soon as we structure it, this scenario will occur regularly.
+ */ 
+// function unmarkLineElements(startEl, stopEl){
+//     return
+//     let unmarkup = new Mark(startEl)
+//     let remark_map = {}
+//     let persistent_map = {}
+//     const stopID = stopEl.getAttribute("tpen-line-id")
+//     // Upstream from this the selection in startEl is checked for a <mark>.  We know it does not have a <mark> here.
+//     remark_map[startEl.getAttribute("tpen-line-id")] = []
+//     persistent_map[startEl.getAttribute("tpen-line-id")] = []
+//     for(const mark of startEl.querySelectorAll(".pre-select")){
+//         // For each thing you want to unmark, grab the text so we can remark it
+//         remark_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
+//     }
+//      for(const mark of startEl.querySelectorAll(".persists")){
+//         // For each thing you want to unmark, grab the text so we can remark it
+//         persistent_map[startEl.getAttribute("tpen-line-id")].push(mark.textContent)
+//     }
+//     unmarkup.unmark({"className" : "pre-select"})
+//     unmarkup.unmark({"className" : "persists"})
+//     if(stopID !== startEl.getAttribute("tpen-line-id")){
+//         // The selection happened over multiple lines.  Any of those lines may contain a <mark>.  If they do, it is an invalid selection.
+//         let nextEl = startEl.nextElementSibling
+//         while(nextEl.getAttribute("tpen-line-id") !== stopID){
+//             if(nextEl.nextElementSibling){
+//                 nextEl = nextEl.nextElementSibling
+//             }
+//             else{
+//                 //We are at the end of a page and are going on to the next page.  Get to the next page element and get the first line element.
+//                 nextEl = nextEl.closest(".pageContainer").nextElementSibling.nextElementSibling.nextElementSibling.firstChild
+//             }
+//             if(nextEl.querySelector("mark") && stopID !== nextEl.getAttribute("tpen-line-id")){
+//                 // The user selection contains a <mark> and is invalid.
+//                 const ev = new CustomEvent("Your selection contained text marked for another selection.  Make a different selection.")
+//                 globalFeedbackBlip(ev, `Your selection contained text marked for another selection.  Make a different selection.`, false)
+//                 // remove browser's text selection
+//                 undoBrowserSelection(s)
+//                 // rebuild valid marks that were removed
+//                 remarkTPENLineElements(remark_map)
+//                 return null
+//             }
+//             remark_map[nextEl.getAttribute("tpen-line-id")] = []
+//             // For each thing you want to unmark, grab the text so we can remark it
+//             for(const mark of nextEl.querySelectorAll(".pre-select")){
+//                 remark_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
+//             }
+//             for(const mark of nextEl.querySelectorAll(".persists")){
+//                 persistent_map[nextEl.getAttribute("tpen-line-id")].push(mark.textContent)
+//             }
+//             unmarkup = new Mark(nextEl)
+//             unmarkup.unmark({"className" : "pre-select"})
+//             unmarkup.unmark({"className" : "persists"})
+//         }
+//         // Upstream from this the selection in stopEl is checked for a <mark>.  We know it does not have a <mark> here.
+//         remark_map[stopEl.getAttribute("tpen-line-id")] = []
+//         for(const mark of stopEl.querySelectorAll(".pre-select")){
+//             // For each thing you want to unmark, grab the text so we can remark it
+//             remark_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
+//         }
+//         for(const mark of stopEl.querySelectorAll(".persists")){
+//             // For each thing you want to unmark, grab the text so we can remark it
+//             persistent_map[stopEl.getAttribute("tpen-line-id")].push(mark.textContent)
+//         }
+//         unmarkup = new Mark(stopEl)
+//         unmarkup.unmark({"className" : "pre-select"})
+//         unmarkup.unmark({"className" : "persists"})
+//     }
+//     return {
+//         "pre-select" : remark_map,
+//         "persists" : persistent_map
+//     }
+// }
