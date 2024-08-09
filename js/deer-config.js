@@ -664,7 +664,7 @@ export default {
                             inclusionBtn.classList.add("toggleInclusion")
                             inclusionBtn.classList.add("button")
                             inclusionBtn.setAttribute("data-id", glossID)
-                            let already = witnessesObj?.referencedGlosses?.has(glossID) ? "attached-to-source" : ""
+                            let already = witnessFragmentsObj?.referencedGlosses?.has(glossID) ? "attached-to-source" : ""
                             if(already) inclusionBtn.classList.add(already)
                             if(glossID === referencedGlossID){
                                 inclusionBtn.setAttribute("disabled","")
