@@ -273,6 +273,31 @@ function restorePadding(s) {
     return s + padding
 }
 
+/**
+ * Encodes content state JSON to a Base64 URL.
+ * @param {string} contentStateJSON - The content state JSON to encode.
+ * @returns {string} - The Base64 URL encoded string.
+ */
+function encodeString(plainString) {
+    let uriEncoded = encodeURIComponent(plainString)
+    let base64 = btoa(uriEncoded)
+    let base64url = base64.replace(/\+/g, "-").replace(/\//g, "_")
+    let base64urlNoPadding = base64url.replace(/=/g, "")
+    return base64urlNoPadding
+}
+/**
+ * Decodes a Base64 URL encoded string to content state JSON.
+ * @param {string} encodedContentState - The Base64 URL encoded string to decode.
+ * @returns {object} - The decoded content state JSON object.
+ */
+function decodeString(encodedString) {
+    let base64url = restorePadding(encodedString)
+    let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
+    let base64Decoded = atob(base64)
+    let uriDecoded = decodeURIComponent(base64Decoded) || ""
+    return uriDecoded
+}
+
 self.onhashchange = loadHashId
 
 /**
@@ -815,34 +840,4 @@ async function showCustomConfirm(message) {
             resolve(event.detail.confirmed)
         }, {once: true})
     })
-}
-
-//https://iiif.io/api/content-state/1.0/#61-choice-of-encoding-mechanism
-function encodeContentState(plainContentState) {
-    let uriEncoded = encodeURIComponent(plainContentState)
-    let base64 = btoa(uriEncoded)
-    let base64url = base64.replace(/\+/g, "-").replace(/\//g, "_")
-    let base64urlNoPadding = base64url.replace(/=/g, "")
-    return base64urlNoPadding
-}
-
-function decodeContentState(encodedContentState) {
-    let base64url = restorePadding(encodedContentState);
-    let base64 = base64url.replace(/-/g, '+').replace(/_/g, '/')
-    let base64Decoded = atob(base64)
-    let uriDecoded = decodeURIComponent(base64Decoded)
-    return uriDecoded
-}
-
-function restorePadding(s) {
-    // The length of the restored string must be a multiple of 4
-    let pad = s.length % 4
-    let padding = ""
-    if (pad) {
-        if (pad === 1) {
-            throw new Error('InvalidLengthError: Input base64url string is the wrong length to determine padding');
-        }
-        s += '===='.slice(0, 4 - pad)
-    }
-    return s + padding
 }

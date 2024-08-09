@@ -94,7 +94,7 @@ class WitnessTextSelector extends HTMLElement {
 
         const customKey = this.querySelector("input[custom-key='selections']")
         const witnessTextElem = this.querySelector(".witnessText")
-        let textForUI = witnessText
+        let textForUI = null
         
         if(which === "source-uri"){
            textForUI = await fetch(witnessURI)
@@ -124,6 +124,9 @@ class WitnessTextSelector extends HTMLElement {
                 document.dispatchEvent(e)
                 return ""
             })    
+        }
+        else if(which === "source-text"){
+            textForUI = decodeString(witnessText)
         }
         
         // Treat it as plain text

@@ -2,6 +2,7 @@ const witnessFragmentID = window.location.hash.substr(1)
 let referencedGlossID = null
 let existingManuscriptWitness = null
 let sourceURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : null
+let encodedSourceText = ""
 const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : null
 
 /**
@@ -736,7 +737,7 @@ function prefillDigitalLocations(locationsArr, form) {
         document.querySelector(".lineSelector").setAttribute("source-uri", locationsArr[0])
     }
     else{
-        document.querySelector(".lineSelector").setAttribute("witness-text", locationsArr[0])
+        document.querySelector(".lineSelector").setAttribute("source-text", locationsArr[0])
     }
 }
 
@@ -1138,7 +1139,7 @@ resourceFile.addEventListener("change", function(event){
  * @param which - The string 'uri', 'file', or 'cp'
  */ 
 function changeUserInput(event, which){
-    if(which !== "uri"){
+    if(which === "file"){
         const ev = new CustomEvent("Under Construction")
         globalFeedbackBlip(ev, `Undergoing development, try again later.`, false)
         return    
@@ -1168,7 +1169,7 @@ function changeUserInput(event, which){
  * 
  * @param which - The string 'uri', 'file', or 'cp'
  */
-function loadUserInput(ev, which){
+async function loadUserInput(ev, which){
     let text = ""
     const sourceElems = document.querySelectorAll("input[witness-source]")
     switch(which){
@@ -1181,7 +1182,6 @@ function loadUserInput(ev, which){
                 window.location = url
             }
             else{
-                //alert("You must supply a URI via the source-uri parameter or supply a value in the text input.")
                 const ev = new CustomEvent("You must supply a URI via the source-uri parameter or supply a value in the text input.")
                 globalFeedbackBlip(ev, `You must supply a URI via the source-uri parameter or supply a value in the text input.`, false)
             }
@@ -1190,7 +1190,6 @@ function loadUserInput(ev, which){
             text = fileText.value
             needs.classList.add("is-hidden")
             document.querySelector(".lineSelector").setAttribute("witness-text", text)
-            // witnessFragmentForm.classList.remove("is-hidden")
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElems.forEach(sourceElem => {
                 sourceElem.value = text
@@ -1201,15 +1200,24 @@ function loadUserInput(ev, which){
         break
         case "cp":
             text = resourceText.value
+            encodedSourceText = encodeString(text)
             needs.classList.add("is-hidden")
-            document.querySelector(".lineSelector").setAttribute("witness-text", text)
-            // witnessFragmentForm.classList.remove("is-hidden")
             // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElems.forEach(sourceElem => {
-                sourceElem.value = text
-                sourceElem.setAttribute("value", text)
+                sourceElem.value = encoded
+                sourceElem.setAttribute("value", encoded)
                 sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
             })
+            addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource())
+            document.querySelector("source-text-selector").setAttribute("source-text", encodedSourceText)
+            const match = await getManuscriptWitnessFromSource(encodedSourceText)
+            if(match) {
+                initiateMatch(match)
+            }
+            else{
+                loading.classList.add("is-hidden")
+                manuscriptWitnessForm.classList.remove("is-hidden")
+            }
         break
         default:
     }
@@ -1431,11 +1439,11 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
             return false
           }
       }
-
+    const sourceValue = sourceURI ? sourceURI : encodedSourceText ? encodedSourceText : null
     // Each source annotation targets a Witness.
     // Get all the source annotations whose value is this source string (URI or text string)
     const sourceAnnosQuery = {
-        "body.source.value": httpsIdArray(sourceURI),
+        "body.source.value": sourceValue.startsWith("http") ? httpsIdArray(sourceValue) : sourceValue,
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
