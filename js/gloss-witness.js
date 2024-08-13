@@ -1239,8 +1239,8 @@ async function loadUserInput(ev, which){
                 sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
             })
             addEventListener("source-text-loaded", () => getAllWitnessFragmentsOfSource())
-            textElem.setAttribute("source-text", text)
             textElem.setAttribute("hash", hash)
+            textElem.setAttribute("source-text", text)
             loading.classList.remove("is-hidden")
             match = await getManuscriptWitnessFromSource(hash)
             if(match) {
