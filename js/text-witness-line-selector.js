@@ -126,7 +126,7 @@ class WitnessTextSelector extends HTMLElement {
             })    
         }
         else if(which === "source-text"){
-            textForUI = decodeString(witnessText)
+            textForUI = witnessText
         }
         
         // Treat it as plain text
@@ -185,6 +185,7 @@ class WitnessTextSelector extends HTMLElement {
             const $form = lineElem.closest("form")
             const customKey = $this.querySelector("input[custom-key='selections']")
             const filter = document.querySelector("input[filter]")
+            const hashTheSource = $this.getAttribute("hash")
 
             // For each line elem in this selection, get rid of the <mark>.  Then rebuild the selection.
             const remark_map = unmarkLineElement(lineElem)
@@ -195,7 +196,7 @@ class WitnessTextSelector extends HTMLElement {
             const extentOffset =  s.extentOffset
             const lengthOfSelection = extentOffset - baseOffset
             const fragmentSelector = `#char=${baseOffset},${extentOffset-1}`
-            const resourceFragment = witnessURI + fragmentSelector
+            const resourceFragment = hashTheSource ? hashTheSource + fragmentSelection : witnessURI + fragmentSelector
 
             // Set the selections input on the form
             if(!customKey.value.includes(resourceFragment)){

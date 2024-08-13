@@ -2,7 +2,7 @@ const witnessFragmentID = window.location.hash.substr(1)
 let referencedGlossID = null
 let existingManuscriptWitness = null
 let sourceURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : null
-let encodedSourceText = ""
+let sourceHash = null
 const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : null
 
 /**
@@ -1171,7 +1171,10 @@ function changeUserInput(event, which){
  */
 async function loadUserInput(ev, which){
     let text = ""
+    let hash = ""
+    let match = null
     const sourceElems = document.querySelectorAll("input[witness-source]")
+    const textElem = document.querySelector(".lineSelector")
     switch(which){
         case "uri":
             // Recieve a Witness URI as input from #needs.  Reload the page with a set ?source-uri URL parameter.
@@ -1188,29 +1191,40 @@ async function loadUserInput(ev, which){
         break
         case "file":
             text = fileText.value
+            hash = generateHash(text)
+            if(hash) sourceHash = hash
             needs.classList.add("is-hidden")
-            document.querySelector(".lineSelector").setAttribute("witness-text", text)
-            // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElems.forEach(sourceElem => {
-                sourceElem.value = text
-                sourceElem.setAttribute("value", text)
+                sourceElem.value = hash
+                sourceElem.setAttribute("value", hash)
                 sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
             })
-            
+            addEventListener("source-text-loaded", () => getAllWitnessFragmentsOfSource())
+            textElem.setAttribute("source-text", text)
+            textElem.setAttribute("hash", hash)
+            match = await getManuscriptWitnessFromSource(hash)
+            if(match) {
+                initiateMatch(match)
+            }
+            else{
+                loading.classList.add("is-hidden")
+                manuscriptWitnessForm.classList.remove("is-hidden")
+            }           
         break
         case "cp":
             text = resourceText.value
-            encodedSourceText = encodeString(text)
+            hash = generateHash(text)
+            if(hash) sourceHash = hash
             needs.classList.add("is-hidden")
-            // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElems.forEach(sourceElem => {
-                sourceElem.value = encoded
-                sourceElem.setAttribute("value", encoded)
+                sourceElem.value = hash
+                sourceElem.setAttribute("value", hash)
                 sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
             })
-            addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource())
-            document.querySelector("source-text-selector").setAttribute("source-text", encodedSourceText)
-            const match = await getManuscriptWitnessFromSource(encodedSourceText)
+            addEventListener("source-text-loaded", () => getAllWitnessFragmentsOfSource())
+            textElem.setAttribute("source-text", text)
+            textElem.setAttribute("hash", hash)
+            match = await getManuscriptWitnessFromSource(hash)
             if(match) {
                 initiateMatch(match)
             }
@@ -1439,7 +1453,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
             return false
           }
       }
-    const sourceValue = sourceURI ? sourceURI : encodedSourceText ? encodedSourceText : null
+    const sourceValue = sourceURI ? sourceURI : sourceHash ? sourceHash : null
     // Each source annotation targets a Witness.
     // Get all the source annotations whose value is this source string (URI or text string)
     const sourceAnnosQuery = {
