@@ -196,7 +196,7 @@ class WitnessTextSelector extends HTMLElement {
             const extentOffset =  s.extentOffset
             const lengthOfSelection = extentOffset - baseOffset
             const fragmentSelector = `#char=${baseOffset},${extentOffset-1}`
-            const resourceFragment = hashTheSource ? hashTheSource + fragmentSelection : witnessURI + fragmentSelector
+            const resourceFragment = hashTheSource ? hashTheSource + fragmentSelector : witnessURI + fragmentSelector
 
             // Set the selections input on the form
             if(!customKey.value.includes(resourceFragment)){

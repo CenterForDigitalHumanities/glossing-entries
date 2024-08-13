@@ -396,7 +396,7 @@ function setFragmentFormDefaults(){
         s.removeAttribute("deer-source")
     })
     // For when we test
-    //document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanTryin")
+    document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanTryin")
 
     // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
@@ -592,7 +592,7 @@ function initFragmentForm(event){
     const textSelectionElem = document.querySelector("source-text-selector")
     const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
-    sourceURI = annotationData?.source?.value
+    const source = annotationData?.source?.value
     referencedGlossID = annotationData?.references?.value[0].replace(/^https?:/, 'https:')
     let selections = annotationData?.selections
     if(ngCollectionList.hasAttribute("ng-list-loaded")){
@@ -612,10 +612,24 @@ function initFragmentForm(event){
         getAllWitnessFragmentsOfSource(selections)
     }
     else{
-        addEventListener('source-text-loaded', ev => {
-           getAllWitnessFragmentsOfSource(selections)
-        })
-        if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
+        if(source.startsWith("http")) {
+            sourceURI = source
+            addEventListener('source-text-loaded', ev => {
+               getAllWitnessFragmentsOfSource(selections)
+            })
+            if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
+        }
+        else{
+            // We will not be able to show or load any text here...
+            sourceHash = source
+            if(!textSelectionElem.getAttribute("hash")) {
+                textSelectionElem.setAttribute("hash", sourceHash)
+                textSelectionElem.setAttribute("source-text", "This text cannot be loaded.")
+                $elem.classList.remove("is-hidden")
+                loading.classList.add("is-hidden")
+            }
+        }
+        
     }
     prefillText(annotationData["text"], $elem)
     
