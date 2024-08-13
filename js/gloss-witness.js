@@ -620,11 +620,14 @@ function initFragmentForm(event){
             if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
         }
         else{
-            // We will not be able to show or load any text here...
+            // We will not be able to show or load or preselect or actively select any text here...
             sourceHash = source
             if(!textSelectionElem.getAttribute("hash")) {
                 textSelectionElem.setAttribute("hash", sourceHash)
                 textSelectionElem.setAttribute("source-text", "This text cannot be loaded.")
+                const textSelectionContentElem = textSelectionElem.querySelector(".textContent")
+                textSelectionContentElem.onmousedown = function(event){return}
+                textSelectionContentElem.onmouseup = function(event){return}
                 $elem.classList.remove("is-hidden")
                 loading.classList.add("is-hidden")
             }
@@ -1238,6 +1241,7 @@ async function loadUserInput(ev, which){
             addEventListener("source-text-loaded", () => getAllWitnessFragmentsOfSource())
             textElem.setAttribute("source-text", text)
             textElem.setAttribute("hash", hash)
+            loading.classList.remove("is-hidden")
             match = await getManuscriptWitnessFromSource(hash)
             if(match) {
                 initiateMatch(match)
