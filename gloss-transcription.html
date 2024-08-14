@@ -15,45 +15,41 @@
     <script src="js/mark.min.js"></script>
 
     <style>
-        input.required,
-        textarea.required {
+       input.required, textarea.required{
             border: 1px solid black;
-        }
-
-        .pageContainer.is-toggled {
+       }
+       .pageContainer.is-toggled{
             visibility: hidden;
             height: 0px;
-        }
-
-        .loadingMsg {
+       }
+       .loadingMsg{
             color: white;
             padding-top: 4em;
-        }
+       }
+       select[deer-key="_glossatorHand"]{
+            max-height: 39px;
+       }
     </style>
 </head>
 
 <body class="container">
     <gog-header class="container"></gog-header>
     <h2 class="bg-basic"> Gloss Transcription Witness </h2>
-    <p id="look" class="bg-light"> Provide a T-PEN manifest URI. The transcription text from that Manifest will load and
-        can be selected. Selected text can then be attached to a new or existing Gloss. Note that a text selection and
-        shelfmark are required.</p>
+    <p id="look" class="bg-light"> Provide a T-PEN manifest URI.  The transcription text from that Manifest will load and can be selected.  Selected text can then be attached to a new or existing Gloss.  Note that a text selection and shelfmark are required.</p>
     <div id="needs" class="row bg-basic">
-        <p class="howTo">
-            It looks like you haven't provided a TPEN Manifest URI. If you are not using the <code>?tpen-project=</code>
-            URL parameter, you can supply a URI here.
-            <input id="resourceURI" type="text" placeholder="Enter T-PEN Manifest URI or 4 digit TPEN code" />
-            <input id="loadInput" class="button primary" type="button" onclick="loadURI(event)"
-                value="Load TPEN Manifest" />
+        <p class="howTo"> 
+            It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  
+            <input id="resourceURI" type="text" placeholder="Enter T-PEN Manifest URI or 4 digit TPEN code"/>
+            <input id="loadInput" class="button primary" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
         </p>
     </div>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
     <div id="loading" class="tpen-needed is-hidden">
-        <p class="loadingMsg">
-            Please be patient while we get things together...
+        <p class="loadingMsg"> 
+            Please be patient while we get things together...  
         </p>
     </div>
-    <form id="witnessForm" class="is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms">
+    <form id="witnessForm" class="is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms"> 
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">
         <div class="row">
@@ -61,21 +57,17 @@
             <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
 
             <label class="col-3 col-2-md text-right">Shelfmark or Short Citation: &#10082;</label>
-            <input type="text" deer-key="identifier" required
-                placeholder="Manuscript shelfmark or bibliographic citation of author and title for the witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’"
-                class="col-9 col-10-md required">
-
+            <input type="text" deer-key="identifier" required placeholder="Manuscript shelfmark or bibliographic citation of author and title for the witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’" class="col-9 col-10-md required">
+                        
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
                 <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
                 -->
-            <label class="col-3 col-2-md text-right">Folio or Page:</label>
-            <input type="text" deer-key="_folio" required
-                placeholder="Folio or page number from this witness where the gloss is found" class="col-9 col-10-md">
+            <label class="col-3 col-2-md text-right" >Folio or Page:</label>
+            <input type="text" deer-key="_folio" required placeholder="Folio or page number from this witness where the gloss is found" class="col-9 col-10-md">
 
-            <label class="col-3 col-2-md text-right">Text: &#10082;</label>
-            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required"
-                placeholder="Text is required.  Highlight transcription text..."></textarea>
+            <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
+            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight transcription text..."></textarea>
 
             <label class="col-3 col-2-md text-right">Language:</label>
             <select custom-text-key="language" title="select language" class="col-9 col-4-md">
@@ -85,7 +77,11 @@
                 <option value="en">English</option>
             </select>
 
-            <label class="col-3 col-2-md text-right">Gloss format:</label>
+            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left is-hidden">
+                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
+            </label>
+
+            <label class="col-3 col-2-md text-right">Gloss Format:</label>
             <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
                 <option value="none" selected>None</option>
                 <option value="marginal">Marginal</option>
@@ -93,8 +89,8 @@
                 <option value="appendix">Appendix</option>
                 <option value="other">Other</option>
             </select>
-
-            <label class="col-3 col-2-md text-right">Gloss location:</label>
+            
+            <label class="col-3 col-2-md text-right">Gloss Location:</label>
             <select deer-key="_glossLocation" title="Hold CTRL to select multiple" multiple class="col-9 col-4-md">
                 <option value="top">Top</option>
                 <option value="center">Center</option>
@@ -104,79 +100,35 @@
                 <option value="other">Other</option>
             </select>
 
-            <label class="col-3 col-2-md text-right">Glossator hand:</label>
+            <label class="col-3 col-2-md text-right">Glossator Hand:</label>
             <select deer-key="_glossatorHand" title="glossator" class="col-9 col-4-md">
                 <option value="original" selected>original</option>
                 <option value="later">later</option>
             </select>
 
-            <label class="col-3 col-2-md text-right">Image Link:
+            <label class="col-3 col-2-md text-right" >Image Link:
                 <small><a href="https://ncsu-libraries.github.io/iiif-crop-tool/" target="_blank">crop tool</a></small>
             </label>
-            <input type="text" deer-key="depiction" required placeholder="Paste an image URL or IIIF selector link"
-                class="col-9 col-10-md">
+            <input type="text" deer-key="depiction" required placeholder="Paste an image URL or IIIF selector link" class="col-9 col-10-md"/>
+            <label class="col-3 col-2-md text-right" >Notes</label>
+            <textarea deer-key="_notes" rows="2" class="col-9 col-10-md" placeholder="Optional notes about this gloss instance"></textarea>
 
-            <div class="row">
-                <gog-tag-widget class="col">
-                    <style>
-                        .themeTag {
-                            margin-bottom: 15px;
-                        }
-
-                        .removeTag:after {
-                            content: 'x';
-                            color: red;
-                            padding: 1px 1px 1px 7px;
-                            cursor: pointer;
-
-                        }
-
-                        .removeTag:hover {
-                            font-weight: bolder;
-                            font-size: 115%;
-                        }
-
-                        button.smaller {
-                            padding: 0px 5px;
-                            height: 2.2em;
-                        }
-
-                        .selectedEntities {
-                            border-left: 1px dotted black;
-                            border-bottom: 1px dotted black;
-                            border-right: 1px dotted black;
-                            padding: 4px;
-                        }
-                    </style>
-                    <p class="col-12 col-12-md">Gloss tags are displayed below the input. Click the red 'x' to remove
-                        the tag.
-                    </p>
-                    <input type="hidden" deer-key="tags" deer-input-type="Set">
-                    <label class="col-3 col-2-md text-right">Tag Name</label>
-                    <input type="text" class="col-9 col-4-md tagInput" placeholder="Add one tag at a time">
-                    <button class="smaller"> Add Tag </button>
-                    <div class="selectedEntities col-12 col-12-md"></div>
-                </gog-tag-widget>
-            </div>
+            <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
+            <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
+            <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
         <div class="row">
-            <label class="col-3 col-2-md text-right">Notes</label>
-            <textarea deer-key="_notes" rows="2" class="col-9 col-10-md"
-                placeholder="Optional notes about this gloss instance"></textarea>
+            <gog-tag-widget class="col"></gog-tag-widget>
         </div>
-        <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
-        <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
-        <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..."
-            class="chosenGloss col-9 col-10-md is-hidden"></textarea>
-        <input class="is-hidden button primary" type="submit" value="Create Textual Witness" />
-        <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness" />
+        <div class="row">
+            <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
+            <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
+        </div>
         <div class="row">
             <tpen-line-selector class="lineSelector tpen-needed is-hidden col-7-md col-6-sm"> </tpen-line-selector>
-            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList"
-                deer-collection="GoG-Named-Glosses" deer-link="ng.html#"
-                deer-template="glossesSelectorForTextualWitness">
-                Loading&hellip;
-            </deer-view>
+            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            Loading&hellip;
+            </deer-view>  
         </div>
     </form>
     <gog-footer class="row"></gog-footer>
@@ -187,9 +139,9 @@
 <script>
     /**
      * Make sure DEER forms do not submit when a user hits "Enter".
-     */
+     */ 
     document.querySelectorAll("form[deer-type]").forEach(form => {
-        form.addEventListener("keydown", (e) => {
+        form.addEventListener("keydown", (e)=> {
             if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
                 if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
                     e.preventDefault()
@@ -198,5 +150,4 @@
         }, true)
     })
 </script>
-
 </html>
