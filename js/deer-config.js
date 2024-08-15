@@ -1150,7 +1150,7 @@ export default {
         /**
          * The Manuscript Witness list on manuscripts.html
          * Users should see the GoG-Manuscripts collection.  
-         * They can filter the list of titles using a text input that matches on title.
+         * They can filter the list of titles using a text input that matches on shelfmark.
          */ 
         manuscriptListFilterable: function (obj, options = {}) {
             return{
@@ -1451,7 +1451,7 @@ export default {
 
                         // This query was applied.  Make this the encoded query in the URL, but don't cause a page reload.
                         const url = new URL(window.location.href)
-                        if(query.title){
+                        if(query.identifier){
                             url.searchParams.set("gog-filter", queryString)
                             window.history.replaceState(null, null, url)   
                         }
@@ -1465,11 +1465,11 @@ export default {
         },
 
         /**
-         * This corresponds to an existing <li> element in manuscriptListerFilterable.  These <li> elements need to be filterable.
+         * This corresponds to an existing <tr> element in manuscriptListerFilterable.  These <tr> elements need to be filterable.
          * As such, they require information about the Manuscript they represent, whose URI is the deer-id.
          * That element is expand()ed in order to get the information for this element to be filterable.
          * Since the object is expanded, if reasonable, it should be cached with its information (how would we know if it is out of date?)
-         * If a filter was present via the URL on page load, if it matches on this <li> the <li> should be filtered immediately.
+         * If a filter was present via the URL on page load, if it matches on this <tr> the <tr> should be filtered immediately.
          */ 
         filterableListItem_msList: function (obj, options = {}) {
             return{
@@ -1646,7 +1646,8 @@ function modifyTableTR(tr, obj) {
 }
 
 /**
- * Style a table row and add Reference data pulled from the Title
+ * Style a table row for the Manuscripts table.  For now, this just adds an empty <td> before and after the existing one.
+ * 
  * @param {HTMLTableRowElement} tr - HTML <tr> element to style
  * @param {HTMLTableCellElement} obj - HTML <td> element to pull data from
  * @returns {HTMLTableRowElement} - Original HTML <tr> element reference with the modifications
