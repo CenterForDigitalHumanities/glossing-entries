@@ -329,7 +329,7 @@ export default {
                                 a.appendChild(span)
                                 li.appendChild(a)
                                 tr.appendChild(li)
-                                modifyGlossTableTR(tr, cachedObj)
+                                modifyTableTR(tr, cachedObj)
                                 ul.children[1].appendChild(tr)
                             }
                             else{
@@ -513,7 +513,7 @@ export default {
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.appendChild(li)
-                    modifyGlossTableTR(elem, obj)
+                    modifyTableTR(elem, obj)
                     
                     const createScenario = elem.hasAttribute("create-scenario")
                     const updateScenario = elem.hasAttribute("update-scenario")   
@@ -1202,7 +1202,7 @@ export default {
                           animation: fadeOut 0.5s forwards;
                         }
                     </style>
-                    <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new manuscript..." class="fade serifText row">
+                    <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new manuscript..." class="is-hidden fade serifText row">
                 </form>
                 <div id="approximate" class="is-hidden">
                     <input type="checkbox" id="u↔v" name="u↔v" checked>
@@ -1620,7 +1620,7 @@ function hideSearchBar() {
  * @param {HTMLTableCellElement} obj - HTML <td> element to pull data from
  * @returns {HTMLTableRowElement} - Original HTML <tr> element reference with the modifications
  */
-function modifyGlossTableTR(tr, obj) {
+function modifyTableTR(tr, obj) {
     tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
     tr.insertAdjacentHTML('afterbegin', `<td>${
         "canonicalReference" in obj ? obj["canonicalReference"]["value"] :
@@ -1653,6 +1653,10 @@ function modifyGlossTableTR(tr, obj) {
  */
 function modifyManuscriptTableTR(tr, obj) {
     tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
+    //We don't have any extra information to add yet.  However, we get errors if we don't have these tds
+    //Specifically in this order. Has to be <td></td> <td> Shelfmark </td> <td></td>
+    tr.insertAdjacentHTML('afterbegin', "<td></td>")
+    tr.insertAdjacentHTML('beforeend', "<td></td>")
     return tr
 }
 
