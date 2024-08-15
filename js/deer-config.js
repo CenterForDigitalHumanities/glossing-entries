@@ -290,6 +290,7 @@ export default {
                             a.setAttribute("href", options.link+glossID)
                             a.setAttribute("target", "_blank")
                             let span = document.createElement("span")
+                            span.classList.add("serifText")
                             if(cachedFilterableEntities.get(glossID)){
                                 // We cached it in the past and are going to trust it right now.
                                 const cachedObj = cachedFilterableEntities.get(glossID)
@@ -1140,6 +1141,397 @@ export default {
                         })
                         containingListElem.setAttribute("ng-list-loaded", "true")
                         deerUtils.broadcast(undefined, "ng-list-loaded", containingListElem, {})
+                        hideSearchBar()
+                    }
+                }
+            }
+        },
+
+        /**
+         * The Manuscript Witness list on manuscripts.html
+         * Users should see the GoG-Manuscripts collection.  
+         * They can filter the list of titles using a text input that matches on title.
+         */ 
+        manuscriptListFilterable: function (obj, options = {}) {
+            return{
+                html: `
+                <style>
+                    .cachedNotice{
+                      margin-top: -1em;
+                      display: block;
+                    }
+
+                    .cachedNotice a{
+                      cursor: pointer;
+                    }
+
+                    .totalsProgress{
+                      text-align: center;
+                      background-color: rgba(0, 0, 0, 0.1);
+                      padding-top: 4px;
+                      font-size: 13pt;
+                    }
+                </style>
+                <h2> Manuscript Witnesses </h2>
+                <small class="cachedNotice is-hidden text-primary"> These Manuscripts were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+                <div id="approximate" class="is-hidden">
+                    <input type="checkbox" id="u↔v" name="u↔v" checked>
+                    <label for="u↔v">u ↔ v</label>
+                    <input type="checkbox" id="j↔i" name="j↔i" checked>
+                    <label for="j↔i">j ↔ i</label>
+                    <input type="checkbox" id="y↔i" name="y↔i" checked>
+                    <label for="y↔i">y ↔ i</label>
+                    <input type="checkbox" id="ae↔e" name="ae↔e" checked>
+                    <label for="ae↔e">ae ↔ e</label>
+                    <input type="checkbox" id="oe↔e" name="oe↔e" checked>
+                    <label for="oe↔e">oe ↔ e</label>
+                    <input type="checkbox" id="t↔c" name="t↔c" checked>
+                    <label for="t↔c">t ↔ c</label>
+                    <input type="checkbox" id="exsp↔exp" name="exsp↔exp" checked>
+                    <label for="exsp↔exp">exsp ↔ exp</label>
+                    <input type="checkbox" id="ignore-whitespace" name="ignore-whitespace" checked>
+                    <label for="ignore-whitespace">Ignore Whitespace</label>
+                </div>
+                <div class="progressArea">
+                    <p class="filterNotice is-hidden"> Manuscript filter detected.  Please note that Manuscripts will appear as they are fully loaded. </p>
+                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Manuscript loaded already.</div>
+                </div>
+                `,
+                then: (elem) => {
+                    const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    let numloaded = 0
+                    let total = 0
+                    const filterPresent = deerUtils.getURLParameter("gog-filter")
+                    const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
+                    if (options.list) {
+                        let ul = document.createElement("table")
+                        ul.insertAdjacentHTML('afterbegin', `<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar" class="is-hidden" style="border-bottom: 0.1em solid var(--color-lightGrey);"><th>Approximate Matches</th></tr></tbody>`)
+                        /**
+                         * Add Sort icon
+                         * @param {Number} [index=0] - Column  index to sort by
+                         * @param {string} [down="<small>▼</small>"] - value to use to symbolize a column is being sorted in descending order
+                         * @param {string} [up="<small>▲</small>"] - value to use to symbolize a column is being sorted in ascending order
+                         */
+                        function customSortIcon(index=0, down="<small>▼</small>", up="<small>▲</small>") {
+                            // Remove Arrow on unsorted column
+                            for (let i = 0; i < ul.children[0].children[0].childElementCount; i++)
+                                if (i === +index) continue
+                                else if (ul.children[0].children[0].children[i].innerHTML.slice(-down.length) === down)
+                                    ul.children[0].children[0].children[i].innerHTML = ul.children[0].children[0].children[i].innerHTML.slice(0, -down.length)
+                                else if (ul.children[0].children[0].children[i].innerHTML.slice(-up.length) === up)
+                                    ul.children[0].children[0].children[i].innerHTML = ul.children[0].children[0].children[i].innerHTML.slice(0, -up.length)
+                            // Switch to Reverse Sort
+                            if (ul.children[0].children[0].children[+index].innerHTML.slice(-down.length) === down)
+                                ul.children[0].children[0].children[+index].innerHTML = ul.children[0].children[0].children[+index].innerHTML.slice(0, -down.length) + up
+                            // Switch to Normal Sort
+                            else if (ul.children[0].children[0].children[+index].innerHTML.slice(-up.length) === up)
+                                ul.children[0].children[0].children[+index].innerHTML = ul.children[0].children[0].children[+index].innerHTML.slice(0, -up.length) + down
+                            // Switch to new column (or first time) and Normal Sort
+                            else 
+                                ul.children[0].children[0].children[+index].innerHTML = ul.children[0].children[0].children[+index].innerHTML + down
+                        }
+                        Array.from(ul.children[0].children[0].children).forEach((val, index) => {
+                            val.onclick = _ => {
+                                customSortIcon(index, down, up)
+                                filterHandle()
+                            }
+                        })
+                        const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
+                        total = deduplicatedList.length                
+                        deduplicatedList.forEach((val, index) => {
+                            const manuscriptID = val["@id"].replace(/^https?:/, 'https:')
+                            let li = document.createElement("td")
+                            li.setAttribute("deer-id", manuscriptID)
+                            let a = document.createElement("a")
+                            a.setAttribute("href", options.link+manuscriptID)
+                            a.setAttribute("target", "_blank")
+                            let span = document.createElement("span")
+                            span.classList.add("serifText")
+                            if(cachedFilterableEntities.get(manuscriptID)){
+                                // We cached it in the past and are going to trust it right now.
+                                const cachedObj = cachedFilterableEntities.get(manuscriptID)
+                                let filteringProps = Object.keys(cachedObj)
+                                // Add all Manuscript object properties to the <li> element as attributes to match on later
+                                filteringProps.forEach( (prop) => {
+                                    // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
+                                    if(typeof deerUtils.getValue(cachedObj[prop]) === "string" || typeof deerUtils.getValue(cachedObj[prop]) === "number") {
+                                        let val = deerUtils.getValue(cachedObj[prop])+"" //typecast to a string
+                                        prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                                        const attr = `data-${prop}`
+                                        if(prop === "identifier" && !val){
+                                            val = "[ No Shelfmark ]"
+                                            li.setAttribute("data-unlabeled", "true")
+                                        }
+                                        li.setAttribute(attr, val)
+                                    }
+                                })
+                                if(!li.hasAttribute("data-title")) {
+                                    li.setAttribute("data-title", "[ unlabeled ]")
+                                    li.setAttribute("data-unlabeled", "true")
+                                }
+                                li.setAttribute("data-expanded", "true")
+                                span.innerText = deerUtils.getValue(cachedObj.identifier) ? deerUtils.getValue(cachedObj.identifier) : "Shelfmark Unprocessable"
+                                numloaded++
+                                let tr = document.createElement("tr")
+                                // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem_ngList (already have the data).
+                                if(filterPresent){
+                                    tr.classList.add("is-hidden")
+                                }
+                                a.appendChild(span)
+                                li.appendChild(a)
+                                tr.appendChild(li)
+                                modifyTableTR(tr, cachedObj)
+                                ul.children[1].appendChild(tr)
+                            }
+                            else{
+                                // This object was not cached so we do not have its properties.
+                                // Make this a deer-view so this Manuscript is expanded and we can make attributes from its properties.
+                                let div = document.createElement("tr")
+                                div.setAttribute("deer-link", "manuscript-details.html#")
+                                div.setAttribute("deer-template", "filterableListItem_msList")
+                                div.setAttribute("deer-id", manuscriptID)
+                                if(filterPresent) div.classList.add("is-hidden")
+                                div.classList.add("deer-view")
+                                span.innerText = `Loading Manuscript #${index + 1}...`
+                                a.appendChild(span)
+                                li.appendChild(a)
+                                div.appendChild(document.createElement('td'))
+                                div.appendChild(li)
+                                ul.children[1].appendChild(div)
+                            }
+                        })
+                        elem.appendChild(ul)
+                    }
+
+                    elem.$contentState = ""
+                    if(filterPresent){
+                        elem.querySelector(".filterNotice").classList.remove("is-hidden")
+                        elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
+                    }
+                    const totalsProgress = elem.querySelector(".totalsProgress")
+                    // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
+                    const filter = elem.querySelector('input')
+                    const cachedNotice = elem.querySelector(".cachedNotice")
+                    const progressArea = elem.querySelector(".progressArea")
+                    const approximate = elem.querySelector("#approximate")
+                    // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
+                    totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Manuscript loaded already.`
+                    totalsProgress.setAttribute("total", total)
+                    totalsProgress.setAttribute("count", numloaded)
+
+                    // FIXME this can be improved.  We need to update localStorage, not completely refresh it.
+                    elem.querySelector(".newcache").addEventListener("click", ev => {
+                        localStorage.clear()
+                        location.reload()
+                    })
+
+                    // Filter the list of manuscripts as users type their query against 'identifier'
+                    function filterHandle() {
+                        const val = filter.value.trim()
+                        let filterQuery
+                        if(val){
+                            filterQuery = encodeContentState(JSON.stringify({"identifier" : val}))
+                        }
+                        else{
+                            filterQuery = encodeContentState(JSON.stringify({"identifier" : ""}))
+                        }
+                        if (options.list)
+                            smartFilter()
+                        debounce(filterManuscripts(filterQuery))
+                    }
+                    filter.addEventListener('input', filterHandle)
+                    Array.from(approximate.children).forEach(e => e.addEventListener('change', filterHandle))
+
+                    if(numloaded === total){
+                        cachedNotice.classList.remove("is-hidden")
+                        progressArea.classList.add("is-hidden")
+                        approximate.classList.remove("is-hidden")
+                        elem.querySelectorAll("input[filter]").forEach(i => {
+                            // The filters that are used now need to be selected or take on the string or whatevs
+                            i.classList.remove("is-hidden")
+                            if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
+                                i.value = filterObj[i.getAttribute("filter")]
+                                i.setAttribute("value", filterObj[i.getAttribute("filter")])
+                            }
+                            i.dispatchEvent(new Event('input', { bubbles: true }))
+                        })
+                        if(filterPresent){
+                            debounce(filterManuscripts(elem.$contentState))
+                        }
+                        hideSearchBar()
+                    }
+
+                    /** 
+                     * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
+                     * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
+                     */ 
+                    function filterManuscripts(queryString=''){
+                        const numloaded = parseInt(totalsProgress.getAttribute("count"))
+                        const total = parseInt(totalsProgress.getAttribute("total"))
+                        let parent = null
+                        if(numloaded !== total){
+                            //alert("All data must be loaded to use this filter.  Please wait.")
+                            const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
+                            deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
+                            return
+                        }
+                        queryString = queryString.trim()
+                        const query = decodeContentState(queryString)
+                        for (const prop in query) {
+                            if (typeof query[prop] === 'string') {
+                                query[prop] = query[prop].trim()
+                            }
+                        }
+                        const approximateBar = elem.querySelector('#approximate-bar')
+                        if(approximateBar) {
+                            approximateBar.classList.add('is-hidden')
+                            parent = approximateBar.parentElement
+                            parent.removeChild(approximateBar)
+                            parent.insertAdjacentElement('afterbegin', approximateBar)
+                        }
+                        const items = elem.querySelectorAll('tbody tr')
+                        items.forEach(tr=>{
+                            if(tr === approximateBar) return
+                            if(!tr.classList.contains("is-hidden"))
+                                tr.classList.add("is-hidden")
+                            for(const prop in query){
+                                if(tr.children[1].hasAttribute(`data-${prop}`)){
+                                    const tr_mod = [tr.children[0].innerHTML.toLowerCase(),
+                                        tr.children[1].getAttribute(`data-${prop}`).toLowerCase(),
+                                        tr.children[2].innerHTML.toLowerCase()]
+                                    const query_mod = query[prop].toLowerCase()
+                                    const query_mod_aprox = approximateFilter(query_mod)
+                                    const action = tr_mod.map(x => approximateFilter(x).includes(query_mod_aprox)).some(x => x) ? "remove" : "add"
+                                    if (action === "remove")
+                                        if(!tr_mod.map(x => x.includes(query_mod)).some(x => x))
+                                            approximateBar.classList.remove("is-hidden")
+                                        else{
+                                            if(parent.tagName === "TBODY"){
+                                                parent.removeChild(tr)
+                                                parent.insertBefore(tr, approximateBar)
+                                            }
+                                        }
+                                    tr.classList[action](`is-hidden`,`un${action}-item`)
+                                    setTimeout(()=>tr.classList.remove(`un${action}-item`),500)
+                                    // If it is showing, no need to check other properties for filtering.
+                                    if(action === "remove") break
+                                }
+                            }
+                        })
+
+                        // This query was applied.  Make this the encoded query in the URL, but don't cause a page reload.
+                        const url = new URL(window.location.href)
+                        if(query.title){
+                            url.searchParams.set("gog-filter", queryString)
+                            window.history.replaceState(null, null, url)   
+                        }
+                        else{
+                            url.searchParams.delete("gog-filter")
+                            window.history.replaceState(null, null, url)
+                        }
+                    }
+                }
+            }
+        },
+
+        /**
+         * This corresponds to an existing <li> element in manuscriptListerFilterable.  These <li> elements need to be filterable.
+         * As such, they require information about the Manuscript they represent, whose URI is the deer-id.
+         * That element is expand()ed in order to get the information for this element to be filterable.
+         * Since the object is expanded, if reasonable, it should be cached with its information (how would we know if it is out of date?)
+         * If a filter was present via the URL on page load, if it matches on this <li> the <li> should be filtered immediately.
+         */ 
+        filterableListItem_msList: function (obj, options = {}) {
+            return{
+                html: ``,
+                then: (elem) => {
+                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    const containingListElem = elem.closest("deer-view")
+                    let filteringProps = Object.keys(obj)
+                    let li = document.createElement("td")
+                    let a = document.createElement("a")
+                    let span = document.createElement("span")
+                    span.classList.add("serifText")
+
+                    if(!li.hasAttribute("data-title")) {
+                        li.setAttribute("data-title", "[ unlabeled ]")
+                        li.setAttribute("data-unlabeled", "true")
+                    }
+
+                    li.setAttribute("data-expanded", "true")
+                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    a.appendChild(span)
+                    li.appendChild(a)
+                    elem.appendChild(li)
+                    modifyTableTR(elem, obj)
+                    
+                    const createScenario = elem.hasAttribute("create-scenario")
+                    const updateScenario = elem.hasAttribute("update-scenario")   
+                    const increaseTotal = ((createScenario || updateScenario))
+                    const filterPresent = containingListElem.$contentState
+                    const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
+                    span.innerText = deerUtils.getValue(obj.identifier) ? deerUtils.getValue(obj.identifier) : "Label Unprocessable"
+                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("target", "_blank")
+                    // Turn each property into an attribute for the <li> element
+                    if(filterPresent) elem.classList.add("is-hidden")
+                    filteringProps.forEach( (prop) => {
+                        // Only processing numbers and strings. FIXME do we need to process anything more complex into an attribute, such as an Array?
+                        if(typeof deerUtils.getValue(obj[prop]) === "string" || typeof deerUtils.getValue(obj[prop]) === "number") {
+                            let val = deerUtils.getValue(obj[prop])+"" //typecast to a string
+                            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+                            const attr = `data-${prop}`
+                            if(prop === "identifier" && !val){
+                                val = "[ No Shelfmark ]"
+                                li.setAttribute("data-unlabeled", "true")
+                            }
+                            li.setAttribute(attr, val)
+                        }
+                        if(elem.children[1].hasAttribute(`data-${prop}`) && filterPresent && filterObj.hasOwnProperty("text")) {
+                        const tr_mod = [elem.children[1].getAttribute(`data-${prop}`).toLowerCase(),
+                            elem.children[0].innerHTML.toLowerCase(),
+                            elem.children[2].innerHTML.toLowerCase()]
+                        const query_mod_aprox = approximateFilter(filterObj["text"].toLowerCase())
+                        if (tr_mod.map(x => approximateFilter(x).includes(query_mod_aprox)).some(x => x))
+                            elem.classList.remove("is-hidden")
+                        }    
+                    })
+
+                    // Pagination for the progress indicator element
+                    const totalsProgress = containingListElem.querySelector(".totalsProgress")
+                    const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
+                    let total = parseInt(totalsProgress.getAttribute("total"))
+                    if(increaseTotal) total++
+                    const cachedNotice = containingListElem.querySelector(".cachedNotice")
+                    const progressArea = containingListElem.querySelector(".progressArea")
+                    //const modalBtn = containingListElem.querySelector("gloss-modal-button")
+                    const approximate = containingListElem.querySelector("#approximate")
+                    const filterInstructions = containingListElem.querySelector(".filterInstructions")
+                    totalsProgress.setAttribute("count", numloaded)
+                    totalsProgress.setAttribute("total", total)
+                    totalsProgress.innerHTML = `
+                        ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  
+                        You may click to select any Manuscript loaded already.<br>
+                        A filter will become available when all items are loaded.`
+                    if(numloaded === total){
+                        cachedNotice.classList.remove("is-hidden")
+                        //if(modalBtn) modalBtn.classList.remove("is-hidden")
+                        if(filterInstructions) filterInstructions.classList.remove("is-hidden")
+                        progressArea.classList.add("is-hidden")
+                        approximate.classList.remove("is-hidden")
+                        smartFilter()
+                        containingListElem.querySelectorAll("input[filter]").forEach(i => {
+                            // The filters that are used now need to be visible and selected / take on the string / etc.
+                            i.classList.remove("is-hidden")
+                            if(filterObj.hasOwnProperty(i.getAttribute("filter"))){
+                                i.value = deerUtils.getValue(filterObj[i.getAttribute("filter")])
+                                i.setAttribute("value", deerUtils.getValue(filterObj[i.getAttribute("filter")]))
+                                i.dispatchEvent(new Event('input', { bubbles: true }))
+                            }
+                        })
+                        containingListElem.setAttribute("ms-list-loaded", "true")
+                        deerUtils.broadcast(undefined, "ms-list-loaded", containingListElem, {})
                         hideSearchBar()
                     }
                 }
