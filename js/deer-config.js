@@ -1150,7 +1150,7 @@ export default {
         /**
          * The Manuscript Witness list on manuscripts.html
          * Users should see the GoG-Manuscripts collection.  
-         * They can filter the list of titles using a text input that matches on shelfmark.
+         * They can filter the list of shelfmarks using a text input that matches on shelfmark.
          */ 
         manuscriptListFilterable: function (obj, options = {}) {
             return{
