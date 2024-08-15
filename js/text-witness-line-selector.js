@@ -88,8 +88,8 @@ class WitnessTextSelector extends HTMLElement {
     async connectedCallback(which) {
         this.innerHTML = this.template
         const $this = this
-        const witnessURI = this.getAttribute("source-uri").trim()
-        const witnessText = this.getAttribute("source-text").trim()
+        const witnessURI = this.getAttribute("source-uri")?.trim()
+        const witnessText = this.getAttribute("source-text")?.trim()
         if(!witnessURI && !witnessText) return
 
         const customKey = this.querySelector("input[custom-key='selections']")
