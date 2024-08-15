@@ -1174,6 +1174,36 @@ export default {
                 </style>
                 <h2> Manuscript Witnesses </h2>
                 <small class="cachedNotice is-hidden text-primary"> These Manuscripts were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+                <form id="msForm" deer-type="ManuscriptWitness" deer-context="http://www.loc.gov/mods" class="row">
+                    <input id="search-bar" filter="identifier" type="text" deer-key="identifier" placeholder="&hellip;Type to filter by shelfmark" class="is-hidden serifText row">
+                    <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
+                    <input is="auth-creator" type="hidden" deer-key="creator" />
+                    <style>
+                        #search-submit {
+                          background: none;
+                          border: none;
+                          color: var(--color-primary);
+                          cursor: pointer;
+                          font-size: 0.8em;
+                          padding-left: 0;
+                        }
+                        @keyframes fadeIn {
+                          0% { opacity: 0; max-height: 0em; padding: 0em; }
+                          100% { opacity: 1; max-height: auto; padding: auto; }
+                        }
+                        #search-submit:not(.fade) {
+                          animation: fadeIn 0.5s forwards;
+                        }
+                        @keyframes fadeOut {
+                          0% { opacity: 1; max-height: auto; padding: auto; }
+                          100% { opacity: 0; max-height: 0em; padding: 0em; }
+                        }
+                        #search-submit.fade {
+                          animation: fadeOut 0.5s forwards;
+                        }
+                    </style>
+                    <input id="search-submit" type="submit" class="is-hidden" value="Not finding what you're looking for? Create a new manuscript..." class="fade serifText row">
+                </form>
                 <div id="approximate" class="is-hidden">
                     <input type="checkbox" id="u↔v" name="u↔v" checked>
                     <label for="u↔v">u ↔ v</label>
