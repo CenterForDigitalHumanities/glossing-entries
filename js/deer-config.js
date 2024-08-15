@@ -329,7 +329,7 @@ export default {
                                 a.appendChild(span)
                                 li.appendChild(a)
                                 tr.appendChild(li)
-                                modifyTableTR(tr, cachedObj)
+                                modifyGlossTableTR(tr, cachedObj)
                                 ul.children[1].appendChild(tr)
                             }
                             else{
@@ -513,7 +513,7 @@ export default {
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.appendChild(li)
-                    modifyTableTR(elem, obj)
+                    modifyGlossTableTR(elem, obj)
                     
                     const createScenario = elem.hasAttribute("create-scenario")
                     const updateScenario = elem.hasAttribute("update-scenario")   
@@ -1202,7 +1202,7 @@ export default {
                           animation: fadeOut 0.5s forwards;
                         }
                     </style>
-                    <input id="search-submit" type="submit" class="is-hidden" value="Not finding what you're looking for? Create a new manuscript..." class="fade serifText row">
+                    <input id="search-submit" type="submit" value="Not finding what you're looking for? Create a new manuscript..." class="fade serifText row">
                 </form>
                 <div id="approximate" class="is-hidden">
                     <input type="checkbox" id="u↔v" name="u↔v" checked>
@@ -1235,7 +1235,7 @@ export default {
                     const filterObj = filterPresent ? decodeContentState(deerUtils.getURLParameter("gog-filter").trim()) : {}
                     if (options.list) {
                         let ul = document.createElement("table")
-                        ul.insertAdjacentHTML('afterbegin', `<thead><tr><th style="cursor: pointer;">Reference </th><th style="cursor: pointer;">Title </th><th style="cursor: pointer;">Tag(s) </th></tr></thead><tbody><tr id="approximate-bar" class="is-hidden" style="border-bottom: 0.1em solid var(--color-lightGrey);"><th>Approximate Matches</th></tr></tbody>`)
+                        ul.insertAdjacentHTML('afterbegin', `<thead><tr><th style="cursor: pointer;">Shelfmark </th></tr></thead><tbody><tr id="approximate-bar" class="is-hidden" style="border-bottom: 0.1em solid var(--color-lightGrey);"><th>Approximate Matches</th></tr></tbody>`)
                         /**
                          * Add Sort icon
                          * @param {Number} [index=0] - Column  index to sort by
@@ -1310,7 +1310,7 @@ export default {
                                 a.appendChild(span)
                                 li.appendChild(a)
                                 tr.appendChild(li)
-                                modifyTableTR(tr, cachedObj)
+                                modifyManuscriptTableTR(tr, cachedObj)
                                 ul.children[1].appendChild(tr)
                             }
                             else{
@@ -1494,7 +1494,7 @@ export default {
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.appendChild(li)
-                    modifyTableTR(elem, obj)
+                    modifyManuscriptTableTR(elem, obj)
                     
                     const createScenario = elem.hasAttribute("create-scenario")
                     const updateScenario = elem.hasAttribute("update-scenario")   
@@ -1620,7 +1620,7 @@ function hideSearchBar() {
  * @param {HTMLTableCellElement} obj - HTML <td> element to pull data from
  * @returns {HTMLTableRowElement} - Original HTML <tr> element reference with the modifications
  */
-function modifyTableTR(tr, obj) {
+function modifyGlossTableTR(tr, obj) {
     tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
     tr.insertAdjacentHTML('afterbegin', `<td>${
         "canonicalReference" in obj ? obj["canonicalReference"]["value"] :
@@ -1642,6 +1642,17 @@ function modifyTableTR(tr, obj) {
         tr.insertAdjacentHTML('beforeend', "<td></td>")
     if (tr.firstChild.innerHTML === "Untitled _:_")
         tr.firstChild.innerHTML = ""
+    return tr
+}
+
+/**
+ * Style a table row and add Reference data pulled from the Title
+ * @param {HTMLTableRowElement} tr - HTML <tr> element to style
+ * @param {HTMLTableCellElement} obj - HTML <td> element to pull data from
+ * @returns {HTMLTableRowElement} - Original HTML <tr> element reference with the modifications
+ */
+function modifyManuscriptTableTR(tr, obj) {
+    tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
     return tr
 }
 
