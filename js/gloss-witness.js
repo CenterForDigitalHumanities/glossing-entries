@@ -1230,7 +1230,7 @@ async function loadUserInput(ev, which){
         break
         case "cp":
             text = resourceText.value
-            hash = generateHash(text)
+            hash = generateHash(normalizeString(text))
             if(hash) sourceHash = hash
             needs.classList.add("is-hidden")
             sourceElems.forEach(sourceElem => {

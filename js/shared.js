@@ -874,3 +874,17 @@ function generateHash(str) {
     }
     return rh(a)+rh(b)+rh(c)+rh(d)
 }
+
+/**
+ * Reduce diacritics to the normalized form of their letter (ex. 'ê' to 'e').
+ * Remove punctuation.
+ * Remove leading and trailing whitespace and newlines.
+ * 
+ * @param str - Any valid javascript string
+ * @return The string after applying the normalization changes listed above
+ */ 
+function normalizeString(str){
+    if(!str || typeof str !== "string") return
+    const punctuation = /[\.,?!]/g
+    return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(punctuation, "").trim()
+}
