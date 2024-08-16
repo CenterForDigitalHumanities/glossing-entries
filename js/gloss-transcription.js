@@ -180,7 +180,7 @@ function setWitnessFormDefaults(){
         t.removeAttribute("deer-source")
     })
     // For when we test
-    // form.querySelector("input[deer-key='creator']").value = "BryanDelete"
+    form.querySelector("input[deer-key='creator']").value = "BryanGT"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -213,6 +213,40 @@ function setWitnessFormDefaults(){
     // The source value not change and would need to be captured on the next submit.
     const sourceElem = form.querySelector("input[custom-key='source']")
     sourceElem.$isDirty = true
+
+    const glossFormatElem = form.querySelector("select[deer-key='_glossFormat']")
+    glossFormatElem.value = "none"
+    glossFormatElem.setAttribute("value", "none")
+    glossFormatElem.$isDirty = false
+
+    const glossLocationElem = form.querySelector("select[deer-key='_glossLocation']")
+    glossLocationElem.value = "none"
+    glossLocationElem.setAttribute("value", "none")
+    glossLocationElem.$isDirty = false
+
+    const glossatorHandElem = form.querySelector("select[deer-key='_glossatorHand']")
+    glossatorHandElem.value = "original"
+    glossatorHandElem.setAttribute("value", "original")
+    glossatorHandElem.$isDirty = false
+
+    const imageLinkElem = form.querySelector("input[deer-key='depiction']")
+    imageLinkElem.value = ""
+    imageLinkElem.setAttribute("value", "")
+    imageLinkElem.$isDirty = false
+
+    const notesElem = form.querySelector("textarea[deer-key='_notes']")
+    imageLinkElem.value = ""
+    imageLinkElem.setAttribute("value", "")
+    imageLinkElem.$isDirty = false
+
+    const tagsElem = form.querySelector("input[deer-key='tags']")
+    tagsElem.value = ""
+    tagsElem.setAttribute("value", "")
+    tagsElem.$isDirty = false
+
+    //actually remove any tags in the UI
+    const tagsAreaElem = form.querySelector("gog-tag-widget")
+    tagsAreaElem.querySelectorAll("span.tag").forEach(el => el.remove())
 
     // reset the Glosses filter
     const filter = form.querySelector('input[filter]')
