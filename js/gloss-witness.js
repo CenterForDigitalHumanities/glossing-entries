@@ -2,6 +2,7 @@ const witnessFragmentID = window.location.hash.substr(1)
 let referencedGlossID = null
 let existingManuscriptWitness = null
 let sourceURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : null
+let sourceHash = null
 const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab")) : null
 
 /**
@@ -395,7 +396,7 @@ function setFragmentFormDefaults(){
         s.removeAttribute("deer-source")
     })
     // For when we test
-    //document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanTryin")
+    // document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanTryin")
 
     // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
@@ -591,7 +592,7 @@ function initFragmentForm(event){
     const textSelectionElem = document.querySelector("source-text-selector")
     const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
-    sourceURI = annotationData?.source?.value
+    const source = annotationData?.source?.value
     referencedGlossID = annotationData?.references?.value[0].replace(/^https?:/, 'https:')
     let selections = annotationData?.selections
     if(ngCollectionList.hasAttribute("ng-list-loaded")){
@@ -611,10 +612,27 @@ function initFragmentForm(event){
         getAllWitnessFragmentsOfSource(selections)
     }
     else{
-        addEventListener('source-text-loaded', ev => {
-           getAllWitnessFragmentsOfSource(selections)
-        })
-        if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
+        if(source.startsWith("http")) {
+            sourceURI = source
+            addEventListener('source-text-loaded', ev => {
+               getAllWitnessFragmentsOfSource(selections)
+            })
+            if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
+        }
+        else{
+            // We will not be able to show or load or preselect or actively select any text here...
+            sourceHash = source
+            if(!textSelectionElem.getAttribute("hash")) {
+                textSelectionElem.setAttribute("hash", sourceHash)
+                textSelectionElem.setAttribute("source-text", "This text cannot be loaded.")
+                const textSelectionContentElem = textSelectionElem.querySelector(".textContent")
+                textSelectionContentElem.onmousedown = function(event){return}
+                textSelectionContentElem.onmouseup = function(event){return}
+                $elem.classList.remove("is-hidden")
+                loading.classList.add("is-hidden")
+            }
+        }
+        
     }
     prefillText(annotationData["text"], $elem)
     
@@ -736,7 +754,7 @@ function prefillDigitalLocations(locationsArr, form) {
         document.querySelector(".lineSelector").setAttribute("source-uri", locationsArr[0])
     }
     else{
-        document.querySelector(".lineSelector").setAttribute("witness-text", locationsArr[0])
+        document.querySelector(".lineSelector").setAttribute("source-text", locationsArr[0])
     }
 }
 
@@ -1138,7 +1156,7 @@ resourceFile.addEventListener("change", function(event){
  * @param which - The string 'uri', 'file', or 'cp'
  */ 
 function changeUserInput(event, which){
-    if(which !== "uri"){
+    if(which === "file"){
         const ev = new CustomEvent("Under Construction")
         globalFeedbackBlip(ev, `Undergoing development, try again later.`, false)
         return    
@@ -1168,9 +1186,12 @@ function changeUserInput(event, which){
  * 
  * @param which - The string 'uri', 'file', or 'cp'
  */
-function loadUserInput(ev, which){
+async function loadUserInput(ev, which){
     let text = ""
+    let hash = ""
+    let match = null
     const sourceElems = document.querySelectorAll("input[witness-source]")
+    const textElem = document.querySelector(".lineSelector")
     switch(which){
         case "uri":
             // Recieve a Witness URI as input from #needs.  Reload the page with a set ?source-uri URL parameter.
@@ -1181,35 +1202,54 @@ function loadUserInput(ev, which){
                 window.location = url
             }
             else{
-                //alert("You must supply a URI via the source-uri parameter or supply a value in the text input.")
                 const ev = new CustomEvent("You must supply a URI via the source-uri parameter or supply a value in the text input.")
                 globalFeedbackBlip(ev, `You must supply a URI via the source-uri parameter or supply a value in the text input.`, false)
             }
         break
         case "file":
             text = fileText.value
+            hash = generateHash(text)
+            if(hash) sourceHash = hash
             needs.classList.add("is-hidden")
-            document.querySelector(".lineSelector").setAttribute("witness-text", text)
-            // witnessFragmentForm.classList.remove("is-hidden")
-            // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElems.forEach(sourceElem => {
-                sourceElem.value = text
-                sourceElem.setAttribute("value", text)
+                sourceElem.value = hash
+                sourceElem.setAttribute("value", hash)
                 sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
             })
-            
+            addEventListener("source-text-loaded", () => getAllWitnessFragmentsOfSource())
+            textElem.setAttribute("source-text", text)
+            textElem.setAttribute("hash", hash)
+            match = await getManuscriptWitnessFromSource(hash)
+            if(match) {
+                initiateMatch(match)
+            }
+            else{
+                loading.classList.add("is-hidden")
+                manuscriptWitnessForm.classList.remove("is-hidden")
+            }           
         break
         case "cp":
             text = resourceText.value
+            hash = generateHash(normalizeString(text))
+            if(hash) sourceHash = hash
             needs.classList.add("is-hidden")
-            document.querySelector(".lineSelector").setAttribute("witness-text", text)
-            // witnessFragmentForm.classList.remove("is-hidden")
-            // Typically the source is a URI which resolves to text.  Here, it is just the text.
             sourceElems.forEach(sourceElem => {
-                sourceElem.value = text
-                sourceElem.setAttribute("value", text)
+                sourceElem.value = hash
+                sourceElem.setAttribute("value", hash)
                 sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
             })
+            addEventListener("source-text-loaded", () => getAllWitnessFragmentsOfSource())
+            textElem.setAttribute("hash", hash)
+            textElem.setAttribute("source-text", text)
+            loading.classList.remove("is-hidden")
+            match = await getManuscriptWitnessFromSource(hash)
+            if(match) {
+                initiateMatch(match)
+            }
+            else{
+                loading.classList.add("is-hidden")
+                manuscriptWitnessForm.classList.remove("is-hidden")
+            }
         break
         default:
     }
@@ -1431,11 +1471,11 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
             return false
           }
       }
-
+    const sourceValue = sourceURI ? sourceURI : sourceHash ? sourceHash : null
     // Each source annotation targets a Witness.
     // Get all the source annotations whose value is this source string (URI or text string)
     const sourceAnnosQuery = {
-        "body.source.value": httpsIdArray(sourceURI),
+        "body.source.value": sourceValue.startsWith("http") ? httpsIdArray(sourceValue) : sourceValue,
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
