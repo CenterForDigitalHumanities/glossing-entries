@@ -81,7 +81,6 @@ window.onload = () => {
         // These items have default values that are dirty on fresh forms.
         dig_location.$isDirty = true
         witnessForm.querySelector("select[custom-text-key='language']").$isDirty = true
-        witnessForm.querySelector("input[custom-text-key='format']").$isDirty = true
     }
 
     // mimic isDirty detection for these custom inputs
@@ -90,19 +89,6 @@ window.onload = () => {
         ev.target.closest("form").$isDirty = true
     })
     witnessForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
-        ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
-    })
-    // Note that this HTML element is a checkbox
-    witnessForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
-        if(ev.target.checked){
-            ev.target.value = "text/html"
-            ev.target.setAttribute("value", "text/html")
-        }
-        else{
-            ev.target.value = "text/plain"
-            ev.target.setAttribute("value", "text/plain")
-        }
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
@@ -164,6 +150,7 @@ function init(event){
                     preselectLines(annotationData["selections"], $elem, true)
                 })
             }
+            prefillTagsArea(annotationData["tags"], $elem)
             prefillText(annotationData["text"], $elem)
             prefillDigitalLocations(annotationData["source"], $elem)
 
@@ -193,8 +180,11 @@ function setWitnessFormDefaults(){
     form.querySelectorAll("textarea[deer-source]").forEach(t => {
         t.removeAttribute("deer-source")
     })
+    form.querySelectorAll("select[deer-source]").forEach(s => {
+        s.removeAttribute("deer-source")
+    })
     // For when we test
-    // form.querySelector("input[deer-key='creator']").value = "BryanDelete"
+    form.querySelector("input[deer-key='creator']").value = "BryanGT"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -203,10 +193,6 @@ function setWitnessFormDefaults(){
 
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
     shelfmarkElem.$isDirty = true
-
-    const formatElem = form.querySelector("input[custom-text-key='format']")
-    formatElem.checked = false
-    formatElem.$isDirty = true
 
     const textElem = form.querySelector("textarea[custom-text-key='text']")
     textElem.value = ""
@@ -231,6 +217,45 @@ function setWitnessFormDefaults(){
     // The source value not change and would need to be captured on the next submit.
     const sourceElem = form.querySelector("input[custom-key='source']")
     sourceElem.$isDirty = true
+
+    const glossFormatElem = form.querySelector("select[deer-key='_glossFormat']")
+    glossFormatElem.value = "none"
+    glossFormatElem.setAttribute("value", "none")
+    glossFormatElem.$isDirty = false
+
+    const glossLocationElem = form.querySelector("select[deer-key='_glossLocation']")
+    glossLocationElem.value = "none"
+    glossLocationElem.setAttribute("value", "none")
+    glossLocationElem.$isDirty = false
+
+    const glossatorHandElem = form.querySelector("select[deer-key='_glossatorHand']")
+    glossatorHandElem.value = "none"
+    glossatorHandElem.setAttribute("value", "none")
+    glossatorHandElem.$isDirty = false
+
+    const imageLinkElem = form.querySelector("input[deer-key='depiction']")
+    imageLinkElem.value = ""
+    imageLinkElem.setAttribute("value", "")
+    imageLinkElem.$isDirty = false
+
+    const notesElem = form.querySelector("textarea[deer-key='_notes']")
+    notesElem.value = ""
+    notesElem.setAttribute("value", "")
+    notesElem.$isDirty = false
+
+    const folioElem = form.querySelector("input[deer-key='_folio']")
+    folioElem.value = ""
+    folioElem.setAttribute("value", "")
+    folioElem.$isDirty = false
+
+    const tagsElem = form.querySelector("input[deer-key='tags']")
+    tagsElem.value = ""
+    tagsElem.setAttribute("value", "")
+    tagsElem.$isDirty = false
+
+    //actually remove any tags in the UI
+    const tagsAreaElem = form.querySelector("gog-tag-widget")
+    tagsAreaElem.querySelectorAll("span.tag").forEach(el => el.remove())
 
     // reset the Glosses filter
     const filter = form.querySelector('input[filter]')
@@ -292,25 +317,55 @@ function formReset(event){
 }
 
 /**
+ * Prefills the tags area in the form with provided tag data and builds the UI.
+ * @param {object|array|string} tagData - The tag data to prefill.
+ * @param {HTMLFormElement} form - The form element where the tags area is located.
+ * @returns {boolean} - Returns false if there is no tag data.
+ */
+function prefillTagsArea(tagData, form = document.getElementById("witnessForm")) {
+    if (tagData === undefined) {
+        console.warn("Cannot set value for tags and build UI.  There is no data.")
+        return false
+    }
+    let arr_names = (tagData.hasOwnProperty("value") && tagData.value.hasOwnProperty("items")) ? tagData.value.items :
+        tagData.hasOwnProperty("items") ? tagData.items :
+            [tagData]
+    if (arr_names.length === 0) {
+        console.warn("There are no tags recorded for this Gloss")
+        return false
+    }
+    form.querySelector("input[deer-key='tags']").value = arr_names.join(",")
+    let area = form.querySelector("input[deer-key='tags']").nextElementSibling //The view or select should always be just after the input tracking the values from it.
+    //Now build the little tags
+    let selectedTagsArea = area.parentElement.querySelector(".selectedEntities")
+    selectedTagsArea.innerHTML = ""
+    let tags = ""
+    arr_names.forEach(tagName => {
+        if (tagName) {
+            tags += `<span class="tag is-small">${tagName}<span onclick="this.closest('gog-tag-widget').removeTag(event)" class="removeTag" tag-name="${tagName}"></span></span>`
+        }
+    })
+    selectedTagsArea.innerHTML = tags
+}
+
+/**
  * Helper function for the specialized text key, which is an Object.
  * Note that format is hard coded to text/plain for now.
  * */
 function prefillText(textObj, form) {
     const languageElem = form.querySelector("select[custom-text-key='language'")
-    const formatElem = form.querySelector("input[custom-text-key='format'")
     const textElem = form.querySelector("textarea[custom-text-key='text'")
     if (textObj === undefined) {
         console.warn("Cannot set value for text and build UI.  There is no data.")
         return false
     }
-    if(![languageElem,formatElem,textElem].some(e=>e)) {
+    if(![languageElem,textElem].some(e=>e)) {
         console.warn("Nothing to fill.")
         return false
     }
     const source = textObj?.source
     if(source?.citationSource){
         form.querySelector("select[custom-text-key='language'")?.setAttribute("deer-source", source.citationSource ?? "") 
-        form.querySelector("input[custom-text-key='format'")?.setAttribute("deer-source", source.citationSource ?? "") 
         form.querySelector("textarea[custom-text-key='text'")?.setAttribute("deer-source", source.citationSource ?? "") 
     }
     textObj = textObj.value ?? textObj
@@ -318,15 +373,6 @@ function prefillText(textObj, form) {
     if(languageElem) {
         languageElem.value = language
         languageElem.setAttribute("value", language)
-    }
-    
-    const format = textObj.format
-    if(format === "text/html"){
-        formatElem.checked = true
-    }
-    if(formatElem) {
-        formatElem.value = format
-        formatElem.setAttribute("value", "format")
     }
     const textVal = textObj.textValue
     if (!textVal) {
@@ -548,21 +594,18 @@ addEventListener('deer-updated', event => {
     // This gets the custom keys for the annotation.body.text which is an object
     // If any of the elements that build the object are dirty, then it is dirty.
     const customTextElems = [
-        $elem.querySelector("input[custom-text-key='format']"),
         $elem.querySelector("select[custom-text-key='language']"),
         $elem.querySelector("textarea[custom-text-key='text']")
     ]
     if(customTextElems.filter(el => el.$isDirty).length > 0){
         // One of the text properties has changed so we need the text object
-        const format = customTextElems[0].value
-        const language = customTextElems[1].value
-        const text = customTextElems[2].value
+        const language = customTextElems[0].value
+        const text = customTextElems[1].value
         let textanno = {
             "@context": "http://www.w3.org/ns/anno.jsonld",
             "@type": "Annotation",
             "body": {
                 "text":{
-                    "format" : format,
                     "language" : language,
                     "textValue" : text
                 }
@@ -570,7 +613,7 @@ addEventListener('deer-updated', event => {
             "target": entityID,
             "creator" : window.GOG_USER["http://store.rerum.io/agent"]
         }
-        const el = customTextElems[2]
+        const el = customTextElems[1]
         if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
         annotation_promises.push(
             fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {

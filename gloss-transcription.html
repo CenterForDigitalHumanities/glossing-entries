@@ -26,6 +26,9 @@
             color: white;
             padding-top: 4em;
        }
+/*       select[deer-key="_glossatorHand"]{
+            max-height: 39px;
+       }*/
     </style>
 </head>
 
@@ -53,13 +56,15 @@
             <label class="col-3 col-2-md text-right is-hidden">Label:</label>
             <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
 
-            <label class="col-3 col-2-md text-right">Shelfmark: &#10082;</label>
-            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required">
+            <label class="col-3 col-2-md text-right">Shelfmark or Short Citation: &#10082;</label>
+            <input type="text" deer-key="identifier" required placeholder="Manuscript shelfmark or bibliographic citation of author and title for the witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’" class="col-9 col-10-md required">
                         
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
                 <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
-            -->
+                -->
+            <label class="col-3 col-2-md text-right" >Folio or Page:</label>
+            <input type="text" deer-key="_folio" required placeholder="Folio or page number from this witness where the gloss is found" class="col-9 col-10-md">
 
             <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
             <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight transcription text..."></textarea>
@@ -72,11 +77,11 @@
                 <option value="en">English</option>
             </select>
 
-            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
+            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left is-hidden">
                 The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
             </label>
 
-			<label class="col-3 col-2-md text-right">Gloss format:</label>
+            <label class="col-3 col-2-md text-right">Gloss Format:</label>
             <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
                 <option value="none" selected>None</option>
                 <option value="marginal">Marginal</option>
@@ -84,13 +89,49 @@
                 <option value="appendix">Appendix</option>
                 <option value="other">Other</option>
             </select>
+            
+            <label class="col-3 col-2-md text-right">Gloss Location:</label>
+            <select deer-key="_glossLocation" title="select gloss location relative to the main text" class="col-9 col-4-md">
+                <option value="none" selected>None</option>
+                <option value="top">Top</option>
+                <option value="bottom">Bottom</option>
+                <option value="center">Center</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+                <option value="top left">Top Left</option>
+                <option value="top center">Top Center</option>
+                <option value="top right">Top Right</option>
+                <option value="bottom left">Bottom Left</option>
+                <option value="bottom center">Bottom Center</option>
+                <option value="bottom right">Bottom Right</option>
+                <option value="other">Other</option>
+            </select>
+
+            <label class="col-3 col-2-md text-right">Glossator Hand:</label>
+            <select deer-key="_glossatorHand" title="glossator" class="col-9 col-4-md">
+                <option value="none" selected>None</option>
+                <option value="original">Original</option>
+                <option value="other">Other</option>
+            </select>
+
+            <label class="col-3 col-2-md text-right" >Image Link:
+                <small><a href="https://ncsu-libraries.github.io/iiif-crop-tool/" target="_blank">crop tool</a></small>
+            </label>
+            <input type="text" deer-key="depiction" required placeholder="Paste an image URL or IIIF selector link" class="col-9 col-10-md"/>
+            <label class="col-3 col-2-md text-right" >Notes</label>
+            <textarea deer-key="_notes" rows="2" class="col-9 col-10-md" placeholder="Optional notes about this gloss instance"></textarea>
 
             <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
-        <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
-        <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
+        <div class="row">
+            <gog-tag-widget class="col"></gog-tag-widget>
+        </div>
+        <div class="row">
+            <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
+            <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
+        </div>
         <div class="row">
             <tpen-line-selector class="lineSelector tpen-needed is-hidden col-7-md col-6-sm"> </tpen-line-selector>
             <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
