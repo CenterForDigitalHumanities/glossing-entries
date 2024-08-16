@@ -28,8 +28,9 @@
         .loadingMsg {
             color: white;
             padding-top: 4em;
-       }
-/*       select[deer-key="_glossatorHand"]{
+        }
+
+        /*       select[deer-key="_glossatorHand"]{
             max-height: 39px;
        }*/
     </style>
@@ -97,7 +98,8 @@
                 <option value="other">Other</option>
             </select>
             <label class="col-3 col-2-md text-right">Gloss Location:</label>
-            <select deer-key="_glossLocation" title="select gloss location relative to the main text" class="col-9 col-4-md">
+            <select deer-key="_glossLocation" title="select gloss location relative to the main text"
+                class="col-9 col-4-md">
                 <option value="none" selected>None</option>
                 <option value="top">Top</option>
                 <option value="bottom">Bottom</option>
@@ -115,30 +117,31 @@
 
             <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
-            <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
+            <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..."
+                class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
         <div class="row">
             <gog-tag-widget class="col"></gog-tag-widget>
         </div>
         <div class="row">
-            <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
-            <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
+            <input class="is-hidden button primary" type="submit" value="Create Textual Witness" />
+            <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness" />
         </div>
         <label class="col-3 col-2-md text-right">Glossator hand:</label>
-            <select deer-key="_glossatorHand" title="glossator" class="col-9 col-4-md">
-                <option value="original" selected>original</option>
-                <option value="later">later</option>
-            </select>
+        <select deer-key="_glossatorHand" title="glossator" class="col-9 col-4-md">
+            <option value="original" selected>original</option>
+            <option value="later">later</option>
+        </select>
 
-            <label class="col-3 col-2-md text-right">Image Link:
-                <small><a href="https://ncsu-libraries.github.io/iiif-crop-tool/" target="_blank">crop tool</a></small>
-            </label>
-            <input type="text" deer-key="depiction" required placeholder="Paste an image URL or IIIF selector link"
-                class="col-9 col-10-md">
-                <div class="row">
-                    <gog-tag-widget class="col"></gog-tag-widget>
-                </div>
-                        <div class="row">
+        <label class="col-3 col-2-md text-right">Image Link:
+            <small><a href="https://ncsu-libraries.github.io/iiif-crop-tool/" target="_blank">crop tool</a></small>
+        </label>
+        <input type="text" deer-key="depiction" required placeholder="Paste an image URL or IIIF selector link"
+            class="col-9 col-10-md">
+        <div class="row">
+            <gog-tag-widget class="col"></gog-tag-widget>
+        </div>
+        <div class="row">
             <tpen-line-selector class="lineSelector tpen-needed is-hidden col-7-md col-6-sm"> </tpen-line-selector>
             <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList"
                 deer-collection="GoG-Named-Glosses" deer-link="ng.html#"
