@@ -150,6 +150,7 @@ function init(event){
                     preselectLines(annotationData["selections"], $elem, true)
                 })
             }
+            prefillTagsArea(annotationData["tags"], $elem)
             prefillText(annotationData["text"], $elem)
             prefillDigitalLocations(annotationData["source"], $elem)
 
@@ -178,6 +179,9 @@ function setWitnessFormDefaults(){
     })
     form.querySelectorAll("textarea[deer-source]").forEach(t => {
         t.removeAttribute("deer-source")
+    })
+    form.querySelectorAll("select[deer-source]").forEach(s => {
+        s.removeAttribute("deer-source")
     })
     // For when we test
     form.querySelector("input[deer-key='creator']").value = "BryanGT"
@@ -225,8 +229,8 @@ function setWitnessFormDefaults(){
     glossLocationElem.$isDirty = false
 
     const glossatorHandElem = form.querySelector("select[deer-key='_glossatorHand']")
-    glossatorHandElem.value = "original"
-    glossatorHandElem.setAttribute("value", "original")
+    glossatorHandElem.value = "none"
+    glossatorHandElem.setAttribute("value", "none")
     glossatorHandElem.$isDirty = false
 
     const imageLinkElem = form.querySelector("input[deer-key='depiction']")
@@ -235,9 +239,14 @@ function setWitnessFormDefaults(){
     imageLinkElem.$isDirty = false
 
     const notesElem = form.querySelector("textarea[deer-key='_notes']")
-    imageLinkElem.value = ""
-    imageLinkElem.setAttribute("value", "")
-    imageLinkElem.$isDirty = false
+    notesElem.value = ""
+    notesElem.setAttribute("value", "")
+    notesElem.$isDirty = false
+
+    const folioElem = form.querySelector("input[deer-key='_folio']")
+    folioElem.value = ""
+    folioElem.setAttribute("value", "")
+    folioElem.$isDirty = false
 
     const tagsElem = form.querySelector("input[deer-key='tags']")
     tagsElem.value = ""
@@ -305,6 +314,38 @@ function formReset(event){
             break
         default:
     }
+}
+
+/**
+ * Prefills the tags area in the form with provided tag data and builds the UI.
+ * @param {object|array|string} tagData - The tag data to prefill.
+ * @param {HTMLFormElement} form - The form element where the tags area is located.
+ * @returns {boolean} - Returns false if there is no tag data.
+ */
+function prefillTagsArea(tagData, form = document.getElementById("witnessForm")) {
+    if (tagData === undefined) {
+        console.warn("Cannot set value for tags and build UI.  There is no data.")
+        return false
+    }
+    let arr_names = (tagData.hasOwnProperty("value") && tagData.value.hasOwnProperty("items")) ? tagData.value.items :
+        tagData.hasOwnProperty("items") ? tagData.items :
+            [tagData]
+    if (arr_names.length === 0) {
+        console.warn("There are no tags recorded for this Gloss")
+        return false
+    }
+    form.querySelector("input[deer-key='tags']").value = arr_names.join(",")
+    let area = form.querySelector("input[deer-key='tags']").nextElementSibling //The view or select should always be just after the input tracking the values from it.
+    //Now build the little tags
+    let selectedTagsArea = area.parentElement.querySelector(".selectedEntities")
+    selectedTagsArea.innerHTML = ""
+    let tags = ""
+    arr_names.forEach(tagName => {
+        if (tagName) {
+            tags += `<span class="tag is-small">${tagName}<span onclick="this.closest('gog-tag-widget').removeTag(event)" class="removeTag" tag-name="${tagName}"></span></span>`
+        }
+    })
+    selectedTagsArea.innerHTML = tags
 }
 
 /**
@@ -572,7 +613,7 @@ addEventListener('deer-updated', event => {
             "target": entityID,
             "creator" : window.GOG_USER["http://store.rerum.io/agent"]
         }
-        const el = customTextElems[2]
+        const el = customTextElems[1]
         if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
         annotation_promises.push(
             fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
