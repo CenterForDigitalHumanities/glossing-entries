@@ -47,10 +47,9 @@ window.onload = async () => {
     setListings()
     const dig_location = witnessFragmentForm.querySelector("input[custom-key='source']")
     const deleteWitnessButton = document.querySelector(".deleteWitness")
-    addEventListener('tpen-lines-loaded', getAllWitnesses)
 
     if(witnessFragmentID){
-        // We will trust the source the db tells us belongs to this Witness Fragment.  Ignore ?source-uri
+        // We will trust the source the db tells us belongs to this Witness Fragment.  Ignore ?tpen-project
         tpenProjectURI = null
     }
     else if(tpenProjectURI){
@@ -69,7 +68,6 @@ window.onload = async () => {
             sourceElem.setAttribute("value", tpenProjectURI)
             sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
         })
-        document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
     }
     else{
         needs.classList.remove("is-hidden")
@@ -98,7 +96,8 @@ window.onload = async () => {
         witnessFragmentForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(tpenProjectURI) {
             // special handler for ?wintess-uri=
-            addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource())
+            addEventListener('tpen-lines-loaded', () => getAllWitnessFragmentsOfSource())
+            document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
             const match = await getManuscriptWitnessFromSource(tpenProjectURI)
             if(match) {
                 initiateMatch(match)
@@ -138,8 +137,8 @@ function initFragmentForm(event){
     const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
     // We will need to know the reference for addButton() so let's get it out there now.
-    const sourceURI = annotationData?.source?.value[0]
-    tpenProjectURI = tpenProjectURI ? tpenProjectURI : annotationData?.source?.value[0]
+    const sourceURI = annotationData?.source?.value
+    tpenProjectURI = tpenProjectURI ? tpenProjectURI : annotationData?.source?.value
     if(!tpenProjectURI) return
     if(sourceURI && sourceURI !== tpenProjectURI){
         const ev = new CustomEvent("TPEN Lines Error")
@@ -168,16 +167,15 @@ function initFragmentForm(event){
         }
     }
     if(document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
-        preselectLines(annotationData["selections"], $elem, true)
+        getAllWitnessFragmentsOfSource(annotationData["selections"])
     }
     else{
         addEventListener('tpen-lines-loaded', ev => {
-            preselectLines(annotationData["selections"], $elem, true)
+            getAllWitnessFragmentsOfSource(annotationData["selections"])
         })
     }
     prefillTagsArea(annotationData["tags"], $elem)
     prefillText(annotationData["text"], $elem)
-    //prefillDigitalLocations(annotationData["source"], $elem)
 
     // This event listener is no longer needed
     removeEventListener('deer-form-rendered', initFragmentForm)
@@ -418,32 +416,6 @@ function prefillText(textObj, form) {
     }
 }
 
- /**
- * Helper function for the specialized references key, which is an Array of URIs.
- * It needs to apply the filter with this Gloss's Label..
- * */
-function prefillDigitalLocations(locationsArr, form) {
-    const locationElem = form.querySelector("input[custom-key='source']")
-    if(!locationElem) {
-        console.warn("Nothing to fill")
-        return false
-    }
-    if (locationsArr === undefined) {
-        console.warn("Cannot set value for digital locations and build UI.  There is no data.")
-        return false
-    }
-    if (!locationsArr.length) {
-        console.warn("There are no digital locations recorded for this witness")
-        return false
-    }
-    const source = locationsArr?.source
-    if(source?.citationSource){
-        form.querySelector("input[custom-key='source']").setAttribute("deer-source", source.citationSource ?? "")
-    }
-    locationsArr = locationsArr?.value ?? locationsArr
-    locationElem.value = locationsArr[0]
-}
-
 /**
  * Helper function for the specialized references key, which is an Array of URIs.
  * It needs to apply the filter with this Gloss's Label..
@@ -488,8 +460,8 @@ function prefillReferences(referencesArr, form) {
  * @param form - The form containing the selection input
  * @param togglePages - A flag for whether or not to fire the page toggling UI.  Happens when loading up a witness via the browser hash. 
  */
-function preselectLines(linesArr, form, togglePages) {
-
+function preselectLines(linesArr, form, fragmentSelections) {
+    if(!fragmentSelections?.source && fragmentSelections?.value) fragmentSelections = null
     function quickDecode(html) {
         // This helps with detecting the persists mark and knowing not to write over it.
         const txt = document.createElement("textarea")
@@ -498,8 +470,7 @@ function preselectLines(linesArr, form, togglePages) {
         txt.remove()
         return val
     }
-
-    const source = linesArr.source ?? null
+    
     if (linesArr === undefined) {
         console.warn("Cannot highlight lines in UI.  There is no data.")
         return false
@@ -509,6 +480,16 @@ function preselectLines(linesArr, form, togglePages) {
         console.warn("There are no lines recorded for this witness")
         return false
     }
+    const source = fragmentSelections?.source ?? null
+    fragmentSelections = fragmentSelections?.value ?? fragmentSelections
+
+    /**
+     * The check for whether it should be green or yellow.
+     * If a #WitnessFragment entity is loaded, its selection should be specifically noted in fragmentSelections.
+     * If those fragmentSelections 'match' the array of lines to select, then this is the green selection.
+     */ 
+    const activeSelection = fragmentSelections && linesArr.every(l=>fragmentSelections.includes(l)) && fragmentSelections.every(l=>linesArr.includes(l))
+
     const selectionsElem = form.querySelector("input[custom-key='selections']")
     let remark_map = {}
     if(source?.citationSource){
@@ -525,7 +506,7 @@ function preselectLines(linesArr, form, togglePages) {
             // Do not accidentally overrule a .persists mark (the mark for #witnessURI).  It is both .persists and .pre-select, but .persists takes precedence. 
             const checkInner = quickDecode(lineElem.innerHTML)
             if(checkInner.indexOf('<mark data-markjs="true" class="persists">') === selection[0]) return
-            if(togglePages) lineElem.parentElement.previousElementSibling.classList.add("has-selection")
+            
             const remark_map = unmarkTPENLineElement(lineElem)
             lineElem.classList.add("has-selection")
             const textLength = lineElem.textContent.length
@@ -533,7 +514,8 @@ function preselectLines(linesArr, form, togglePages) {
                 ? 1
                 : (selection[1] - selection[0]) + 1
             const markup = new Mark(lineElem)
-            let options = togglePages ? {className:"persists"} : {className:"pre-select"}
+            if(activeSelection) lineElem.parentElement.previousElementSibling.classList.add("has-selection")
+            let options = activeSelection ? {className:"persists"} : {className:"pre-select"}
             options.exclude = [".persists"]
             markup.markRanges([{
                 start: selection[0],
@@ -545,7 +527,7 @@ function preselectLines(linesArr, form, togglePages) {
             console.error(err)
         }
     })
-    if(togglePages){
+    if(activeSelection){
         document.querySelectorAll(".togglePage:not(.has-selection)").forEach(tog => {
             if(!tog.classList.contains("is-toggled")){
                 tog.click()
@@ -595,7 +577,7 @@ addEventListener('deer-updated', event => {
         return
     }
     else if($elem?.id  !== "witnessFragmentForm") return
-        
+
     // These promise are for all the simple array values ('references' and 'selections')
     let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
         .filter(el => el.$isDirty)
@@ -854,142 +836,6 @@ function paginateButtonsAfterSubmit(glossURIs){
                 previouslyChosen.classList.remove("attached-to-source")
             }
         })    
-    })
-}
-
-function getAllWitnesses(event){
-    getAllWitnessesOfSource(tpenProjectURI)
-}
-
-/**
- * @param source A String that is either a text body or a URI to a text resource.
- */ 
-async function getAllWitnessesOfSource(source){
-    if(!document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
-        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
-    }
-    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
-    if(Object.keys(witnessFragmentsObj).length > 0){
-        for(const witnessInfo in Object.values(witnessFragmentsObj)){
-            witnessInfo.glosses.forEach(glossURI => {
-                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
-                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
-                    btn.classList.add("attached-to-source")
-                })    
-            })
-            preselectLines(witnessInfo.selections, witnessFragmentForm, false)
-        }
-        return
-    }
-    const historyWildcard = { "$exists": true, "$size": 0 }
-    const isURI = (urlString) => {
-          try { 
-            return Boolean(new URL(urlString))
-          }
-          catch(e){ 
-            return false
-          }
-      }
-
-    // Each source annotation targets a Witness.
-    // Get all the source annotations whose value is this source string (URI or text string)
-    const sourceAnnosQuery = {
-        "body.source.value": httpsIdArray(source),
-        "__rerum.history.next": historyWildcard,
-        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-    }
-
-    const witnessUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
-    .then(annos => {
-        return new Set(annos.map(anno => anno.target))
-    })
-    .catch(err => {
-        console.error(err)
-        return Promise.reject([])
-    })
-
-    let glossUriSet = new Set()
-    // Each witness has Gloss and Selections
-    
-    let all = []
-    for (const witnessURI of witnessUriSet){
-        // Each Witness has an Annotation whose body.value references [a Gloss]
-        const referencesAnnosQuery = {
-            "target" : httpsIdArray(witnessURI),
-            "body.references.value": { $exists:true },
-            "__rerum.history.next": historyWildcard,
-            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-        }
-        // It also has selections we need to highlight
-        const selectionsAnnosQuery = {
-            "target" : httpsIdArray(witnessURI),
-            "body.selections.value": { $exists:true },
-            "__rerum.history.next": historyWildcard,
-            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-        }
-        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-            method: "POST",
-            mode: 'cors',
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(referencesAnnosQuery)
-        })
-        .then(response => response.json())
-        .then(annos => {
-            if(!witnessFragmentsObj.hasOwnProperty(witnessURI)) witnessFragmentsObj[witnessURI] = {}
-            witnessFragmentsObj[witnessURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
-            glossUriSet = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
-            return Promise.resolve(witnessFragmentsObj)
-        })
-        .catch(err => {
-            console.error(err)
-            return Promise.reject([])
-        }))
-
-        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-            method: "POST",
-            mode: 'cors',
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(selectionsAnnosQuery)
-        })
-        .then(response => response.json())
-        .then(annos => {
-            if(!witnessFragmentsObj.hasOwnProperty(witnessURI)) witnessFragmentsObj[witnessURI] = {}
-            const existingSelections = witnessFragmentsObj[witnessURI].selections ? witnessFragmentsObj[witnessURI].selections : []
-            witnessFragmentsObj[witnessURI].selections = [...existingSelections, ...annos.map(anno => anno.body.selections.value).flat()]
-            return Promise.resolve(witnessFragmentsObj)
-        })
-        .catch(err => {
-            console.error(err)
-            return Promise.reject([])
-        })
-        )
-    }
-
-    // This has the asyncronous behavior necessary to build witnessFragmentsObj.
-    Promise.all(all)
-    .then(success => {
-        witnessFragmentsObj.referencedGlosses = glossUriSet
-        for(const witnessURI in witnessFragmentsObj){
-            if(witnessURI === "referencedGlosses") continue
-            const witnessInfo = witnessFragmentsObj[witnessURI]
-            witnessInfo.glosses.forEach(glossURI => {
-                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
-                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
-                    btn.classList.add("attached-to-source")
-                })    
-            })
-            preselectLines(witnessInfo.selections, witnessFragmentForm, false)
-        }
-    })
-    .catch(err => {
-        console.error("Witnesses Object Error")
-        console.error(err)
-        const ev = new CustomEvent("Witnesses Object Error")
-        globalFeedbackBlip(ev, `Witnesses Object Error`, false)
     })
 }
 
@@ -1482,158 +1328,15 @@ async function getManuscriptWitnessFromSource(source=null){
     return manuscriptUriSet.values().next().value
 }
 
-/**
- * After a source text loads we need to know if there are any existing Witness Fragments for it.
- * We use that information to preselect text and paginate 'attach' buttons in the Gloss picker.
- * In this case, we know the existingManuscriptWitness
- * Query RERUM or cache for those Witness Fragments.  We need to know their references and selections.
- * 
- * @NOTE this ended up not being used, but it could be useful.
- * 
- * @param event - source-text-loaded
- */ 
-async function getAllWitnessFragmentsOfManuscript(event){
-    if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
-        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
-    }
-    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
-    if(Object.keys(witnessFragmentsObj).length > 0){
-        for(const witnessInfo in Object.values(witnessFragmentsObj)){
-            witnessInfo.glosses.forEach(glossURI => {
-                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
-                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
-                    btn.classList.add("attached-to-source")
-                })    
-            })
-            preselectLines(witnessInfo.selections, witnessFragmentForm)
-        }
-        return
-    }
-    const historyWildcard = { "$exists": true, "$size": 0 }
-    const isURI = (urlString) => {
-          try { 
-            return Boolean(new URL(urlString))
-          }
-          catch(e){ 
-            return false
-          }
-      }
-
-    // Each Fragment is partOf a Manuscript.
-    const fragmentAnnosQuery = {
-        "body.partOf.value": httpsIdArray(existingManuscriptWitness),
-        "__rerum.history.next": historyWildcard,
-        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-    }
-
-    const fragmentUriSet = await getPagedQuery(100, 0, fragmentAnnosQuery)
-    .then(annos => {
-        return new Set(annos.map(anno => anno.target))
-    })
-    .catch(err => {
-        console.error(err)
-        return Promise.reject([])
-    })
-
-    let glossUriSet = new Set()    
-    let all = []
-    for (const fragmentURI of fragmentUriSet){
-        // Each Witness has an Annotation whose body.value references [a Gloss]
-        const referencesAnnosQuery = {
-            "target" : httpsIdArray(fragmentURI),
-            "body.references.value": { $exists:true },
-            "__rerum.history.next": historyWildcard,
-            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-        }
-        // It also has selections we need to highlight
-        const selectionsAnnosQuery = {
-            "target" : httpsIdArray(fragmentURI),
-            "body.selections.value": { $exists:true },
-            "__rerum.history.next": historyWildcard,
-            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-        }
-        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-            method: "POST",
-            mode: 'cors',
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(referencesAnnosQuery)
-        })
-        .then(response => response.json())
-        .then(annos => {
-            // Keep this information in the witnessFragmentsObj from shared.js
-            if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
-            witnessFragmentsObj[fragmentURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
-            glossUriSet = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
-            return Promise.resolve(witnessFragmentsObj)
-        })
-        .catch(err => {
-            console.error(err)
-            return Promise.reject([])
-        }))
-
-        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-            method: "POST",
-            mode: 'cors',
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(selectionsAnnosQuery)
-        })
-        .then(response => response.json())
-        .then(annos => {
-            // Keep this information in the witnessFragmentsObj from shared.js
-            if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
-            const existingSelections = witnessFragmentsObj[fragmentURI].selections ? witnessFragmentsObj[fragmentURI].selections : []
-            const moreSelections = annos.map(anno => anno.body.selections.value).flat()
-            const selections = new Set([...existingSelections, ...moreSelections])
-            witnessFragmentsObj[fragmentURI].selections = [...selections.values()]
-            return Promise.resolve(witnessFragmentsObj)
-        })
-        .catch(err => {
-            console.error(err)
-            return Promise.reject([])
-        })
-        )
-    }
-
-    // This has the asyncronous behavior necessary to build witnessFragmentsObj.
-    Promise.all(all)
-    .then(success => {
-        // Keep this information in the witnessFragmentsObj from shared.js
-        witnessFragmentsObj.referencedGlosses = glossUriSet
-        for(const fragmentURI in witnessFragmentsObj){
-            if(fragmentURI === "referencedGlosses") continue
-            const witnessInfo = witnessFragmentsObj[fragmentURI]
-            witnessInfo.glosses.forEach(glossURI => {
-                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
-                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
-                    btn.classList.add("attached-to-source")
-                })    
-            })
-            preselectLines(witnessInfo.selections, witnessFragmentForm)
-        }
-        document.querySelector("source-text-selector").classList.remove("is-not-visible")
-    })
-    .catch(err => {
-        console.error("Witnesses Object Error")
-        console.error(err)
-        const ev = new CustomEvent("Witnesses Object Error")
-        globalFeedbackBlip(ev, `Witnesses Object Error`, false)
-    })
-}
 
 /**
  * After a source text loads we need to know if there are any existing Witness Fragments for it.
  * We use that information to preselect text and paginate 'attach' buttons in the Gloss picker.
  * In this case, we know the source URI.
  * Query RERUM or cache for those Witness Fragments.  We need to know their references and selections.
- *  
- * @param event - source-text-loaded 
  */ 
 async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
-    if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
+    if(!document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
     }
     // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
@@ -1658,7 +1361,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
             return false
           }
       }
-    const sourceValue = sourceURI ? sourceURI : sourceHash ? sourceHash : null
+    const sourceValue = tpenProjectURI ? tpenProjectURI : null
     // Each source annotation targets a Witness.
     // Get all the source annotations whose value is this source string (URI or text string)
     const sourceAnnosQuery = {
@@ -1752,7 +1455,6 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
                 })    
             })
             preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
-            document.querySelector("source-text-selector").classList.remove("is-not-visible")
         }
         if(witnessFragmentID){
             loading.classList.add("is-hidden")
