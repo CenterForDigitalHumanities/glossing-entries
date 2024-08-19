@@ -25,26 +25,26 @@
             <div class="col">
                 <details>
                     <summary>
-                        <label class="">Shelfmark or Short Citation:</label>
+                        <label for="shelfmark">Shelfmark or Short Citation:</label>
                     </summary>
                     <small>Enter manuscript shelfmark or short bibliographic citation of author and title for the
                         witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’.</small>
                 </details>
-                <input required type="text" deer-key="identifier" placeholder="e.g., St. Gall, Stiftsbibliothek 132"
-                    class="required"
+                <input required type="text" id="shelfmark" deer-key="identifier"
+                    placeholder="e.g., St. Gall, Stiftsbibliothek 132" class="required"
                     title="Enter manuscript shelfmark or short bibliographic citation of author and title for the witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’">
             </div>
 
             <div class="col">
                 <details>
                     <summary>
-                        <label class="">Date:</label>
+                        <label for="date">Date:</label>
                     </summary>
                     <small>Enter date; if not known, enter approximate date by the decade, e.g. 1180 if believed to date
                         to 1170s, or by quarter century, e.g. 1175 if believed to date to third quarter of 12th
                         century.</small>
                 </details>
-                <input type="text" deer-key="date" placeholder="e.g., 1175" class=""
+                <input type="text" id="date" deer-key="date" placeholder="e.g., 1175" class=""
                     title="Enter date of the manuscript, e.g. ‘1100’">
             </div>
         </div>
@@ -52,40 +52,74 @@
             <div class="col">
                 <details>
                     <summary>
-                        <label>Full Bibliographic Citation:</label>
+                        <label for="citation">Full Bibliographic Citation:</label>
                     </summary>
-                    <small>In case of early modern or modern printed edition, provide full bibliographical details.</small>
+                    <small>In case of early modern or modern printed edition, provide full bibliographical
+                        details.</small>
                 </details>
                 <textarea name="citation" id="citation" deer-key="_citation"></textarea>
             </div>
         </div>
         <div class="row">
-            <label class="">Language:</label>
-            <select custom-text-key="language" title="select language" class="">
-                <option value="la" selected="">Latin</option>
-                <option value="de">German</option>
-                <option value="fr">French</option>
-                <option value="en">English</option>
-            </select>
+            <div class="col">
+                <label class="">Language:</label>
+                <select custom-text-key="language" title="select language" class="">
+                    <option value="la" selected="">Latin</option>
+                    <option value="de">German</option>
+                    <option value="fr">French</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
 
-            <label title="Select the checkbox if the text contains markup tags like HTML or XML"
-                class="col-12 col-6-md text-left">
-                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format"
-                    value="text/plain">
-            </label>
-
-            <label class="col-3 col-2-md text-right">Gloss format:</label>
-            <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
-                <option value="none" selected="">None</option>
-                <option value="marginal">Marginal</option>
-                <option value="interlinear">Interlinear</option>
-                <option value="appendix">Appendix</option>
-                <option value="other">Other</option>
-            </select>
-
-            <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
-            <textarea disabled="" title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..."
-                class="chosenGloss col-9 col-10-md is-hidden"></textarea>
+            <div class="col">
+                <details>
+                    <summary>
+                        <label>Place of Origin:</label>
+                    </summary>
+                    <small>For manuscripts, specify city, cathedral, or monastery of composition, if known.</small>
+                </details>
+                <input type="text" deer-key="_originLocal" class="" title="city, cathedral, or monastery">
+            </div>
+            <div class="col">
+                <details>
+                    <summary>
+                        <label>Region of Origin:</label>
+                    </summary>
+                    <small>For manuscripts, specify geographical region of composition, if known.</small>
+                </details>
+                <input type="text" deer-key="_originRegion" class="" title="geographical region of composition">
+            </div>
+        </div>
+        <h4>External Links and References</h4>
+        <div class="row">
+            <div class="col">
+                <details>
+                    <summary>
+                        <label for="iiifManifest">IIIF Manifest:</label>
+                    </summary>
+                    <small>Enter URL only of Manifest or Collection of JSON-LD Resource.</small>
+                </details>
+                <input id="iiifManifest" type="url" deer-key="_iiifManifest">
+            </div>
+            <div class="col">
+                <details>
+                    <summary>
+                        <label for="OnlineLink">External Resource Link:</label>
+                    </summary>
+                    <small>Provide something like URL, permalink, or DOI.</small>
+                </details>
+                <input id="OnlineLink" type="url" deer-key="url">
+            </div>
+            <div class="col">
+                <details>
+                    <summary>
+                        <label for="rendering">Online Facsimile View:</label>
+                    </summary>
+                    <small>Provide something like a link to the Google Books entry or digitized manuscript
+                        catalog.</small>
+                </details>
+                <input id="rendering" type="url" deer-key="seeAlso">
+            </div>
         </div>
     </form>
 
