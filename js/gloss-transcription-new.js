@@ -51,7 +51,7 @@ window.onload = async () => {
 
     if(witnessFragmentID){
         // We will trust the source the db tells us belongs to this Witness Fragment.  Ignore ?source-uri
-        sourceURI = null
+        tpenProjectURI = null
     }
     else if(tpenProjectURI){
         if(!tpenProjectURI.includes("t-pen.org")){
@@ -61,7 +61,6 @@ window.onload = async () => {
             witnessFragmentForm.remove()
             loading.classList.add("is-hidden")
             globalFeedbackBlip(ev, `Provided project URI is not from T-PEN.`, false)
-            needs.classList.add("is-hidden")
             return
         }
         const sourceElems = document.querySelectorAll("input[witness-source]")
@@ -154,7 +153,6 @@ function initFragmentForm(event){
     }
     needs.classList.add("is-hidden")
     document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
-    document.querySelectorAll(".tpen-needed").forEach(el => el.classList.remove("is-hidden"))
     referencedGlossID = annotationData["references"]?.value[0].replace(/^https?:/, 'https:')
     if(ngCollectionList.hasAttribute("ng-list-loaded")){
         prefillReferences(annotationData["references"], ngCollectionList)
@@ -312,7 +310,7 @@ function setFragmentFormDefaults(){
  * When the Gloss Collection List deer view loads its records (by finishing the paged query) we can show the witness form.
  * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
  */ 
-addEventListener('deer-view-rendered', show)
+//addEventListener('deer-view-rendered', show)
 
 function show(event){
     if(event.target.id == "ngCollectionList"){
@@ -581,13 +579,23 @@ function loadURI(){
  * 
  */ 
 addEventListener('deer-updated', event => {
-    const $elem = event.target
-    //Only care about witness form
-    if($elem?.id  !== "witnessFragmentForm") return
     // We don't want the typical DEER form stuff to happen.  This may have no effect, not sure.
     event.preventDefault()
     event.stopPropagation()
+    const $elem = event.target
     const entityID = event.detail["@id"]  
+    const shelfmark = $elem.querySelector("input[deer-key='identifier']")?.value
+    // Hmm maybe do this separation of handling a bit different.
+    if($elem?.id === "manuscriptWitnessForm"){
+        // We generated the Manuscript Witness and can use this ID as part of the fragment for submit
+        activateFragmentForm(event.detail["@id"], shelfmark)
+        console.log("Manuscript Witness Fully Saved")
+        const ev = new CustomEvent("Manuscript Witness Submitted")
+        globalFeedbackBlip(ev, `Manuscript Witness Saved and Loaded In`, true)
+        return
+    }
+    else if($elem?.id  !== "witnessFragmentForm") return
+        
     // These promise are for all the simple array values ('references' and 'selections')
     let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
         .filter(el => el.$isDirty)
