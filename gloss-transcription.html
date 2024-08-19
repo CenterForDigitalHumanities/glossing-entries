@@ -61,25 +61,40 @@
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" custom-key="source">
         <div class="row">
-            <label class="col-3 col-2-md text-right is-hidden">Label:</label>
-            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
+            <label class="is-hidden">Label:</label>
+            <input type="text" deer-key="title" placeholder="Label" class="is-hidden">
 
-            <label class="col-3 col-2-md text-right">Shelfmark or Short Citation: &#10082;</label>
-            <input type="text" deer-key="identifier" required
-                placeholder="Manuscript shelfmark or bibliographic citation of author and title for the witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’"
-                class="col-9 col-10-md required">
+            <div class="col">
+                    <details class="">
+                    <summary>
+                        <label>Shelfmark or Short Citation:</label>
+                    </summary>
+                    <small>Enter manuscript shelfmark or short bibliographic citation of author and title for the
+                        witness,
+                        e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’.</small>
+                </details>
+                    <input type="text" deer-key="identifier" required
+                        placeholder="Manuscript shelfmark or bibliographic citation of author and title for the witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’"
+                        class="required">
+            </div>
 
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
                 <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
                 -->
-            <label class="col-3 col-2-md text-right">Folio or Page:</label>
-            <input type="text" deer-key="_folio" required
-                placeholder="Folio or page number from this witness where the gloss is found" class="col-9 col-10-md">
+            <div class="col">
+                <label class="col-3 col-2-md text-right">Folio or Page:</label>
+                <input type="text" deer-key="_folio" required
+                    placeholder="Folio or page number from this witness where the gloss is found"
+                    class="col-9 col-10-md">
 
-            <label class="col-3 col-2-md text-right">Text: &#10082;</label>
-            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required"
-                placeholder="Text is required.  Highlight transcription text..."></textarea>
+                <label class="col-3 col-2-md text-right">Text: &#10082;</label>
+                <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required"
+                    placeholder="Text is required.  Highlight transcription text..."></textarea>
+
+            </div>
+        </div>
+        <div class="row">
 
             <label class="col-3 col-2-md text-right">Language:</label>
             <select custom-text-key="language" title="select language" class="col-9 col-4-md">
