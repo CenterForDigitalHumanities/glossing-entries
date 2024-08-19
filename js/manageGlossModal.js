@@ -145,7 +145,7 @@ class ManageGlossModal extends HTMLElement {
                 globalFeedbackBlip(shout, `This Gloss is now marked to be ${included ? "removed from" : "added to"} the public list.  Don't forget to submit your changes.`, true)
             })
 
-            // Other functionality, TBD.
+            // Other functionality.
             $this.querySelector(".otherModalBtn").addEventListener('click', ev => {
                 ev.preventDefault()
                 ev.stopPropagation()
@@ -154,8 +154,9 @@ class ManageGlossModal extends HTMLElement {
                     removeEventListener("globalFeedbackFinished", fn)
                 }
                 addEventListener("globalFeedbackFinished", fn)
-                const shout = new CustomEvent("Other Functionality")
-                globalFeedbackBlip(shout, `Other Management Functionality!`, true)
+                document.querySelector("manage-gloss-more-modal").open(glossData)
+
+
             })
 
             $this.classList.remove("is-hidden")
