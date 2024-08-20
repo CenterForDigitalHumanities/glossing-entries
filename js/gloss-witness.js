@@ -69,7 +69,7 @@ function setFragmentFormDefaults(){
         s.removeAttribute("deer-source")
     })
     // For when we test
-    // document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanTryin")
+    document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanGT")
 
     // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
@@ -241,19 +241,6 @@ window.onload = async () => {
  * When a filterableListItem_glossSelector loads, add the 'attach' or 'attached' button to it.
  */ 
 addEventListener('deer-view-rendered', addButton)
-
-/**
- * When the Gloss Collection List deer view loads its records (by finishing the paged query) we can show the witness form.
- * Note the Collection List may still need to fully populate and cache, but it has a UI/UX for that.
- */ 
-addEventListener('deer-view-rendered', showNgList)
-
-function showNgList(event){
-    if(event.target.id === "ngCollectionList"){
-        event.target.classList.remove("is-not-visible")
-        removeEventListener('deer-view-rendered', showNgList)
-    }
-}
 
 /**
  * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
