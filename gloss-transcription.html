@@ -46,7 +46,7 @@
         </p>
     </div>
     <!-- Once a mansucript witness is known the shelfmark should become populated and disabled -->
-    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="ManuscriptWitness_GT" deer-context="http://purl.org/dc/terms">
+    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
         <!-- <input type="hidden" custom-key="source" witness-source> -->
@@ -78,7 +78,7 @@
             </div>
         </div>
     </form>
-    <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment_GT" deer-context="http://purl.org/dc/terms"> 
+    <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment" deer-context="http://purl.org/dc/terms"> 
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="source" witness-source />
         <input type="hidden" deer-key="partOf" />
@@ -172,7 +172,7 @@
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <gloss-modal class="is-hidden"></gloss-modal>
-    <script src="js/gloss-transcription-new.js"></script>
+    <script src="js/gloss-transcription.js"></script>
 </body>
 <script>
     /**

@@ -1199,7 +1199,7 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
         for await (const anno of annos){
             // Check what type the entities are.  We only care about Manuscript Witnesses here.
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "ManuscriptWitness_GT"){
+            if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
                 manuscriptWitnessesOnly.add(anno.target)
             }
         }
@@ -1251,7 +1251,7 @@ async function getManuscriptWitnessFromFragment(fragmentURI=null){
         let manuscriptWitnessesOnly = new Set()
         for await (const anno of annos){
             const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "ManuscriptWitness_GT"){
+            if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
                 manuscriptWitnessesOnly.add(anno.body.partOf.value)
             }
         }
@@ -1318,7 +1318,7 @@ async function getManuscriptWitnessFromSource(source=null){
     .then(async(annos) => {
         const fragments = annos.map(async(anno) => {
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "WitnessFragment_GT"){
+            if(entity["@type"] && entity["@type"] === "WitnessFragment"){
                 return anno.target
             }
         })
@@ -1351,7 +1351,7 @@ async function getManuscriptWitnessFromSource(source=null){
         let manuscriptWitnessesOnly = new Set()
         for await (const anno of annos){
             const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "ManuscriptWitness_GT"){
+            if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
                 manuscriptWitnessesOnly.add(anno.body.partOf.value)
             }
         }

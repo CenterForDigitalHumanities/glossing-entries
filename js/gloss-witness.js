@@ -33,6 +33,21 @@ document.addEventListener("gloss-modal-visible", function(event){
 })
 
 /**
+ * The DEER announcement for when there is an error expanding for a URI.
+ * Note there is more information in event.detail.error
+ * Note the troublesome URI is in event.detail.uri
+ */ 
+addEventListener('expandError', event => {
+    const uri = event.detail.uri
+    const ev = new CustomEvent("Witness Details Error")
+    look.classList.add("text-error")
+    look.innerText = "Could not get Witness information."
+    witnessFragmentForm.remove()
+    loading.classList.add("is-hidden")
+    globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
+})
+
+/**
  * Reset all the Witness Fragment form elements so the form is ready to generate another Witness Fragment.
  * If they provided a witness URI in the hash, then this is an 'update scenario' for the fragment. Do not perform the reset.
  */ 
