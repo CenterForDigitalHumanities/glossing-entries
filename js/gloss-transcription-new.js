@@ -5,12 +5,16 @@ let tpenProjectURI = getURLParameter("tpen-project") ? decodeURIComponent(getURL
 
 // UI for when the provided T-PEN URI does not resolve or cannot be processed.
 document.addEventListener("tpen-lines-error", function(event){
-    const ev = new CustomEvent("TPEN Lines Error")
     look.classList.add("text-error")
     look.innerText=`Could not get T-PEN project ${tpenProjectURI}`
     witnessFragmentForm.remove()
+    manuscriptWitnessForm.remove()
     loading.classList.add("is-hidden")
-    globalFeedbackBlip(ev, `Error loading TPEN project '${tpenProjectURI}'`, false)
+    const ev = new CustomEvent("TPEN Lines Error")
+    globalFeedbackBlip(ev, `Error loading TPEN project '${tpenProjectURI}'.  Resetting...`, false)
+    setTimeout( () => {
+        startOver()
+    }, 2500)
 })
 
 // Make the text in the Gloss modal form the same as the one in the Witness form
@@ -94,7 +98,7 @@ window.onload = async () => {
         witnessFragmentForm.querySelector("select[custom-text-key='language']").$isDirty = true
         if(tpenProjectURI) {
             // special handler for ?wintess-uri=
-            addEventListener('tpen-lines-loaded', () => getAllWitnessFragmentsOfSource())
+            addEventListener('tpen-lines-loaded', () => getAllWitnessFragmentsOfSource(null, tpenProjectURI))
             document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
             const match = await getManuscriptWitnessFromSource(tpenProjectURI)
             if(match) {
@@ -163,11 +167,11 @@ function initFragmentForm(event){
         }
     }
     if(document.querySelector("tpen-line-selector").hasAttribute("tpen-lines-loaded")){
-        getAllWitnessFragmentsOfSource(annotationData["selections"])
+        getAllWitnessFragmentsOfSource(annotationData["selections"], tpenProjectURI)
     }
     else{
         addEventListener('tpen-lines-loaded', ev => {
-            getAllWitnessFragmentsOfSource(annotationData["selections"])
+            getAllWitnessFragmentsOfSource(annotationData["selections"], tpenProjectURI)
         })
     }
     prefillTagsArea(annotationData["tags"], $elem)
@@ -201,7 +205,7 @@ function setFragmentFormDefaults(){
         s.removeAttribute("deer-source")
     })
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "BryanGT"
+    form.querySelector("input[deer-key='creator']").value = "BryanGT"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""

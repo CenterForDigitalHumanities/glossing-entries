@@ -96,7 +96,7 @@
     </div>
 
     <!-- Once a mansucript witness is known the shelfmark should become populated and disabled -->
-    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms">
+    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="ManuscriptWitness_GT" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
         <!-- <input type="hidden" custom-key="source" witness-source> -->
@@ -130,7 +130,7 @@
     </form>
 
     <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
-    <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment" deer-context="http://purl.org/dc/terms">
+    <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment_GT" deer-context="http://purl.org/dc/terms">
         <p> 
             Fill out the form below to create a Witness Fragment for the Manuscript loaded in.  Submit the Fragment by identifying a Gloss and clicking '➥ attach'.  Note the Manuscript remains the same for each Fragment you submit. 
         </p>
@@ -139,10 +139,10 @@
         <div class="row">
 
             <label class="col-3 col-2-md text-right">Shelfmark: &#10082;</label>
-            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required">
+            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" required class="col-9 col-10-md required" disabled>
 
             <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
-            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight some text..."></textarea>
+            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" required placeholder="Text is required.  Highlight some text..."></textarea>
 
             <label class="col-3 col-2-md text-right">Language:</label>
             <select custom-text-key="language" title="select language" class="col-9 col-4-md">

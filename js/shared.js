@@ -74,17 +74,17 @@ customElements.define('custom-confirm-modal', CustomConfirmModal)
 let witnessFragmentsObj = {}
 
 //For when we test, so we can easily find and blow away junk data
-// setTimeout(() => {
-//     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="BryanTryin"
-//         el.setAttribute("value", "BryanTryin")
-//     })
-//     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "BryanTryin")
-//     })
-//     if(!window.GOG_USER) window.GOG_USER = {}
-//     window.GOG_USER["http://store.rerum.io/agent"] = "BryanGT"
-// }, 4000)
+setTimeout(() => {
+    document.querySelectorAll("input[deer-key='creator']").forEach(el => {
+        el.value="BryanGT"
+        el.setAttribute("value", "BryanGT")
+    })
+    document.querySelectorAll("form").forEach(el => {
+        el.setAttribute("deer-creator", "BryanGT")
+    })
+    if(!window.GOG_USER) window.GOG_USER = {}
+    window.GOG_USER["http://store.rerum.io/agent"] = "BryanGT"
+}, 4000)
 
 let __constants = {}
 setConstants()
@@ -805,8 +805,9 @@ function paginateButtonsAfterSubmit(glossURIs){
  * @param event - source-text-loaded
  */ 
 async function getAllWitnessFragmentsOfManuscript(event){
-    if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
-        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the T-PEN Transcription to load.")
+    const lineSelectorElem = document.querySelector(".lineSelector")
+    if(!(lineSelectorElem.hasAttribute("source-text-loaded") || lineSelectorElem.hasAttribute("tpen-lines-loaded"))){
+        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
     }
     // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
     if(Object.keys(witnessFragmentsObj).length > 0){
@@ -926,7 +927,6 @@ async function getAllWitnessFragmentsOfManuscript(event){
             })
             preselectLines(witnessInfo.selections, witnessFragmentForm)
         }
-        document.querySelector("source-text-selector").classList.remove("is-not-visible")
     })
     .catch(err => {
         console.error("Witnesses Object Error")
@@ -944,8 +944,9 @@ async function getAllWitnessFragmentsOfManuscript(event){
  *  
  * @param event - source-text-loaded 
  */ 
-async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
-    if(!document.querySelector("source-text-selector").hasAttribute("source-text-loaded")){
+async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceValue=null){
+    const lineSelectorElem = document.querySelector(".lineSelector")
+    if(!(lineSelectorElem.hasAttribute("source-text-loaded") || lineSelectorElem.hasAttribute("tpen-lines-loaded"))){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
     }
     // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
@@ -970,11 +971,11 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
             return false
           }
       }
-    const sourceValue = sourceURI ? sourceURI : sourceHash ? sourceHash : null
+
     // Each source annotation targets a Witness.
     // Get all the source annotations whose value is this source string (URI or text string)
     const sourceAnnosQuery = {
-        "body.source.value": sourceValue.startsWith("http") ? httpsIdArray(sourceValue) : sourceValue,
+        "body.source.value": isURI(sourceValue) ? httpsIdArray(sourceValue) : sourceValue,
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
@@ -1064,7 +1065,6 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null){
                 })    
             })
             preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
-            document.querySelector("source-text-selector").classList.remove("is-not-visible")
         }
         if(witnessFragmentID){
             loading.classList.add("is-hidden")
@@ -1199,7 +1199,7 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
         for await (const anno of annos){
             // Check what type the entities are.  We only care about Manuscript Witnesses here.
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
+            if(entity["@type"] && entity["@type"] === "ManuscriptWitness_GT"){
                 manuscriptWitnessesOnly.add(anno.target)
             }
         }
@@ -1251,7 +1251,7 @@ async function getManuscriptWitnessFromFragment(fragmentURI=null){
         let manuscriptWitnessesOnly = new Set()
         for await (const anno of annos){
             const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
+            if(entity["@type"] && entity["@type"] === "ManuscriptWitness_GT"){
                 manuscriptWitnessesOnly.add(anno.body.partOf.value)
             }
         }
@@ -1318,7 +1318,7 @@ async function getManuscriptWitnessFromSource(source=null){
     .then(async(annos) => {
         const fragments = annos.map(async(anno) => {
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "WitnessFragment"){
+            if(entity["@type"] && entity["@type"] === "WitnessFragment_GT"){
                 return anno.target
             }
         })
@@ -1351,7 +1351,7 @@ async function getManuscriptWitnessFromSource(source=null){
         let manuscriptWitnessesOnly = new Set()
         for await (const anno of annos){
             const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(err => {throw err})
-            if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
+            if(entity["@type"] && entity["@type"] === "ManuscriptWitness_GT"){
                 manuscriptWitnessesOnly.add(anno.body.partOf.value)
             }
         }

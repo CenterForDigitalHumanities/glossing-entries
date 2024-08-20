@@ -46,7 +46,7 @@
         </p>
     </div>
     <!-- Once a mansucript witness is known the shelfmark should become populated and disabled -->
-    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms">
+    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="ManuscriptWitness_GT" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
         <!-- <input type="hidden" custom-key="source" witness-source> -->
@@ -78,7 +78,7 @@
             </div>
         </div>
     </form>
-    <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment" deer-context="http://purl.org/dc/terms"> 
+    <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment_GT" deer-context="http://purl.org/dc/terms"> 
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="source" witness-source />
         <input type="hidden" deer-key="partOf" />
@@ -87,17 +87,17 @@
             <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
 
             <label class="col-3 col-2-md text-right">Shelfmark or Short Citation: &#10082;</label>
-            <input type="text" deer-key="identifier" required placeholder="Manuscript shelfmark or bibliographic citation of author and title for the witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’" class="col-9 col-10-md required">
+            <input type="text" deer-key="identifier" required placeholder="Manuscript shelfmark or bibliographic citation of author and title for the witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’" class="col-9 col-10-md required" disabled>
                         
             <!--             
                 <label class="col-3 col-2-md text-right">Depictions:</label>
                 <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
                 -->
             <label class="col-3 col-2-md text-right" >Folio or Page:</label>
-            <input type="text" deer-key="_folio" required placeholder="Folio or page number from this witness where the gloss is found" class="col-9 col-10-md">
+            <input type="text" deer-key="_folio" required placeholder="Folio or page number from this witness where the gloss is found" class="col-9 col-10-md required">
 
             <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
-            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight transcription text..."></textarea>
+            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" required placeholder="Text is required.  Highlight transcription text..."></textarea>
 
             <label class="col-3 col-2-md text-right">Language:</label>
             <select custom-text-key="language" title="select language" class="col-9 col-4-md">
@@ -147,7 +147,7 @@
             <label class="col-3 col-2-md text-right" >Image Link:
                 <small><a href="https://ncsu-libraries.github.io/iiif-crop-tool/" target="_blank">crop tool</a></small>
             </label>
-            <input type="text" deer-key="depiction" required placeholder="Paste an image URL or IIIF selector link" class="col-9 col-10-md"/>
+            <input type="text" deer-key="depiction" required placeholder="Paste an image URL or IIIF selector link" class="col-9 col-10-md required"/>
             <label class="col-3 col-2-md text-right" >Notes</label>
             <textarea deer-key="_notes" rows="2" class="col-9 col-10-md" placeholder="Optional notes about this gloss instance"></textarea>
 

@@ -9,7 +9,11 @@ const loadTab = getURLParameter("tab") ? decodeURIComponent(getURLParameter("tab
  * UI for when the provided text source URI does not resolve or cannot be processed.
  */
 document.addEventListener("source-text-error", function(event){
-    document.querySelector(".witnessText").innerHTML = `<b class="text-error"> Could not get Witness Text Data from ${sourceURI} </b>`
+    look.classList.add("text-error")
+    look.innerText=` Could not get text from ${sourceURI}`
+    witnessFragmentForm.remove()
+    manuscriptWitnessForm.remove()
+    loading.classList.add("is-hidden")
     const ev = new CustomEvent(`Could not get Witness Text Data from ${sourceURI}`)
     globalFeedbackBlip(ev, `Could not get Witness Text Data from ${sourceURI}.  Resetting...`, false)
     setTimeout( () => {
@@ -172,7 +176,7 @@ window.onload = async () => {
         witnessFragmentForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(sourceURI) {
             // special handler for ?wintess-uri=
-            addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource())
+            addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource(null, sourceURI))
             const match = await getManuscriptWitnessFromSource(sourceURI)
             if(match) {
                 initiateMatch(match)
@@ -263,13 +267,13 @@ function initFragmentForm(event){
         }
     }
     if(textSelectionElem.hasAttribute("source-text-loaded")){
-        getAllWitnessFragmentsOfSource(selections)
+        getAllWitnessFragmentsOfSource(selections, sourceURI)
     }
     else{
         if(source.startsWith("http")) {
             sourceURI = source
             addEventListener('source-text-loaded', ev => {
-               getAllWitnessFragmentsOfSource(selections)
+               getAllWitnessFragmentsOfSource(selections, sourceURI)
             })
             if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
         }
@@ -678,7 +682,7 @@ async function loadUserInput(ev, which){
                 sourceElem.setAttribute("value", hash)
                 sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
             })
-            addEventListener("source-text-loaded", () => getAllWitnessFragmentsOfSource())
+            addEventListener("source-text-loaded", () => getAllWitnessFragmentsOfSource(null, hash))
             textElem.setAttribute("source-text", text)
             textElem.setAttribute("hash", hash)
             match = await getManuscriptWitnessFromSource(hash)
@@ -700,7 +704,7 @@ async function loadUserInput(ev, which){
                 sourceElem.setAttribute("value", hash)
                 sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
             })
-            addEventListener("source-text-loaded", () => getAllWitnessFragmentsOfSource())
+            addEventListener("source-text-loaded", () => getAllWitnessFragmentsOfSource(null, hash))
             textElem.setAttribute("hash", hash)
             textElem.setAttribute("source-text", text)
             loading.classList.remove("is-hidden")
