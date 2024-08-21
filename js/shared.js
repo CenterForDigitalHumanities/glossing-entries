@@ -1611,42 +1611,46 @@ async function updateCurrentWitnessFragments(){
             "__rerum": {}
         }
 
+        // Need to await this because we need the @id
         const manuscriptWitness = await create({
             "@context":"http://purl.org/dc/terms",
             "@type": "ManuscriptWitness"
         })
 
-        const creatorAnno = await create({
-            "@context" : "http://www.w3.org/ns/anno.jsonld",
-            "@type" : "Annotation",
-            "body":{
-                "creator":{
-                    "value" : "Custom Manuscript Witness Script"
-                }
-            },
-            "target": manuscriptWitness["@id"],
-            "creator" : knownCreator
-        })
-        const identifierAnno = await create({
-            "@context" : "http://www.w3.org/ns/anno.jsonld",
-            "@type" : "Annotation",
-            "body":{
-                "creator":{
-                    "value" : "Custom Manuscript Witness Script"
-                }
-            },
-            "target": manuscriptWitness["@id"],
-            "creator" : knownCreator
-        })
-        const targetCollectionAnno = await create({
-            "@context" : "http://www.w3.org/ns/anno.jsonld",
-            "@type" : "Annotation",
-            "body":{
-                "targetCollection": "GoG-Manuscripts"
-            },
-            "target": manuscriptWitness["@id"],
-            "creator" : knownCreator
-        })
+        //only have to await if we want to stop on errors
+        Promise.all([
+            create({
+                "@context" : "http://www.w3.org/ns/anno.jsonld",
+                "@type" : "Annotation",
+                "body":{
+                    "creator":{
+                        "value" : "Custom Manuscript Witness Script"
+                    }
+                },
+                "target": manuscriptWitness["@id"],
+                "creator" : knownCreator
+            }),
+            create({
+                "@context" : "http://www.w3.org/ns/anno.jsonld",
+                "@type" : "Annotation",
+                "body":{
+                    "creator":{
+                        "value" : "Custom Manuscript Witness Script"
+                    }
+                },
+                "target": manuscriptWitness["@id"],
+                "creator" : knownCreator
+            }),
+            create({
+                "@context" : "http://www.w3.org/ns/anno.jsonld",
+                "@type" : "Annotation",
+                "body":{
+                    "targetCollection": "GoG-Manuscripts"
+                },
+                "target": manuscriptWitness["@id"],
+                "creator" : knownCreator
+            })
+        ])
 
         return manuscriptWitness
     }
