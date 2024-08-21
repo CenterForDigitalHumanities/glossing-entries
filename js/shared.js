@@ -1551,3 +1551,236 @@ addEventListener('gloss-modal-saved', event => {
 function startOver(){
     window.location = window.location.origin + window.location.pathname
 }
+
+async function updateCurrentWitnessFragments(){
+    const start = performance.now();
+    let createdManuscriptWitnessShelfmarks = []
+    let createdManuscriptWitnessShelfmarksSet = new Set()
+    let tpenProjectsUsed = []
+    let tpenProjectsSet = new Set()
+    const historyWildcard = { "$exists": true, "$size": 0 }
+
+    function create(obj){
+        return fetch(`${__constants.tiny+"/create"}`, { 
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+            body: JSON.stringify(obj)
+        })
+        .then(resp => resp.json())
+        .catch(err => err)
+    }
+
+    function overwrite(obj){
+        return fetch(`${__constants.tiny+"/overwrite"}`, { 
+            method: 'PUT',
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+            body: JSON.stringify(obj)
+        })
+        .then(resp => resp.json())
+        .catch(err => err)
+    }
+
+    function getAnnos(queryObj){
+        return fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8"
+            },
+            body: JSON.stringify(queryObj)
+        })
+        .then(response => response.json())
+        .catch(err => err)
+    }
+
+    async function createManuscriptWitnessAndRequiredAnnos(sourceURI, identifierStr, knownCreator){
+        if(!(sourceURI && identifierStr && knownCreator)) return
+
+        return {
+            "@context":"http://purl.org/dc/terms",
+            "@id": "https://devstore.rerum.io/v1/id/123123123123123",
+            "@type": "ManuscriptWitness",
+            "__rerum": {}
+        }
+
+        const manuscriptWitness = await create({
+            "@context":"http://purl.org/dc/terms",
+            "@type": "ManuscriptWitness"
+        })
+
+        const creatorAnno = await create({
+            "@context" : "http://www.w3.org/ns/anno.jsonld",
+            "@type" : "Annotation",
+            "body":{
+                "creator":{
+                    "value" : "Custom Manuscript Witness Script"
+                }
+            },
+            "target": manuscriptWitness["@id"],
+            "creator" : knownCreator
+        })
+        const identifierAnno = await create({
+            "@context" : "http://www.w3.org/ns/anno.jsonld",
+            "@type" : "Annotation",
+            "body":{
+                "creator":{
+                    "value" : "Custom Manuscript Witness Script"
+                }
+            },
+            "target": manuscriptWitness["@id"],
+            "creator" : knownCreator
+        })
+        const targetCollectionAnno = await create({
+            "@context" : "http://www.w3.org/ns/anno.jsonld",
+            "@type" : "Annotation",
+            "body":{
+                "targetCollection": "GoG-Manuscripts"
+            },
+            "target": manuscriptWitness["@id"],
+            "creator" : knownCreator
+        })
+
+        return manuscriptWitness
+    }
+
+    const fragmentsQuery = {
+        "@type": "Text_Isolated",
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+
+    const allExistingFragments = await getPagedQuery(100, 0, fragmentsQuery)
+    .then(fragments => fragments)
+    .catch(err => {
+        console.error(err)
+        return Promise.reject([])
+    })
+    let sourceToWitnessMap = {}
+    for(const fragment of allExistingFragments){
+        // unfortunately these do not have a primitive creator field.  If we want to know it, we need to go get it
+        const creatorAnnosQuery = {
+            "body.creator.value": {"$exists":true},
+            "target": httpsIdArray(fragment["@id"]),
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        const creatorAnnos = await getAnnos(creatorAnnosQuery)
+        if(creatorAnnos.length > 1){
+            console.error("This is awkward.  Two creator Annos for the same fragment...")
+            console.log(creatorAnnos)
+        }
+        const creatorAnno = creatorAnnos.length ? creatorAnnos[0] : null
+        const knownCreator = creatorAnno.body?.creator?.value ? creatorAnno.body.creator.value : "Custom Manuscript Witness Script"
+
+        fragment["@type"] = "WitnessFragment"
+        
+        //await overwrite(fragment)
+
+        let manuscriptWitnessURI = null
+        const sourceAnnosQuery = {
+            "body.source.value": {"$exists":true},
+            "target": httpsIdArray(fragment["@id"]),
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        const sourceAnnos = await getAnnos(sourceAnnosQuery)
+        if(sourceAnnos.length > 1){
+            console.error("This is awkward.  Two source Annos for the same fragment...skipping")
+            console.log(sourceAnnos)
+            continue
+        }
+        const sourceAnno = sourceAnnos.length ? sourceAnnos[0] : null
+        if(!sourceAnno){
+            // If the fragment does not have a source we can safely skip it
+            console.log(`fragment '${fragment["@id"]}' does not have a source`)
+            continue 
+        }
+        const sourceURI = sourceAnno.body.source.value[0]
+        if(!sourceURI.includes("t-pen.org")){
+            console.error("This is awkward.  This source Annotation does not have a TPEN Project URI value...skipping")
+            console.log(sourceAnnos)
+            continue
+        }
+        tpenProjectsSet.add(sourceURI)
+        sourceAnno.body.source.value = sourceURI
+
+        //await overwrite(sourceAnno)
+
+        // Note that it is possible that existing fragments that have the same source will have different identifiers.
+        // This is invalid in the current data structure.  Only one can be preserved for the Manuscript Witness.
+        // In this script, it would arbitrarily be the first one encountered.
+        // As a result, some WitnessFragments may not have the same identifier as the Manuscript Witness they are a part of.
+        const identifierAnnosQuery = {
+            "body.identifier.value": {"$exists":true},
+            "target": httpsIdArray(fragment["@id"]),
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        const identifierAnnos = await getAnnos(identifierAnnosQuery)
+        if(identifierAnnos.length > 1){
+            console.error("This is awkward.  Two identifier Annos for the same fragment...skipping")
+            console.log(sourceAnnos)
+            continue
+        }
+        const identifierAnno = identifierAnnos.length ? identifierAnnos[0] : null
+        if(!identifierAnno){
+            // If the fragment does not have an identifier we can safely skip it
+            console.log(`fragment '${fragment["@id"]}' does not have a source`)
+            continue 
+        }
+        const identifierStr = identifierAnno.body.identifier.value
+        if(sourceToWitnessMap.hasOwnProperty(sourceURI)){
+            manuscriptWitnessURI = sourceWitnessMap[sourceURI]
+        }
+        else{
+            // We may have to make a new one.  Let's see if we have any for this identifier first.
+            let existingManuscriptWitnessURI = createdManuscriptWitnessShelfmarksSet.has(identifierStr) ? "https://devstore.rerum.io/v1/id/123123123123123" : await getManuscriptWitnessFromShelfmark(identifierStr)
+            if(!existingManuscriptWitnessURI){
+                createdManuscriptWitnessShelfmarksSet.add(identifierStr)
+                //createdManuscriptWitnessShelfmarks.push(identifierStr)
+                existingManuscriptWitnessURI = await createManuscriptWitnessAndRequiredAnnos(sourceURI, identifierStr, knownCreator)["@id"]
+            }
+            manuscriptWitnessURI = existingManuscriptWitnessURI
+        }
+
+        // Now that we know the manuscript witness @id, we can generate the partOf Anno for this fragment.
+        const partOfAnno = {
+            "@context" : "http://www.w3.org/ns/anno.jsonld",
+            "@type" : "Annotation",
+            "body":{
+                "partOf":{
+                    "value" : manuscriptWitnessURI
+                }
+            },
+            "target": fragment["@id"],
+            "creator" : knownCreator
+        }
+        // await create(partOfAnno)
+    }
+
+    createdManuscriptWitnessShelfmarks = [...createdManuscriptWitnessShelfmarksSet.values()]
+
+    console.log("Total existing fragments processed")
+    console.log(allExistingFragments.length)
+
+    createdManuscriptWitnessShelfmarks.sort()
+    console.log(`The following list of ${createdManuscriptWitnessShelfmarks.length} Shelfmarks resulted in a new Manuscript Witness`)
+    console.log(createdManuscriptWitnessShelfmarks)
+
+    tpenProjectsUsed = [...tpenProjectsSet.values()].sort()
+    console.log(`The following ${tpenProjectsUsed.length} TPEN projects were used as sources`)
+    console.log(tpenProjectsSet)
+
+    const end = performance.now()
+    console.log(`Execution time: ${end - start} ms`)
+
+    return sourceToWitnessMap
+}
