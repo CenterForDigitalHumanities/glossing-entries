@@ -663,14 +663,6 @@ function normalizeString(str){
     return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(punctuation, "").trim()
 }
 
-
-
-
-
-
-// gloss-transcription and gloss-witness shared functionality
-
-
 /**
  * After a filterableListItem_glossSelector loads, we need to determine what to do with its 'attach' button.
  * In create/update scenarios, this will result in the need to click a button
@@ -765,7 +757,11 @@ function addButton(event) {
     }
 }
 
-// Paginate the '➥ attach' and possibly '✓ attached' button(s) after a Witness submission.
+/**
+ * Paginate the '➥ attach' and possibly '✓ attached' button(s) after a Witness submission.
+ * 
+ * @param glossURIs - An array of Gloss URIs to match on which buttons need some pagination
+ */ 
 function paginateButtonsAfterSubmit(glossURIs){
     const previouslyChosen = document.querySelector(".toggleInclusion.success")
     glossURIs.forEach(glossURI => {
@@ -797,14 +793,15 @@ function paginateButtonsAfterSubmit(glossURIs){
 /**
  * After a source text loads we need to know if there are any existing Witness Fragments for it.
  * We use that information to preselect text and paginate 'attach' buttons in the Gloss picker.
- * In this case, we know the existingManuscriptWitness
+ * In this case, we know the existing Manuscript Witness
  * Query RERUM or cache for those Witness Fragments.  We need to know their references and selections.
  * 
  * @NOTE this ended up not being used, but it could be useful.
  * 
  * @param event - source-text-loaded
  */ 
-async function getAllWitnessFragmentsOfManuscript(event){
+async function getAllWitnessFragmentsOfManuscript(event, existingManuscriptWitnessURI){
+    if(!existingManuscriptWitnessURI) return
     const lineSelectorElem = document.querySelector(".lineSelector")
     if(!(lineSelectorElem.hasAttribute("source-text-loaded") || lineSelectorElem.hasAttribute("tpen-lines-loaded"))){
         return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
@@ -834,7 +831,7 @@ async function getAllWitnessFragmentsOfManuscript(event){
 
     // Each Fragment is partOf a Manuscript.
     const fragmentAnnosQuery = {
-        "body.partOf.value": httpsIdArray(existingManuscriptWitness),
+        "body.partOf.value": httpsIdArray(existingManuscriptWitnessURI),
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
@@ -1081,9 +1078,9 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
 }
 
 /**
- *  Delete a Witness of a Gloss through gloss-transcription.html, gloss-witness.html or manage-glosses.html.  
- *  This will delete the Witness entity itself and its Annotations.  
- *  It will no longer appear as a Witness to the Gloss in any UI.
+ *  Delete a Witness Fragment through gloss-transcription.html, gloss-witness.html or manage-glosses.html.  
+ *  This will delete the Witness Fragment entity itself and its Annotations.  
+ *  The Witness Fragment will no longer appear as a Witness to the Gloss in any UI.
  * 
  *  @deprecated - The structures of Witness and Witness Fragments has changed.  This is still used on gloss-transcription.html.
  *  @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
@@ -1392,7 +1389,7 @@ function fragmentFormReset(event){
 /**
  * Instead of offering users the picker to choose a Manuscript Witness, programatically choose it instead.
  * This happens when a Manuscript Witness is found from a provided soure so that the user cannot possibly
- * make another Manuscript Witness connected to the provided source.
+ * make a second Manuscript Witness connected to the provided source.
  * 
  * @param manuscriptWitnessID - URI of a Manuscript Witness.
  */ 
@@ -1494,7 +1491,7 @@ function activateFragmentForm(manuscriptID, shelfmark){
 }
 
 /**
- * Paginate after a user clicks an actionable button that chooses a Manuscript Witness.
+ * Paginate after a user clicks an actionable button that chooses a Manuscript Witness (after searching by shelfmark).
  */ 
 function chooseManuscriptWitness(ev){
     const manuscriptChoiceElem = ev.target.tagName === "DEER-VIEW" ? ev.target.parentElement : ev.target
@@ -1549,7 +1546,7 @@ addEventListener('gloss-modal-saved', event => {
 })
 
 /**
- * Remove all URL parameters and restart the user flow on gloss-witness.html
+ * Remove all URL parameters and restart the user flow on the active HTML page.
  */ 
 function startOver(){
     window.location = window.location.origin + window.location.pathname

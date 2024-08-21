@@ -295,7 +295,6 @@ function initFragmentForm(event){
         
     }
     prefillText(annotationData["text"], $elem)
-    
     if(!witnessFragmentID) {
         // In this case, everything that needs to load has already loaded.
         // In other cases, we need to wait until the end of getAllWitnessFragmentsOfSource
@@ -619,7 +618,7 @@ resourceFile.addEventListener("change", function(event){
 
 /**
  * Change which user input method is showing based on the chosen tab.
- * FIXME only supporting URI input right now
+ * FIXME only supporting URI and C&P input right now
  * 
  * @param which - The string 'uri', 'file', or 'cp'
  */ 
