@@ -1626,7 +1626,7 @@ async function updateCurrentWitnessFragments(){
                 "@type" : "Annotation",
                 "body":{
                     "creator":{
-                        "value" : "Custom Manuscript Witness Script"
+                        "value" : knownCreator
                     }
                 },
                 "target": manuscriptWitness["@id"],
@@ -1636,8 +1636,8 @@ async function updateCurrentWitnessFragments(){
                 "@context" : "http://www.w3.org/ns/anno.jsonld",
                 "@type" : "Annotation",
                 "body":{
-                    "creator":{
-                        "value" : "Custom Manuscript Witness Script"
+                    "identifier":{
+                        "value" : identifierStr,
                     }
                 },
                 "target": manuscriptWitness["@id"],
