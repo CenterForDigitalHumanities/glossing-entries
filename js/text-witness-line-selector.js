@@ -88,13 +88,13 @@ class WitnessTextSelector extends HTMLElement {
     async connectedCallback(which) {
         this.innerHTML = this.template
         const $this = this
-        const witnessURI = this.getAttribute("source-uri")
-        const witnessText = this.getAttribute("source-text")
+        const witnessURI = this.getAttribute("source-uri")?.trim()
+        const witnessText = this.getAttribute("source-text")?.trim()
         if(!witnessURI && !witnessText) return
 
         const customKey = this.querySelector("input[custom-key='selections']")
         const witnessTextElem = this.querySelector(".witnessText")
-        let textForUI = witnessText
+        let textForUI = null
         
         if(which === "source-uri"){
            textForUI = await fetch(witnessURI)
@@ -124,6 +124,9 @@ class WitnessTextSelector extends HTMLElement {
                 document.dispatchEvent(e)
                 return ""
             })    
+        }
+        else if(which === "source-text"){
+            textForUI = witnessText
         }
         
         // Treat it as plain text
@@ -182,6 +185,7 @@ class WitnessTextSelector extends HTMLElement {
             const $form = lineElem.closest("form")
             const customKey = $this.querySelector("input[custom-key='selections']")
             const filter = document.querySelector("input[filter]")
+            const hashTheSource = $this.getAttribute("hash")
 
             // For each line elem in this selection, get rid of the <mark>.  Then rebuild the selection.
             const remark_map = unmarkLineElement(lineElem)
@@ -192,7 +196,7 @@ class WitnessTextSelector extends HTMLElement {
             const extentOffset =  s.extentOffset
             const lengthOfSelection = extentOffset - baseOffset
             const fragmentSelector = `#char=${baseOffset},${extentOffset-1}`
-            const resourceFragment = witnessURI + fragmentSelector
+            const resourceFragment = hashTheSource ? hashTheSource + fragmentSelector : witnessURI + fragmentSelector
 
             // Set the selections input on the form
             if(!customKey.value.includes(resourceFragment)){
