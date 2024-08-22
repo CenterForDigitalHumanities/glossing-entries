@@ -1553,3 +1553,4 @@ addEventListener('gloss-modal-saved', event => {
 function startOver(){
     window.location = window.location.origin + window.location.pathname
 }
+
