@@ -1553,11 +1553,13 @@ function startOver(){
 }
 
 async function updateCurrentWitnessFragments(){
-    const start = performance.now();
+    const start = performance.now()
     let createdManuscriptWitnessShelfmarks = []
     let createdManuscriptWitnessShelfmarksSet = new Set()
     let tpenProjectsUsed = []
     let tpenProjectsSet = new Set()
+    let sourceToWitnessMap = {}
+    let identifierToWitnessMap = {}
     const historyWildcard = { "$exists": true, "$size": 0 }
 
     function create(obj){
@@ -1656,7 +1658,7 @@ async function updateCurrentWitnessFragments(){
     }
 
     const fragmentsQuery = {
-        "@type": "Text_Isolated",
+        "@type": "Text",
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
@@ -1667,7 +1669,7 @@ async function updateCurrentWitnessFragments(){
         console.error(err)
         return Promise.reject([])
     })
-    let sourceToWitnessMap = {}
+    
     console.log("Total existing fragments to process")
     console.log(allExistingFragments.length)
     for(const fragment of allExistingFragments){
@@ -1691,7 +1693,7 @@ async function updateCurrentWitnessFragments(){
             "__rerum.generatedBy" : httpsIdArray(__constants.generator)
         }
 
-        // Have to await on these before continueing
+        // Have to await on these before continuing
         let [
             creatorAnnos,
             identifierAnnos,
@@ -1703,12 +1705,19 @@ async function updateCurrentWitnessFragments(){
             getAnnos(sourceAnnosQuery)
         ])
 
+        // creator checks and assignment
         if(creatorAnnos.length > 1){
             console.error("This is awkward.  Two creator Annos for the same fragment...")
             console.log(creatorAnnos)
         }
         const creatorAnno = creatorAnnos.length ? creatorAnnos[0] : null
+        if(!creatorAnno){
+            // If the fragment does not have a source we can safely skip it
+            console.log(`fragment '${fragment["@id"]}' does not have a creator`)
+        }
         const knownFragmentCreator = creatorAnno.body?.creator?.value ? creatorAnno.body.creator.value : "Custom Manuscript Witness Script"
+
+        //source  checks and assignment
         if(sourceAnnos.length > 1){
             console.error("This is awkward.  Two source Annos for the same fragment...skipping")
             console.log(sourceAnnos)
@@ -1717,7 +1726,7 @@ async function updateCurrentWitnessFragments(){
         const sourceAnno = sourceAnnos.length ? sourceAnnos[0] : null
         if(!sourceAnno){
             // If the fragment does not have a source we can safely skip it
-            console.log(`fragment '${fragment["@id"]}' does not have a source`)
+            console.log(`fragment '${fragment["@id"]}' does not have a source...skipping`)
             continue 
         }
         const sourceURI = sourceAnno.body.source.value[0]
@@ -1727,6 +1736,8 @@ async function updateCurrentWitnessFragments(){
             continue
         }
         tpenProjectsSet.add(sourceURI)
+
+        // identifier checks and assignment
         if(identifierAnnos.length > 1){
             console.error("This is awkward.  Two identifier Annos for the same fragment...skipping")
             console.log(sourceAnnos)
@@ -1734,28 +1745,31 @@ async function updateCurrentWitnessFragments(){
         }
         // Note that it is possible that existing fragments that have the same source will have different identifiers.
         // This is invalid in the current data structure.  Only one can be preserved for the Manuscript Witness.
-        // In this script, it would arbitrarily be the first one encountered.
+        // In this script, it would arbitrarily be the first one encountered as seen below this comment.
         // As a result, some WitnessFragments may not have the same identifier as the Manuscript Witness they are a part of.
         const identifierAnno = identifierAnnos.length ? identifierAnnos[0] : null
         if(!identifierAnno){
             // If the fragment does not have an identifier we can safely skip it
-            console.log(`fragment '${fragment["@id"]}' does not have a source`)
+            console.log(`fragment '${fragment["@id"]}' does not have an identifier...skipping`)
             continue 
         }
         const identifierStr = identifierAnno.body.identifier.value
         
+        // Access and cache Manuscript Witness info, need that @id
         if(sourceToWitnessMap.hasOwnProperty(sourceURI)){
-            manuscriptWitnessURI = sourceWitnessMap[sourceURI]
+            manuscriptWitnessURI = sourceToWitnessMap[sourceURI]
         }
         else{
             // We may have to make a new one.  Let's see if we have any for this identifier first.
-            let existingManuscriptWitnessURI = createdManuscriptWitnessShelfmarksSet.has(identifierStr) ? "https://devstore.rerum.io/v1/id/123123123123123" : await getManuscriptWitnessFromShelfmark(identifierStr)
+            let existingManuscriptWitnessURI = identifierToWitnessMap[identifierStr] ? identifierToWitnessMap[identifierStr] : await getManuscriptWitnessFromShelfmark(identifierStr)
             if(!existingManuscriptWitnessURI){
                 createdManuscriptWitnessShelfmarksSet.add(identifierStr)
-                //createdManuscriptWitnessShelfmarks.push(identifierStr)
                 existingManuscriptWitnessURI = await createManuscriptWitnessAndRequiredAnnos(sourceURI, identifierStr, knownFragmentCreator)["@id"]
+                identifierToWitnessMap[identifierStr] = existingManuscriptWitnessURI
             }
             manuscriptWitnessURI = existingManuscriptWitnessURI
+            identifierToWitnessMap[identifierStr] = manuscriptWitnessURI
+            sourceToWitnessMap[sourceURI] = manuscriptWitnessURI
         }
 
         // Now that we know the manuscript witness @id, we can generate the partOf Anno for this fragment.
@@ -1775,6 +1789,7 @@ async function updateCurrentWitnessFragments(){
         sourceAnno.body.source.value = sourceURI
         // "Text" fragment @type has changed to "WitnessFragment"
         fragment["@type"] = "WitnessFragment"
+
         //only have to await if we want to stop on error
         // await Promise.all([
         //     overwrite(fragment)
