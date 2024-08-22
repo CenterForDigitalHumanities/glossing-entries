@@ -14,9 +14,9 @@
     <script src="js/shared.js"></script>
     <script src="js/mark.min.js"></script>
     <style>
-        input.required{
+        input.required, textarea.required{
             border: 1px solid black;
-        }
+       }
         .pageContainer.is-toggled{
             visibility: hidden;
             height: 0px;
@@ -44,9 +44,6 @@
         #manuscriptsResult .tag:hover{
             color: var(--color-success);
             border-color: var(--color-success);
-        }
-        .is-not-visible{
-            visibility: hidden;
         }
     </style>
 </head>
@@ -139,10 +136,10 @@
         <div class="row">
 
             <label class="col-3 col-2-md text-right">Shelfmark: &#10082;</label>
-            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required">
+            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" required class="col-9 col-10-md required" disabled>
 
             <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
-            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" placeholder="Text is required.  Highlight some text..."></textarea>
+            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" required placeholder="Text is required.  Highlight some text..."></textarea>
 
             <label class="col-3 col-2-md text-right">Language:</label>
             <select custom-text-key="language" title="select language" class="col-9 col-4-md">

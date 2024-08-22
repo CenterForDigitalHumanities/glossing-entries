@@ -30,28 +30,17 @@ class GlossModalActivationButton extends HTMLElement {
         let $this = this
         this.querySelector("input[type='button']").addEventListener("click", toggleModal)
 
-        /**
-         * Check if the Witness form has a shelfmark value.
-         */ 
-        function hasShelfmarkRequirement(){
-            if(witnessForm !== undefined){
-                const s = witnessForm.querySelector("input[deer-key='identifier']")?.value
-                if(s){
-                    return true
-                }  
-            }
-            return false
-        }
-
-        /**
-         * Check if the Witness form has text selection (for a text value).
-         */ 
-        function hasTextRequirement(){
-            if(witnessForm !== undefined){
-                const s = witnessForm.querySelector("input[custom-key='selections']")?.value
-                if(s){
-                    return true
-                }  
+        function hasAllFormRequirements(){
+            if(witnessFragmentForm !== undefined){
+                let all = true
+                const requiredElems = witnessFragmentForm.querySelectorAll(".required")
+                for(const r of requiredElems){
+                    if(!r?.value){
+                        all = false
+                        return
+                    }
+                }
+                return all 
             }
             return false
         }
@@ -61,22 +50,11 @@ class GlossModalActivationButton extends HTMLElement {
          * Fire an event for whether the modal is hidden or visiable.
          */ 
         function toggleModal(event){
-            // A proprietary handler for gloss-transcription.html to make sure the Shelfmark requirement is met before pulling up the Gloss modal.
-            let blip = new CustomEvent("Blip")
-            if(document.location.pathname.includes("gloss-transcription")){
-                // There must be a shelfmark
-                if(!hasShelfmarkRequirement()){
-                    //alert("You must provide a Shelfmark value.")
-                    blip = new CustomEvent("You must provide a Shelfmark value.")
-                    utils.globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
+            if(document.location.pathname.includes("gloss-transcription") || document.location.pathname.includes("gloss-witness")){
+                if(!hasAllFormRequirements()){
+                    const blip = new CustomEvent("You must fill out all required form fields")
+                    utils.globalFeedbackBlip(blip, `Please provide all required Witness form values first.`, false)
                     return
-                }
-                // There must be a selection
-                if(!hasTextRequirement()){
-                    //alert("Select some text first")
-                    blip = new CustomEvent("Select some text first.")
-                    utils.globalFeedbackBlip(blip, `Select some text first.`, false)
-                    return   
                 }
             }
             const $button = event.target
