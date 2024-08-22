@@ -69,7 +69,7 @@ function setFragmentFormDefaults(){
         s.removeAttribute("deer-source")
     })
     // For when we test
-    document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanGT")
+    //document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanGT")
 
     // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
