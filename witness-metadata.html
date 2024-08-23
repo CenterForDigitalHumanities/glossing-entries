@@ -21,7 +21,6 @@
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
         <div class="row">
-
             <div class="col">
                 <details>
                     <summary>
@@ -121,10 +120,28 @@
                 <input id="rendering" type="url" deer-key="seeAlso">
             </div>
         </div>
+        <button type="submit" class="btn btn-primary" disabled>
+            Update Manuscript Metadata
+        </button>
+        
     </form>
 
     <gog-footer class="container"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
+
+    <script>
+        const witnessId = location.hash.substring(1)
+        if(!witnessId) {
+            location.href = confirm('Use this form to update an existing Manuscript Witness. Select one from the list first.')
+            ? 'manuscripts.html'
+            : 'index.html'
+        }
+        const form = document.getElementById('manuscriptWitnessForm')
+        form.setAttribute('deer-id', witnessId)
+        form.addEventListener('deer-form-rendered', () => {
+            form.querySelector('button[type="submit"]').disabled = false
+        })
+    </script>
 </body>
 
 </html>
