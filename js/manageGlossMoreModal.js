@@ -43,18 +43,21 @@ class ManageGlossMoreModal extends HTMLElement {
         <div class="window-shadow"> 
             <div class="manageModal container">
                 <div class="card" id="mainModalContainer">
-                    <header>
-                        <h4>Gloss Tags</h4>
-                    </header>
-                    <p>Here you can choose to approve or reject the Gloss's tags for inclusion in TPEN's list of all Gloss tags.</p>
-                    <footer>
-                        <a class="button" href="#">Review</a>
-                        <p></p>
-                        <input type="button" class="button" value="Approve"/>
-                        <input type="button" class="button" value="Reject"/>
-                    </footer>
-                    <div class="is-right">
-                        <input type="button" class="button closeModal" value="Close"/>
+                    <div id="manageTags">
+                        <header>
+                            <h4>Gloss Tags</h4>
+                        </header>
+                        <p>Here you can choose to approve or reject the Gloss's tags for inclusion in TPEN's list of all Gloss tags.</p>
+                        <p class="glossContent"></p>
+                        <footer>
+                            <a class="button" href="#">Review</a>
+                            <p></p>
+                            <input type="button" class="button" value="Approve"/>
+                            <input type="button" class="button" value="Reject"/>
+                        </footer>
+                        <div class="is-right">
+                            <input type="button" class="button closeModal" value="Close"/>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -81,16 +84,15 @@ class ManageGlossMoreModal extends HTMLElement {
             }
             const glossID = glossData["@id"].replace(/^https?:/, 'https:')
             const published = glossData.published
-            const glossText = glossData.text
-            const glossTitle = `${published ? "✓" : "❌"}  ${glossData.title}`
-            const glossTags = glossData.tags
+            const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+            const fullGlossData = cachedFilterableEntities.get(glossID)
 
+            const approveButton = `<input type="button" value="${"approve"}" class="approveCollection button success is-small" glossid="${glossID}" title="Add all tags to public list"/>`
             const rejectBtn = `<input type="button" value="reject" glossid="${glossID}" data-type="named-gloss" class="removeCollectionItem button error is-small" title="Remove all tags from public list">`
-            const approveButton = `<input type="button" value="${"approve"}" class="approveCollection button ${published ? "error" : "success"} is-small" glossid="${glossID}" title="Add all tags to public list"/>`
 
             $this.querySelector("a").setAttribute("href", `ng.html#${glossID}`)
-            $this.querySelector("h4").innerText = glossTitle
-            $this.querySelector("p").innerText = glossTags
+            $this.querySelector("h4").innerText = "Manage Tags"
+            $this.querySelector("p.glossContent").innerText = fullGlossData.tags?.value?.items.join(", ") ?? "No tags"
             $this.querySelector("footer").innerHTML = approveButton + rejectBtn
 
             // 'Close' functionality
