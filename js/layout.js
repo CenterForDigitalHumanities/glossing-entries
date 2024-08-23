@@ -163,7 +163,10 @@ class TagWidget extends HTMLElement {
         <p class="col-12 col-12-md">Gloss tags are displayed below the input. Click the red 'x' to remove the tag.
         </p>
         <input type="hidden" deer-key="tags" deer-input-type="Set">
-        <label class="col-3 col-2-md text-right">Tag Name</label>
+        <label class="col-3 col-2-md text-right">
+            Tag Name 
+            <i class="fas fa-info-circle icon-help" title="Identify a key term or feature of the gloss, e.g. 'incarnatio' or 'OT citation' or 'linguistic observation'. You can also identify specific citations to other texts or allegations as tags, e.g. 'X 3.16.4'."></i>
+        </label>
         <input type="text" class="col-9 col-4-md tagInput" placeholder="Add one tag at a time">
         <button class="smaller"> Add Tag </button>
         <div class="selectedEntities col-12 col-12-md"></div>
