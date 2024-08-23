@@ -151,6 +151,7 @@ function init(event){
                 })
             }
             prefillTagsArea(annotationData["tags"], $elem)
+            prefillTagsArea(annotationData["tags"], $elem)
             prefillText(annotationData["text"], $elem)
             prefillDigitalLocations(annotationData["source"], $elem)
 
@@ -184,7 +185,6 @@ function setWitnessFormDefaults(){
         s.removeAttribute("deer-source")
     })
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "BryanGT"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
