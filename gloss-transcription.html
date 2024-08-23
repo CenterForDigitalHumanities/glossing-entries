@@ -13,7 +13,6 @@
     <script src="js/glossModal.js" type="module"></script>
     <script src="js/shared.js"></script>
     <script src="js/mark.min.js"></script>
-
     <style>
         input.required,
         textarea.required {
@@ -28,6 +27,7 @@
         .loadingMsg {
             color: white;
             padding-top: 4em;
+       }
         }
 
         /*       select[deer-key="_glossatorHand"]{
@@ -59,7 +59,8 @@
     </div>
     <form id="witnessForm" class="is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
-        <input type="hidden" custom-key="source">
+        <input type="hidden" deer-key="source" witness-source />
+        <input type="hidden" deer-key="partOf" />
         <div class="row">
             <label class="is-hidden">Label:</label>
             <input type="text" deer-key="title" placeholder="Label" class="is-hidden">
