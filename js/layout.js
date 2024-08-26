@@ -83,9 +83,7 @@ class GlossHeader extends HTMLElement {
     <link rel="stylesheet" href="css/gloss.css">
     <button class="button primary" is="auth-button">login</button>
     <img class="headerimg" src="media/gog-logo.jpg" alt="banner">
-    <a href="/"><h1 class="title">
-        Gallery of Glosses
-    </h1></a>
+    <a href="/"><h1 class="title">Gallery of Glosses Data Entry</h1></a>
     <div class="tabs is-hidden">
     <slot name="tabs">
         <a ${GlossHeader.#stylizeTab("./glosses.html")}>✏️ Glosses</a>
