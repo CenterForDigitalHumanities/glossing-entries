@@ -470,7 +470,7 @@ addEventListener('deer-updated', event => {
     // Hmm maybe do this separation of handling a bit different.
     if($elem?.id === "manuscriptWitnessForm"){
         // We generated the Manuscript Witness and can use this ID as part of the fragment for submit
-        activateFragmentForm(event.detail["@id"], shelfmark)
+        activateFragmentForm(event.detail["@id"], shelfmark, true)
         console.log("Manuscript Witness Fully Saved")
         const ev = new CustomEvent("Manuscript Witness Submitted")
         globalFeedbackBlip(ev, `Manuscript Witness Saved and Loaded In`, true)

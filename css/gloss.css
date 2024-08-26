@@ -547,3 +547,7 @@ textarea:disabled, select:disabled {
     padding-left: 20px;
     padding-right: 24px;
 }
+
+input.required, textarea.required, select.required{
+    border: 1px solid black;
+}
