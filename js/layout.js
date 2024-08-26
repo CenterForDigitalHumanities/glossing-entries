@@ -40,6 +40,7 @@ class GlossHeader extends HTMLElement {
         <style>
         .headerimg{
             pointer-events: none;
+            display: none;
         }
         :host {
             --bg-color: hsl(0, 0%, 100%);
@@ -85,7 +86,7 @@ class GlossHeader extends HTMLElement {
     <a href="/"><h1 class="title">
         Gallery of Glosses
     </h1></a>
-    <div class="tabs">
+    <div class="tabs is-hidden">
     <slot name="tabs">
         <a ${GlossHeader.#stylizeTab("./glosses.html")}>✏️ Glosses</a>
         <a ${GlossHeader.#stylizeTab("./ng.html")}>🆕 New gloss</a>
