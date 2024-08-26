@@ -494,7 +494,7 @@ class ReferencesBrowser extends HTMLElement {
                         a.setAttribute("deer-template", "shelfmark")
                         a.setAttribute("deer-id", manuscriptURI)
                         a.setAttribute("target", "_blank")
-                        a.setAttribute("href", `manuscript-profile.html#${manuscriptURI}`)
+                        a.setAttribute("href", `manuscript-details.html#${manuscriptURI}`)
                         a.innerHTML = "loading..." 
                         li.appendChild(a)
                         witnessList.appendChild(li)
