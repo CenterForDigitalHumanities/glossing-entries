@@ -455,7 +455,7 @@ class ReferencesBrowser extends HTMLElement {
         </p>
         <form id="GlossReferenceForm" class="row bg-light">
             <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
-            <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="submit" value="Add Witness Reference" >
+            <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="secondary" value="Under Construction">
         </form>
         <p class="bumper"> 
             Known and queued Witnesses of this Gloss are displayed below.  Click a known Witness for details about the Witness.
@@ -464,6 +464,12 @@ class ReferencesBrowser extends HTMLElement {
             <li class="wait"> Looking for Witnesses... </li>
         </ul>
     `
+    /**
+        <form id="GlossReferenceForm" class="row bg-light">
+            <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
+            <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="submit" value="Add Witness Reference" >
+        </form>
+     */ 
     constructor() {
         super()
     }
@@ -632,7 +638,7 @@ class ReferencesBrowser extends HTMLElement {
             event.target.closest("li").remove()
         }
 
-        $this.querySelector("#GlossReferenceForm").addEventListener("submit", $this.addReference)
+        //$this.querySelector("#GlossReferenceForm").addEventListener("submit", $this.addReference)
     }
     static get observedAttributes() { return ['gloss-uri'] }
 }
