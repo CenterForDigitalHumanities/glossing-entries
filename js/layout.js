@@ -474,6 +474,19 @@ class ReferencesBrowser extends HTMLElement {
       }
     }
     connectedCallback() {
+        this.innerHTML = `
+            <style>
+                gog-references-browser{
+                    position: relative;
+                    display: block;
+                    border-radius: 0.2em;
+                    padding: 20px;
+                }
+            </style>
+            <h4> See Witness References </h4>
+            <p> Under Construction.  Apologies for the inconvenience.  It will be back soon. </p>
+        `
+        return
         this.innerHTML = this.template
         const $this = this
         const witnessList = $this.querySelector(".glossWitnesses")
