@@ -163,7 +163,10 @@ class TagWidget extends HTMLElement {
         <p class="col-12 col-12-md">Gloss tags are displayed below the input. Click the red 'x' to remove the tag.
         </p>
         <input type="hidden" deer-key="tags" deer-input-type="Set">
-        <label class="col-3 col-2-md text-right">Tag Name</label>
+        <label class="col-3 col-2-md text-right">
+            Tag Name 
+            <i class="fas fa-info-circle icon-help" title="Identify a key term or feature of the gloss, e.g. 'incarnatio' or 'OT citation' or 'linguistic observation'. You can also identify specific citations to other texts or allegations as tags, e.g. 'X 3.16.4'."></i>
+        </label>
         <input type="text" class="col-9 col-4-md tagInput" placeholder="Add one tag at a time">
         <button class="smaller"> Add Tag </button>
         <div class="selectedEntities col-12 col-12-md"></div>
@@ -471,98 +474,125 @@ class ReferencesBrowser extends HTMLElement {
       }
     }
     connectedCallback() {
-        this.innerHTML = `
-            <style>
-                gog-references-browser{
-                    position: relative;
-                    display: block;
-                    border-radius: 0.2em;
-                    padding: 20px;
-                }
-            </style>
-            <h4> See Witness References </h4>
-            <p> Under Construction.  Apologies for the inconvenience.  It will be back soon. </p>
-        `
-        return
         this.innerHTML = this.template
         const $this = this
         const witnessList = $this.querySelector(".glossWitnesses")
         const witnessInput = $this.querySelector(".witnessInput")
         const glossURI = $this.getAttribute("gloss-uri") ? decodeURIComponent($this.getAttribute("gloss-uri")) : null
         if(glossURI){
-            const gloss_witness_annos_query = {
-                "body.references.value" : glossURI,
-                '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
-                "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
-            }
-            getPagedQuery(100, 0, gloss_witness_annos_query)
-            .then(gloss_witness_annos => {
-                const newView = new Set()
-                if(gloss_witness_annos.length){
+            getAllManuscriptWitnessesOfGloss(glossURI)
+            .then(manuscriptSet => {
+                witnessList.innerHTML = ""
+                const manuscripts = [...manuscriptSet.values()]
+                if(manuscripts.length > 0){ 
                     $this.classList.remove("is-hidden")
-                    // Get rid of 'non found' placeholder
-                    witnessList.querySelector("li.wait")?.remove()
-                    gloss_witness_annos.forEach((gloss_witness_anno, index) => {
-                        const witnessURI = gloss_witness_anno.target
+                    for(const manuscriptURI of manuscripts){
                         const li = document.createElement("li")
-                        li.setAttribute("deer-id", witnessURI)
-                        li.setAttribute("deer-source",  gloss_witness_anno["@id"])
+                        li.setAttribute("deer-id", manuscriptURI)
                         const a = document.createElement("a")
                         a.classList.add("deer-view")
                         a.setAttribute("deer-template", "shelfmark")
-                        a.setAttribute("deer-id", witnessURI)
+                        a.setAttribute("deer-id", manuscriptURI)
                         a.setAttribute("target", "_blank")
+                        a.setAttribute("href", `manuscript-details.html#${manuscriptURI}`)
                         a.innerHTML = "loading..." 
-                        // Can only determine which witness interface to go to based on source annotation, if one exists.
-                        const witness_source_annos_query = {
-                            "body.source.value" : {"$exists":true},
-                            "target" : httpsIdArray(witnessURI),
-                            "__rerum.history.next":{ $exists: true, $type: "array", $eq: [] },
-                            "__rerum.generatedBy" : httpsIdArray(config.GENERATOR)
-                        }
-                        fetch(`${config.URLS.QUERY}?limit=100&skip=0`, {
-                            method: 'POST',
-                            mode: 'cors',
-                            headers:{
-                                "Content-Type" : "application/json;charset=utf-8"
-                            },
-                            body: JSON.stringify(witness_source_annos_query)
-                        })
-                        .then(res => {
-                            if (!res.ok) {
-                                throw Error(res.statusText)
-                            }
-                            return res.json()
-                        })
-                        .then(witness_source_annos => {
-                            let witnessSource = witness_source_annos.length ? witness_source_annos[0]?.body?.source?.value[0] : null
-                            if(witnessSource?.includes("t-pen.org/TPEN/")){
-                                a.setAttribute("href", `gloss-transcription.html#${witnessURI}`)
-                            }
-                            else{
-                                a.setAttribute("href",`fragment-profile.html#${witnessURI}`)
-                            }
-                            li.appendChild(a)
-                            witnessList.appendChild(li)
-                            utils.broadcast(undefined, "deer-view", document, { set: [a] })  
-                        })
-                        .catch(err => {
-                            console.error(err)
-                            $this.innerHTML = `<b class="text-error"> Error communicating with RERUM. </b>`
-                        }) 
-                    })
+                        li.appendChild(a)
+                        witnessList.appendChild(li)
+                        utils.broadcast(undefined, "deer-view", document, { set: [a] }) 
+                    }
                 }
                 else{
                     witnessList.querySelector("li").innerHTML = `<b> No Witnesses Found.  Create one now! </b>`    
                 }
             })
-            .catch(err => {
-                console.error(err)
-                $this.innerHTML = `<b class="text-error"> Could not load Witness References component. </b>`
-            })    
         }
         else{
             witnessList.querySelector("li").innerHTML = `<b> Add Witness References Above! </b>`    
+        }
+
+        /**
+         * @param source A String that is either a text body or a URI to a text resource.
+         */ 
+        async function getAllManuscriptWitnessesOfGloss(glossURI){
+            const historyWildcard = { "$exists": true, "$size": 0 }
+
+            const gloss_witness_annos_query = {
+                "body.references.value" : httpsIdArray(glossURI),
+                '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
+                "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+            }
+            let fragmentUriSet = await getPagedQuery(100, 0, gloss_witness_annos_query)
+            .then(async(annos) => {
+                const fragments = annos.map(async(anno) => {
+                    const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
+                    if(entity["@type"] && entity["@type"] === "WitnessFragment"){
+                        return anno.target
+                    }
+                    // This will end up in the Set
+                    return undefined
+                })
+                const fragmentsOnly = await Promise.all(fragments).catch(err => {throw err} )
+                return new Set(fragmentsOnly)
+            })
+            .catch(err => {
+                console.error(err)
+                throw err
+            })
+            // Remove the undefined entry if present
+            fragmentUriSet.delete(undefined)
+            if(fragmentUriSet.size === 0){
+                console.log(`There are no Manuscript Witnesses that reference the Gloss '${glossURI}'`)
+                return new Set()
+            }
+            // There are many fragments that reference this Gloss.  Those fragments are all a part of different Manuscript Witnesses.
+            // Put all of thise different Manuscript Witnesses into a Set to return.
+            let allManuscriptWitnesses = new Set()
+            for await(const fragmentURI of [...fragmentUriSet.values()]){
+                //each fragment has partOf Annotations letting you know the Manuscripts it is a part of.
+                const partOfAnnosQuery = {
+                    "body.partOf.value": {"$exists":true},
+                    "target": httpsIdArray(fragmentURI),
+                    "__rerum.history.next": historyWildcard,
+                    "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+                }
+                let manuscriptUriSet = await fetch(`${__constants.tiny}/query?limit=1&skip=0`, {
+                    method: "POST",
+                    mode: 'cors',
+                    headers: {
+                        "Content-Type": "application/json;charset=utf-8"
+                    },
+                    body: JSON.stringify(partOfAnnosQuery)
+                })
+                .then(response => response.json())
+                .then(async(annos) => {
+                    const manuscripts = annos.map(async(anno) => {
+                        const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(err => {throw err})
+                        if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
+                            return anno.body.partOf.value
+                        }
+                        // This will end up in the Set
+                        return undefined
+                    })
+                    const manuscriptWitnessesOnly = await Promise.all(manuscripts).catch(err => {throw err} )
+                    return new Set(manuscriptWitnessesOnly)
+                })
+                .catch(err => {
+                    console.error(err)
+                    throw err
+                })
+                manuscriptUriSet.delete(undefined)
+                if(manuscriptUriSet.size === 0){
+                    console.error(`There is no Manuscript Witness for fragment '${fragmentURI}'`)
+                    continue
+                }
+                else if(manuscriptUriSet.size > 1){
+                    console.error("There are many Manuscript Witnesses when we only expect one.")
+                    continue
+                }
+                allManuscriptWitnesses = new Set([...allManuscriptWitnesses, ...manuscriptUriSet])
+            }
+
+            return allManuscriptWitnesses
         }
         /**
          * Click event handler for Add Theme.  Takes the user input and adds the string to the Set if it isn't already included.

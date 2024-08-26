@@ -227,7 +227,7 @@ class ManageGlossModal extends HTMLElement {
             }
             if (!await showCustomConfirm(confirmMessage)) return
 
-            let allWitnessesOfGloss = await getAllWitnessesOfGloss(id)
+            let allWitnessesOfGloss = await getAllWitnessFragmentsOfGloss(id)
             allWitnessesOfGloss = Array.from(allWitnessesOfGloss)
             const historyWildcard = { "$exists": true, "$size": 0 }
 
