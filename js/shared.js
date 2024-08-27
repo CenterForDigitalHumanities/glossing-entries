@@ -128,7 +128,7 @@ async function setListings(){
  * @returns {string|boolean} - The value of the URL parameter if found, otherwise false.
  */
 function getURLParameter(variable) {
-    const query = new URLSearchParams(window.location.search)
+    const query = new URLSearchParams(encodeURIComponent(window.location.search))
     return query.get(variable) ?? false
 }
 /**
