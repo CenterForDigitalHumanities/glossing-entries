@@ -10,165 +10,163 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/tpen-line-selector.js" type="module"></script>
-    <script src="js/shared.js"></script>
     <script src="js/glossModal.js" type="module"></script>
+    <script src="js/shared.js"></script>
     <script src="js/mark.min.js"></script>
-
     <style>
-        input.required,
-        textarea.required {
+       input.required, textarea.required{
             border: 1px solid black;
-        }
-
-        .pageContainer.is-toggled {
+       }
+       .pageContainer.is-toggled{
             visibility: hidden;
             height: 0px;
-        }
-
-        .loadingMsg {
+       }
+       .loadingMsg{
             color: white;
             padding-top: 4em;
-        }
-
-        /*       select[deer-key="_glossatorHand"]{
-            max-height: 39px;
-       }*/
+       }
     </style>
 </head>
 
 <body class="container">
     <gog-header></gog-header>
     <h2 class="bg-basic"> Gloss Transcription Witness </h2>
-    <p id="look" class="bg-light"> Provide a T-PEN manifest URI. The transcription text from that Manifest will load and
-        can be selected. Selected text can then be attached to a new or existing Gloss. Note that a text selection and
-        shelfmark are required.</p>
-    <div id="needs" class="row bg-basic">
-        <p class="howTo">
-            It looks like you haven't provided a TPEN Manifest URI. If you are not using the <code>?tpen-project=</code>
-            URL parameter, you can supply a URI here.
-            <input id="resourceURI" type="text" placeholder="Enter T-PEN Manifest URI or 4 digit TPEN code" />
-            <input id="loadInput" class="button primary" type="button" onclick="loadURI(event)"
-                value="Load TPEN Manifest" />
+    <p id="look" class="bg-light"> Provide a T-PEN manifest URI.  The transcription text from that Manifest will load and can be selected.  Selected text can then be attached to a new or existing Gloss.  Note that a text selection and shelfmark are required.</p>
+    <div id="needs" class="row bg-basic is-hidden">
+        <p class="howTo"> 
+            It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  
+            <input id="resourceURI" type="text" placeholder="Enter T-PEN Manifest URI or 4 digit TPEN code"/>
+            <input id="loadInput" class="button primary" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
         </p>
     </div>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
-    <div id="loading" class="tpen-needed is-hidden">
-        <p class="loadingMsg">
-            Please be patient while we get things together...
+    <div id="loading">
+        <p class="loadingMsg"> 
+            Please be patient while we get things together...  
         </p>
     </div>
-    <form id="witnessForm" class="is-hidden" deer-type="Text" deer-context="http://purl.org/dc/terms">
+    <!-- Once a mansucript witness is known the shelfmark should become populated and disabled -->
+    <form id="manuscriptWitnessForm" class="is-hidden" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
-        <input type="hidden" custom-key="source">
+        <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
+        <!-- <input type="hidden" custom-key="source" witness-source> -->
+        <div id="manuscriptWitnessCheck" class="row">
+            <div class="col">
+                <div>
+                    <p class="detect-witness"> 
+                        You must load in a Manuscript Witness.  Enter a shelfmark below to get started.  When finished, click the button to check for existing Witnesses.
+                    </p>
+                </div>
+                <div id="manuscriptsFound" class="is-hidden">
+                    <h4> Manuscripts Found.  Choose a Manuscript from below or create a new one. </h4>
+                    <div id="manuscriptsResult"></div>
+                </div>
+            </div>
+        </div>
         <div class="row">
-            <label class="is-hidden">Label:</label>
-            <input type="text" deer-key="title" placeholder="Label" class="is-hidden">
+            <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
+            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
+        </div>
+        <div class="row">
+            <div class="col">
+                <input id="checkForManuscriptsBtn" type="button"  class="button secondary" value="Check for Existing Manuscript Witnesses"/>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <input id="submitManuscriptsBtn" class="is-hidden button primary" type="submit" value="Create Manuscript Witness and Continue"/>
+            </div>
+        </div>
+    </form>
+    <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment" deer-context="http://purl.org/dc/terms"> 
+        <input is="auth-creator" type="hidden" deer-key="creator" />
+        <input type="hidden" deer-key="source" witness-source />
+        <input type="hidden" deer-key="partOf" />
+        <div class="row">
+            <label class="col-3 col-2-md text-right is-hidden">Label:</label>
+            <input type="text" deer-key="title" placeholder="Label" class="col-9 col-10-md is-hidden">
 
-            <div class="col">
-                <details class="">
-                    <summary>
-                        <label>Shelfmark or Short Citation:</label>
-                    </summary>
-                    <small>Enter manuscript shelfmark or short bibliographic citation of author and title for the
-                        witness,
-                        e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’.</small>
-                </details>
-                <input type="text" deer-key="identifier" required
-                    placeholder="Manuscript shelfmark or bibliographic citation of author and title for the witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’"
-                    class="required">
-            </div>
-            <div class="col">
-                <details>
-                    <summary>
-                        <label>Folio or Page:</label>
-                    </summary>
-                    <small>Folio or page number from this Witness where the gloss is found.</small>
-                </details>
-                <input type="text" deer-key="_folio" placeholder="e.g, 132r">
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                <label>Text:</label>
-                <textarea custom-text-key="text" required rows="2" class="required"
-                    placeholder="Text is required.  Highlight transcription text below..."></textarea>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                <label>Language:</label>
-                <select custom-text-key="language" title="select language">
-                    <option value="la" selected>Latin</option>
-                    <option value="de">German</option>
-                    <option value="fr">French</option>
-                    <option value="en">English</option>
-                </select>
-            </div>
-            <div class="col">
-                <label>Gloss Format:</label>
-                <select deer-key="_glossFormat" title="select gloss format">
-                    <option value="none" selected>None</option>
-                    <option value="marginal">Marginal</option>
-                    <option value="interlinear">Interlinear</option>
-                    <option value="appendix">Appendix</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
+            <label class="col-3 col-2-md text-right">Shelfmark or Short Citation: &#10082;</label>
+            <input type="text" deer-key="identifier" required placeholder="Manuscript shelfmark or bibliographic citation of author and title for the witness, e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’" class="col-9 col-10-md required" disabled>
+                        
+            <!--             
+                <label class="col-3 col-2-md text-right">Depictions:</label>
+                <input type="number" deer-key-todo="depiction" placeholder="" class="col-9 col-4-md"> 
+                -->
+            <label class="col-3 col-2-md text-right" >Folio or Page:</label>
+            <input type="text" deer-key="_folio" required placeholder="Folio or page number from this witness where the gloss is found" class="col-9 col-10-md required">
 
-            <div class="col">
-                <label>Gloss Location:</label>
-                <select deer-key="_glossLocation" title="select gloss location relative to the main text">
-                    <option value="none" selected>None</option>
-                    <option value="top">Top</option>
-                    <option value="bottom">Bottom</option>
-                    <option value="center">Center</option>
-                    <option value="left">Left</option>
-                    <option value="right">Right</option>
-                    <option value="top left">Top Left</option>
-                    <option value="top center">Top Center</option>
-                    <option value="top right">Top Right</option>
-                    <option value="bottom left">Bottom Left</option>
-                    <option value="bottom center">Bottom Center</option>
-                    <option value="bottom right">Bottom Right</option>
-                    <option value="top left">Top Left</option>
-                    <option value="top center">Top Center</option>
-                    <option value="top right">Top Right</option>
-                    <option value="bottom left">Bottom Left</option>
-                    <option value="bottom center">Bottom Center</option>
-                    <option value="bottom right">Bottom Right</option>
-                    <option value="other">Other</option>
-                </select>
-            </div>
-            <div class="col">
-                <label>Glossator Hand:</label>
-                <select deer-key="_glossatorHand" title="glossator">
-                    <option value="original" selected>original</option>
-                    <option value="later">later</option>
-                </select>
-            </div>
+            <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
+            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" required placeholder="Text is required.  Highlight transcription text..."></textarea>
+
+            <label class="col-3 col-2-md text-right">Language:</label>
+            <select custom-text-key="language" title="select language" class="col-9 col-4-md">
+                <option value="la" selected>Latin</option>
+                <option value="de">German</option>
+                <option value="fr">French</option>
+                <option value="en">English</option>
+            </select>
+
+            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left is-hidden">
+                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
+            </label>
+
+            <label class="col-3 col-2-md text-right">Gloss Format:</label>
+            <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
+                <option value="none" selected>None</option>
+                <option value="marginal">Marginal</option>
+                <option value="interlinear">Interlinear</option>
+                <option value="appendix">Appendix</option>
+                <option value="other">Other</option>
+            </select>
+            
+            <label class="col-3 col-2-md text-right">Gloss Location:</label>
+            <select deer-key="_glossLocation" title="select gloss location relative to the main text" class="col-9 col-4-md">
+                <option value="none" selected>None</option>
+                <option value="top">Top</option>
+                <option value="bottom">Bottom</option>
+                <option value="center">Center</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+                <option value="top left">Top Left</option>
+                <option value="top center">Top Center</option>
+                <option value="top right">Top Right</option>
+                <option value="bottom left">Bottom Left</option>
+                <option value="bottom center">Bottom Center</option>
+                <option value="bottom right">Bottom Right</option>
+                <option value="other">Other</option>
+            </select>
+
+            <label class="col-3 col-2-md text-right">Glossator Hand:</label>
+            <select deer-key="_glossatorHand" title="glossator" class="col-9 col-4-md">
+                <option value="none" selected>None</option>
+                <option value="original">Original</option>
+                <option value="other">Other</option>
+            </select>
+
+            <label class="col-3 col-2-md text-right" >Image Link:
+                <small><a href="https://ncsu-libraries.github.io/iiif-crop-tool/" target="_blank" rel="noopener">crop tool</a></small>
+            </label>
+            <input type="text" deer-key="depiction" required placeholder="Paste an image URL or IIIF selector link" class="col-9 col-10-md required"/>
+            <label class="col-3 col-2-md text-right" >Notes</label>
+            <textarea deer-key="_notes" rows="2" class="col-9 col-10-md" placeholder="Optional notes about this gloss instance"></textarea>
+
+            <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
+            <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
+            <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
-<div class="row">
-    <div class="col">
-        <label class="col-3 col-2-md text-right">Image Link:
-            <small><a href="https://ncsu-libraries.github.io/iiif-crop-tool/" target="_blank" rel="noopener">crop tool</a></label>small>
-        </label>
-        <input type="url" deer-key="depiction" placeholder="Paste an image URL or IIIF selector link">
-    </div>
-</div>
         <div class="row">
             <gog-tag-widget class="col"></gog-tag-widget>
         </div>
         <div class="row">
-            <input class="col is-hidden button primary" type="submit" value="Create Textual Witness" />
-            <input class="col is-hidden button error deleteWitness" type="button" value="Delete Textual Witness" />
+            <input class="is-hidden button primary" type="submit" value="Create Textual Witness"/>
+            <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness"/>
         </div>
         <div class="row">
-            <tpen-line-selector class="lineSelector tpen-needed is-hidden col"> </tpen-line-selector>
-            <deer-view class="tpen-needed is-hidden col" id="ngCollectionList"
-                deer-collection="GoG-Named-Glosses" deer-link="ng.html#"
-                deer-template="glossesSelectorForTextualWitness">
-                Loading&hellip;
-            </deer-view>
+            <tpen-line-selector class="lineSelector col-7-md col-6-sm"> </tpen-line-selector>
+            <deer-view class="col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            Loading&hellip;
+            </deer-view>  
         </div>
     </form>
     <gog-footer class="row"></gog-footer>
@@ -179,9 +177,9 @@
 <script>
     /**
      * Make sure DEER forms do not submit when a user hits "Enter".
-     */
+     */ 
     document.querySelectorAll("form[deer-type]").forEach(form => {
-        form.addEventListener("keydown", (e) => {
+        form.addEventListener("keydown", (e)=> {
             if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
                 if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
                     e.preventDefault()
@@ -190,5 +188,4 @@
         }, true)
     })
 </script>
-
 </html>
