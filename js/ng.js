@@ -182,6 +182,15 @@ async function generateWitnessesOnSubmit(glossid){
                 "target": matchedManuscript["@id"],
                 "creator": window.GOG_USER["http://store.rerum.io/agent"]
             }
+            let targetCollectionObj = {
+                "@context":"http://www.w3.org/ns/anno.jsonld",
+                "@type":"Annotation",
+                "body":{
+                    "targetCollection": "GoG-Manuscripts"
+                },
+                "target": matchedManuscript["@id"],
+                "creator": window.GOG_USER["http://store.rerum.io/agent"]
+            }
             let identifierObj_Fragment = {
                 "@context":"http://www.w3.org/ns/anno.jsonld",
                 "@type":"Annotation",
@@ -215,15 +224,12 @@ async function generateWitnessesOnSubmit(glossid){
                 "target": createdWitnessFragment["@id"],
                 "creator": window.GOG_USER["http://store.rerum.io/agent"]
             }
-            identifierObj_Fragment.target = createdWitnessFragment["@id"]
-            referencesObj.target = createdWitnessFragment["@id"]
-            partOfObj.target = createdWitnessFragment["@id"]
+            
             const a = witness_li.querySelector("a")
             witness_li.setAttribute("deer-id", matchedManuscript["@id"])
-            //how do we know which one to link to: gloss-transcription or gloss-witness??
-            //The established way is to see if a source anno exists and if it's value has TPEN or not.
             a.setAttribute("href", `manuscript-details.html#${matchedManuscript["@id"]}`)
             let createdIdentifierAnno_Manuscript = null
+            let createdTargetCollectionAnno = null
             let [
                 createdReferencesAnno,
                 createdIdentifierAnno_Fragment,
@@ -266,8 +272,7 @@ async function generateWitnessesOnSubmit(glossid){
             ])
 
             if(!match){
-                // If there isn't a match then we created a ManuscriptWitness which now needs an identifier annotation.
-                // If there was a match, no Annotation generation is required.
+                // If there isn't a match then we created a ManuscriptWitness which now needs an identifier and targetCollection annotation.
                 createdIdentifierAnno_Manuscript = await fetch(`${__constants.tiny}/create`, {
                     method: "POST",
                     mode: 'cors',
@@ -279,6 +284,17 @@ async function generateWitnessesOnSubmit(glossid){
                 })
                 .then(res => res.json())
                 .catch(err => {throw err})
+                createdTargetCollectionAnno = await fetch(`${__constants.tiny}/create`, {
+                    method: "POST",
+                    mode: 'cors',
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    },
+                    body: JSON.stringify(targetCollectionObj)
+                })
+                .then(res => res.json())
+                .catch(err => {throw err})
             }
 
             witness_li.setAttribute("deer-source", createdReferencesAnno["@id"])
@@ -287,16 +303,22 @@ async function generateWitnessesOnSubmit(glossid){
             witness_li.classList.remove("witness-queued")
 
             createdWitnessFragment.identifier = {
-            "source":{
-                "citationSource":createdIdentifierAnno_Fragment["@id"]
-            },
-            "value" : user_input
+                "source":{
+                    "citationSource":createdIdentifierAnno_Fragment["@id"]
+                },
+                "value" : user_input
             }
             matchedManuscript.identifier = {
                 "source":{
-                    "citationSource":createdIdentifierAnno_Manuscript["@id"]
+                    "citationSource": createdIdentifierAnno_Manuscript ? createdIdentifierAnno_Manuscript["@id"] : "already_existed"
                 },
                 "value" : user_input
+            }
+            matchedManuscript.targetCollection = {
+                "source":{
+                    "citationSource": createdTargetCollectionAnno ? createdTargetCollectionAnno["@id"] : "already_existed"
+                },
+                "value" : "GoG-Manuscripts"
             }
             createdWitnessFragment.references = {
                 "source":{
