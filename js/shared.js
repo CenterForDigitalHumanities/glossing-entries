@@ -74,17 +74,17 @@ customElements.define('custom-confirm-modal', CustomConfirmModal)
 let witnessFragmentsObj = {}
 
 //For when we test, so we can easily find and blow away junk data
-// setTimeout(() => {
-//     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="BryanGT"
-//         el.setAttribute("value", "BryanGT")
-//     })
-//     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "BryanGT")
-//     })
-//     if(!window.GOG_USER) window.GOG_USER = {}
-//     window.GOG_USER["http://store.rerum.io/agent"] = "BryanGT"
-// }, 4000)
+setTimeout(() => {
+    document.querySelectorAll("input[deer-key='creator']").forEach(el => {
+        el.value="BryanQW"
+        el.setAttribute("value", "BryanQW")
+    })
+    document.querySelectorAll("form").forEach(el => {
+        el.setAttribute("deer-creator", "BryanQW")
+    })
+    if(!window.GOG_USER) window.GOG_USER = {}
+    window.GOG_USER["http://store.rerum.io/agent"] = "BryanQW"
+}, 4000)
 
 let __constants = {}
 setConstants()
@@ -1164,7 +1164,7 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
         return
     }
     const shelfmarkAnnosQuery = {
-        "body.identifier.value": httpsIdArray(shelfmark),
+        "body.identifier.value": shelfmark,
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
@@ -1288,10 +1288,19 @@ async function getManuscriptWitnessFromSource(source=null){
         return
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
+    const isURI = (urlString) => {
+          try { 
+            return Boolean(new URL(urlString))
+          }
+          catch(e){ 
+            return false
+          }
+      }
 
-    // Each source annotation targets a Witness.  Only need one because they will all target the same Witness
+    // Each source annotation targets a Witness.
+    // Get all the source annotations whose value is this source string (URI or text string)
     const sourceAnnosQuery = {
-        "body.source.value": httpsIdArray(source),
+        "body.source.value": isURI(source) ? httpsIdArray(source) : source,
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }

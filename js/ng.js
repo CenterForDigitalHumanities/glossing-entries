@@ -106,115 +106,215 @@ addEventListener('deer-form-rendered', event => {
 })
 
 /**
- * When a Gloss is submitted for creation or update it will contain a set of Witnesses to create.
- * All the Witnesses will know is what shelfmark the user wants to create with and what glossid it should connect with.
- *     - ?? Check for existing Witnesses with this shelfmark ??
- *     - Generate a Witness Entity
- *     - Generate an 'identifier' Annotation that targets the Witness Entity.  Its value is the provided shelfmark text.
- *     - Generate a 'references' Annotation that targets the Witness Entity.  Its value is the [provided gloss id]
+ * When a Gloss is submitted for creation or update it will have multiple shelfmarks to make WitnessFragments against.
+ * In some cases, a ManuscriptWitness will need to be generated in order to have a WitnessFragment.
+ *     - Check for existing ManuscriptWitnesses with this shelfmark
+ *         - If none exist, a ManuscriptWitness must be generated
+ *         - Generate the targetCollection Annotation for the ManuscriptWitness
+ *         - Generate the 'identifier' Annotation for the Manuscript Witness
+ *     - Generate a WitnessFragment using the same shelfmark
+ *     - Generate a 'partOf' Annotation that targets the WitnessFragment to connect it to the ManuscriptWitness.
+ *     - Generate an 'identifier' Annotation that targets the WitnessFragment.
+ *     - Generate a 'references' Annotation that targets the WitnessFragment.
  * 
  * @param glossid - the rerum URI of the created Gloss to connect this Witness to via a 'references' Annotation.
- * @return An array of created Witness entities.  Each witness is expanded to contain the Annotations created as well.
+ * @return An object noting the entities involved in order to generate the reference properly.
  */ 
 async function generateWitnessesOnSubmit(glossid){
     // Must have a label/shelfmark/whatever.  This creates a Witness entity and the Annotation for the provided label.
     if(!glossid) throw new Error("Must have a Gloss URI to generate witnesses")
     const queued = document.getElementsByTagName("gog-references-browser")[0].querySelectorAll(".witness-queued")
-    let createdReferencesAnno = null
-    let createdIdentifierAnno = null
-    let createdWitness = null
-    let createdWitnesses = []
+    let matchedManuscript = {"@id" : ""}
+    let createdWitnessFragment = null
+    let createdWitnessFragments = []
+    let matchedManuscripts = []
+    let allInvolvedEntities = {
+        "manuscripts" : [],
+        "fragments" : []
+    }
+    let manuscriptWitnessObj = {
+        "@context": "http://purl.org/dc/terms",
+        "@type": "ManuscriptWitness",
+        "creator": window.GOG_USER["http://store.rerum.io/agent"]
+    }
+    let witnessFragmentObj = {
+        "@context": "http://purl.org/dc/terms",
+        "@type": "WitnessFragment",
+        "creator": window.GOG_USER["http://store.rerum.io/agent"]
+    }
     for await (const witness_li of queued){
         const user_input = witness_li.innerText
-        let referencesObj = {
-            "@context":"http://www.w3.org/ns/anno.jsonld",
-            "@type":"Annotation",
-            "body":{
-                "references":{
-                    "value":[glossid]
-                }
-            },
-            "target": "TODO",
-            "creator": window.GOG_USER["http://store.rerum.io/agent"]
+        const match = witness_li.getAttribute("matched-manuscript") ? witness_li.getAttribute("matched-manuscript") : ""
+        matchedManuscript = {"@id" : match}
+        if(!match){
+            matchedManuscript = await fetch(`${__constants.tiny}/create`, {
+                method: "POST",
+                mode: 'cors',
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                },
+                body: JSON.stringify(manuscriptWitnessObj)
+            })
+            .then(res => res.json())
+            .catch(err => {throw err})
         }
-        let identifierObj = {
-            "@context":"http://www.w3.org/ns/anno.jsonld",
-            "@type":"Annotation",
-            "body":{
-                "identifier":{
-                    "value":user_input
-                }
-            },
-            "target": "TODO",
-            "creator": window.GOG_USER["http://store.rerum.io/agent"]
-        }
-        const witnessObj = {
-            "@context": "http://purl.org/dc/terms",
-            "@type": "Text",
-            "creator": window.GOG_USER["http://store.rerum.io/agent"]
-        }
-        createdWitness = await fetch(`${__constants.tiny}/create`, {
+        createdWitnessFragment = await fetch(`${__constants.tiny}/create`, {
             method: "POST",
             mode: 'cors',
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
             },
-            body: JSON.stringify(witnessObj)
+            body: JSON.stringify(witnessFragmentObj)
         })
         .then(res => res.json())
         .catch(err => {throw err})
-
-        if(createdWitness["@id"]){
-            identifierObj.target = createdWitness["@id"]
-            referencesObj.target = createdWitness["@id"]
+        if(matchedManuscript["@id"] && createdWitnessFragment["@id"]){
+            let identifierObj_Manuscript = {
+                "@context":"http://www.w3.org/ns/anno.jsonld",
+                "@type":"Annotation",
+                "body":{
+                    "identifier":{
+                        "value":user_input
+                    }
+                },
+                "target": matchedManuscript["@id"],
+                "creator": window.GOG_USER["http://store.rerum.io/agent"]
+            }
+            let identifierObj_Fragment = {
+                "@context":"http://www.w3.org/ns/anno.jsonld",
+                "@type":"Annotation",
+                "body":{
+                    "identifier":{
+                        "value":user_input
+                    }
+                },
+                "target": createdWitnessFragment["@id"],
+                "creator": window.GOG_USER["http://store.rerum.io/agent"]
+            }
+            let partOfObj = {
+                "@context":"http://www.w3.org/ns/anno.jsonld",
+                "@type":"Annotation",
+                "body":{
+                    "partOf":{
+                        "value":matchedManuscript["@id"]
+                    }
+                },
+                "target": createdWitnessFragment["@id"],
+                "creator": window.GOG_USER["http://store.rerum.io/agent"]
+            }
+            let referencesObj = {
+                "@context":"http://www.w3.org/ns/anno.jsonld",
+                "@type":"Annotation",
+                "body":{
+                    "references":{
+                        "value":[glossid]
+                    }
+                },
+                "target": createdWitnessFragment["@id"],
+                "creator": window.GOG_USER["http://store.rerum.io/agent"]
+            }
+            identifierObj_Fragment.target = createdWitnessFragment["@id"]
+            referencesObj.target = createdWitnessFragment["@id"]
+            partOfObj.target = createdWitnessFragment["@id"]
             const a = witness_li.querySelector("a")
-            witness_li.setAttribute("deer-id", createdWitness["@id"])
+            witness_li.setAttribute("deer-id", matchedManuscript["@id"])
             //how do we know which one to link to: gloss-transcription or gloss-witness??
             //The established way is to see if a source anno exists and if it's value has TPEN or not.
-            a.setAttribute("href", `gloss-transcription.html#${createdWitness["@id"]}`)
-            createdIdentifierAnno = await fetch(`${__constants.tiny}/create`, {
-                method: "POST",
-                mode: 'cors',
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                },
-                body: JSON.stringify(identifierObj)
-            })
-            .then(res => res.json())
-            .catch(err => {throw err})
-            createdReferencesAnno = await fetch(`${__constants.tiny}/create`, {
-                method: "POST",
-                mode: 'cors',
-                headers: {
-                    "Content-Type": "application/json; charset=utf-8",
-                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
-                },
-                body: JSON.stringify(referencesObj)
-            })
-            .then(res => res.json())
-            .catch(err => {throw err})
+            a.setAttribute("href", `manuscript-details.html#${matchedManuscript["@id"]}`)
+            let createdIdentifierAnno_Manuscript = null
+            let [
+                createdReferencesAnno,
+                createdIdentifierAnno_Fragment,
+                createdPartOfAnno
+            ]
+            = await Promise.all([
+                fetch(`${__constants.tiny}/create`, {
+                    method: "POST",
+                    mode: 'cors',
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    },
+                    body: JSON.stringify(referencesObj)
+                })
+                .then(res => res.json())
+                .catch(err => {throw err}),
+                fetch(`${__constants.tiny}/create`, {
+                    method: "POST",
+                    mode: 'cors',
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    },
+                    body: JSON.stringify(identifierObj_Fragment)
+                })
+                .then(res => res.json())
+                .catch(err => {throw err}),
+                fetch(`${__constants.tiny}/create`, {
+                    method: "POST",
+                    mode: 'cors',
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    },
+                    body: JSON.stringify(partOfObj)
+                })
+                .then(res => res.json())
+                .catch(err => {throw err})
+            ])
+
+            if(!match){
+                // If there isn't a match then we created a ManuscriptWitness which now needs an identifier annotation.
+                // If there was a match, no Annotation generation is required.
+                createdIdentifierAnno_Manuscript = await fetch(`${__constants.tiny}/create`, {
+                    method: "POST",
+                    mode: 'cors',
+                    headers: {
+                        "Content-Type": "application/json; charset=utf-8",
+                        "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                    },
+                    body: JSON.stringify(identifierObj_Manuscript)
+                })
+                .then(res => res.json())
+                .catch(err => {throw err})
+            }
+
             witness_li.setAttribute("deer-source", createdReferencesAnno["@id"])
-            a.setAttribute("deer-source", createdIdentifierAnno["@id"])
+            a.setAttribute("deer-source", createdIdentifierAnno_Fragment["@id"])
             witness_li.querySelector("span").remove()
             witness_li.classList.remove("witness-queued")
-        }
-        createdWitness.identifier = {
+
+            createdWitnessFragment.identifier = {
             "source":{
-                "citationSource":createdIdentifierAnno["@id"]
+                "citationSource":createdIdentifierAnno_Fragment["@id"]
             },
             "value" : user_input
+            }
+            matchedManuscript.identifier = {
+                "source":{
+                    "citationSource":createdIdentifierAnno_Manuscript["@id"]
+                },
+                "value" : user_input
+            }
+            createdWitnessFragment.references = {
+                "source":{
+                    "citationSource":createdReferencesAnno["@id"]
+                },
+                "value" : [glossid]
+            }
+            createdWitnessFragment.partOf = {
+                "source":{
+                    "citationSource":createdPartOfAnno["@id"]
+                },
+                "value" : matchedManuscript["@id"]
+            }
         }
-        createdWitness.references = {
-            "source":{
-                "citationSource":createdReferencesAnno["@id"]
-            },
-            "value" : [glossid]
-        }
-        createdWitnesses.push(createdWitness)
+        allInvolvedEntities.manuscripts.push(matchedManuscript)
+        allInvolvedEntities.fragments.push(createdWitnessFragment)
     }
-    return createdWitnesses
+    return allInvolvedEntities
 }
 
 /**
@@ -232,8 +332,8 @@ addEventListener('deer-updated', async (event) => {
     event.stopPropagation()
     let witness = null
     const entityID = event.detail["@id"]  
-    // PROPOSED quick witness generation and connection via the gog-references-browser.
-    const witnesses = await generateWitnessesOnSubmit(entityID)
+    // Only have to await this if we care to stop processing on error
+    const generatedQuickEntities = await generateWitnessesOnSubmit(entityID)
 
     const customTextElems = [
         $elem.querySelector("select[custom-text-key='language']"),

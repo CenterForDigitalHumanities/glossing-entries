@@ -453,9 +453,9 @@ class ReferencesBrowser extends HTMLElement {
             Have a Witness or two in mind?  Provide shelfmarks below to create Witnesses when you submit this Gloss.<br>
             Witnesses queued to be created when you submit can be removed by clicking the '<span style="color:red;">x</span>' symbol.
         </p>
-        <form id="GlossReferenceForm" class="row bg-light">
+         <form id="GlossReferenceForm" class="row bg-light">
             <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
-            <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="secondary" value="Under Construction">
+            <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="submit" value="Add Witness Reference" >
         </form>
         <p class="bumper"> 
             Known and queued Witnesses of this Gloss are displayed below.  Click a known Witness for details about the Witness.
@@ -464,12 +464,6 @@ class ReferencesBrowser extends HTMLElement {
             <li class="wait"> Looking for Witnesses... </li>
         </ul>
     `
-    /**
-        <form id="GlossReferenceForm" class="row bg-light">
-            <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
-            <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="submit" value="Add Witness Reference" >
-        </form>
-     */ 
     constructor() {
         super()
     }
@@ -603,15 +597,33 @@ class ReferencesBrowser extends HTMLElement {
          * Click event handler for Add Theme.  Takes the user input and adds the string to the Set if it isn't already included.
          * Includes pagination.
          * */
-        this.addReference = function(event) {
+        this.addReference = async function(event) {
             event.preventDefault()
             event.stopPropagation()
+
             const name = witnessInput.value
             if(!name) return
+            let dup = false
+            // Don't add a second reference to the same thing.  We cannot make two Witnesses of the same name.
+            const existing = witnessList.querySelectorAll("a")
+            for(const a of existing){
+                if(a.innerText === name){
+                    dup = true 
+                    break
+                }
+            }
+            if(dup){
+                const e = new CustomEvent("No Duplicates")
+                globalFeedbackBlip(e, `Duplicate Witnesses are not allowed.  Change the shelfmark.`, false)
+                return
+            }
+            let matchedWitnessURI = await getManuscriptWitnessFromShelfmark(name.trim())
+            if(!matchedWitnessURI) matchedWitnessURI = ""
             witnessList.querySelector("li.wait")?.remove()
             const li = document.createElement("li")
             const a = document.createElement("a")
             li.classList.add("witness-queued")
+            li.setAttribute("matched-manuscript", matchedWitnessURI)
             li.setAttribute("title", "This Witness is queued")
             a.setAttribute("target", "_blank")
             a.setAttribute("deer-id", "")
@@ -638,7 +650,7 @@ class ReferencesBrowser extends HTMLElement {
             event.target.closest("li").remove()
         }
 
-        //$this.querySelector("#GlossReferenceForm").addEventListener("submit", $this.addReference)
+        $this.querySelector("#GlossReferenceForm").addEventListener("submit", $this.addReference)
     }
     static get observedAttributes() { return ['gloss-uri'] }
 }
