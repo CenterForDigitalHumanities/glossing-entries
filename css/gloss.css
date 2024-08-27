@@ -93,7 +93,6 @@ h1.title {
   font-size: 3em;
   font-family: "Eczar","Volkhov",serif;
   margin:0;
-  margin-left: -0.6em;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -546,4 +545,8 @@ textarea:disabled, select:disabled {
     padding-bottom: 20px;
     padding-left: 20px;
     padding-right: 24px;
+}
+
+input.required, textarea.required, select.required{
+    border: 1px solid black;
 }

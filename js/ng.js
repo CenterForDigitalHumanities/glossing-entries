@@ -54,7 +54,6 @@ window.onload = () => {
     if(!hash){
        // These items have default values that are dirty on fresh forms.
         glossForm.querySelector("select[custom-text-key='language']").$isDirty = true
-        glossForm.querySelector("input[custom-text-key='format']").$isDirty = true
     }
     // mimic isDirty detection for these custom inputs
     glossForm.querySelector("select[custom-text-key='language']").addEventListener("change", ev => {
@@ -62,19 +61,6 @@ window.onload = () => {
         glossForm.$isDirty = true
     })
     glossForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
-        ev.target.$isDirty = true
-        glossForm.$isDirty = true
-    })
-    // Note that this HTML element is a checkbox
-    glossForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
-        if(ev.target.checked){
-            ev.target.value = "text/html"
-            ev.target.setAttribute("value", "text/html")
-        }
-        else{
-            ev.target.value = "text/plain"
-            ev.target.setAttribute("value", "text/plain")
-        }
         ev.target.$isDirty = true
         glossForm.$isDirty = true
     })
@@ -103,7 +89,6 @@ addEventListener('deer-form-rendered', event => {
                 return
             }
             prefillTagsArea(annotationData["tags"], event.target)
-            prefillThemesArea(annotationData["themes"], event.target)
             prefillText(annotationData["text"], event.target)
             if(event.detail.targetChapter && !event.detail["_section"]) {
                 // This conditional is solely to support Glossing Matthew data and accession it into the new encoding.
@@ -251,21 +236,18 @@ addEventListener('deer-updated', async (event) => {
     const witnesses = await generateWitnessesOnSubmit(entityID)
 
     const customTextElems = [
-        $elem.querySelector("input[custom-text-key='format']"),
         $elem.querySelector("select[custom-text-key='language']"),
         $elem.querySelector("textarea[custom-text-key='text']")
     ]
     if(customTextElems.filter(el => el.$isDirty).length > 0){
         // One of the text properties has changed so we need the text object
-        const format = customTextElems[0].value
-        const language = customTextElems[1].value
-        const text = customTextElems[2].value
+        const language = customTextElems[0].value
+        const text = customTextElems[1].value
         let textanno = {
             "@context": "http://www.w3.org/ns/anno.jsonld",
             "@type": "Annotation",
             "body": {
                 "text":{
-                    "format" : format,
                     "language" : language,
                     "textValue" : text
                 }
@@ -273,7 +255,7 @@ addEventListener('deer-updated', async (event) => {
             "target": entityID,
             "creator" : window.GOG_USER["http://store.rerum.io/agent"]
         }
-        const el = customTextElems[2]
+        const el = customTextElems[1]
         if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
         fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
             method: `${el.hasAttribute("deer-source")?"PUT":"POST"}`,
@@ -288,7 +270,6 @@ addEventListener('deer-updated', async (event) => {
         .then(a => {
             customTextElems[0].setAttribute("deer-source", a["@id"])
             customTextElems[1].setAttribute("deer-source", a["@id"])
-            customTextElems[2].setAttribute("deer-source", a["@id"])
         })
         .catch(err => {
             console.error(`Could not generate 'text' property Annotation`)
@@ -399,37 +380,6 @@ function prefillTagsArea(tagData, form = document.getElementById("named-gloss"))
     })
     selectedTagsArea.innerHTML = tags
 }
-/**
- * Prefills the themes area in the form with provided theme data and builds the UI.
- * @param {object|array|string} themeData - The theme data to prefill.
- * @param {HTMLFormElement} form - The form element where the themes area is located.
- * @returns {boolean} - Returns false if there is no theme data.
- */
-function prefillThemesArea(themeData, form = document.getElementById("named-gloss")) {
-    if (themeData === undefined) {
-        console.warn("Cannot set value for themes and build UI.  There is no data.")
-        return false
-    }
-    let arr_names = (themeData.hasOwnProperty("value") && themeData.value.hasOwnProperty("items")) ? themeData.value.items :
-        themeData.hasOwnProperty("items") ? themeData.items :
-            [themeData]
-    if (arr_names.length === 0) {
-        console.warn("There are no themes recorded for this Gloss")
-        return false
-    }
-    form.querySelector("input[deer-key='themes']").value = arr_names.join(",")
-    let area = form.querySelector("input[deer-key='themes']").nextElementSibling //The view or select should always be just after the input tracking the values from it.
-    //Now build the little themes
-    let selectedTagsArea = area.parentElement.querySelector(".selectedEntities")
-    selectedTagsArea.innerHTML = ""
-    let themes = ""
-    arr_names.forEach(themeName => {
-        if (themeName) {
-            themes += `<span class="tag is-small">${themeName}<span onclick="this.closest('gog-theme-widget').removeTheme(event)" class="removeTheme" theme-name="${themeName}"></span></span>`
-        }
-    })
-    selectedTagsArea.innerHTML = themes
-}
 
 /**
  * Helper function for the specialized text key, which is an Object.
@@ -437,20 +387,18 @@ function prefillThemesArea(themeData, form = document.getElementById("named-glos
  * */
 function prefillText(textObj, form) {
     const languageElem = form.querySelector("select[custom-text-key='language'")
-    const formatElem = form.querySelector("input[custom-text-key='format'")
     const textElem = form.querySelector("textarea[custom-text-key='text'")
     if (textObj === undefined) {
         console.warn("Cannot set value for text and build UI.  There is no data.")
         return false
     }
-    if(![languageElem,formatElem,textElem].some(e=>e)) {
+    if(![languageElem,textElem].some(e=>e)) {
         console.warn("Nothing to fill.")
         return false
     }
     const source = textObj?.source
     if(source?.citationSource){
         form.querySelector("select[custom-text-key='language'")?.setAttribute("deer-source", source.citationSource ?? "") 
-        form.querySelector("input[custom-text-key='format'")?.setAttribute("deer-source", source.citationSource ?? "") 
         form.querySelector("textarea[custom-text-key='text'")?.setAttribute("deer-source", source.citationSource ?? "") 
     }
     textObj = textObj.value ?? textObj
@@ -459,15 +407,7 @@ function prefillText(textObj, form) {
         languageElem.value = language
         languageElem.setAttribute("value", language)
     }
-    
-    const format = textObj.format
-    if(format === "text/html"){
-        formatElem.checked = true
-    }
-    if(formatElem) {
-        formatElem.value = format
-        formatElem.setAttribute("value", "format")
-    }
+
     const textVal = textObj.textValue
     if (!textVal) {
         console.warn("There is no text recorded for this witness")
@@ -514,7 +454,7 @@ async function deleteGloss(id=glossHashID) {
         globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
         return
     }
-    let allWitnessesOfGloss = await getAllWitnessesOfGloss(id)
+    let allWitnessesOfGloss = await getAllWitnessFragmentsOfGloss(id)
     allWitnessesOfGloss = Array.from(allWitnessesOfGloss)
     // Confirm they want to do this
     if (!await showCustomConfirm(`Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)`)) return

@@ -12,8 +12,8 @@
     <script src="js/shared.js"></script>
     <style> 
         a.button{
-            margin: 1em 3px auto;
-            width: 25em;
+            margin: 1em 0em;
+            display: block;
         }
 
         .button+.button {
@@ -47,25 +47,26 @@
 </head>
 
 <body class="container">
-    <gog-header class="container"></gog-header>
-    <div class="content container">
-        <h2> Gallery of Glosses Data Entry Portal </h2>
+    <a href="/"><h1 class="title">Gallery of Glosses Data Entry</h1></a>
+    <div class="content">
         <p id="look" class="bg-light">
-            Welcome to the Gallery of Glosses data entry & management portal.  Here you can study gloss transcriptions from T-PEN, generate and connect Glosses and decorate Glosses with descriptive metadata.  See the ways to get started below.
+            Welcome to the Gallery of Glosses data entry & management portal.  Here you can study gloss transcriptions from T-PEN as well as other textual sources, generate and connect Glosses, and decorate Glosses with descriptive metadata.  See the ways to get started below.
         </p>
         <p class="alert">
             Note if you are not here for data entry or data management, you may be looking for the public site.  <a href="https://gallery-of-glosses.vercel.app/">Go there now!</a>
         </p>
         <h4> Data Entry and Viewing Options </h4>
-        <div class="options">
-            <a href="./ng.html" class="button primary">Create a New Gloss</a>
-            <a href="./glosses.html" class="button primary">Browse Gloss Collection</a>
-            <a title="Under Construction" class="button secondary">Create a Manuscript Witness</a>
-            <a title="Under Construction" class="button secondary">Browse Manuscripts With Glosses</a>
-            <a href="./gloss-transcription.html" class="button primary">Detect Glosses in T-PEN Transcriptions</a>
-            <a href="./gloss-witness.html" class="button primary">Detect Glosses in Text</a>
-            <a title="Under Construction" class="button secondary">Manage Manuscript Witnesses</a>
-            <a href="./manage-glosses.html" class="button primary">Manage Glosses</a>
+        <div class="options row">
+            <div class="col-6">
+                <a href="./ng.html" class="button primary">Create a New Gloss</a>
+                <a href="./glosses.html" class="button primary">Browse Gloss Collection</a>
+                <a href="./manage-glosses.html" class="button primary">Manage Glosses</a>
+            </div>
+            <div class="col-6">
+                <a href="./gloss-transcription.html" class="button primary">Detect Glosses in TPEN Transcriptions</a>
+                <a href="./gloss-witness.html" class="button primary">Detect Glosses in Text</a>
+                <a href="./manuscripts.html" class="button primary">Browse Manuscripts With Glosses</a>
+            </div>
         </div>
     </div>
     <gog-footer class="container"></gog-footer>

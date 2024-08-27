@@ -553,6 +553,18 @@ addEventListener('deer-updated', event => {
     event.preventDefault()
     event.stopPropagation()
     const entityID = event.detail["@id"]  
+    const shelfmark = $elem.querySelector("input[deer-key='identifier']")?.value
+    // Hmm maybe do this separation of handling a bit different.
+    if($elem?.id === "manuscriptWitnessForm"){
+        // We generated the Manuscript Witness and can use this ID as part of the fragment for submit
+        activateFragmentForm(event.detail["@id"], shelfmark, true)
+        console.log("Manuscript Witness Fully Saved")
+        const ev = new CustomEvent("Manuscript Witness Submitted")
+        globalFeedbackBlip(ev, `Manuscript Witness Saved and Loaded In`, true)
+        return
+    }
+    else if($elem?.id  !== "witnessFragmentForm") return
+
     // These promise are for all the simple array values ('references' and 'selections')
     let annotation_promises = Array.from($elem.querySelectorAll("input[custom-key]"))
         .filter(el => el.$isDirty)
