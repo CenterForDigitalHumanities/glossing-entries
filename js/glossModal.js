@@ -119,9 +119,6 @@ class GlossModal extends HTMLElement {
                 max-height: 95%; 
                 overflow-y: auto;
             }
-            .modal form{
-
-            }
         </style>
         <div class="window-shadow"> 
             <div class="modal container">
@@ -133,7 +130,6 @@ class GlossModal extends HTMLElement {
                         Create a new Gloss for Gallery of Glosses.  
                         When you create this Gloss it will be attached to the T-PEN Transcription text selection and appear in the Gallery of Glosses Gloss Collection.
                     </p>
-
                     <form name="gloss-modal-form" deer-type="Gloss" deer-context="http://purl.org/dc/terms">
                         <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
                         <input is="auth-creator" type="hidden" deer-key="creator" />
@@ -192,7 +188,7 @@ class GlossModal extends HTMLElement {
         this.innerHTML = this.template
         const $this = this
         const $form = this.querySelector("form")
-        const textWitnessID = window.location.hash.substr(1)
+        const textWitnessID = window.location.hash.slice(1)
 
         // Catch the entity creation announcement from DEER
         addEventListener('deer-updated', event => {

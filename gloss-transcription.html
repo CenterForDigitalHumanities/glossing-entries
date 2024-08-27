@@ -10,8 +10,8 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/tpen-line-selector.js" type="module"></script>
-    <script src="js/glossModal.js" type="module"></script>
     <script src="js/shared.js"></script>
+    <script src="js/glossModal.js" type="module"></script>
     <script src="js/mark.min.js"></script>
 
     <style>
@@ -78,89 +78,93 @@
                     class="required">
             </div>
             <div class="col">
-                <label class="col-3 col-2-md text-right">Folio or Page:</label>
-                <input type="text" deer-key="_folio"
-                    placeholder="Folio or page number from this witness where the gloss is found"
-                    class="col-9 col-10-md">
+                <details>
+                    <summary>
+                        <label>Folio or Page:</label>
+                    </summary>
+                    <small>Folio or page number from this Witness where the gloss is found.</small>
+                </details>
+                <input type="text" deer-key="_folio" placeholder="e.g, 132r">
             </div>
         </div>
         <div class="row">
-            <label class="col-3 col-2-md text-right">Text: &#10082;</label>
-            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required"
-                placeholder="Text is required.  Highlight transcription text..."></textarea>
-
+            <div class="col">
+                <label>Text:</label>
+                <textarea custom-text-key="text" required rows="2" class="required"
+                    placeholder="Text is required.  Highlight transcription text below..."></textarea>
+            </div>
         </div>
         <div class="row">
+            <div class="col">
+                <label>Language:</label>
+                <select custom-text-key="language" title="select language">
+                    <option value="la" selected>Latin</option>
+                    <option value="de">German</option>
+                    <option value="fr">French</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+            <div class="col">
+                <label>Gloss Format:</label>
+                <select deer-key="_glossFormat" title="select gloss format">
+                    <option value="none" selected>None</option>
+                    <option value="marginal">Marginal</option>
+                    <option value="interlinear">Interlinear</option>
+                    <option value="appendix">Appendix</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
 
-            <label class="col-3 col-2-md text-right">Language:</label>
-            <select custom-text-key="language" title="select language" class="col-9 col-4-md">
-                <option value="la" selected>Latin</option>
-                <option value="de">German</option>
-                <option value="fr">French</option>
-                <option value="en">English</option>
-            </select>
-
-            <label class="col-3 col-2-md text-right">Gloss Format:</label>
-            <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
-                <option value="none" selected>None</option>
-                <option value="marginal">Marginal</option>
-                <option value="interlinear">Interlinear</option>
-                <option value="appendix">Appendix</option>
-                <option value="other">Other</option>
-            </select>
-            <label class="col-3 col-2-md text-right">Gloss Location:</label>
-            <select deer-key="_glossLocation" title="select gloss location relative to the main text"
-                class="col-9 col-4-md">
-                <option value="none" selected>None</option>
-                <option value="top">Top</option>
-                <option value="bottom">Bottom</option>
-                <option value="center">Center</option>
-                <option value="left">Left</option>
-                <option value="right">Right</option>
-                <option value="top left">Top Left</option>
-                <option value="top center">Top Center</option>
-                <option value="top right">Top Right</option>
-                <option value="bottom left">Bottom Left</option>
-                <option value="bottom center">Bottom Center</option>
-                <option value="bottom right">Bottom Right</option>
-                <option value="top left">Top Left</option>
-                <option value="top center">Top Center</option>
-                <option value="top right">Top Right</option>
-                <option value="bottom left">Bottom Left</option>
-                <option value="bottom center">Bottom Center</option>
-                <option value="bottom right">Bottom Right</option>
-                <option value="other">Other</option>
-            </select>
-
-            <!-- Useful but not used yet.  It is never shown in the UI and stays 'is-hidden' -->
-            <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
-            <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..."
-                class="chosenGloss col-9 col-10-md is-hidden"></textarea>
+            <div class="col">
+                <label>Gloss Location:</label>
+                <select deer-key="_glossLocation" title="select gloss location relative to the main text">
+                    <option value="none" selected>None</option>
+                    <option value="top">Top</option>
+                    <option value="bottom">Bottom</option>
+                    <option value="center">Center</option>
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                    <option value="top left">Top Left</option>
+                    <option value="top center">Top Center</option>
+                    <option value="top right">Top Right</option>
+                    <option value="bottom left">Bottom Left</option>
+                    <option value="bottom center">Bottom Center</option>
+                    <option value="bottom right">Bottom Right</option>
+                    <option value="top left">Top Left</option>
+                    <option value="top center">Top Center</option>
+                    <option value="top right">Top Right</option>
+                    <option value="bottom left">Bottom Left</option>
+                    <option value="bottom center">Bottom Center</option>
+                    <option value="bottom right">Bottom Right</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="col">
+                <label>Glossator Hand:</label>
+                <select deer-key="_glossatorHand" title="glossator">
+                    <option value="original" selected>original</option>
+                    <option value="later">later</option>
+                </select>
+            </div>
         </div>
-
-        <label class="col-3 col-2-md text-right">Glossator Hand:</label>
-        <select deer-key="_glossatorHand" title="glossator" class="col-9 col-4-md">
-            <option value="original" selected>original</option>
-            <option value="later">later</option>
-        </select>
-
+<div class="row">
+    <div class="col">
         <label class="col-3 col-2-md text-right">Image Link:
-            <small><a href="https://ncsu-libraries.github.io/iiif-crop-tool/" target="_blank" rel="noopener">crop tool</a></small>
+            <small><a href="https://ncsu-libraries.github.io/iiif-crop-tool/" target="_blank" rel="noopener">crop tool</a></label>small>
         </label>
-        <input type="url" deer-key="depiction" placeholder="Paste an image URL or IIIF selector link"
-            class="col-9 col-10-md">
+        <input type="url" deer-key="depiction" placeholder="Paste an image URL or IIIF selector link">
+    </div>
+</div>
         <div class="row">
             <gog-tag-widget class="col"></gog-tag-widget>
-            <input class="is-hidden button primary" type="submit" value="Create Textual Witness" />
-            <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness" />
         </div>
         <div class="row">
-            <input class="is-hidden button primary" type="submit" value="Create Textual Witness" />
-            <input class="is-hidden button error deleteWitness" type="button" value="Delete Textual Witness" />
+            <input class="col is-hidden button primary" type="submit" value="Create Textual Witness" />
+            <input class="col is-hidden button error deleteWitness" type="button" value="Delete Textual Witness" />
         </div>
-                <div class="row">
-            <tpen-line-selector class="lineSelector tpen-needed is-hidden col-7-md col-6-sm"> </tpen-line-selector>
-            <deer-view class="tpen-needed is-hidden col-5-md col-6-sm" id="ngCollectionList"
+        <div class="row">
+            <tpen-line-selector class="lineSelector tpen-needed is-hidden col"> </tpen-line-selector>
+            <deer-view class="tpen-needed is-hidden col" id="ngCollectionList"
                 deer-collection="GoG-Named-Glosses" deer-link="ng.html#"
                 deer-template="glossesSelectorForTextualWitness">
                 Loading&hellip;
