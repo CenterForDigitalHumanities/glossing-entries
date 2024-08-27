@@ -1149,9 +1149,6 @@ async function deleteWitnessFragment(redirect){
 
 /**
  * For a given shelfmark, query RERUM to find matching Manuscript Witness entities.
- * There are 0 to many body.identifier Annotations with the shelfmark value.
- * The 'target' value of those Annotations are Manuscript Witness URIs.
- * Make a Set out of those target URIs and be wary if the size is greater than 1.
  * 
  * @param shelfmark - A string representing the shelfmark value
  * @return the Manuscript Witness URI
@@ -1169,15 +1166,12 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
 
-    let manuscriptUriSet = await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-        method: "POST",
-        mode: 'cors',
-        headers: {
-            "Content-Type": "application/json;charset=utf-8"
-        },
-        body: JSON.stringify(shelfmarkAnnosQuery)
-    })
-    .then(response => response.json())
+    /**
+     * FIXME Since ManuscriptWitness and WitnessFragment types have this shelfmark we have to do an expensive query here.
+     * The query gets every Annotation with this shelfmark body and filters out those that aren't for a ManuscriptWitness.
+     * Then it makes a Set out of the resulting ManuscriptWitnesses to ensure only a single ManuscriptWitness matched.  More than one is an error
+     */ 
+    let manuscriptUriSet = await getPagedQuery(100, 0, shelfmarkAnnosQuery)
     .then(async (annos) => {
         const manuscripts = annos.map(async(anno) => {
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
@@ -1212,7 +1206,6 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
 /**
  * For a given Witness Fragment URI, query RERUM to find the Manuscript Witness it is a part of.
  * There is 1 body.partOf Annotation (leaf) whose target value is this Witness Fragment URI.
- * Make a Set out of that URI, and be wary if the size is greater than 1.
  * 
  * @param fragmentURI - A string URI of a Witness Fragment entity
  * @return the Manuscript Witness URI
@@ -1225,13 +1218,13 @@ async function getManuscriptWitnessFromFragment(fragmentURI=null){
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
 
-   //each fragment has partOf Annotations letting you know the Manuscripts it is a part of.
     const partOfAnnosQuery = {
         "body.partOf.value": {"$exists":true},
         "target": httpsIdArray(fragmentURI),
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
+    // Note this makes no attempt to check if the given WitnessFragment is a partOf multiple ManuscriptWitnesses
     let manuscriptUriSet = await fetch(`${__constants.tiny}/query?limit=1&skip=0`, {
         method: "POST",
         mode: 'cors',
@@ -1263,22 +1256,19 @@ async function getManuscriptWitnessFromFragment(fragmentURI=null){
         console.log(`There is no Manuscript Witness for fragment '${fragmentURI}'`)
         return
     }
-    else if(manuscriptUriSet.size > 1){
-        console.error("There are many Manuscript Witnesses when we only expect one.")
-        return
-    }
+    // else if(manuscriptUriSet.size > 1){
+    //     console.error("There are many Manuscript Witnesses when we only expect one.")
+    //     return
+    // }
     
     // There should only be one unique entry.  If so, we just need to return the first next() in the set iterator.
     return manuscriptUriSet.values().next().value
 }
 
 /**
- * For a given URI, query RERUM to find the Manuscript Witness it belongs to.
- * There are 0 to many body.source Annotations (leaf) whose target value is some Witness Fragment URI.
- * There is 1 body.partOf Annotation (leaf) whose target value is this Witness Fragment URI.
- * Make a Set out of that Witness Fragment URI, and be wary if the size is greater than 1.
+ * For a given content source (URI or text hash), query RERUM to find the Manuscript Witness it belongs to.
  * 
- * @param source - A string URI representing an internet resource (textual)
+ * @param source - A string URI or hash representing a resource (textual)
  * @return the Manuscript Witness URI
  */ 
 async function getManuscriptWitnessFromSource(source=null){
@@ -1297,14 +1287,12 @@ async function getManuscriptWitnessFromSource(source=null){
           }
       }
 
-    // Each source annotation targets a Witness.
-    // Get all the source annotations whose value is this source string (URI or text string)
     const sourceAnnosQuery = {
         "body.source.value": isURI(source) ? httpsIdArray(source) : source,
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
-
+    // Note this makes no attempt to check if the given source exists for multiple WitnessFragments.
     let fragmentUriSet = await fetch(`${__constants.tiny}/query?limit=1&skip=0`, {
         method: "POST",
         mode: 'cors',
@@ -1347,6 +1335,7 @@ async function getManuscriptWitnessFromSource(source=null){
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
+    // Note this makes no attempt to check if the given WitnessFragment is a partOf multiple ManuscriptWitnesses
     let manuscriptUriSet = await fetch(`${__constants.tiny}/query?limit=1&skip=0`, {
         method: "POST",
         mode: 'cors',
@@ -1377,10 +1366,10 @@ async function getManuscriptWitnessFromSource(source=null){
         console.log(`There is no Manuscript Witness with source '${source}'`)
         return
     }
-    else if(manuscriptUriSet.size > 1){
-        console.error("There are many Manuscript Witnesses when we only expect one.")
-        return
-    }
+    // else if(manuscriptUriSet.size > 1){
+    //     console.error("There are many Manuscript Witnesses when we only expect one.")
+    //     return
+    // }
     return manuscriptUriSet.values().next().value
 }
 

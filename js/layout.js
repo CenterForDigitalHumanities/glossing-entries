@@ -600,11 +600,10 @@ class ReferencesBrowser extends HTMLElement {
         this.addReference = async function(event) {
             event.preventDefault()
             event.stopPropagation()
-
             const name = witnessInput.value
             if(!name) return
             let dup = false
-            // Don't add a second reference to the same thing.  We cannot make two Witnesses of the same name.
+            // Don't add a second reference to the same thing.  We cannot make two Witnesses of the same identifier.
             const existing = witnessList.querySelectorAll("a")
             for(const a of existing){
                 if(a.innerText === name){
