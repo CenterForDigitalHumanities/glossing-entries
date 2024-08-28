@@ -76,14 +76,14 @@ let witnessFragmentsObj = {}
 //For when we test, so we can easily find and blow away junk data
 setTimeout(() => {
     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-        el.value="BryanQW"
-        el.setAttribute("value", "BryanQW")
+        el.value="cuba&thehabes"
+        el.setAttribute("value", "cuba&thehabes")
     })
     document.querySelectorAll("form").forEach(el => {
-        el.setAttribute("deer-creator", "BryanQW")
+        el.setAttribute("deer-creator", "cuba&thehabes")
     })
     if(!window.GOG_USER) window.GOG_USER = {}
-    window.GOG_USER["http://store.rerum.io/agent"] = "BryanQW"
+    window.GOG_USER["http://store.rerum.io/agent"] = "cuba&thehabes"
 }, 4000)
 
 let __constants = {}
