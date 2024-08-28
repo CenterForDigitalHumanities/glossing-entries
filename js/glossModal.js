@@ -116,7 +116,7 @@ class GlossModal extends HTMLElement {
                         <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
                         <input is="auth-creator" type="hidden" deer-key="creator" />
                         <div class="row">
-                            <label class="col-3 col-2-md text-right">Gloss Text:</label>
+                            <label class="col-3 col-2-md text-right">Gloss Text: <i class="fas fa-info-circle icon-help" title="Enter the full text content of the gloss here."></i></label>
                             <textarea custom-text-key="text" name="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
                             <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
                             <select custom-text-key="language" name="textLang" class="col-3 col-2-md">
@@ -125,25 +125,20 @@ class GlossModal extends HTMLElement {
                                 <option value="fr">French</option>
                                 <option value="en">English</option>
                             </select>
-                            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
-                                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
-                            </label>
                         </div>
                         <div class="row">
-                            <label class="col-3 col-2-md text-right">Canonical Reference Locator:</label>
+                            <label class="col-3 col-2-md text-right">Canonical Reference Locator: <i class="fas fa-info-circle icon-help" title="Enter a reference to the location in the source text being glossed, e.g. 'Matthew 5:1' or 'Sententiae, liber 2, dist. 17' or 'Decretum C.32 q.1 c.3'."></i></label>
                             <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
                         </div>
                         <div class="row">
-                            <label class="col-3 col-2-md text-right">Target Text:</label>
+                            <label class="col-3 col-2-md text-right">Target Text: <i class="fas fa-info-circle icon-help" title="If applicable, specify the particular word or phrase (lemma) the gloss is commenting on, e.g. 's.v. potestas' or 'In principio'."></i></label>
                             <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text"></textarea>
-                            <label class="col-3 col-2-md text-right">Label for display:</label>
+                            <label class="col-3 col-2-md text-right">Label for display: <i class="fas fa-info-circle icon-help" title="Enter the incipit or some other identifying label."></i></label>
                             <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
                         </div>
                         <div class="row">
-                            <gog-tag-widget class="col"> </gog-tag-widget>
-                            <gog-theme-widget class="col"> </gog-theme-widget>
+                            <gog-tag-widget class="col"></gog-tag-widget>
                         </div>
-
                         <div class="row">
                             <div class="col">
                                 <p> Before submitting you can check for existing Glosses that may already contain the text provided above. </p>
@@ -151,10 +146,8 @@ class GlossModal extends HTMLElement {
                                 <div class="glossResult"></div>
                             </div>
                         </div>
-
                         <input type="submit" value="Create" class="col is-hidden">
                     </form>
-
                     <footer class="is-right">
                       <input type="button" value="Create Gloss" class="button primary"/>
                       <input type="button" value="Cancel" class="button secondary"/>
@@ -185,21 +178,18 @@ class GlossModal extends HTMLElement {
 
             // We need to save the custom text Annotation for the gloss
             const customTextElems = [
-                $elem.querySelector("input[custom-text-key='format']"),
                 $elem.querySelector("select[custom-text-key='language']"),
                 $elem.querySelector("textarea[custom-text-key='text']")
             ]
             if(customTextElems.filter(el => el.$isDirty).length > 0){
                 // One of the text properties has changed so we need the text object
-                const format = customTextElems[0].value
-                const language = customTextElems[1].value
-                const text = customTextElems[2].value
+                const language = customTextElems[0].value
+                const text = customTextElems[1].value
                 let textanno = {
                     "@context": "http://www.w3.org/ns/anno.jsonld",
                     "@type": "Annotation",
                     "body": {
                         "text":{
-                            "format" : format,
                             "language" : language,
                             "textValue" : text
                         }
@@ -207,7 +197,7 @@ class GlossModal extends HTMLElement {
                     "target": event.detail["@id"],
                     "creator" : window.GOG_USER["http://store.rerum.io/agent"]
                 }
-                const el = customTextElems[2]
+                const el = customTextElems[1]
                 if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
                     
                 fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
@@ -223,7 +213,6 @@ class GlossModal extends HTMLElement {
                 .then(a => {
                     customTextElems[0].setAttribute("deer-source", a["@id"])
                     customTextElems[1].setAttribute("deer-source", a["@id"])
-                    customTextElems[2].setAttribute("deer-source", a["@id"])
                 })
                 .catch(err => {
                     console.error(`Could not generate 'text' property Annotation`)
@@ -299,7 +288,6 @@ class GlossModal extends HTMLElement {
         if(!textWitnessID){
             // These items have default values that are dirty on fresh forms.
             $form.querySelector("select[custom-text-key='language']").$isDirty = true
-            $form.querySelector("input[custom-text-key='format']").$isDirty = true
         }
 
         // mimic isDirty detection for these custom inputs
@@ -308,19 +296,6 @@ class GlossModal extends HTMLElement {
             $form.$isDirty = true
         })
         $form.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
-            ev.target.$isDirty = true
-            $form.$isDirty = true
-        })
-        // Note that this HTML element is a checkbox
-        $form.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
-            if(ev.target.checked){
-                ev.target.value = "text/html"
-                ev.target.setAttribute("value", "text/html")
-            }
-            else{
-                ev.target.value = "text/plain"
-                ev.target.setAttribute("value", "text/plain")
-            }
             ev.target.$isDirty = true
             $form.$isDirty = true
         })
