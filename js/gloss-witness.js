@@ -188,7 +188,6 @@ window.onload = async () => {
     else{
         // These items have default values that are dirty on fresh forms.
         witnessFragmentForm.querySelector("select[custom-text-key='language']").$isDirty = true
-        witnessFragmentForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(sourceURI) {
             // special handler for ?wintess-uri=
             addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource(null, sourceURI))
@@ -214,19 +213,6 @@ window.onload = async () => {
         ev.target.closest("form").$isDirty = true
     })
     witnessFragmentForm.querySelector("textarea[custom-text-key='text']").addEventListener("input", ev => {
-        ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
-    })
-    // Note that this HTML element is a checkbox
-    witnessFragmentForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
-        if(ev.target.checked){
-            ev.target.value = "text/html"
-            ev.target.setAttribute("value", "text/html")
-        }
-        else{
-            ev.target.value = "text/plain"
-            ev.target.setAttribute("value", "text/plain")
-        }
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
@@ -319,20 +305,18 @@ addEventListener('deer-form-rendered', glossFormReset)
  */
 function prefillText(textObj, form) {
     const languageElem = form.querySelector("select[custom-text-key='language'")
-    const formatElem = form.querySelector("input[custom-text-key='format'")
     const textElem = form.querySelector("textarea[custom-text-key='text'")
     if (textObj === undefined) {
         console.warn("Cannot set value for text and build UI.  There is no data.")
         return false
     }
-    if(![languageElem,formatElem,textElem].some(e=>e)) {
+    if(![languageElem,textElem].some(e=>e)) {
         console.warn("Nothing to fill.")
         return false
     }
     const source = textObj?.source
     if(source?.citationSource){
         form.querySelector("select[custom-text-key='language'")?.setAttribute("deer-source", source.citationSource ?? "") 
-        form.querySelector("input[custom-text-key='format'")?.setAttribute("deer-source", source.citationSource ?? "") 
         form.querySelector("textarea[custom-text-key='text'")?.setAttribute("deer-source", source.citationSource ?? "") 
     }
     textObj = textObj.value ?? textObj
@@ -342,14 +326,6 @@ function prefillText(textObj, form) {
         languageElem.setAttribute("value", language)
     }
     
-    const format = textObj.format
-    if(format === "text/html"){
-        formatElem.checked = true
-    }
-    if(formatElem) {
-        formatElem.value = format
-        formatElem.setAttribute("value", "format")
-    }
     const textVal = textObj.textValue
     if (!textVal) {
         console.warn("There is no text recorded for this witness")
@@ -519,21 +495,18 @@ addEventListener('deer-updated', event => {
     // This gets the custom keys for the annotation.body.text which is an object
     // If any of the elements that build the object are dirty, then it is dirty.
     const customTextElems = [
-        $elem.querySelector("input[custom-text-key='format']"),
         $elem.querySelector("select[custom-text-key='language']"),
         $elem.querySelector("textarea[custom-text-key='text']")
     ]
     if(customTextElems.filter(el => el.$isDirty).length > 0){
         // One of the text properties has changed so we need the text object
-        const format = customTextElems[0].value
-        const language = customTextElems[1].value
-        const text = customTextElems[2].value
+        const language = customTextElems[0].value
+        const text = customTextElems[1].value
         let textanno = {
             "@context": "http://www.w3.org/ns/anno.jsonld",
             "@type": "Annotation",
             "body": {
                 "text":{
-                    "format" : format,
                     "language" : language,
                     "textValue" : text
                 }
@@ -541,7 +514,7 @@ addEventListener('deer-updated', event => {
             "target": entityID,
             "creator" : window.GOG_USER["http://store.rerum.io/agent"]
         }
-        const el = customTextElems[2]
+        const el = customTextElems[1]
         if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
         annotation_promises.push(
             fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {
