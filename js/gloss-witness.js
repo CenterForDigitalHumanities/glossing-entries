@@ -70,7 +70,7 @@ function setFragmentFormDefaults(){
         s.removeAttribute("deer-source")
     })
     // For when we test
-    form.querySelector("input[deer-key='creator']").value = "cuba&thehabes"
+    //form.querySelector("input[deer-key='creator']").value = "cuba&thehabes"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -269,7 +269,7 @@ function initFragmentForm(event){
     const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
     const source = annotationData?.source?.value
-    if(!tpenProjectURI) {
+    if(!source) {
         const ev = new CustomEvent("Witness Fragment does not have a source")
         globalFeedbackBlip(ev, `Witness Fragment does not have a source.  You will be redirected.`, false)
         addEventListener("globalFeedbackFinished", () => {
