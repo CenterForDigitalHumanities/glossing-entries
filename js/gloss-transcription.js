@@ -12,9 +12,9 @@ document.addEventListener("tpen-lines-error", function(event){
     loading.classList.add("is-hidden")
     const ev = new CustomEvent("TPEN Lines Error")
     globalFeedbackBlip(ev, `Error loading TPEN project '${tpenProjectURI}'.  Resetting...`, false)
-    setTimeout( () => {
+    addEventListener("globalFeedbackFinished", () => {
         startOver()
-    }, 2500)
+    })
 })
 
 // Make the text in the Gloss modal form the same as the one in the Witness form
@@ -138,8 +138,15 @@ function initFragmentForm(event){
     if(whatRecordForm !== "witnessFragmentForm") return
     // We will need to know the reference for addButton() so let's get it out there now.
     const sourceURI = annotationData?.source?.value
-    tpenProjectURI = tpenProjectURI ? tpenProjectURI : annotationData?.source?.value
-    if(!tpenProjectURI) return
+    tpenProjectURI = tpenProjectURI ? tpenProjectURI : sourceURI
+    if(!tpenProjectURI) {
+        const ev = new CustomEvent("Witness Fragment does not have a source")
+        globalFeedbackBlip(ev, `Witness Fragment does not have a source.  You will be redirected.`, false)
+        addEventListener("globalFeedbackFinished", () => {
+            location.href = `fragment-metadata.html#${annotationData["@id"]}`
+        })
+        return
+    }
     if(sourceURI && sourceURI !== tpenProjectURI){
         const ev = new CustomEvent("TPEN Lines Error")
         look.classList.add("text-error")
@@ -205,7 +212,7 @@ function setFragmentFormDefaults(){
         s.removeAttribute("deer-source")
     })
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "BryanGT"
+    //form.querySelector("input[deer-key='creator']").value = "cuba&thehabes"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""

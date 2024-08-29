@@ -16,9 +16,9 @@ document.addEventListener("source-text-error", function(event){
     loading.classList.add("is-hidden")
     const ev = new CustomEvent(`Could not get Witness Text Data from ${sourceURI}`)
     globalFeedbackBlip(ev, `Could not get Witness Text Data from ${sourceURI}.  Resetting...`, false)
-    setTimeout( () => {
+    addEventListener("globalFeedbackFinished", () => {
         startOver()
-    }, 2500)
+    })
 })
 
 /**
@@ -48,16 +48,17 @@ addEventListener('expandError', event => {
 })
 
 /**
- * Reset all the Witness Fragment form elements so the form is ready to generate another Witness Fragment.
- * If they provided a witness URI in the hash, then this is an 'update scenario' for the fragment. Do not perform the reset.
+ * Reset all the Witness form elements so the form is ready to generate a new Witness.
+ * This occurs after the user submits a new witness.
+ * If they provided a witness URI in the hash, then this is an 'update scenario'. Do not perform the reset.
  */ 
 function setFragmentFormDefaults(){
     // Continue the session like normal if they had loaded up an existing witness and updated it.
     if(witnessFragmentID) return 
     
-    const form = witnessFragmentForm  
+    const form = witnessFragmentForm
     form.setAttribute("deer-id", "")
-    form.removeAttribute("deer-source")    
+    form.setAttribute("deer-source", "")
     form.$isDirty = true
     form.querySelectorAll("input[deer-source]").forEach(i => {
         i.removeAttribute("deer-source")
@@ -65,11 +66,16 @@ function setFragmentFormDefaults(){
     form.querySelectorAll("textarea[deer-source]").forEach(t => {
         t.removeAttribute("deer-source")
     })
-    form.querySelectorAll("select").forEach(s => {
+    form.querySelectorAll("select[deer-source]").forEach(s => {
         s.removeAttribute("deer-source")
     })
     // For when we test
-    //document.querySelectorAll("input[deer-key='creator']").forEach(i => i.value = "BryanGT")
+    //form.querySelector("input[deer-key='creator']").value = "cuba&thehabes"
+    
+    const labelElem = form.querySelector("input[deer-key='title']")
+    labelElem.value = ""
+    labelElem.setAttribute("value", "")
+    labelElem.$isDirty = false
 
     // I do not think this is supposed to reset.  It is likely they will use the same shelfmark.
     const shelfmarkElem = form.querySelector("input[deer-key='identifier']")
@@ -84,11 +90,9 @@ function setFragmentFormDefaults(){
     const textElem = form.querySelector("textarea[custom-text-key='text']")
     textElem.value = ""
     textElem.setAttribute("value", "")
-    textElem.removeAttribute("deer-source")
     textElem.$isDirty = false
 
     const languageElem = form.querySelector("select[custom-text-key='language']")
-    languageElem.removeAttribute("deer-source")
     languageElem.setAttribute("value", "la")
     languageElem.value = "la"
     languageElem.$isDirty = true
@@ -96,24 +100,55 @@ function setFragmentFormDefaults(){
     const selectionsElem = form.querySelector("input[custom-key='selections']")
     selectionsElem.value = ""
     selectionsElem.setAttribute("value", "")
-    selectionsElem.removeAttribute("deer-source")
     selectionsElem.$isDirty = false
 
     const referencesElem = form.querySelector("input[custom-key='references']")
     referencesElem.value = ""
     referencesElem.setAttribute("value", "")
-    referencesElem.removeAttribute("deer-source")
     referencesElem.$isDirty = false
+
+    // The source value not change and would need to be captured on the next submit.
+    const sourceElem = form.querySelector("input[deer-key='source']")
+    sourceElem.$isDirty = true
 
     const glossFormatElem = form.querySelector("select[deer-key='_glossFormat']")
     glossFormatElem.value = "none"
-    glossFormatElem.removeAttribute("deer-source")
+    glossFormatElem.setAttribute("value", "none")
     glossFormatElem.$isDirty = false
 
-    // The source value not change and would need to be captured on the next submit.
-    const sourceElem = form.querySelector("input[witness-source]")
-    sourceElem.removeAttribute("deer-source")
-    sourceElem.$isDirty = true
+    const glossLocationElem = form.querySelector("select[deer-key='_glossLocation']")
+    glossLocationElem.value = "none"
+    glossLocationElem.setAttribute("value", "none")
+    glossLocationElem.$isDirty = false
+
+    const glossatorHandElem = form.querySelector("select[deer-key='_glossatorHand']")
+    glossatorHandElem.value = "none"
+    glossatorHandElem.setAttribute("value", "none")
+    glossatorHandElem.$isDirty = false
+
+    const imageLinkElem = form.querySelector("input[deer-key='depiction']")
+    imageLinkElem.value = ""
+    imageLinkElem.setAttribute("value", "")
+    imageLinkElem.$isDirty = false
+
+    const notesElem = form.querySelector("textarea[deer-key='_notes']")
+    notesElem.value = ""
+    notesElem.setAttribute("value", "")
+    notesElem.$isDirty = false
+
+    const folioElem = form.querySelector("input[deer-key='_folio']")
+    folioElem.value = ""
+    folioElem.setAttribute("value", "")
+    folioElem.$isDirty = false
+
+    const tagsElem = form.querySelector("input[deer-key='tags']")
+    tagsElem.value = ""
+    tagsElem.setAttribute("value", "")
+    tagsElem.$isDirty = false
+
+    //actually remove any tags in the UI
+    const tagsAreaElem = form.querySelector("gog-tag-widget")
+    tagsAreaElem.querySelectorAll("span.tag").forEach(el => el.remove())
 
     // reset the Glosses filter
     const filter = form.querySelector('input[filter]')
@@ -121,22 +156,17 @@ function setFragmentFormDefaults(){
     filter.setAttribute("value", "")
     filter.dispatchEvent(new Event('input', { bubbles: true }))
 
-    //remove text selection
+    // remove text selection
     let sel = window.getSelection ? window.getSelection() : document.selection
-    if (sel) {
-        if (sel.removeAllRanges) {
-            sel.removeAllRanges()
-        } else if (sel.empty) {
-            sel.empty()
-        }
-    }
+    undoBrowserSelection(sel)
 
-    //Change the .persist marks to .pre-select marks now represent the existing selection.
-    const lineElem = document.querySelector(".textContent")
-    lineElem.querySelector(".persists")?.classList.add("pre-select")
-    lineElem.querySelector(".persists")?.classList.remove("persists")
+    // remove any Marks noting the user's text selection.
+    document.querySelectorAll(".persists").forEach(el => {
+        el.classList.remove("persists")
+        el.classList.add("pre-select")
+    })
 
-    console.log("FRAGMENT FORM RESET")
+    console.log("WITNESS FORM RESET")
 }
 
 /**
@@ -188,7 +218,6 @@ window.onload = async () => {
     else{
         // These items have default values that are dirty on fresh forms.
         witnessFragmentForm.querySelector("select[custom-text-key='language']").$isDirty = true
-        witnessFragmentForm.querySelector("input[custom-text-key='format']").$isDirty = true
         if(sourceURI) {
             // special handler for ?wintess-uri=
             addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource(null, sourceURI))
@@ -217,19 +246,6 @@ window.onload = async () => {
         ev.target.$isDirty = true
         ev.target.closest("form").$isDirty = true
     })
-    // Note that this HTML element is a checkbox
-    witnessFragmentForm.querySelector("input[custom-text-key='format']").addEventListener("click", ev => {
-        if(ev.target.checked){
-            ev.target.value = "text/html"
-            ev.target.setAttribute("value", "text/html")
-        }
-        else{
-            ev.target.value = "text/plain"
-            ev.target.setAttribute("value", "text/plain")
-        }
-        ev.target.$isDirty = true
-        ev.target.closest("form").$isDirty = true
-    })
     deleteWitnessButton.addEventListener("click", async ev => {
         if(await showCustomConfirm("The witness will be deleted.  This action cannot be undone.")){
             deleteWitnessFragment(true)
@@ -253,6 +269,14 @@ function initFragmentForm(event){
     const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
     const source = annotationData?.source?.value
+    if(!source) {
+        const ev = new CustomEvent("Witness Fragment does not have a source")
+        globalFeedbackBlip(ev, `Witness Fragment does not have a source.  You will be redirected.`, false)
+        addEventListener("globalFeedbackFinished", () => {
+            location.href = `fragment-metadata.html#${annotationData["@id"]}`
+        })
+        return
+    }
     referencedGlossID = annotationData?.references?.value[0].replace(/^https?:/, 'https:')
     let selections = annotationData?.selections
     if(ngCollectionList.hasAttribute("ng-list-loaded")){
@@ -269,10 +293,10 @@ function initFragmentForm(event){
         }
     }
     if(textSelectionElem.hasAttribute("source-text-loaded")){
-        getAllWitnessFragmentsOfSource(selections, sourceURI)
+        getAllWitnessFragmentsOfSource(selections, source)
     }
     else{
-        if(source.startsWith("http")) {
+        if(isURI(source)) {
             sourceURI = source
             addEventListener('source-text-loaded', ev => {
                getAllWitnessFragmentsOfSource(selections, sourceURI)
@@ -294,6 +318,7 @@ function initFragmentForm(event){
         }
         
     }
+    prefillTagsArea(annotationData["tags"], $elem)
     prefillText(annotationData["text"], $elem)
     if(!witnessFragmentID) {
         // In this case, everything that needs to load has already loaded.
@@ -319,20 +344,18 @@ addEventListener('deer-form-rendered', glossFormReset)
  */
 function prefillText(textObj, form) {
     const languageElem = form.querySelector("select[custom-text-key='language'")
-    const formatElem = form.querySelector("input[custom-text-key='format'")
     const textElem = form.querySelector("textarea[custom-text-key='text'")
     if (textObj === undefined) {
         console.warn("Cannot set value for text and build UI.  There is no data.")
         return false
     }
-    if(![languageElem,formatElem,textElem].some(e=>e)) {
+    if(![languageElem,textElem].some(e=>e)) {
         console.warn("Nothing to fill.")
         return false
     }
     const source = textObj?.source
     if(source?.citationSource){
         form.querySelector("select[custom-text-key='language'")?.setAttribute("deer-source", source.citationSource ?? "") 
-        form.querySelector("input[custom-text-key='format'")?.setAttribute("deer-source", source.citationSource ?? "") 
         form.querySelector("textarea[custom-text-key='text'")?.setAttribute("deer-source", source.citationSource ?? "") 
     }
     textObj = textObj.value ?? textObj
@@ -342,14 +365,6 @@ function prefillText(textObj, form) {
         languageElem.setAttribute("value", language)
     }
     
-    const format = textObj.format
-    if(format === "text/html"){
-        formatElem.checked = true
-    }
-    if(formatElem) {
-        formatElem.value = format
-        formatElem.setAttribute("value", "format")
-    }
     const textVal = textObj.textValue
     if (!textVal) {
         console.warn("There is no text recorded for this witness")
@@ -399,6 +414,38 @@ function prefillReferences(referencesArr, form) {
     filter.dispatchEvent(new Event('input', { bubbles: true }))
     const chosenGloss = document.querySelector(".chosenGloss")
     if(chosenGloss) chosenGloss.value = ngLabel
+}
+
+/**
+ * Prefills the tags area in the form with provided tag data and builds the UI.
+ * @param {object|array|string} tagData - The tag data to prefill.
+ * @param {HTMLFormElement} form - The form element where the tags area is located.
+ * @returns {boolean} - Returns false if there is no tag data.
+ */
+function prefillTagsArea(tagData, form = document.getElementById("witnessFragmentForm")) {
+    if (tagData === undefined) {
+        console.warn("Cannot set value for tags and build UI.  There is no data.")
+        return false
+    }
+    let arr_names = (tagData.hasOwnProperty("value") && tagData.value.hasOwnProperty("items")) ? tagData.value.items :
+        tagData.hasOwnProperty("items") ? tagData.items :
+            [tagData]
+    if (arr_names.length === 0) {
+        console.warn("There are no tags recorded for this Gloss")
+        return false
+    }
+    form.querySelector("input[deer-key='tags']").value = arr_names.join(",")
+    let area = form.querySelector("input[deer-key='tags']").nextElementSibling //The view or select should always be just after the input tracking the values from it.
+    //Now build the little tags
+    let selectedTagsArea = area.parentElement.querySelector(".selectedEntities")
+    selectedTagsArea.innerHTML = ""
+    let tags = ""
+    arr_names.forEach(tagName => {
+        if (tagName) {
+            tags += `<span class="tag is-small">${tagName}<span onclick="this.closest('gog-tag-widget').removeTag(event)" class="removeTag" tag-name="${tagName}"></span></span>`
+        }
+    })
+    selectedTagsArea.innerHTML = tags
 }
 
 /**
@@ -519,21 +566,18 @@ addEventListener('deer-updated', event => {
     // This gets the custom keys for the annotation.body.text which is an object
     // If any of the elements that build the object are dirty, then it is dirty.
     const customTextElems = [
-        $elem.querySelector("input[custom-text-key='format']"),
         $elem.querySelector("select[custom-text-key='language']"),
         $elem.querySelector("textarea[custom-text-key='text']")
     ]
     if(customTextElems.filter(el => el.$isDirty).length > 0){
         // One of the text properties has changed so we need the text object
-        const format = customTextElems[0].value
-        const language = customTextElems[1].value
-        const text = customTextElems[2].value
+        const language = customTextElems[0].value
+        const text = customTextElems[1].value
         let textanno = {
             "@context": "http://www.w3.org/ns/anno.jsonld",
             "@type": "Annotation",
             "body": {
                 "text":{
-                    "format" : format,
                     "language" : language,
                     "textValue" : text
                 }
@@ -541,7 +585,7 @@ addEventListener('deer-updated', event => {
             "target": entityID,
             "creator" : window.GOG_USER["http://store.rerum.io/agent"]
         }
-        const el = customTextElems[2]
+        const el = customTextElems[1]
         if(el.hasAttribute("deer-source")) textanno["@id"] = el.getAttribute("deer-source")
         annotation_promises.push(
             fetch(`${__constants.tiny}/${el.hasAttribute("deer-source")?"update":"create"}`, {

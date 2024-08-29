@@ -76,14 +76,14 @@ let witnessFragmentsObj = {}
 //For when we test, so we can easily find and blow away junk data
 // setTimeout(() => {
 //     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="BryanGT"
-//         el.setAttribute("value", "BryanGT")
+//         el.value="cuba&thehabes"
+//         el.setAttribute("value", "cuba&thehabes")
 //     })
 //     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "BryanGT")
+//         el.setAttribute("deer-creator", "cuba&thehabes")
 //     })
 //     if(!window.GOG_USER) window.GOG_USER = {}
-//     window.GOG_USER["http://store.rerum.io/agent"] = "BryanGT"
+//     window.GOG_USER["http://store.rerum.io/agent"] = "cuba&thehabes"
 // }, 4000)
 
 let __constants = {}
@@ -358,182 +358,6 @@ async function findMatchingIncipits(incipit, titleStart) {
  */ 
 function undoBrowserSelection(s){
     s?.removeAllRanges?.() ?? s?.empty?.()
-}
-
-/** 
- * Discover proper identifier for manuscript or suggest new IRI. 
- *
- * @async
- * @function findShelfmark
- * @param { string } msid Identifier to match or validate.
- * @param { boolean } [forceNew] True to skip search for collision. *risky*
- * @returns Valid msid string or parent IRI
- */ 
-async function findShelfmark(msid, forceNew) {
-    try {
-        // wash msid
-        if (typeof msid !== 'string') {
-            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid msid identifier input.")
-            globalFeedbackBlip(invalidInputEvent, 'Failed to query for Shelfmark: Attempted to add a non string.', false)
-            return
-        }
-
-        const cleanMsid = msid.replace(/[@$%*?]+/g, '') 
-        .replace(/\s+/g, ' ') 
-        .trim() 
-
-        if (cleanMsid.length === 0) {
-            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid msid identifier input.")
-            globalFeedbackBlip(invalidInputEvent, 'Failed to query for Shelfmark: Attempted to add an empty string.', false)
-            return
-        }
-
-        // return washed msid or parent msid
-        if (forceNew) {
-            return cleanMsid
-        }
-
-        const query = {
-            "body.alternateTitle.value": cleanMsid,
-            "__rerum.generatedBy" : __constants.generator
-        }
-
-        const annotation = await fetch(`${__constants.tiny+"/query"}`, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(query)
-        })
-        .then(resp => resp.json())
-        .catch(err => {
-            console.error(err)
-            const qryFail = new CustomEvent("Failed to query RERUM.")
-            globalFeedbackBlip(qryFail, 'Failed to find annotation with msid identifier.', false)
-            return
-        })
-
-        if(annotation.length > 0){
-            return annotation[0]["target"]
-        }
-        else {
-            return null
-        }
-
-
-    }
-    catch (error) {
-        // For anything weird we may not have specifically caught.
-        console.error('Error Finding Shelfmark:', error)
-        const errorEvent = new CustomEvent("Failed to find Shelfmark.")
-        globalFeedbackBlip(errorEvent, 'Failed to find Shelfmark: ' + error.message, false)
-    }
-}
-
-/** 
- * Confirm the shelfmark's inclusion in "GoG-manuscripts" dynamic collection. 
- * @see {@link findShelfmark #113} to verify shelfmark is appropriate. 
- *
- * @async
- * @function addManuscriptToGoG
- * @param { string } shelfmark Identifier to include.
- */
-async function addManuscriptToGoG(shelfmark) {
-    try {
-        /** Wash shelfmark by 
-         * Removing specific special characters @ $ % * ?
-         * Replace multiple spaces with a single space
-         * Removing trailing or leading whitespace
-         * */
-
-        if (typeof shelfmark !== 'string') {
-            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark input.")
-            globalFeedbackBlip(invalidInputEvent, 'Failed to add manuscript to GoG-manuscripts: Attempted to add a non string.', false)
-            return
-        }
-
-        const cleanShelfmark = shelfmark.replace(/[@$%*?]+/g, '') 
-        .replace(/\s+/g, ' ') 
-        .trim() 
-
-        if (cleanShelfmark.length === 0) {
-            const invalidInputEvent = new CustomEvent("Failed to Query Rerum. Invalid shelfmark input.")
-            globalFeedbackBlip(invalidInputEvent, 'Failed to add manuscript to GoG-manuscripts: Attempted to add an empty string.', false)
-            return
-        }
-
-        // check for existing annotation with cleaned shelfmark
-        const query = {
-            "target": cleanShelfmark,
-            "__rerum.generatedBy" : __constants.generator
-        }
-
-        const existingAnnotations = await fetch(`${__constants.tiny+"/query"}`, {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(query)
-        })
-        .then(resp => resp.json())
-        .catch(err => {
-            console.error(err)
-            return null
-        })
-
-        if(existingAnnotations === null){
-            const qryFail = new CustomEvent("Failed to query RERUM.")
-            globalFeedbackBlip(qryFail, 'Failed to add manuscript to GoG-manuscripts.', false)
-            return
-        }
-        else if(existingAnnotations.length > 0){
-            const ev = new CustomEvent("Annotation already exists.")
-            globalFeedbackBlip(ev, 'Annotation already exists for this shelfmark.', false)
-            return
-        }
-
-        // save new annotation with shelfmark if none exists
-        const annotation = {
-            "@context": "http://www.w3.org/ns/anno.jsonld",
-            "@type": "Annotation",
-            "target": cleanShelfmark,
-            "body": { "targetCollection": "GoG-manuscripts" }
-        }
-        const savedAnnotation = await fetch(`${__constants.tiny+"/create"}`, { 
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                "Content-Type": "application/json;charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            },
-            body: JSON.stringify(annotation)
-        })
-        .then(resp => resp.json())
-        .catch(err => {
-            console.error(err)
-            return
-        })
-
-        if(savedAnnotation && savedAnnotation.hasOwnProperty("@id")){
-            //  success blip if annotation is saved
-            const successEvent = new CustomEvent("Manuscript added successfully.")
-            globalFeedbackBlip(successEvent, 'Manuscript added successfully to GoG-manuscripts.', true)
-            return savedAnnotation    
-        }
-        else{
-            console.error('Error adding manuscript')
-            const errorEvent = new CustomEvent("Failed to add manuscript.")
-            globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts.', false)
-        }
-    } 
-    catch (error) {
-        // For anything weird we may not have specifically caught.
-        console.error('Error adding manuscript:', error)
-        const errorEvent = new CustomEvent("Failed to add manuscript.")
-        globalFeedbackBlip(errorEvent, 'Failed to add manuscript to GoG-manuscripts: ' + error.message, false)
-    }
 }
 
 /**
@@ -930,15 +754,6 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
         return
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
-    const isURI = (urlString) => {
-          try { 
-            return Boolean(new URL(urlString))
-          }
-          catch(e){ 
-            return false
-          }
-      }
-
     // Each source annotation targets a Witness.
     // Get all the source annotations whose value is this source string (URI or text string)
     const sourceAnnosQuery = {
@@ -1149,9 +964,6 @@ async function deleteWitnessFragment(redirect){
 
 /**
  * For a given shelfmark, query RERUM to find matching Manuscript Witness entities.
- * There are 0 to many body.identifier Annotations with the shelfmark value.
- * The 'target' value of those Annotations are Manuscript Witness URIs.
- * Make a Set out of those target URIs and be wary if the size is greater than 1.
  * 
  * @param shelfmark - A string representing the shelfmark value
  * @return the Manuscript Witness URI
@@ -1164,37 +976,34 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
         return
     }
     const shelfmarkAnnosQuery = {
-        "body.identifier.value": httpsIdArray(shelfmark),
+        "body.identifier.value": shelfmark,
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
 
-    let manuscriptUriSet = await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-        method: "POST",
-        mode: 'cors',
-        headers: {
-            "Content-Type": "application/json;charset=utf-8"
-        },
-        body: JSON.stringify(shelfmarkAnnosQuery)
-    })
-    .then(response => response.json())
+    /**
+     * Since ManuscriptWitness and WitnessFragment types have this shelfmark we have to do an expensive query here.
+     * The query gets every Annotation with this shelfmark body and goes through them to find the one that is a ManuscriptWitness.
+     * Note this makes no attempt to check if the given shelfmark applies to multiple ManuscriptWitnesses.
+     */ 
+    let manuscriptUriSet = await getPagedQuery(100, 0, shelfmarkAnnosQuery)
     .then(async (annos) => {
-        const manuscripts = annos.map(async(anno) => {
+        let manuscript = null
+        for await (const anno of annos){
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
+            // There should only be one ManuscriptWitness with this shelfmark.  When we detect that type, we've found it.
             if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
-                return anno.target
-            }
-            // This will end up in the Set
-            return undefined
-        })
-        const manuscriptWitnessesOnly = await Promise.all(manuscripts).catch(err => {throw err} )
-        return new Set(manuscriptWitnessesOnly)
+                manuscript = anno.target
+                break
+            }    
+        }
+        return new Set([manuscript])
     })
     .catch(err => {
         console.error(err)
         throw err
     })
-    manuscriptUriSet.delete(undefined)
+    manuscriptUriSet.delete(null)
 
     if(manuscriptUriSet.size === 0){
         console.log(`There is no Manuscript Witness with shelfmark '${shelfmark}'`)
@@ -1212,7 +1021,6 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
 /**
  * For a given Witness Fragment URI, query RERUM to find the Manuscript Witness it is a part of.
  * There is 1 body.partOf Annotation (leaf) whose target value is this Witness Fragment URI.
- * Make a Set out of that URI, and be wary if the size is greater than 1.
  * 
  * @param fragmentURI - A string URI of a Witness Fragment entity
  * @return the Manuscript Witness URI
@@ -1225,13 +1033,13 @@ async function getManuscriptWitnessFromFragment(fragmentURI=null){
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
 
-   //each fragment has partOf Annotations letting you know the Manuscripts it is a part of.
     const partOfAnnosQuery = {
         "body.partOf.value": {"$exists":true},
         "target": httpsIdArray(fragmentURI),
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
+    // Note this makes no attempt to check if the given WitnessFragment is a partOf multiple ManuscriptWitnesses
     let manuscriptUriSet = await fetch(`${__constants.tiny}/query?limit=1&skip=0`, {
         method: "POST",
         mode: 'cors',
@@ -1263,22 +1071,19 @@ async function getManuscriptWitnessFromFragment(fragmentURI=null){
         console.log(`There is no Manuscript Witness for fragment '${fragmentURI}'`)
         return
     }
-    else if(manuscriptUriSet.size > 1){
-        console.error("There are many Manuscript Witnesses when we only expect one.")
-        return
-    }
+    // else if(manuscriptUriSet.size > 1){
+    //     console.error("There are many Manuscript Witnesses when we only expect one.")
+    //     return
+    // }
     
     // There should only be one unique entry.  If so, we just need to return the first next() in the set iterator.
     return manuscriptUriSet.values().next().value
 }
 
 /**
- * For a given URI, query RERUM to find the Manuscript Witness it belongs to.
- * There are 0 to many body.source Annotations (leaf) whose target value is some Witness Fragment URI.
- * There is 1 body.partOf Annotation (leaf) whose target value is this Witness Fragment URI.
- * Make a Set out of that Witness Fragment URI, and be wary if the size is greater than 1.
+ * For a given content source (URI or text hash), query RERUM to find the Manuscript Witness it belongs to.
  * 
- * @param source - A string URI representing an internet resource (textual)
+ * @param source - A string URI or hash representing a resource (textual)
  * @return the Manuscript Witness URI
  */ 
 async function getManuscriptWitnessFromSource(source=null){
@@ -1288,14 +1093,12 @@ async function getManuscriptWitnessFromSource(source=null){
         return
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
-
-    // Each source annotation targets a Witness.  Only need one because they will all target the same Witness
     const sourceAnnosQuery = {
-        "body.source.value": httpsIdArray(source),
+        "body.source.value": isURI(source) ? httpsIdArray(source) : source,
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
-
+    // Note this makes no attempt to check if the given source exists for multiple WitnessFragments.
     let fragmentUriSet = await fetch(`${__constants.tiny}/query?limit=1&skip=0`, {
         method: "POST",
         mode: 'cors',
@@ -1338,6 +1141,7 @@ async function getManuscriptWitnessFromSource(source=null){
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
+    // Note this makes no attempt to check if the given WitnessFragment is a partOf multiple ManuscriptWitnesses
     let manuscriptUriSet = await fetch(`${__constants.tiny}/query?limit=1&skip=0`, {
         method: "POST",
         mode: 'cors',
@@ -1368,10 +1172,10 @@ async function getManuscriptWitnessFromSource(source=null){
         console.log(`There is no Manuscript Witness with source '${source}'`)
         return
     }
-    else if(manuscriptUriSet.size > 1){
-        console.error("There are many Manuscript Witnesses when we only expect one.")
-        return
-    }
+    // else if(manuscriptUriSet.size > 1){
+    //     console.error("There are many Manuscript Witnesses when we only expect one.")
+    //     return
+    // }
     return manuscriptUriSet.values().next().value
 }
 
@@ -1488,7 +1292,7 @@ function activateFragmentForm(manuscriptID, shelfmark, show){
     partOfElem.value = manuscriptID
     partOfElem.setAttribute("value", manuscriptID )
     partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
-    look.innerHTML = `Manuscript <a target="_blank" href="manuscript-details.html#${manuscriptID}"> ${shelfmark} </a> Loaded In`
+    look.innerHTML = `Manuscript <a target="_blank" href="manuscript-profile.html#${manuscriptID}"> ${shelfmark} </a> Loaded In`
     existingManuscriptWitness = manuscriptID
     if(show){
         loading.classList.add("is-hidden")
@@ -1558,4 +1362,13 @@ addEventListener('gloss-modal-saved', event => {
  */ 
 function startOver(){
     window.location = window.location.origin + window.location.pathname
+}
+
+function isURI(urlString){
+    try { 
+        return Boolean(new URL(urlString))
+    }
+    catch(e){ 
+        return false
+    }
 }

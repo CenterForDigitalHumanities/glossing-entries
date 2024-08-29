@@ -104,9 +104,9 @@ class WitnessTextSelector extends HTMLElement {
                     if(!t.includes("text/plain")){
                         const ev = new CustomEvent(`'${t}' is not a supported file type.`)
                         globalFeedbackBlip(ev, `'${t}' is not a supported file type.  Starting over...`, false)
-                        setTimeout( () => {
+                        addEventListener("globalFeedbackFinished", () => {
                             startOver()
-                        }, 2500)
+                        })
                         return ""
                     }
                     return response.text()

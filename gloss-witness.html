@@ -131,50 +131,128 @@
         <p> 
             Fill out the form below to create a Witness Fragment for the Manuscript loaded in.  Submit the Fragment by identifying a Gloss and clicking '➥ attach'.  Note the Manuscript remains the same for each Fragment you submit. 
         </p>
+        <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="partOf" >
         <input type="hidden" deer-key="source" witness-source>
         <div class="row">
+            <div class="col">
+                <label class="is-hidden">Label:</label>
+                <input type="text" deer-key="title" placeholder="Label" class="is-hidden">
+                <details>
+                    <summary>
+                        <label>Shelfmark or Short Citation:</label>
+                    </summary>
+                    <small>Enter manuscript shelfmark or short bibliographic citation of author and title for the
+                        witness,
+                        e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’.</small>
+                </details>
+                <input type="text" deer-key="identifier" required
+                    placeholder="e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’" class="required" disabled>
+            </div>
+            <div class="col">
+                <details>
+                    <summary>
+                        <label>Folio or Page:</label>
+                    </summary>
+                    <small>Folio or page number from this Witness where the gloss is found.</small>
+                </details>
+                <input type="text" deer-key="_folio" placeholder="e.g, 132r">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label>Text:</label>
+                <textarea custom-text-key="text" required rows="2" class="required"
+                    placeholder="Text is required.  Highlight transcription text below..."></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label>Language:</label>
+                <select custom-text-key="language" title="select language">
+                    <option value="la" selected>Latin</option>
+                    <option value="de">German</option>
+                    <option value="fr">French</option>
+                    <option value="en">English</option>
+                </select>
 
-            <label class="col-3 col-2-md text-right">Shelfmark: &#10082;</label>
-            <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" required class="col-9 col-10-md required" disabled>
+            </div>
+            <div class="col">
+                <label>Gloss Format:</label>
+                <select deer-key="_glossFormat" title="select gloss format">
+                    <option value="none" selected>None</option>
+                    <option value="marginal">Marginal</option>
+                    <option value="interlinear">Interlinear</option>
+                    <option value="appendix">Appendix</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
 
-            <label class="col-3 col-2-md text-right" >Text: &#10082;</label>
-            <textarea custom-text-key="text" rows="2" class="col-9 col-10-md required" required placeholder="Text is required.  Highlight some text..."></textarea>
+            <div class="col">
+                <label>Gloss Location:</label>
+                <select deer-key="_glossLocation" title="select gloss location relative to the main text">
+                    <option value="none" selected>None</option>
+                    <option value="top">Top</option>
+                    <option value="bottom">Bottom</option>
+                    <option value="center">Center</option>
+                    <option value="left">Left</option>
+                    <option value="right">Right</option>
+                    <option value="top left">Top Left</option>
+                    <option value="top center">Top Center</option>
+                    <option value="top right">Top Right</option>
+                    <option value="bottom left">Bottom Left</option>
+                    <option value="bottom center">Bottom Center</option>
+                    <option value="bottom right">Bottom Right</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
 
-            <label class="col-3 col-2-md text-right">Language:</label>
-            <select custom-text-key="language" title="select language" class="col-9 col-4-md">
-                <option value="la" selected>Latin</option>
-                <option value="de">German</option>
-                <option value="fr">French</option>
-                <option value="en">English</option>
-            </select>
-
-            <label title="Select the checkbox if the text contains markup tags like HTML or XML" class="col-12 col-6-md text-left">
-                The text contains <code>&lt; tags &gt;</code><input type="checkbox" custom-text-key="format" value="text/plain" />
-            </label>
-
-            <label class="col-3 col-2-md text-right">Gloss format:</label>
-            <select deer-key="_glossFormat" title="select gloss format" class="col-9 col-4-md">
-                <option value="none" selected>None</option>
-                <option value="marginal">Marginal</option>
-                <option value="interlinear">Interlinear</option>
-                <option value="appendix">Appendix</option>
-                <option value="other">Other</option>
-            </select>
-
+            <div class="col">
+                <label>Glossator Hand:</label>
+                <select deer-key="_glossatorHand" title="glossator">
+                    <option value="none" selected>None</option>
+                    <option value="original">Original</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <details>
+                    <summary>
+                        <label>Depiction:</label>
+                    </summary>
+                    <small>Optional image URL or IIIF selector link for a depiction of the gloss in the manuscript. This "<a href="https://ncsu-libraries.github.io/iiif-crop-tool/" target="_blank" rel="noopener">crop
+                        tool</a>" link will open in a new tab.</small>
+                </details>
+                <input type="url" deer-key="depiction" placeholder="Paste an image URL or IIIF selector link">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label>Notes:</label>
+                <textarea deer-key="_notes" rows="2"
+                    placeholder="Optional notes about this gloss instance"></textarea>
+            </div>
+        </div>
+        <div class="row">
             <label class="col-3 col-2-md text-right is-hidden" placeholder="Chosen Gloss Incipit">Chosen Gloss</label>
             <textarea disabled title="Choose a Gloss to see the incipit here" placeholder="Choose a Gloss below..." class="chosenGloss col-9 col-10-md is-hidden"></textarea>
         </div>
-        <input class="is-hidden button primary" type="submit" value="Create Selection Fragment"/>
-        <input class="is-hidden button error deleteWitness" type="button" value="Delete Witness Fragment"/>
         <div class="row">
-            <source-text-selector class="lineSelector col-7-md col-6-sm"> </source-text-selector>
-            <deer-view class="col-5-md col-6-sm" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
+            <gog-tag-widget class="col"></gog-tag-widget>
+        </div>
+        <div class="row">
+            <input class="is-hidden button primary" type="submit" value="Create Selection Fragment"/>
+            <input class="is-hidden button error deleteWitness" type="button" value="Delete Witness Fragment"/>
+        </div>
+        <div class="row">
+            <source-text-selector class="lineSelector col"> </source-text-selector>
+            <deer-view class="col" id="ngCollectionList" deer-collection="GoG-Named-Glosses" deer-link="ng.html#" deer-template="glossesSelectorForTextualWitness">
             Loading Gloss Picker&hellip;
             </deer-view>  
         </div>
     </form>
-    
     <gog-footer class="row"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <gloss-modal class="is-hidden"></gloss-modal>
