@@ -1173,7 +1173,7 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
                 break
             }    
         }
-        return new Set(manuscript)
+        return new Set([manuscript])
     })
     .catch(err => {
         console.error(err)
