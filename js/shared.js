@@ -988,7 +988,7 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
      */ 
     let manuscriptUriSet = await getPagedQuery(100, 0, shelfmarkAnnosQuery)
     .then(async (annos) => {
-        let manuscript = null
+        let manuscript = undefined
         for await (const anno of annos){
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
             // There should only be one ManuscriptWitness with this shelfmark.  When we detect that type, we've found it.
@@ -1003,7 +1003,7 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
         console.error(err)
         throw err
     })
-    manuscriptUriSet.delete(null)
+    manuscriptUriSet.delete(undefined)
 
     if(manuscriptUriSet.size === 0){
         console.log(`There is no Manuscript Witness with shelfmark '${shelfmark}'`)
