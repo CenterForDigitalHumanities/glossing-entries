@@ -16,9 +16,9 @@ document.addEventListener("source-text-error", function(event){
     loading.classList.add("is-hidden")
     const ev = new CustomEvent(`Could not get Witness Text Data from ${sourceURI}`)
     globalFeedbackBlip(ev, `Could not get Witness Text Data from ${sourceURI}.  Resetting...`, false)
-    setTimeout( () => {
+    addEventListener("globalFeedbackFinished", () => {
         startOver()
-    }, 2500)
+    })
 })
 
 /**
@@ -269,6 +269,14 @@ function initFragmentForm(event){
     const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
     const source = annotationData?.source?.value
+    if(!tpenProjectURI) {
+        const ev = new CustomEvent("Witness Fragment does not have a source")
+        globalFeedbackBlip(ev, `Witness Fragment does not have a source.  You will be redirected.`, false)
+        addEventListener("globalFeedbackFinished", () => {
+            location.href = `fragment-metadata.html#${annotationData["@id"]}`
+        })
+        return
+    }
     referencedGlossID = annotationData?.references?.value[0].replace(/^https?:/, 'https:')
     let selections = annotationData?.selections
     if(ngCollectionList.hasAttribute("ng-list-loaded")){
@@ -285,10 +293,10 @@ function initFragmentForm(event){
         }
     }
     if(textSelectionElem.hasAttribute("source-text-loaded")){
-        getAllWitnessFragmentsOfSource(selections, sourceURI)
+        getAllWitnessFragmentsOfSource(selections, source)
     }
     else{
-        if(source.startsWith("http")) {
+        if(isURI(source)) {
             sourceURI = source
             addEventListener('source-text-loaded', ev => {
                getAllWitnessFragmentsOfSource(selections, sourceURI)

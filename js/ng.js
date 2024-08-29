@@ -227,7 +227,7 @@ async function generateWitnessesOnSubmit(glossid){
             
             const a = witness_li.querySelector("a")
             witness_li.setAttribute("deer-id", matchedManuscript["@id"])
-            a.setAttribute("href", `manuscript-details.html#${matchedManuscript["@id"]}`)
+            a.setAttribute("href", `manuscript-profile.html#${matchedManuscript["@id"]}`)
             let createdIdentifierAnno_Manuscript = null
             let createdTargetCollectionAnno = null
             let [
@@ -355,7 +355,7 @@ addEventListener('deer-updated', async (event) => {
     let witness = null
     const entityID = event.detail["@id"]  
     // Only have to await this if we care to stop processing on error
-    const generatedQuickEntities = await generateWitnessesOnSubmit(entityID)
+    const generatedQuickReferences = await generateWitnessesOnSubmit(entityID)
 
     const customTextElems = [
         $elem.querySelector("select[custom-text-key='language']"),

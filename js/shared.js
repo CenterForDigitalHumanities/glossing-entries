@@ -930,15 +930,6 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
         return
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
-    const isURI = (urlString) => {
-          try { 
-            return Boolean(new URL(urlString))
-          }
-          catch(e){ 
-            return false
-          }
-      }
-
     // Each source annotation targets a Witness.
     // Get all the source annotations whose value is this source string (URI or text string)
     const sourceAnnosQuery = {
@@ -1167,28 +1158,28 @@ async function getManuscriptWitnessFromShelfmark(shelfmark=null){
     }
 
     /**
-     * FIXME Since ManuscriptWitness and WitnessFragment types have this shelfmark we have to do an expensive query here.
-     * The query gets every Annotation with this shelfmark body and filters out those that aren't for a ManuscriptWitness.
-     * Then it makes a Set out of the resulting ManuscriptWitnesses to ensure only a single ManuscriptWitness matched.  More than one is an error
+     * Since ManuscriptWitness and WitnessFragment types have this shelfmark we have to do an expensive query here.
+     * The query gets every Annotation with this shelfmark body and goes through them to find the one that is a ManuscriptWitness.
+     * Note this makes no attempt to check if the given shelfmark applies to multiple ManuscriptWitnesses.
      */ 
     let manuscriptUriSet = await getPagedQuery(100, 0, shelfmarkAnnosQuery)
     .then(async (annos) => {
-        const manuscripts = annos.map(async(anno) => {
+        let manuscript = null
+        for await (const anno of annos){
             const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
+            // There should only be one ManuscriptWitness with this shelfmark.  When we detect that type, we've found it.
             if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
-                return anno.target
-            }
-            // This will end up in the Set
-            return undefined
-        })
-        const manuscriptWitnessesOnly = await Promise.all(manuscripts).catch(err => {throw err} )
-        return new Set(manuscriptWitnessesOnly)
+                manuscript = anno.target
+                break
+            }    
+        }
+        return new Set(manuscript)
     })
     .catch(err => {
         console.error(err)
         throw err
     })
-    manuscriptUriSet.delete(undefined)
+    manuscriptUriSet.delete(null)
 
     if(manuscriptUriSet.size === 0){
         console.log(`There is no Manuscript Witness with shelfmark '${shelfmark}'`)
@@ -1278,15 +1269,6 @@ async function getManuscriptWitnessFromSource(source=null){
         return
     }
     const historyWildcard = { "$exists": true, "$size": 0 }
-    const isURI = (urlString) => {
-          try { 
-            return Boolean(new URL(urlString))
-          }
-          catch(e){ 
-            return false
-          }
-      }
-
     const sourceAnnosQuery = {
         "body.source.value": isURI(source) ? httpsIdArray(source) : source,
         "__rerum.history.next": historyWildcard,
@@ -1486,7 +1468,7 @@ function activateFragmentForm(manuscriptID, shelfmark, show){
     partOfElem.value = manuscriptID
     partOfElem.setAttribute("value", manuscriptID )
     partOfElem.dispatchEvent(new Event('input', { bubbles: true }))
-    look.innerHTML = `Manuscript <a target="_blank" href="manuscript-details.html#${manuscriptID}"> ${shelfmark} </a> Loaded In`
+    look.innerHTML = `Manuscript <a target="_blank" href="manuscript-profile.html#${manuscriptID}"> ${shelfmark} </a> Loaded In`
     existingManuscriptWitness = manuscriptID
     if(show){
         loading.classList.add("is-hidden")
@@ -1556,4 +1538,13 @@ addEventListener('gloss-modal-saved', event => {
  */ 
 function startOver(){
     window.location = window.location.origin + window.location.pathname
+}
+
+function isURI(urlString){
+    try { 
+        return Boolean(new URL(urlString))
+    }
+    catch(e){ 
+        return false
+    }
 }
