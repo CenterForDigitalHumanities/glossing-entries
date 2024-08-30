@@ -1622,16 +1622,16 @@ export default {
                     loading.remove()
 
                     const manuscript = document.createElement("div")
-                    manuscript.innerHTML = `<a target="_blank" href="${obj?.partOf?.value}">${obj?.partOf?.value ? "See Manuscript Witness" : "Missing Manuscript Witness Connection!"}</a>`
+                    manuscript.innerHTML = `<a target="_blank" href="manuscript-profile.html#${obj?.partOf?.value}">${obj?.partOf?.value ? "See Manuscript Witness" : "Missing Manuscript Witness Connection!"}</a>`
                     elem.appendChild(manuscript)
 
                     const source = document.createElement("div")
                     source.innerText = `Source: ${obj?.source?.value ? obj.source.value : "Missing Source"}`
                     elem.appendChild(source)
 
-                    const data = document.createElement("pre")
-                    data.innerText = JSON.stringify(obj, null, 4)
-                    elem.appendChild(data)
+                    // const data = document.createElement("pre")
+                    // data.innerText = JSON.stringify(obj, null, 4)
+                    // elem.appendChild(data)
                 }
             }
         },
@@ -1750,9 +1750,9 @@ export default {
                     fragmentCount.innerText = `# of registered fragments: ${fragmentUriSet.size}`
                     elem.appendChild(fragmentCount)
 
-                    const data = document.createElement("pre")
-                    data.innerText = JSON.stringify(obj, null, 4)
-                    elem.appendChild(data)
+                    // const data = document.createElement("pre")
+                    // data.innerText = JSON.stringify(obj, null, 4)
+                    // elem.appendChild(data)
                 }
             }
         }
