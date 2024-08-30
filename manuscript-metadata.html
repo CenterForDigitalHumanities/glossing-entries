@@ -16,6 +16,26 @@
         <gog-header></gog-header>
         <h2 class="bg-basic"> Manuscript Metadata </h2>
         <p class="bg-basic"> This page is not ready.  Check back later. </p>
+        <form id="manuscriptWitnessForm" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms" hash-id>
+            <input is="auth-creator" type="hidden" deer-key="creator" />
+            <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
+            <div class="row">
+                <div class="col">
+                    <label class="is-hidden">Label:</label>
+                    <input type="text" deer-key="title" placeholder="Label" class="is-hidden">
+                    <details>
+                        <summary>
+                            <label>Shelfmark or Short Citation:</label>
+                        </summary>
+                        <small>Enter manuscript shelfmark or short bibliographic citation of author and title for the
+                            witness,
+                            e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’.</small>
+                    </details>
+                    <input type="text" deer-key="identifier" required
+                        placeholder="e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’" class="required" disabled>
+                </div>
+            </div>
+        </form>
         <gog-footer class="container"></gog-footer>
         <div id="globalFeedback" class="card is-center"></div>
         <!-- <script src="js/manuscript-metadata.js"></script> -->
