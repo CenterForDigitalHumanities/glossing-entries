@@ -1595,9 +1595,11 @@ export default {
                     </style>
                 `,
                 then: async (elem) => {
-                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
-                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
-                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    // If these become expensive query driven templates we can add their expanded information into the expandedEntities cache.
+                    // If we do that, we will need to offer a way to reset the cache on interfaces that use this template
+                    // let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    // cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    // localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     const heading = document.createElement("h4")
                     const loading = document.createElement("div")
@@ -1662,9 +1664,11 @@ export default {
                     </style>
                 `,
                 then: async (elem) => {
-                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
-                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
-                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    // If these become expensive query driven templates we can add their expanded information into the expandedEntities cache.
+                    // If we do that, we will need to offer a way to reset the cache on interfaces that use this template
+                    // let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    // cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    // localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
 
                     const heading = document.createElement("h4")
                     const loading = document.createElement("div")
