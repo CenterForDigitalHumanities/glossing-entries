@@ -1592,6 +1592,9 @@ export default {
                             background-size: 4em;
                             top: 1em;
                         }
+                        .tag.small.secondary{
+                            margin-left: 0.65em;
+                        }
                     </style>
                 `,
                 then: async (elem) => {
@@ -1612,9 +1615,18 @@ export default {
                         elem.appendChild(heading)
                         return
                     }
-                    
+                    const edit = document.createElement("a")
+                    edit.classList.add("tag")
+                    edit.classList.add("small")
+                    edit.classList.add("secondary")
+                    edit.innerText = "edit"
+                    edit.setAttribute("type", "button")
+                    edit.setAttribute("target", "_blank")
+                    edit.setAttribute("href", `fragment-metadata.html#${obj["@id"]}`)
+
                     heading.classList.add("blue")
                     heading.innerText = obj?.identifier?.value ? obj.identifier.value : "Missing Shelfmark"
+                    heading.appendChild(edit)
                     elem.appendChild(heading)
                     elem.appendChild(loading)
 
@@ -1661,6 +1673,9 @@ export default {
                             background-size: 4em;
                             top: 1em;
                         }
+                        .tag.small.secondary{
+                            margin-left: 0.65em;
+                        }
                     </style>
                 `,
                 then: async (elem) => {
@@ -1681,8 +1696,18 @@ export default {
                         elem.appendChild(heading)
                         return
                     }
+                    const edit = document.createElement("a")
+                    edit.classList.add("tag")
+                    edit.classList.add("small")
+                    edit.classList.add("secondary")
+                    edit.innerText = "edit"
+                    edit.setAttribute("type", "button")
+                    edit.setAttribute("target", "_blank")
+                    edit.setAttribute("href", `manuscript-metadata.html#${obj["@id"]}`)
+
                     heading.classList.add("green")
                     heading.innerText = obj?.identifier?.value ? obj.identifier.value : "Missing Shelfmark"
+                    heading.appendChild(edit)
                     elem.appendChild(heading)
                     elem.appendChild(loading)
                     const historyWildcard = { "$exists": true, "$size": 0 }
