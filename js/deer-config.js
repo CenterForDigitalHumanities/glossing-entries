@@ -1566,6 +1566,186 @@ export default {
                     }
                 }
             }
+        },
+
+        /**
+         * There may just be a single fragment profile on a page.
+         * There may be multiple, such as a version of manuscript-profile.html that uses this template for detailed views of its fragments
+         * Can this template work for both cases?
+         */ 
+        fragmentProfile:  function (obj, options = {}) {
+            return{
+                html: `
+                    <style>
+                        .blue {
+                            color: blue !important;
+                        }
+                        .profile-loading {
+                            position: relative;
+                            display: inline-block;
+                            background-image: url(../images/load-blocks.gif);
+                            background-repeat: no-repeat;
+                            height: 3em;
+                            width: 4em;
+                            -webkit-filter: invert(100%);
+                            filter: invert(100%);
+                            background-size: 4em;
+                            top: 1em;
+                        }
+                    </style>
+                `,
+                then: async (elem) => {
+                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+
+                    const heading = document.createElement("h4")
+                    const loading = document.createElement("div")
+                    loading.classList.add("profile-loading")
+                    if(obj?.["@type"] !== "WitnessFragment"){
+                        const ev = new CustomEvent("NOOOO")
+                        deerUtils.globalFeedbackBlip(ev, `The entity supplied is not a Witness Fragment`, false)
+                        heading.classList.add("text-error")
+                        heading.innerText = `Invalid Entity Type '${obj?.["@type"]}'`
+                        elem.appendChild(heading)
+                        return
+                    }
+                    
+                    heading.classList.add("blue")
+                    heading.innerText = obj?.identifier?.value ? obj.identifier.value : "Missing Shelfmark"
+                    elem.appendChild(heading)
+                    elem.appendChild(loading)
+
+                    // Prolly gunna do some async stuff here
+                    loading.remove()
+
+                    const manuscript = document.createElement("div")
+                    manuscript.innerHTML = `<a target="_blank" href="${obj?.partOf?.value}">${obj?.partOf?.value ? "See Manuscript Witness" : "Missing Manuscript Witness Connection!"}</a>`
+                    elem.appendChild(manuscript)
+
+                    const source = document.createElement("div")
+                    source.innerText = `Source: ${obj?.source?.value ? obj.source.value : "Missing Source"}`
+                    elem.appendChild(source)
+
+                    const data = document.createElement("pre")
+                    data.innerText = JSON.stringify(obj, null, 4)
+                    elem.appendChild(data)
+                }
+            }
+        },
+
+        /**
+         * There may just be a single manuscript profile on a page.
+         * There may be multiple, such as a version of manuscripts.html that uses this template in the list/table it builds.
+         * Can this template work for both cases?
+         */ 
+        manuscriptProfile: function (obj, options = {}) {
+            return{
+                html: `
+                    <style>
+                        .green {
+                            color: green;
+                            display: inline-block;
+                        }
+                        .profile-loading {
+                            position: relative;
+                            display: inline-block;
+                            background-image: url(../images/load-blocks.gif);
+                            background-repeat: no-repeat;
+                            height: 3em;
+                            width: 4em;
+                            -webkit-filter: invert(100%);
+                            filter: invert(100%);
+                            background-size: 4em;
+                            top: 1em;
+                        }
+                    </style>
+                `,
+                then: async (elem) => {
+                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+
+                    const heading = document.createElement("h4")
+                    const loading = document.createElement("div")
+                    loading.classList.add("profile-loading")
+                    if(obj?.["@type"] !== "ManuscriptWitness"){
+                        const ev = new CustomEvent("NOOOO")
+                        deerUtils.globalFeedbackBlip(ev, `The entity supplied is not a Witness Fragment`, false)
+                        heading.classList.add("text-error")
+                        heading.innerText = `Invalid Entity Type '${obj?.["@type"]}'`
+                        elem.appendChild(heading)
+                        return
+                    }
+                    heading.classList.add("green")
+                    heading.innerText = obj?.identifier?.value ? obj.identifier.value : "Missing Shelfmark"
+                    elem.appendChild(heading)
+                    elem.appendChild(loading)
+                    const historyWildcard = { "$exists": true, "$size": 0 }
+
+                    // Each Fragment is partOf a Manuscript.
+                    const fragmentAnnosQuery = {
+                        "body.partOf.value": httpsIdArray(obj["@id"]),
+                        "__rerum.history.next": historyWildcard,
+                        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+                    }
+
+                    const fragmentUriSet = await getPagedQuery(100, 0, fragmentAnnosQuery)
+                    .then(annos => {
+                        return new Set(annos.map(anno => anno.target))
+                    })
+                    .catch(err => {
+                        console.error(err)
+                        return Promise.reject([])
+                    })
+
+                    const sources = await Promise.all([...fragmentUriSet.values()].map( frag => {
+                        // Each Witness Fragment has a source.  Witness Fragments of the same Manuscript Witness may have difference sources.
+                        const sourceAnnosQuery = {
+                            "body.source.value": {"$exists": true},
+                            "target" : httpsIdArray(frag),
+                            "__rerum.history.next": historyWildcard,
+                            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+                        }
+
+                        return fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+                            method: "POST",
+                            mode: 'cors',
+                            headers: {
+                                "Content-Type": "application/json;charset=utf-8"
+                            },
+                            body: JSON.stringify(sourceAnnosQuery)
+                        })
+                        .then(response => response.json())
+                        .then(annos => {
+                            return annos[0]?.body?.source?.value
+                        })
+                        .catch(err => {
+                            console.error(err)
+                            return undefined
+                        })
+                    })
+                    )
+                    // Only unique entries, duplicates are extraneous.  Ignore undefined in the Set.
+                    let sourcesSet = new Set(sources)
+                    sourcesSet.delete(undefined)
+
+                    loading.remove()
+                    // We have these URIs.  We can list them as individual label deer-views for them if we want them by label
+                    const sourcesCount = document.createElement("div")
+                    sourcesCount.innerText = `# of registered sources: ${sourcesSet.size}`
+                    elem.appendChild(sourcesCount)
+
+                    // We have these URIs.  We can list them as individual shelfmark deer-views for them if we want them by identifier
+                    const fragmentCount = document.createElement("div")
+                    fragmentCount.innerText = `# of registered fragments: ${fragmentUriSet.size}`
+                    elem.appendChild(fragmentCount)
+
+                    const data = document.createElement("pre")
+                    data.innerText = JSON.stringify(obj, null, 4)
+                    elem.appendChild(data)
+                }
+            }
         }
     },
     version: "alpha"
