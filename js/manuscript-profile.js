@@ -4,6 +4,7 @@ const witnessFragmentID = window.location.hash.substr(1)
  * The DEER announcement for when there is an error expanding for a URI.
  * Note there is more information in event.detail.error
  * Note the troublesome URI is in event.detail.uri
+ * 
  */ 
 addEventListener('expandError', event => {
 	document.querySelector("deer-view").remove()
@@ -13,7 +14,6 @@ addEventListener('expandError', event => {
     look.innerText = "Could not get Witness information."
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
-
 
 /**
  * When a deer-view loads, you might want to do stuff
