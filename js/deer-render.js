@@ -1648,7 +1648,10 @@ export default class DeerRender {
             } else {
                 if (this.id) {
                     this.id = (!this.id.includes("localhost")) ? this.id.replace(/^https?:/, 'https:') : this.id // avoid mixed content
-                    limiter(() => fetch(this.id).then(response => response.json()).then(obj => RENDER.element(this.elem, obj)).catch(err => err))
+                    limiter(() => fetch(this.id).then(response => response.json()).then(obj => RENDER.element(this.elem, obj)).catch(err => {
+                        broadcast(undefined, "expandError", document, { uri:this.id, error:err, message: `Could not get details for '${this.id}'` })
+                        return err
+                    }))
                 } else if (this.collection) {
                     // Look not only for direct objects, but also collection annotations
                     // Only the most recent, do not consider history parent or children history nodes
