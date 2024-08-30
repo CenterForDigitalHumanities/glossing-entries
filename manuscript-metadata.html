@@ -15,9 +15,9 @@
 <body class="container">
     <gog-header class="container"></gog-header>
 
-    <h2 class="bg-basic"> Witness Manuscript Metadata </h2>
+    <h2 class="bg-basic"> Manuscript Witness Metadata </h2>
 
-    <form id="manuscriptWitnessForm" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms">
+    <form id="manuscriptWitnessForm" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms" hash-id>
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
         <div class="row">
@@ -130,17 +130,13 @@
     <div id="globalFeedback" class="card is-center"></div>
 
     <script>
-        const witnessId = location.hash.substring(1)
-        if(!witnessId) {
+        try {
+            let hashURL = new URL(location.hash.substring(1))
+        } catch (error) {
             location.href = confirm('Use this form to update an existing Manuscript Witness. Select one from the list first.')
             ? 'manuscripts.html'
             : 'index.html'
         }
-        const form = document.getElementById('manuscriptWitnessForm')
-        form.setAttribute('deer-id', witnessId)
-        form.addEventListener('deer-form-rendered', () => {
-            form.querySelector('button[type="submit"]').disabled = false
-        })
     </script>
 </body>
 
