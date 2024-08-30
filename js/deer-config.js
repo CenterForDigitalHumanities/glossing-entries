@@ -1702,7 +1702,9 @@ export default {
                         console.error(err)
                         return Promise.reject([])
                     })
-
+                    obj.fragments = {
+                        "value":[...fragmentUriSet]
+                    }
                     const sources = await Promise.all([...fragmentUriSet.values()].map( frag => {
                         // Each Witness Fragment has a source.  Witness Fragments of the same Manuscript Witness may have difference sources.
                         const sourceAnnosQuery = {
@@ -1733,6 +1735,9 @@ export default {
                     // Only unique entries, duplicates are extraneous.  Ignore undefined in the Set.
                     let sourcesSet = new Set(sources)
                     sourcesSet.delete(undefined)
+                    obj.sources = {
+                        "value":[...sourcesSet]
+                    }
 
                     loading.remove()
                     // We have these URIs.  We can list them as individual label deer-views for them if we want them by label
