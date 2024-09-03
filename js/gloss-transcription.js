@@ -122,7 +122,7 @@ window.onload = async () => {
     })
     deleteWitnessButton.addEventListener("click", async ev => {
         if(await showCustomConfirm("The witness will be deleted.  This action cannot be undone.")){
-            deleteWitnessFragment(true)
+            deleteWitnessFragment(witnessFragmentID, true)
         }
     })
 }

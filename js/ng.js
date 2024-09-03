@@ -576,8 +576,8 @@ async function deleteGloss(id=glossHashID) {
         globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
         return
     }
-    let allWitnessesOfGloss = await getAllWitnessFragmentsOfGloss(id)
-    allWitnessesOfGloss = Array.from(allWitnessesOfGloss)
+    let allWitnessFragmentsOfGloss = await getAllWitnessFragmentsOfGloss(id)
+    allWitnessFragmentsOfGloss = [...allWitnessFragmentsOfGloss]
     // Confirm they want to do this
     if (!await showCustomConfirm(`Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)`)) return
 
@@ -619,8 +619,8 @@ async function deleteGloss(id=glossHashID) {
         })
     })
 
-    const allWitnessDeletes = allWitnessesOfGloss.map(witnessURI => {
-        return deleteWitness(witnessURI, false)
+    const allWitnessDeletes = allWitnessFragmentsOfGloss.map(witnessURI => {
+        return deleteWitnessFragment(witnessURI, false)
     })
 
     // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.

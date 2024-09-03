@@ -600,32 +600,15 @@ function paginateButtonsAfterSubmit(glossURIs){
  * 
  * @NOTE this ended up not being used, but it could be useful.
  * 
- * @param event - source-text-loaded
+ * @param manuscriptWitnessURI - The ManuscriptWitness URI whose WitnessFragments you want.
  */ 
-async function getAllWitnessFragmentsOfManuscript(event, existingManuscriptWitnessURI){
-    if(!existingManuscriptWitnessURI) return
-    const lineSelectorElem = document.querySelector(".lineSelector")
-    if(!(lineSelectorElem.hasAttribute("source-text-loaded") || lineSelectorElem.hasAttribute("tpen-lines-loaded"))){
-        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
-    }
-    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
-    if(Object.keys(witnessFragmentsObj).length > 0){
-        for(const witnessInfo in Object.values(witnessFragmentsObj)){
-            witnessInfo.glosses.forEach(glossURI => {
-                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
-                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
-                    btn.classList.add("attached-to-source")
-                })    
-            })
-            preselectLines(witnessInfo.selections, witnessFragmentForm)
-        }
-        return
-    }
+async function getAllWitnessFragmentsOfManuscript(manuscriptWitnessURI){
+    if(!manuscriptWitnessURI) return    
     const historyWildcard = { "$exists": true, "$size": 0 }
 
     // Each Fragment is partOf a Manuscript.
     const fragmentAnnosQuery = {
-        "body.partOf.value": httpsIdArray(existingManuscriptWitnessURI),
+        "body.partOf.value": httpsIdArray(manuscriptWitnessURI),
         "__rerum.history.next": historyWildcard,
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
@@ -639,92 +622,7 @@ async function getAllWitnessFragmentsOfManuscript(event, existingManuscriptWitne
         return Promise.reject([])
     })
 
-    let glossUriSet = new Set()    
-    let all = []
-    for (const fragmentURI of fragmentUriSet){
-        // Each Witness has an Annotation whose body.value references [a Gloss]
-        const referencesAnnosQuery = {
-            "target" : httpsIdArray(fragmentURI),
-            "body.references.value": { $exists:true },
-            "__rerum.history.next": historyWildcard,
-            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-        }
-        // It also has selections we need to highlight
-        const selectionsAnnosQuery = {
-            "target" : httpsIdArray(fragmentURI),
-            "body.selections.value": { $exists:true },
-            "__rerum.history.next": historyWildcard,
-            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-        }
-        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-            method: "POST",
-            mode: 'cors',
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(referencesAnnosQuery)
-        })
-        .then(response => response.json())
-        .then(annos => {
-            // Keep this information in the witnessFragmentsObj from shared.js
-            if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
-            witnessFragmentsObj[fragmentURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
-            glossUriSet = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
-            return Promise.resolve(witnessFragmentsObj)
-        })
-        .catch(err => {
-            console.error(err)
-            return Promise.reject([])
-        }))
-
-        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
-            method: "POST",
-            mode: 'cors',
-            headers: {
-                "Content-Type": "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(selectionsAnnosQuery)
-        })
-        .then(response => response.json())
-        .then(annos => {
-            // Keep this information in the witnessFragmentsObj from shared.js
-            if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
-            const existingSelections = witnessFragmentsObj[fragmentURI].selections ? witnessFragmentsObj[fragmentURI].selections : []
-            const moreSelections = annos.map(anno => anno.body.selections.value).flat()
-            const selections = new Set([...existingSelections, ...moreSelections])
-            witnessFragmentsObj[fragmentURI].selections = [...selections.values()]
-            return Promise.resolve(witnessFragmentsObj)
-        })
-        .catch(err => {
-            console.error(err)
-            return Promise.reject([])
-        })
-        )
-    }
-
-    // This has the asyncronous behavior necessary to build witnessFragmentsObj.
-    Promise.all(all)
-    .then(success => {
-        // Keep this information in the witnessFragmentsObj from shared.js
-        witnessFragmentsObj.referencedGlosses = glossUriSet
-        for(const fragmentURI in witnessFragmentsObj){
-            if(fragmentURI === "referencedGlosses") continue
-            const witnessInfo = witnessFragmentsObj[fragmentURI]
-            witnessInfo.glosses.forEach(glossURI => {
-                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
-                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
-                    btn.classList.add("attached-to-source")
-                })    
-            })
-            preselectLines(witnessInfo.selections, witnessFragmentForm)
-        }
-    })
-    .catch(err => {
-        console.error("Witnesses Object Error")
-        console.error(err)
-        const ev = new CustomEvent("Witnesses Object Error")
-        globalFeedbackBlip(ev, `Witnesses Object Error`, false)
-    })
+    return [...fragmentUriSet]
 }
 
 /**
@@ -879,12 +777,12 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
  *  @deprecated - The structures of Witness and Witness Fragments has changed.  This is still used on gloss-transcription.html.
  *  @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
 */
-async function deleteWitnessFragment(redirect){
-    if(!witnessFragmentID) return
+async function deleteWitnessFragment(witnessFragmentURI=null, redirect=null){
+    if(!witnessFragmentURI) return
     // No extra clicks while you await.
-    if(redirect) document.querySelector(".deleteWitness").setAttribute("disabled", "true")
+    if(redirect) document.querySelector(".deleteWitness")?.setAttribute("disabled", "true")
     const annos_query = {
-        "target" : httpsIdArray(witnessFragmentID),
+        "target" : httpsIdArray(witnessFragmentURI),
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
     let anno_ids =
@@ -925,7 +823,7 @@ async function deleteWitnessFragment(redirect){
     delete_calls.push(
         fetch(`${__constants.tiny}/delete`, {
             method: "DELETE",
-            body: JSON.stringify({"@id" : witnessFragmentID.replace(/^https?:/, 'https:')}),
+            body: JSON.stringify({"@id" : witnessFragmentURI.replace(/^https?:/, 'https:')}),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
@@ -935,31 +833,127 @@ async function deleteWitnessFragment(redirect){
             if(!r.ok) throw new Error(r.text)
         })
         .catch(err => {
-            console.warn(`There was an issue removing the Witness: ${witnessFragmentID}`)
+            console.warn(`There was an issue removing the Witness: ${witnessFragmentURI}`)
             console.log(err)
         })
     )
 
-    if(redirect){
-        Promise.all(delete_calls).then(success => {
+    return Promise.all(delete_calls).then(success => {
+        if(redirect){
             addEventListener("globalFeedbackFinished", ev=> {
                 startOver()
             })
             const ev = new CustomEvent("Witness Fragment Deleted.  You will be redirected.")
             globalFeedbackBlip(ev, `Witness Fragment Deleted.  You will be redirected.`, true)
+        }
+        return success
+    })
+    .catch(err => {
+        // OK they may be orphaned.  We will continue on towards deleting the entity.
+        console.warn("There was an issue removing connected Annotations.")
+        console.error(err)
+        const ev = new CustomEvent("Error Deleting Witness")
+        globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
+        return err
+    })    
+}
+
+/**
+ *  Delete a Witness Fragment through gloss-transcription.html, gloss-witness.html or manage-glosses.html.  
+ *  This will delete the Witness Fragment entity itself and its Annotations.  
+ *  The Witness Fragment will no longer appear as a Witness to the Gloss in any UI.
+ * 
+ *  @deprecated - The structures of Witness and Witness Fragments has changed.  This is still used on gloss-transcription.html.
+ *  @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
+*/
+async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=null){
+    if(!witnessFragmentURI) return
+    // No extra clicks while you await.
+    if(redirect) document.querySelector(".deleteWitness")?.setAttribute("disabled", "true")
+    const manuscript_annos_query = {
+        "target" : httpsIdArray(manuscriptWitnessURI),
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    let manuscript_anno_ids =
+        await fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: "cors",
+            headers: {
+                "Content-Type": "application/json; charset=utf-8"                },
+            body: JSON.stringify(annos_query)
+        })
+        .then(resp => resp.json()) 
+        .then(annos => annos.map(anno => anno["@id"]))
+        .catch(err => {
+            return null
+        })
+
+    // This is bad enough to stop here, we will not continue on towards deleting the entity.
+    if(manuscript_anno_ids === null) throw new Error("Cannot find Entity Annotations")
+
+    let manuscript_delete_calls = anno_ids.map(annoUri => {
+        return fetch(`${__constants.tiny}/delete`, {
+            method: "DELETE",
+            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            }
+        })
+        .then(r => {
+            if(!r.ok) throw new Error(r.text)
         })
         .catch(err => {
-            // OK they may be orphaned.  We will continue on towards deleting the entity.
-            console.warn("There was an issue removing connected Annotations.")
-            console.error(err)
-            const ev = new CustomEvent("Error Deleting Witness")
-            globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
-        })    
-        return
-    }
-    else{
-        return delete_calls
-    }
+            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
+            console.log(err)
+        })
+    })
+
+    manuscript_delete_calls.push(
+        fetch(`${__constants.tiny}/delete`, {
+            method: "DELETE",
+            body: JSON.stringify({"@id" : manuscriptWitnessURI.replace(/^https?:/, 'https:')}),
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            },
+        })
+        .then(r => {
+            if(!r.ok) throw new Error(r.text)
+        })
+        .catch(err => {
+            console.warn(`There was an issue removing the Witness: ${manuscriptWitnessURI}`)
+            console.log(err)
+        })
+    )
+
+    // Obtain and delete each WitnessFragment that is partOf this Manuscript Witness.
+    // Note that Annotations targeting those WitnessFragments should be deleted as well.
+    const witnessFragmentURIs = await getAllWitnessFragmentsOfManuscript(manuscriptWitnessURI)
+    const fragment_delete_calls = witnessFragmentURIs.map(fragmentURI => {
+        return deleteWitnessFragment(fragmentURI, false)
+    })
+
+    const all_delete_calls = [...manuscript_delete_calls, ...fragment_delete_calls]
+
+    return Promise.all(all_delete_calls).then(success => {
+        if(redirect){
+            addEventListener("globalFeedbackFinished", ev=> {
+                startOver()
+            })
+            const ev = new CustomEvent("Manuscript Witness Deleted.  You will be redirected.")
+            globalFeedbackBlip(ev, `Manuscript Witness Deleted.  You will be redirected.`, true)
+        }
+        return success
+    })
+    .catch(err => {
+        // OK they may be orphaned.  We will continue on towards deleting the entity.
+        console.warn("There was an issue removing connected Annotations.")
+        console.error(err)
+        const ev = new CustomEvent("Error Deleting Witness")
+        globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
+        return err
+    })    
 }
 
 /**
@@ -1177,6 +1171,35 @@ async function getManuscriptWitnessFromSource(source=null){
     //     return
     // }
     return manuscriptUriSet.values().next().value
+}
+
+/**
+ * @param source A String that is either a text body or a URI to a text resource.
+ */ 
+async function getAllWitnessFragmensOfGloss(glossURI){
+    const historyWildcard = { "$exists": true, "$size": 0 }
+
+    const gloss_witness_annos_query = {
+        "body.references.value" : httpsIdArray(glossURI),
+        '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    let fragmentUriSet = await getPagedQuery(100, 0, gloss_witness_annos_query)
+    .then(async(annos) => {
+        const fragments = annos.map(async(anno) => anno.target)
+        return new Set(fragments)
+    })
+    .catch(err => {
+        console.error(err)
+        throw err
+    })
+    // Remove the undefined entry if present
+    if(fragmentUriSet.size === 0){
+        console.log(`There are no Manuscript Witnesses that reference the Gloss '${glossURI}'`)
+        return []
+    }
+
+    return [...fragmentUriSet]
 }
 
 /**
