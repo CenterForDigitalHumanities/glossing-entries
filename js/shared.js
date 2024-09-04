@@ -769,12 +769,17 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
     })
 }
 
+
+
+
+
+
+
 /**
  *  Delete a Witness Fragment through gloss-transcription.html, gloss-witness.html or manage-glosses.html.  
  *  This will delete the Witness Fragment entity itself and its Annotations.  
- *  The Witness Fragment will no longer appear as a Witness to the Gloss in any UI.
+ *  The Witness Fragment will no longer appear as a witness to a Gloss in any UI and the text selection will go away.
  * 
- *  @deprecated - The structures of Witness and Witness Fragments has changed.  This is still used on gloss-transcription.html.
  *  @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
 */
 async function deleteWitnessFragment(witnessFragmentURI=null, redirect=null){
@@ -839,35 +844,39 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=null){
     )
 
     return Promise.all(delete_calls).then(success => {
+        const ev = new CustomEvent("Witness Fragment Deleted.  You will be redirected.")
         if(redirect){
             addEventListener("globalFeedbackFinished", ev=> {
                 startOver()
             })
-            const ev = new CustomEvent("Witness Fragment Deleted.  You will be redirected.")
+            
             globalFeedbackBlip(ev, `Witness Fragment Deleted.  You will be redirected.`, true)
         }
+        broadcast(ev, "WitnessFragmentDeleted", document, { detail: {"@id":witnessFragmentURI} })
         return success
     })
     .catch(err => {
         // OK they may be orphaned.  We will continue on towards deleting the entity.
         console.warn("There was an issue removing connected Annotations.")
         console.error(err)
-        const ev = new CustomEvent("Error Deleting Witness")
-        globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
+        const ev_err = new CustomEvent("Error Deleting Witness")
+        globalFeedbackBlip(ev_err, `Error Deleting Witness.  It may still appear.`, false)
+        broadcast(ev, "WitnessFragmentDeleteError", document, { detail: {"@id":witnessFragmentURI, "error":err} })
         return err
     })    
 }
 
 /**
- *  Delete a Witness Fragment through gloss-transcription.html, gloss-witness.html or manage-glosses.html.  
- *  This will delete the Witness Fragment entity itself and its Annotations.  
+ *  Delete a Manuscript Witness through witness-metadata.html or manage-witnesses.html.  
+ *  This will delete the Manuscript Entity entity itself and its Annotations.  
+ *  This will delete any Witness Fragment that has a partOf Annotation which targets this Manuscript Witness.
  *  The Witness Fragment will no longer appear as a Witness to the Gloss in any UI.
+ *  The Witness Fragment will no longer appear as a witness to a Gloss in any UI and the text selection will go away.
  * 
- *  @deprecated - The structures of Witness and Witness Fragments has changed.  This is still used on gloss-transcription.html.
  *  @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
 */
 async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=null){
-    if(!witnessFragmentURI) return
+    if(!manuscriptWitnessURI) return
     // No extra clicks while you await.
     if(redirect) document.querySelector(".deleteWitness")?.setAttribute("disabled", "true")
     const manuscript_annos_query = {
@@ -880,7 +889,7 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=null)
             mode: "cors",
             headers: {
                 "Content-Type": "application/json; charset=utf-8"                },
-            body: JSON.stringify(annos_query)
+            body: JSON.stringify(manuscript_annos_query)
         })
         .then(resp => resp.json()) 
         .then(annos => annos.map(anno => anno["@id"]))
@@ -891,7 +900,7 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=null)
     // This is bad enough to stop here, we will not continue on towards deleting the entity.
     if(manuscript_anno_ids === null) throw new Error("Cannot find Entity Annotations")
 
-    let manuscript_delete_calls = anno_ids.map(annoUri => {
+    let manuscript_delete_calls = manuscript_anno_ids.map(annoUri => {
         return fetch(`${__constants.tiny}/delete`, {
             method: "DELETE",
             body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
@@ -937,24 +946,143 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=null)
     const all_delete_calls = [...manuscript_delete_calls, ...fragment_delete_calls]
 
     return Promise.all(all_delete_calls).then(success => {
+        const ev = new CustomEvent("Manuscript Witness Deleted.  You will be redirected.")
         if(redirect){
             addEventListener("globalFeedbackFinished", ev=> {
                 startOver()
             })
-            const ev = new CustomEvent("Manuscript Witness Deleted.  You will be redirected.")
             globalFeedbackBlip(ev, `Manuscript Witness Deleted.  You will be redirected.`, true)
         }
+        broadcast(ev, "ManuscriptWitnessDeleted", document, { detail: {"@id":manuscriptWitnessURI} })
         return success
     })
     .catch(err => {
         // OK they may be orphaned.  We will continue on towards deleting the entity.
         console.warn("There was an issue removing connected Annotations.")
         console.error(err)
-        const ev = new CustomEvent("Error Deleting Witness")
-        globalFeedbackBlip(ev, `Error Deleting Witness.  It may still appear.`, false)
+        const ev_err = new CustomEvent("Witness Delete Error")
+        broadcast(ev_err, "ManuscriptWitnessDeleteError", document, { detail: {"@id":manuscriptWitnessURI, "error":err} })
         return err
     })    
 }
+
+/**
+ * A Gloss entity is being deleted through ng.html or ??.  
+ * Delete the Gloss, the Annotations targeting the Gloss, the WitnesseFragments of the Gloss, and the WitnessFragments' Annotations.
+ * DO NOT delete a Gloss if it is on the public list.  That's a separate function.  See manageGlossModal.js and manage-glosses.html.
+ * 
+ * @param id {String} The Gloss IRI.
+ * @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
+ */
+async function deleteGloss(id=glossHashID, redirect=null) {
+    if(!id){
+        alert(`No URI supplied for delete.  Cannot delete.`)
+        return
+    }
+    if(await isPublicGloss(id)){
+        const ev = new CustomEvent("Gloss is public")
+        globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
+        return
+    }
+    let allWitnessFragmentsOfGloss = await getAllWitnessFragmentsOfGloss(id)
+    // Confirm they want to do this
+    if (!await showCustomConfirm(`Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)`)) return
+
+    const historyWildcard = { "$exists": true, "$size": 0 }
+
+    // Get all Annotations throughout history targeting this object that were generated by this application.
+    const allAnnotationsTargetingEntityQueryObj = {
+        target: httpsIdArray(id),
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+    const allEntityAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
+    .then(annos => annos.map(anno => anno["@id"]))
+    .catch(err => {
+        alert("Could not gather Annotations to delete.")
+        console.log(err)
+        return null
+    })
+
+    // This is bad enough to stop here, we will not continue on towards deleting the entity.
+    if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
+
+    const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
+        return fetch(`${__constants.tiny}/delete`, {
+            method: "DELETE",
+            body: JSON.stringify({"@id":annoUri.replace(/^https?:/, 'https:')}),
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            }
+        })
+        .then(r => {
+            if(!r.ok) throw new Error(r.text)
+            
+        })
+        .catch(err => { 
+            console.warn("issue removing Gloss Entity Annotations")
+            console.error(err)
+            return err
+        })
+    })
+
+    const allWitnessDeletes = allWitnessFragmentsOfGloss.map(witnessURI => {
+        return deleteWitnessFragment(witnessURI, false)
+    })
+
+    // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
+    await Promise.all(allEntityAnnotations).then(success => {
+        console.log("Connected Annotationss successfully removed.")
+    })
+    .catch(err => {
+        // OK they may be orphaned.  We will continue on towards deleting the entity.
+        console.warn("There was an issue removing connected Annotations.")
+        console.log(err)
+    })
+
+    // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
+    await Promise.all(allWitnessDeletes).then(success => {
+        console.log("Connected WitnessFragments successfully removed.")
+    })
+    .catch(err => {
+        // OK they may be orphaned.  We will continue on towards deleting the entity.
+        console.warn("There was an issue removing connected Witnesses.")
+        console.log(err)
+    })
+
+    // Now the entity itself
+    fetch(`${__constants.tiny}/delete`, {
+        method: "DELETE",
+        body: JSON.stringify({ "@id": id }),
+        headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": `Bearer ${window.GOG_USER.authorization}`
+        }
+    })
+    .then(r => {
+        if(r.ok){
+            const ev = new CustomEvent("Gloss Deleted")
+            broadcast(ev, "GlossDeleted", document, { detail: {"@id":id} })
+            return r
+        }
+        else{ 
+            throw new Error(r.text)
+        }
+    })
+    .catch(err => {        
+        const ev_err = new CustomEvent("Gloss Deleted Error")
+        broadcast(ev_err, "GlossDeleteError", document, { detail: {"@id":id} })
+        return err
+    })
+
+}
+
+
+
+
+
+
+
 
 /**
  * For a given shelfmark, query RERUM to find matching Manuscript Witness entities.

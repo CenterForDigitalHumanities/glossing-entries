@@ -42,6 +42,20 @@ addEventListener('expandError', event => {
 })
 
 /**
+ * UI/UX for when the user uses this page to delete an existing #WitnessFragment
+ */
+document.addEventListener("WitnessFragmentDeleted", function(event){
+    
+})
+
+/**
+ * UI/UX for when this page has an error attempting to delete an existing #WitnessFragment
+ */
+document.addEventListener("WitnessFragmentDeleteError", function(event){
+    
+})
+
+/**
  * Attach all the event handlers to the custom key areas.
  * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
  * Set fixed value fields and make those inputs dirty.

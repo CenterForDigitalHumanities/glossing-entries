@@ -48,6 +48,20 @@ addEventListener('expandError', event => {
 })
 
 /**
+ * UI/UX for when the user uses this page to delete an existing #WitnessFragment
+ */
+document.addEventListener("WitnessFragmentDeleted", function(event){
+    
+})
+
+/**
+ * UI/UX for when this page has an error attempting to delete an existing #WitnessFragment
+ */
+document.addEventListener("WitnessFragmentDeleteError", function(event){
+    
+})
+
+/**
  * Reset all the Witness form elements so the form is ready to generate a new Witness.
  * This occurs after the user submits a new witness.
  * If they provided a witness URI in the hash, then this is an 'update scenario'. Do not perform the reset.
