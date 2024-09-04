@@ -79,10 +79,11 @@ document.addEventListener("GlossDeleted", function(event){
 
 /**
  * UI/UX for when this page has an error attempting to delete an existing #Gloss
+ * The form becomes locked down and an error message is show.
  */
 document.addEventListener("GlossDeleteError", function(event){
     const ev = new CustomEvent("Gloss Delete Error")
-    globalFeedbackBlip(ev, `There was an issue removing the Gloss with URI ${event.detail["@id"]}.  This item may still appear in collections.`, true)
+    globalFeedbackBlip(ev, `There was an issue removing the Gloss with URI ${event.detail["@id"]}.  This item may still appear in collections.`, false)
     addEventListener("globalFeedbackFinished", () => {
         setFieldDisabled(true)
     })

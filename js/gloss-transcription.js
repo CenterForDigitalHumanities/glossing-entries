@@ -35,7 +35,7 @@ addEventListener('expandError', event => {
     const uri = event.detail.uri
     const ev = new CustomEvent("Witness Details Error")
     look.classList.add("text-error")
-    look.innerText = "Could not get Witness information."
+    look.innerText = "Could not get Witness Fragment information."
     witnessFragmentForm.remove()
     loading.classList.add("is-hidden")
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
@@ -45,14 +45,25 @@ addEventListener('expandError', event => {
  * UI/UX for when the user uses this page to delete an existing #WitnessFragment
  */
 document.addEventListener("WitnessFragmentDeleted", function(event){
-    
+    const ev = new CustomEvent("This Witness Fragment has been deleted.")
+    if(event.detail.redirect){
+        globalFeedbackBlip(ev, `Witness Fragment deleted.  You will be redirected.`, true)
+        addEventListener("globalFeedbackFinished", () => {
+            location.href = "gloss-transcription.html"
+        })
+    }
 })
 
 /**
- * UI/UX for when this page has an error attempting to delete an existing #WitnessFragment
+ * UI/UX for when this page has an error attempting to delete an existing #WitnessFragment.
+ * The form becomes locked down and an error message is show.
  */
 document.addEventListener("WitnessFragmentDeleteError", function(event){
-    
+    const ev = new CustomEvent("WitnessFragment Delete Error")
+    globalFeedbackBlip(ev, `There was an deleting the Witness Fragment with URI ${event.detail["@id"]}`, false)
+    addEventListener("globalFeedbackFinished", () => {
+        setFieldDisabled(true)
+    })
 })
 
 /**
@@ -226,7 +237,7 @@ function setFragmentFormDefaults(){
         s.removeAttribute("deer-source")
     })
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "cuba&thehabes"
+    form.querySelector("input[deer-key='creator']").value = "BryanDeleteRefactor"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -329,6 +340,100 @@ function setFragmentFormDefaults(){
  * When a filterableListItem_glossSelector loads, add the 'attach' or 'attached' button to it.
  */ 
 addEventListener('deer-view-rendered', addButton)
+
+/**
+ * After a filterableListItem_glossSelector loads, we need to determine what to do with its 'attach' button.
+ * In create/update scenarios, this will result in the need to click a button
+ * In loading scenarios, if a text witness URI was supplied to the page it will have a gloss which should appear as 'attached'.
+ */ 
+function addButton(event) {
+    const template_container = event.target
+    if(template_container.getAttribute("deer-template") !== "filterableListItem_glossSelector") return
+    const obj = event.detail
+    const gloss_li = template_container.firstElementChild
+    const createScenario = template_container.hasAttribute("create-scenario")
+    const updateScenario = template_container.hasAttribute("update-scenario")
+    // A new Gloss has been introduced and is done being cached.
+    let inclusionBtn = document.createElement("input")
+    inclusionBtn.setAttribute("type", "button")
+    inclusionBtn.setAttribute("data-id", obj["@id"])
+    let already = false
+    if(witnessFragmentsObj?.referencedGlosses){
+        already = witnessFragmentsObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
+    }
+    if(updateScenario){
+        inclusionBtn.setAttribute("disabled", "")
+        inclusionBtn.setAttribute("value", "✓ attached")
+        inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button success`)  
+    }
+    else{
+        // Either a create scenario, or neither (just loading up)
+        inclusionBtn.setAttribute("title", `${already ? "This gloss was attached in the past.  Be sure before you attach it." : "Attach This Gloss and Save" }`)
+        inclusionBtn.setAttribute("value", `${already ? "❢" : "➥"} attach`)
+        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button primary`)
+
+        // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
+        if(witnessFragmentID && referencedGlossID === obj["@id"]){
+            // Make this button appear as 'attached'
+            inclusionBtn.setAttribute("disabled", "")
+            inclusionBtn.setAttribute("value", "✓ attached")
+            inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+            inclusionBtn.classList.remove("primary")
+            inclusionBtn.classList.add("success")
+        }
+    }
+    inclusionBtn.addEventListener('click', async ev => {
+        ev.preventDefault()
+        ev.stopPropagation()
+        const form = ev.target.closest("form")
+        let blip = new CustomEvent("Blip")
+        // There must be a shelfmark
+        if(!form.querySelector("input[deer-key='identifier']").value){
+            blip = new CustomEvent("You must provide a Shelfmark value.")
+            globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
+            return
+        }
+        // There must be a selection
+        if(!form.querySelector("input[custom-key='selections']").value){
+            blip = new CustomEvent("Select some text first.")
+            globalFeedbackBlip(blip, `Select some text first.`, false)
+            return   
+        }
+        const glossIncipit = ev.target.closest("li").getAttribute("data-title")
+        const note = ev.target.classList.contains("attached-to-source") 
+           ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
+           : `Save this textual witness for Gloss '${glossIncipit}'?`
+        if((createScenario || updateScenario) || await showCustomConfirm(note)){
+            const customKey = form.querySelector("input[custom-key='references']")
+            const uri = ev.target.getAttribute("data-id")
+            if(customKey.value !== uri){
+                customKey.value = uri 
+                customKey.setAttribute("value", uri) 
+                customKey.$isDirty = true
+                form.$isDirty = true
+                form.querySelector("input[type='submit']").click()    
+            }
+            else{
+                globalFeedbackBlip(ev, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
+            }
+        }                    
+    })
+    gloss_li.prepend(inclusionBtn)
+    
+    if(createScenario) { inclusionBtn.click() }
+    else if(updateScenario) { 
+        // Set the references input with the new gloss URI and update the form
+        const refKey = witnessFragmentForm.querySelector("input[custom-key='references']")
+        if(refKey.value !== obj["@id"]){
+            refKey.value = obj["@id"]
+            refKey.setAttribute("value", obj["@id"]) 
+            refKey.$isDirty = true
+            witnessFragmentForm.$isDirty = true
+            witnessFragmentForm.querySelector("input[type='submit']").click() 
+        }
+    }
+}
 
 /**
  * On page load and after submission DEER will announce this form as rendered.

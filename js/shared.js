@@ -74,17 +74,17 @@ customElements.define('custom-confirm-modal', CustomConfirmModal)
 let witnessFragmentsObj = {}
 
 //For when we test, so we can easily find and blow away junk data
-// setTimeout(() => {
-//     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="cuba&thehabes"
-//         el.setAttribute("value", "cuba&thehabes")
-//     })
-//     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "cuba&thehabes")
-//     })
-//     if(!window.GOG_USER) window.GOG_USER = {}
-//     window.GOG_USER["http://store.rerum.io/agent"] = "cuba&thehabes"
-// }, 4000)
+setTimeout(() => {
+    document.querySelectorAll("input[deer-key='creator']").forEach(el => {
+        el.value="BryanDeleteRefactor"
+        el.setAttribute("value", "BryanDeleteRefactor")
+    })
+    document.querySelectorAll("form").forEach(el => {
+        el.setAttribute("deer-creator", "BryanDeleteRefactor")
+    })
+    if(!window.GOG_USER) window.GOG_USER = {}
+    window.GOG_USER["http://store.rerum.io/agent"] = "BryanDeleteRefactor"
+}, 4000)
 
 let __constants = {}
 setConstants()
@@ -128,7 +128,7 @@ async function setListings(){
  * @returns {string|boolean} - The value of the URL parameter if found, otherwise false.
  */
 function getURLParameter(variable) {
-    const query = window.location.search.substring(1)
+    const query = window.location.search.slice(1)
     const vars = query.split("&")
     for (var i = 0; i < vars.length; i++) {
         var pair = vars[i].split("=");
@@ -289,7 +289,7 @@ document.addEventListener('deer-updated', event => {
  * Loads the hash identifier (hash-id) and sets it as an attribute for elements with [hash-id].
  */
 function loadHashId() {
-    let hash = location.hash?.substring(1)
+    let hash = location.hash?.slice(1)
     if (!hash) { return }
     const rerumPrefix = "https://store.rerum.io/v1/id/"
     if (hash.length === 24) { hash = `${rerumPrefix}${hash}` }
@@ -466,100 +466,6 @@ function normalizeString(str){
 }
 
 /**
- * After a filterableListItem_glossSelector loads, we need to determine what to do with its 'attach' button.
- * In create/update scenarios, this will result in the need to click a button
- * In loading scenarios, if a text witness URI was supplied to the page it will have a gloss which should appear as 'attached'.
- */ 
-function addButton(event) {
-    const template_container = event.target
-    if(template_container.getAttribute("deer-template") !== "filterableListItem_glossSelector") return
-    const obj = event.detail
-    const gloss_li = template_container.firstElementChild
-    const createScenario = template_container.hasAttribute("create-scenario")
-    const updateScenario = template_container.hasAttribute("update-scenario")
-    // A new Gloss has been introduced and is done being cached.
-    let inclusionBtn = document.createElement("input")
-    inclusionBtn.setAttribute("type", "button")
-    inclusionBtn.setAttribute("data-id", obj["@id"])
-    let already = false
-    if(witnessFragmentsObj?.referencedGlosses){
-        already = witnessFragmentsObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
-    }
-    if(updateScenario){
-        inclusionBtn.setAttribute("disabled", "")
-        inclusionBtn.setAttribute("value", "✓ attached")
-        inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button success`)  
-    }
-    else{
-        // Either a create scenario, or neither (just loading up)
-        inclusionBtn.setAttribute("title", `${already ? "This gloss was attached in the past.  Be sure before you attach it." : "Attach This Gloss and Save" }`)
-        inclusionBtn.setAttribute("value", `${already ? "❢" : "➥"} attach`)
-        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button primary`)
-
-        // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
-        if(witnessFragmentID && referencedGlossID === obj["@id"]){
-            // Make this button appear as 'attached'
-            inclusionBtn.setAttribute("disabled", "")
-            inclusionBtn.setAttribute("value", "✓ attached")
-            inclusionBtn.setAttribute("title", "This Gloss is already attached!")
-            inclusionBtn.classList.remove("primary")
-            inclusionBtn.classList.add("success")
-        }
-    }
-    inclusionBtn.addEventListener('click', async ev => {
-        ev.preventDefault()
-        ev.stopPropagation()
-        const form = ev.target.closest("form")
-        let blip = new CustomEvent("Blip")
-        // There must be a shelfmark
-        if(!form.querySelector("input[deer-key='identifier']").value){
-            blip = new CustomEvent("You must provide a Shelfmark value.")
-            globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
-            return
-        }
-        // There must be a selection
-        if(!form.querySelector("input[custom-key='selections']").value){
-            blip = new CustomEvent("Select some text first.")
-            globalFeedbackBlip(blip, `Select some text first.`, false)
-            return   
-        }
-        const glossIncipit = ev.target.closest("li").getAttribute("data-title")
-        const note = ev.target.classList.contains("attached-to-source") 
-           ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
-           : `Save this textual witness for Gloss '${glossIncipit}'?`
-        if((createScenario || updateScenario) || await showCustomConfirm(note)){
-            const customKey = form.querySelector("input[custom-key='references']")
-            const uri = ev.target.getAttribute("data-id")
-            if(customKey.value !== uri){
-                customKey.value = uri 
-                customKey.setAttribute("value", uri) 
-                customKey.$isDirty = true
-                form.$isDirty = true
-                form.querySelector("input[type='submit']").click()    
-            }
-            else{
-                globalFeedbackBlip(ev, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
-            }
-        }                    
-    })
-    gloss_li.prepend(inclusionBtn)
-    
-    if(createScenario) { inclusionBtn.click() }
-    else if(updateScenario) { 
-        // Set the references input with the new gloss URI and update the form
-        const refKey = witnessFragmentForm.querySelector("input[custom-key='references']")
-        if(refKey.value !== obj["@id"]){
-            refKey.value = obj["@id"]
-            refKey.setAttribute("value", obj["@id"]) 
-            refKey.$isDirty = true
-            witnessFragmentForm.$isDirty = true
-            witnessFragmentForm.querySelector("input[type='submit']").click() 
-        }
-    }
-}
-
-/**
  * Paginate the '➥ attach' and possibly '✓ attached' button(s) after a Witness submission.
  * 
  * @param glossURIs - An array of Gloss URIs to match on which buttons need some pagination
@@ -622,7 +528,7 @@ async function getAllWitnessFragmentsOfManuscript(manuscriptWitnessURI){
         return Promise.reject([])
     })
 
-    return [...fragmentUriSet]
+    return [...fragmentUriSet.values()]
 }
 
 /**
@@ -746,18 +652,16 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
             })
             preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
         }
+        //loading.classList.add("is-hidden")
         if(witnessFragmentID){
-            loading.classList.add("is-hidden")
             witnessFragmentForm.classList.remove("is-hidden")
         }
         else{
             if(manuscriptWitnessForm.hasAttribute("matched")){
-                loading.classList.add("is-hidden")
                 witnessFragmentForm.classList.remove("is-hidden")
             }
             else{
-                loading.classList.add("is-hidden")
-                manuscriptWitnessForm.classList.remove("is-hidden")
+                //manuscriptWitnessForm.classList.remove("is-hidden")
             } 
         }
     })
@@ -782,7 +686,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
  * 
  *  @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
 */
-async function deleteWitnessFragment(witnessFragmentURI=null, redirect=null){
+async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
     if(!witnessFragmentURI) return
     // No extra clicks while you await.
     if(redirect) document.querySelector(".deleteWitness")?.setAttribute("disabled", "true")
@@ -795,7 +699,8 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=null){
             method: "POST",
             mode: "cors",
             headers: {
-                "Content-Type": "application/json; charset=utf-8"                },
+                "Content-Type": "application/json; charset=utf-8"                
+            },
             body: JSON.stringify(annos_query)
         })
         .then(resp => resp.json()) 
@@ -817,11 +722,13 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=null){
             }
         })
         .then(r => {
-            if(!r.ok) throw new Error(r.text)
+            if(r.ok) {return r}
+            else {throw new Error(r.text)}
         })
         .catch(err => {
             console.warn(`There was an issue removing an Annotation: ${annoUri}`)
             console.log(err)
+            return err
         })
     })
 
@@ -835,24 +742,19 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=null){
             },
         })
         .then(r => {
-            if(!r.ok) throw new Error(r.text)
+            if(r.ok) {return r}
+            else {throw new Error(r.text)}
         })
         .catch(err => {
-            console.warn(`There was an issue removing the Witness: ${witnessFragmentURI}`)
+            console.warn(`There was an issue removing the Witness Fragment: ${witnessFragmentURI}`)
             console.log(err)
+            return err
         })
     )
 
     return Promise.all(delete_calls).then(success => {
-        const ev = new CustomEvent("Witness Fragment Deleted.  You will be redirected.")
-        if(redirect){
-            addEventListener("globalFeedbackFinished", ev=> {
-                startOver()
-            })
-            
-            globalFeedbackBlip(ev, `Witness Fragment Deleted.  You will be redirected.`, true)
-        }
-        broadcast(ev, "WitnessFragmentDeleted", document, { detail: {"@id":witnessFragmentURI} })
+        const ev = new CustomEvent("WitnessFragment Deleted.")
+        broadcast(ev, "WitnessFragmentDeleted", document, {"@id":witnessFragmentURI, "redirect":redirect})
         return success
     })
     .catch(err => {
@@ -860,8 +762,8 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=null){
         console.warn("There was an issue removing connected Annotations.")
         console.error(err)
         const ev_err = new CustomEvent("Error Deleting Witness")
-        globalFeedbackBlip(ev_err, `Error Deleting Witness.  It may still appear.`, false)
-        broadcast(ev, "WitnessFragmentDeleteError", document, { detail: {"@id":witnessFragmentURI, "error":err} })
+        globalFeedbackBlip(ev_err, `Error Deleting WitnessFragment.  It may still appear.`, false)
+        broadcast(ev, "WitnessFragmentDeleteError", document, {"@id":witnessFragmentURI, "error":err, "redirect":redirect})
         return err
     })    
 }
@@ -875,7 +777,7 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=null){
  * 
  *  @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
 */
-async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=null){
+async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false){
     if(!manuscriptWitnessURI) return
     // No extra clicks while you await.
     if(redirect) document.querySelector(".deleteWitness")?.setAttribute("disabled", "true")
@@ -910,11 +812,13 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=null)
             }
         })
         .then(r => {
-            if(!r.ok) throw new Error(r.text)
+            if(r.ok) {return r}
+            else {throw new Error(r.text)}
         })
         .catch(err => {
             console.warn(`There was an issue removing an Annotation: ${annoUri}`)
             console.log(err)
+            return err
         })
     })
 
@@ -928,11 +832,13 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=null)
             },
         })
         .then(r => {
-            if(!r.ok) throw new Error(r.text)
+            if(r.ok) {return r}
+            else {throw new Error(r.text)}
         })
         .catch(err => {
-            console.warn(`There was an issue removing the Witness: ${manuscriptWitnessURI}`)
+            console.warn(`There was an issue removing the Manuscript Witness: ${manuscriptWitnessURI}`)
             console.log(err)
+            return err
         })
     )
 
@@ -946,22 +852,15 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=null)
     const all_delete_calls = [...manuscript_delete_calls, ...fragment_delete_calls]
 
     return Promise.all(all_delete_calls).then(success => {
-        const ev = new CustomEvent("Manuscript Witness Deleted.  You will be redirected.")
-        if(redirect){
-            addEventListener("globalFeedbackFinished", ev=> {
-                startOver()
-            })
-            globalFeedbackBlip(ev, `Manuscript Witness Deleted.  You will be redirected.`, true)
-        }
-        broadcast(ev, "ManuscriptWitnessDeleted", document, { detail: {"@id":manuscriptWitnessURI} })
+        const ev = new CustomEvent("ManuscriptWitness Deleted")
+        broadcast(ev, "ManuscriptWitnessDeleted", document, { "@id":manuscriptWitnessURI, "redirect":redirect } )
         return success
     })
     .catch(err => {
-        // OK they may be orphaned.  We will continue on towards deleting the entity.
         console.warn("There was an issue removing connected Annotations.")
         console.error(err)
-        const ev_err = new CustomEvent("Witness Delete Error")
-        broadcast(ev_err, "ManuscriptWitnessDeleteError", document, { detail: {"@id":manuscriptWitnessURI, "error":err} })
+        const ev_err = new CustomEvent("Manuscript Witness Delete Error")
+        broadcast(ev_err, "ManuscriptWitnessDeleteError", document, {"@id":manuscriptWitnessURI, "error":err} )
         return err
     })    
 }
@@ -974,11 +873,13 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=null)
  * @param id {String} The Gloss IRI.
  * @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
  */
-async function deleteGloss(id=glossHashID, redirect=null) {
+async function deleteGloss(id=glossHashID, redirect=false) {
     if(!id){
         alert(`No URI supplied for delete.  Cannot delete.`)
         return
     }
+    // No extra clicks while you await.
+    if(redirect) document.querySelector(".dropGloss")?.setAttribute("disabled", "true")
     if(await isPublicGloss(id)){
         const ev = new CustomEvent("Gloss is public")
         globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
@@ -986,7 +887,7 @@ async function deleteGloss(id=glossHashID, redirect=null) {
     }
     let allWitnessFragmentsOfGloss = await getAllWitnessFragmentsOfGloss(id)
     // Confirm they want to do this
-    if (!await showCustomConfirm(`Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)`)) return
+    if (!await showCustomConfirm(`Really delete this Gloss and remove its Witness Fragments?\n(Cannot be undone)`)) return
 
     const historyWildcard = { "$exists": true, "$size": 0 }
 
@@ -1016,8 +917,8 @@ async function deleteGloss(id=glossHashID, redirect=null) {
             }
         })
         .then(r => {
-            if(!r.ok) throw new Error(r.text)
-            
+            if(r.ok) {return r}
+            else {throw new Error(r.text)}
         })
         .catch(err => { 
             console.warn("issue removing Gloss Entity Annotations")
@@ -1026,7 +927,7 @@ async function deleteGloss(id=glossHashID, redirect=null) {
         })
     })
 
-    const allWitnessDeletes = allWitnessFragmentsOfGloss.map(witnessURI => {
+    const allWitnessFragmentDeletes = allWitnessFragmentsOfGloss.map(witnessURI => {
         return deleteWitnessFragment(witnessURI, false)
     })
 
@@ -1041,7 +942,7 @@ async function deleteGloss(id=glossHashID, redirect=null) {
     })
 
     // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
-    await Promise.all(allWitnessDeletes).then(success => {
+    await Promise.all(allWitnessFragmentDeletes).then(success => {
         console.log("Connected WitnessFragments successfully removed.")
     })
     .catch(err => {
@@ -1062,7 +963,7 @@ async function deleteGloss(id=glossHashID, redirect=null) {
     .then(r => {
         if(r.ok){
             const ev = new CustomEvent("Gloss Deleted")
-            broadcast(ev, "GlossDeleted", document, { detail: {"@id":id} })
+            broadcast(ev, "GlossDeleted", document, { "@id":id, "redirect":redirect })
             return r
         }
         else{ 
@@ -1071,7 +972,7 @@ async function deleteGloss(id=glossHashID, redirect=null) {
     })
     .catch(err => {        
         const ev_err = new CustomEvent("Gloss Deleted Error")
-        broadcast(ev_err, "GlossDeleteError", document, { detail: {"@id":id} })
+        broadcast(ev_err, "GlossDeleteError", document, { "@id":id, "error":err })
         return err
     })
 
@@ -1304,7 +1205,7 @@ async function getManuscriptWitnessFromSource(source=null){
 /**
  * @param source A String that is either a text body or a URI to a text resource.
  */ 
-async function getAllWitnessFragmensOfGloss(glossURI){
+async function getAllWitnessFragmentsOfGloss(glossURI){
     const historyWildcard = { "$exists": true, "$size": 0 }
 
     const gloss_witness_annos_query = {
@@ -1327,7 +1228,7 @@ async function getAllWitnessFragmensOfGloss(glossURI){
         return []
     }
 
-    return [...fragmentUriSet]
+    return [...fragmentUriSet.values()]
 }
 
 /**
@@ -1381,7 +1282,7 @@ async function initiateMatch(manuscriptWitnessID){
         }
         const shelfmark = annos[0].body.identifier.value
         manuscriptWitnessForm.setAttribute("matched", true)
-        activateFragmentForm(manuscriptWitnessID, shelfmark, false)
+        activateFragmentForm(manuscriptWitnessID, shelfmark, true)
         const e = new CustomEvent("Manuscript Witness Loaded")
         globalFeedbackBlip(e, `Manuscript Witness Loaded`, true)
     })
