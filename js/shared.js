@@ -1,4 +1,8 @@
 /**
+ * Shared front end functionality across the HTML pages.
+ */
+
+/**
  * Custom modal for confirming actions.
  * @class
  */
@@ -68,9 +72,7 @@ class CustomConfirmModal extends HTMLElement {
     }
 }
 customElements.define('custom-confirm-modal', CustomConfirmModal)
-/**
- * Shared front end functionality across the HTML pages.
- */
+
 let witnessFragmentsObj = {}
 
 //For when we test, so we can easily find and blow away junk data
@@ -273,8 +275,6 @@ function restorePadding(s) {
     return s + padding
 }
 
-self.onhashchange = loadHashId
-
 /**
  * A 'catch all' blip for forms submits that have not been set up with their own yet.
  * Note form submits that do have their own cause two blips for now.
@@ -287,7 +287,9 @@ document.addEventListener('deer-updated', event => {
 /** Auth */
 /**
  * Loads the hash identifier (hash-id) and sets it as an attribute for elements with [hash-id].
- */
+ * 'self' here is the Window object
+ */ 
+self.onhashchange = loadHashId
 function loadHashId() {
     let hash = location.hash?.slice(1)
     if (!hash) { return }
@@ -303,6 +305,7 @@ function loadHashId() {
     })
 }
 if (document.readyState === 'interactive' || 'loaded') loadHashId()
+
 /**
  * Finds matching incipits based on the provided incipit and title start.
  * @param {string} incipit - The incipit to search for.
@@ -376,6 +379,7 @@ async function isPublicGloss(glossID){
     const publicListUris = publicList.itemListElement.map(obj => obj["@id"].split("/").pop())
     return publicListUris.includes(glossID.split("/").pop())
 }
+
 /**
  * Creates a custom confirmation dialog box with the specified message.
  * @param {string} message - The message to be displayed in the confirmation dialog box.
@@ -406,7 +410,6 @@ async function showCustomConfirm(message) {
  * @param str - Anything this programming language considers a valid 'String' type
  * @note numbers and arrays are supported as is.  JSON can be supported if you stringify() it.
  */ 
-
 function generateHash(str) {
     var hc="0123456789abcdef";
     function rh(n) {var j,s="";for(j=0;j<=3;j++) s+=hc.charAt((n>>(j*8+4))&0x0F)+hc.charAt((n>>(j*8))&0x0F);return s;}
@@ -504,8 +507,6 @@ function paginateButtonsAfterSubmit(glossURIs){
  * In this case, we know the existing Manuscript Witness
  * Query RERUM or cache for those Witness Fragments.  We need to know their references and selections.
  * 
- * @NOTE this ended up not being used, but it could be useful.
- * 
  * @param manuscriptWitnessURI - The ManuscriptWitness URI whose WitnessFragments you want.
  */ 
 async function getAllWitnessFragmentsOfManuscript(manuscriptWitnessURI){
@@ -530,12 +531,6 @@ async function getAllWitnessFragmentsOfManuscript(manuscriptWitnessURI){
 
     return [...fragmentUriSet.values()]
 }
-
-
-
-
-
-
 
 /**
  *  Delete a Witness Fragment through gloss-transcription.html, gloss-witness.html or manage-glosses.html.  
@@ -627,7 +622,7 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
 }
 
 /**
- *  Delete a Manuscript Witness through witness-metadata.html or manage-witnesses.html.  
+ *  Delete a Manuscript Witness through witness-metadata.html or manage-manuscripts.html.  
  *  This will delete the Manuscript Entity entity itself and its Annotations.  
  *  This will delete any Witness Fragment that has a partOf Annotation which targets this Manuscript Witness.
  *  The Witness Fragment will no longer appear as a Witness to the Gloss in any UI.
@@ -742,6 +737,7 @@ async function deleteGloss(id=null, redirect=false) {
 
     // No extra clicks while you await.
     if(redirect) document.querySelector(".dropGloss")?.setAttribute("disabled", "true")
+
     if(await isPublicGloss(id)){
         const ev = new CustomEvent("Gloss is public")
         globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
@@ -834,15 +830,7 @@ async function deleteGloss(id=null, redirect=false) {
         broadcast(ev_err, "GlossDeleteError", document, { "@id":id, "error":err })
         return err
     })
-
 }
-
-
-
-
-
-
-
 
 /**
  * For a given shelfmark, query RERUM to find matching Manuscript Witness entities.
@@ -1187,6 +1175,7 @@ function populateManuscriptWitnessChoices(matches){
  * 
  * @param manuscriptID - Manuscript Witness URI that the Fragments will be a part of
  * @param shelfmark - The shelfmark for that Manuscript Witness.  The shelfmark for each fragment MUST match.
+ * @param show - A boolean flag for whether or not to set the UI to show the WitnessFragment form.
  */ 
 function activateFragmentForm(manuscriptID, shelfmark, show){
     if(!(manuscriptID && shelfmark)) return
