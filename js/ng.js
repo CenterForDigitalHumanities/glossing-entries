@@ -567,23 +567,6 @@ function prefillText(textObj, form) {
         textElem.setAttribute("value", textVal)
     }
 }
-/**
- * Redirects or opens a new tab to the witness page for the given gloss.
- * @param {boolean} tpen - Indicates whether to redirect to T-PEN for the witness page.
- */
-function witnessForGloss(tpen){
-    const title = document.getElementById("named-gloss").querySelector("input[deer-key='title']").value
-    if(!title) return
-    const encodedFilter = encodeContentState(JSON.stringify({"title" : title}))
-    if(tpen){
-        //window.location = `gloss-transcription.html?gog-filter=${encodedFilter}`
-        window.open(`gloss-transcription.html?gog-filter=${encodedFilter}`, "_blank")
-    }
-    else{
-        //window.location = `gloss-witness.html?gog-filter=${encodedFilter}`
-        window.open(`fragment-profile.html?gog-filter=${encodedFilter}`, "_blank")
-    }
-}
 
 /**
  * Enable/Disable all form fields
