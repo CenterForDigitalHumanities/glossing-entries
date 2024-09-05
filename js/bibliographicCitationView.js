@@ -305,7 +305,7 @@ class BibliographicCitationView extends HTMLElement {
 
     let hash = window.location.hash
     if (hash.startsWith("#")) {
-      hash = window.location.hash.substring(1)
+      hash = window.location.hash?.slice(1)
       if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
         // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
         let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
@@ -436,7 +436,7 @@ class BibliographicCitationView extends HTMLElement {
       globalFeedbackBlip(successfulUpdateEvent, "Bibliographic citation deleted successfully.", true)
       let hash = window.location.hash
       if (hash.startsWith("#")) {
-        hash = window.location.hash.substring(1)
+        hash = window.location.hash?.slice(1)
         if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
           // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
           let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
@@ -611,7 +611,7 @@ async function addBibliographicCitationToGloss(citationContent, glossId) {
 
       let hash = window.location.hash
       if (hash.startsWith("#")) {
-        hash = window.location.hash.substring(1)
+        hash = window.location.hash?.slice(1)
         if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
           // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
           let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })

@@ -1,5 +1,5 @@
 
-const glossHashID = window.location.hash.substring(1)
+const glossHashID = window.location.hash?.slice(1)
 
 /**
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
@@ -7,7 +7,7 @@ const glossHashID = window.location.hash.substring(1)
 window.onload = () => {
     let hash = window.location.hash
     if(hash.startsWith("#")){
-        hash = window.location.hash.substring(1)
+        hash = window.location.hash?.slice(1)
         if(!(hash.startsWith("http:") || hash.startsWith("https:"))){
             // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
             let e = new CustomEvent("expandError", { detail: {"uri":hash}, bubbles:true})
@@ -22,7 +22,11 @@ window.onload = () => {
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
         document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
-        glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
+        const deleteGlossBtn = glossForm.querySelector(".dropGloss")
+        deleteGlossBtn.classList.remove("is-hidden")
+        deleteGlossBtn.addEventListener('click', ev => {
+            deleteGloss(glossHashID)
+        })
     }
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText
@@ -423,7 +427,7 @@ addEventListener('deer-updated', async (event) => {
             console.log("GLOSS FULLY SAVED")
             const ev = new CustomEvent("Thank you for your Gloss Submission!")
             globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
-            const hash = window.location.hash.substring(1)
+            const hash = window.location.hash?.slice(1)
             if(!hash){
                 setTimeout(() => {
                     window.location = `ng.html#${entityID}`

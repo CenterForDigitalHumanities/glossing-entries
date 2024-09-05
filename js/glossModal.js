@@ -163,7 +163,7 @@ class GlossModal extends HTMLElement {
         this.innerHTML = this.template
         const $this = this
         const $form = this.querySelector("form")
-        const textWitnessID = window.location.hash.substr(1)
+        const textWitnessID = window.location.hash?.slice(1)
 
         // Catch the entity creation announcement from DEER
         addEventListener('deer-updated', event => {
