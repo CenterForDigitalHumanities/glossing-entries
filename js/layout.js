@@ -481,9 +481,9 @@ class ReferencesBrowser extends HTMLElement {
         if(glossURI){
             getAllManuscriptWitnessesOfGloss(glossURI)
             .then(manuscriptSet => {
-                witnessList.innerHTML = ""
                 const manuscripts = [...manuscriptSet.values()]
                 if(manuscripts.length > 0){ 
+                    witnessList.innerHTML = ""
                     $this.classList.remove("is-hidden")
                     for(const manuscriptURI of manuscripts){
                         const li = document.createElement("li")
@@ -501,7 +501,7 @@ class ReferencesBrowser extends HTMLElement {
                     }
                 }
                 else{
-                    witnessList.querySelector("li").innerHTML = `<b> No Witnesses Found.  Create one now! </b>`    
+                    witnessList.querySelector("li").innerHTML = `<b> No Witness References Found.  Add One Above! </b>`    
                 }
             })
         }

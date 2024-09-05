@@ -219,7 +219,7 @@ class ManageGlossModal extends HTMLElement {
                 alert(`No URI supplied for delete.  Cannot delete.`)
                 return
             }
-            let confirmMessage = "Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)"
+            let confirmMessage = "Really delete this Gloss and remove its Witness Fragments?\n(Cannot be undone)"
             let overwriteList = false
             if(await isPublicGloss(id)){
                 confirmMessage = `This Gloss is public and will be removed from the public list.\n${confirmMessage}`
@@ -299,7 +299,7 @@ class ManageGlossModal extends HTMLElement {
                     "Authorization": `Bearer ${window.GOG_USER.authorization}`
                 }
             })
-            .then(r => {
+            .then(async r => {
                 if(r.ok){
                     if(overwriteList){
                         // If a Gloss that was on the public list was removed, then we need to change the public list still.
