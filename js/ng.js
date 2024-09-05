@@ -25,7 +25,7 @@ window.onload = () => {
         const deleteGlossBtn = glossForm.querySelector(".dropGloss")
         deleteGlossBtn.classList.remove("is-hidden")
         deleteGlossBtn.addEventListener('click', ev => {
-            deleteGloss(glossHashID)
+            deleteGloss(glossHashID, true)
         })
     }
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
@@ -91,6 +91,7 @@ document.addEventListener("GlossDeleteError", function(event){
     addEventListener("globalFeedbackFinished", () => {
         setFieldDisabled(true)
     })
+    console.error(event.error)
 })
 
 /**

@@ -64,6 +64,7 @@ document.addEventListener("WitnessFragmentDeleteError", function(event){
     addEventListener("globalFeedbackFinished", () => {
         setFieldDisabled(true)
     })
+    console.error(event.error)
 })
 
 /**
