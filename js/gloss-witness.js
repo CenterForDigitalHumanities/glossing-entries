@@ -39,13 +39,14 @@ document.addEventListener("gloss-modal-visible", function(event){
  */ 
 addEventListener('expandError', event => {
     const uri = event.detail.uri
+    const msg = event.detail.error ? event.detail.error : `Error getting data for '${uri}'`
     const ev = new CustomEvent("Witness Fragment Details Error")
     look.classList.add("text-error")
     look.innerText = "Could not get Witness Fragment information."
     witnessFragmentForm.remove()
     needs.remove()
     loading.classList.add("is-hidden")
-    globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
+    globalFeedbackBlip(ev, msg, false)
 })
 
 /**
@@ -209,9 +210,13 @@ function setFragmentFormDefaults(){
  * Set fixed value fields and make those inputs dirty.
  */ 
 window.onload = async () => {
-    setPublicCollections()
-    setListings()
+    const ev_err = new CustomEvent("Expand Error")
     if(witnessFragmentID){
+        if(!(witnessFragmentID.startsWith("http:") || witnessFragmentID.startsWith("https:"))){
+            // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+            broadcast(ev_err, "expandError", document, {"uri":witnessFragmentID, "error":"Location hash is not a URI."})
+            return
+        }
         // We will trust the source the db tells us belongs to this Witness Fragment.  Ignore ?source-uri
         sourceURI = null
     }
@@ -232,7 +237,6 @@ window.onload = async () => {
 
     if(witnessFragmentID){
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
-        addEventListener('deer-form-rendered', initFragmentForm)
         existingManuscriptWitness = await getManuscriptWitnessFromFragment(witnessFragmentID)
         .then(existingWitnessURI => existingWitnessURI)
         .catch(err => {
@@ -240,13 +244,17 @@ window.onload = async () => {
             globalFeedbackBlip(ev, `The check for existing Witnesses failed.`, false)
             throw err
         })
+        if(!existingManuscriptWitness){
+            //broadcast(ev_err, "expandError", document, {"uri":witnessFragmentID, "error":"This WitnessFragment is not a part of any ManuscriptWitness."})
+            console.error("This WitnessFragment is not a part of any ManuscriptWitness.  This is an error.")
+            return
+        }
         const submitBtn = witnessFragmentForm.querySelector("input[type='submit']")
         const deleteBtn = witnessFragmentForm.querySelector(".deleteWitness")
         needs.classList.add("is-hidden")
         submitBtn.value = "Update Witness"
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
-        witnessFragmentForm.setAttribute("deer-id", witnessFragmentID)
         manuscriptWitnessForm.setAttribute("deer-id", existingManuscriptWitness)
     }
     else{
@@ -386,16 +394,28 @@ function addButton(event) {
     }
 }
 
+addEventListener('deer-form-rendered', initFragmentForm)
 /**
  * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
  * Note this only needs to occur one time on page load.
  */ 
 function initFragmentForm(event){
     let whatRecordForm = event.target?.id
+    if(whatRecordForm !== "witnessFragmentForm") return
     let annotationData = event.detail ?? {}
+    const entityType = annotationData.type ?? annotationData["@type"] ?? null
+    if(entityType !== "WitnessFragment"){
+        const ev = new CustomEvent("Fragment Details Error")
+        look.classList.add("text-error")
+        look.innerText = `The provided #entity of type '${entityType}' is not a 'WitnessFragment'.`
+        witnessFragmentForm.remove()
+        needs.remove()
+        loading.classList.add("is-hidden")
+        globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'WitnessFragment'.`, false)
+        return
+    }
     const textSelectionElem = document.querySelector("source-text-selector")
     const $elem = event.target
-    if(whatRecordForm !== "witnessFragmentForm") return
     const source = annotationData?.source?.value
     if(!source) {
         const ev = new CustomEvent("Witness Fragment does not have a source")
