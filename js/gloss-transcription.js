@@ -940,16 +940,24 @@ checkForManuscriptsBtn.addEventListener('click', async (ev) => {
  * We use that information to preselect text and paginate 'attach' buttons in the Gloss picker.
  * In this case, we know the source URI.
  * Query RERUM or cache for those Witness Fragments.  We need to know their references and selections.
- * Note: If we can decouple this from preselectLines() it can become a shared function in shared.js 
+ * Note: 
+ * If we can decouple this from preselectLines() it can become a shared function in shared.js 
+ * This seems to do both the logic of getting the fragments and the UI work to put them on screen.
  * 
  * @param event - source-text-loaded 
  */ 
 async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceValue=null){
+    if(!sourceValue) return
     const lineSelectorElem = document.querySelector(".lineSelector")
-    if(!(lineSelectorElem.hasAttribute("source-text-loaded") || lineSelectorElem.hasAttribute("tpen-lines-loaded"))){
-        return Promise.reject("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
+    if(!(lineSelectorElem?.hasAttribute("source-text-loaded") || lineSelectorElem?.hasAttribute("tpen-lines-loaded"))){
+        console.error("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
+        return 
     }
-    // Other asyncronous loading functionality may have already built this.  Use what is cached if so.
+    /**
+     * Other asyncronous loading functionality may already know the glosses and their fragments.
+     * @see witnessFragmentsObj from shared.js
+     * If so, use that cached info to perform the UI tasks and break out of the function.
+     */ 
     if(Object.keys(witnessFragmentsObj).length > 0){
         for(const witnessInfo in Object.values(witnessFragmentsObj)){
             witnessInfo.glosses.forEach(glossURI => {
@@ -959,6 +967,9 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
                 })    
             })
             preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
+        }
+        if(witnessFragmentID || manuscriptWitnessForm.hasAttribute("matched")){
+            witnessFragmentForm.classList.remove("is-hidden")
         }
         return
     }
