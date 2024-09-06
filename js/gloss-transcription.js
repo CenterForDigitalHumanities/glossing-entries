@@ -37,6 +37,7 @@ addEventListener('expandError', event => {
     look.classList.add("text-error")
     look.innerText = "Could not get Witness Fragment information."
     witnessFragmentForm.remove()
+    needs.remove()
     loading.classList.add("is-hidden")
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
