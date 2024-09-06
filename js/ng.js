@@ -17,7 +17,6 @@ window.onhashchange = window.onload = () => {
     if(glossHashID) {
         setFieldDisabled(true)
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", glossHashID)
-        document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
         const deleteGlossBtn = glossForm.querySelector(".dropGloss")
         deleteGlossBtn.classList.remove("is-hidden")
@@ -449,9 +448,9 @@ addEventListener('expandError', event => {
     const uri = event.detail.uri
     const ev = new CustomEvent("Gloss Details Error")
     document.getElementById("named-gloss").classList.add("is-hidden")
+    document.querySelector("gog-references-browser").classList.add("is-hidden")
     look.classList.add("text-error")
     look.innerText = "Could not get Gloss information."
-    document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.add("is-hidden"))
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
 
