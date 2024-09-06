@@ -955,7 +955,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
     }
     /**
      * Other asyncronous loading functionality may already know the glosses and their fragments.
-     * @see witnessFragmentsObj from shared.js
+     * @see witnessFragmentsObj
      * If so, use that cached info to perform the UI tasks and break out of the function.
      */ 
     if(Object.keys(witnessFragmentsObj).length > 0){
