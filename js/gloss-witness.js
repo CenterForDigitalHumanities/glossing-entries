@@ -995,7 +995,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
         return 
     }
     /**
-     * Other asyncronous loading functionality may have already know the glosses and their fragments.
+     * Other asyncronous loading functionality may already know the glosses and their fragments.
      * @see witnessFragmentsObj
      * If so, use that cached info to perform the UI tasks and break out of the function.
      */ 
