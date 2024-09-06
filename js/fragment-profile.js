@@ -27,8 +27,8 @@ window.onhashchange = () => {
 	witnessFragmentID = window.location.hash.slice(1)
     if(!(witnessFragmentID.startsWith("http:") || witnessFragmentID.startsWith("https:"))){
         // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-        let e = new CustomEvent("expandError", { detail: {"uri":witnessFragmentID}, bubbles:true})
-        document.dispatchEvent(e)
+        const ev_err = new CustomEvent("Expand Error")
+        broadcast(ev_err, "expandError", document, {"uri":witnessFragmentID, "error":"Location hash is not a URI."})
     }
 }
 

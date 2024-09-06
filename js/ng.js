@@ -2,19 +2,24 @@
 var glossHashID = window.location.hash.slice(1)
 
 /**
+ * TODO we need to consider onhashchange handling for the entity forms on the gloss-witness.html page.
+ */
+// window.onhashchange = () => {
+//     glossHashID = window.location.hash.slice(1)
+// }
+
+/**
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
  */ 
-window.onhashchange = window.onload = () => {
-    glossHashID = window.location.hash.slice(1)
-    if(!(glossHashID.startsWith("http:") || glossHashID.startsWith("https:"))){
-        // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-        let e = new CustomEvent("expandError", { detail: {"uri":glossHashID}, bubbles:true})
-        document.dispatchEvent(e)
-        return
-    }
-    
+window.onload = () => {
     const glossForm = document.getElementById("named-gloss")
     if(glossHashID) {
+        // if(!(glossHashID.startsWith("http:") || glossHashID.startsWith("https:"))){
+        //     // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+        //     const ev_err = new CustomEvent("Expand Error")
+        //     broadcast(ev_err, "expandError", document, {"uri":glossHashID, "error":"Location hash is not a URI."})
+        //     return
+        // }
         setFieldDisabled(true)
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", glossHashID)
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))

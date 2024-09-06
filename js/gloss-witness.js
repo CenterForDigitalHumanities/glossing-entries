@@ -196,19 +196,18 @@ function setFragmentFormDefaults(){
     console.log("WITNESS FORM RESET")
 }
 
+/*
+ * TODO we need to consider onhashchange handling for the entity forms on the gloss-witness.html page.
+ */
+// window.onhashchange = () => {
+//     witnessFragmentID = window.location.hash.slice(1)
+// }
+
 /**
  * Attach all the event handlers to the custom key areas.
  * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
  * Set fixed value fields and make those inputs dirty.
  */ 
-window.onhashchange = () => {
-    witnessFragmentID = window.location.hash.slice(1)
-    if(witnessFragmentID){
-        // We will trust the source the db tells us belongs to this Witness Fragment.  Ignore ?tpen-project
-        tpenProjectURI = null
-    }
-}
-
 window.onload = async () => {
     setPublicCollections()
     setListings()
@@ -1019,6 +1018,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
             preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
         }
         if(witnessFragmentID || manuscriptWitnessForm.hasAttribute("matched")){
+            loading.classList.add("is-hidden")
             witnessFragmentForm.classList.remove("is-hidden")
         }
         return
@@ -1119,6 +1119,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
             preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
         }
         if(witnessFragmentID || manuscriptWitnessForm.hasAttribute("matched")){
+            loading.classList.add("is-hidden")
             witnessFragmentForm.classList.remove("is-hidden")
         }
     })
