@@ -291,7 +291,7 @@ document.addEventListener('deer-updated', event => {
  */ 
 self.onhashchange = loadHashId
 function loadHashId() {
-    let hash = location.hash?.slice(1)
+    let hash = location.hash.slice(1)
     if (!hash) { return }
     const rerumPrefix = "https://store.rerum.io/v1/id/"
     if (hash.length === 24) { hash = `${rerumPrefix}${hash}` }
@@ -726,9 +726,9 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
  * @param id {String} The Gloss IRI.
  * @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
  */
-async function deleteGloss(id=null, redirect=false) {
-    if(!id) id = location.hash?.slice(1)
-    if(!id){
+async function deleteGloss(id, redirect=false) {
+    if(!id) id = location.hash.slice(1)
+    if(!id.startsWith("http")) {
         alert(`No URI supplied for delete.  Cannot delete.`)
         return
     }
@@ -788,7 +788,7 @@ async function deleteGloss(id=null, redirect=false) {
 
     // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
     await Promise.all(allEntityAnnotations).then(success => {
-        console.log("Connected Annotationss successfully removed.")
+        console.log("Connected Annotations successfully removed.")
     })
     .catch(err => {
         // OK they may be orphaned.  We will continue on towards deleting the entity.

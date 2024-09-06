@@ -1,4 +1,4 @@
-const witnessFragmentID = window.location.hash?.slice(1)
+var witnessFragmentID = window.location.hash.slice(1)
 let referencedGlossID = null
 let existingManuscriptWitness = null
 let sourceURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : null
@@ -200,6 +200,14 @@ function setFragmentFormDefaults(){
  * Prepare the UI/UX for either 'create' or 'update' scenarios depending on the url hash.
  * Set fixed value fields and make those inputs dirty.
  */ 
+window.onhashchange = () => {
+    witnessFragmentID = window.location.hash.slice(1)
+    if(witnessFragmentID){
+        // We will trust the source the db tells us belongs to this Witness Fragment.  Ignore ?tpen-project
+        tpenProjectURI = null
+    }
+}
+
 window.onload = async () => {
     setPublicCollections()
     setListings()
