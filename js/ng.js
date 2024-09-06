@@ -14,12 +14,12 @@ var glossHashID = window.location.hash.slice(1)
 window.onload = () => {
     const glossForm = document.getElementById("named-gloss")
     if(glossHashID) {
-        // if(!(glossHashID.startsWith("http:") || glossHashID.startsWith("https:"))){
-        //     // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-        //     const ev_err = new CustomEvent("Expand Error")
-        //     broadcast(ev_err, "expandError", document, {"uri":glossHashID, "error":"Location hash is not a URI."})
-        //     return
-        // }
+        if(!(glossHashID.startsWith("http:") || glossHashID.startsWith("https:"))){
+            // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+            const ev_err = new CustomEvent("Expand Error")
+            broadcast(ev_err, "expandError", document, {"uri":glossHashID, "error":"Location hash is not a URI."})
+            return
+        }
         setFieldDisabled(true)
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", glossHashID)
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
