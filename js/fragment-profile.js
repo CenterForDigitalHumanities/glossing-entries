@@ -1,4 +1,4 @@
-const witnessFragmentID = window.location.hash?.slice(1)
+var witnessFragmentID = window.location.hash.slice(1)
 
 /**
  * The DEER announcement for when there is an error expanding for a URI.
@@ -23,16 +23,12 @@ addEventListener('deer-view-rendered', doStuff)
 /**
  * Default behaviors to run on page load.
  */ 
-window.onload = () => {
-	let hash = window.location.hash
-    if(hash.startsWith("#")){
-        hash = window.location.hash?.slice(1)
-        if(!(hash.startsWith("http:") || hash.startsWith("https:"))){
-            // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-            let e = new CustomEvent("expandError", { detail: {"uri":hash}, bubbles:true})
-            document.dispatchEvent(e)
-            return
-        }
+window.onhashchange = () => {
+	witnessFragmentID = window.location.hash.slice(1)
+    if(!(witnessFragmentID.startsWith("http:") || witnessFragmentID.startsWith("https:"))){
+        // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+        let e = new CustomEvent("expandError", { detail: {"uri":witnessFragmentID}, bubbles:true})
+        document.dispatchEvent(e)
     }
 }
 

@@ -35,7 +35,7 @@
     <script>
         window.onhashchange = onload = () => {
             let params = (new URL(document.location)).searchParams
-            let glossid = window.location.hash?.slice(1)
+            let glossid = window.location.hash.slice(1)
             let msid = params.get("partOf")
             if (msid) {
                 thisMS.setAttribute("href", "./ms.html#" + msid)

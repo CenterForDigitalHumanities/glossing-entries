@@ -1,25 +1,22 @@
 
-const glossHashID = window.location.hash?.slice(1)
+var glossHashID = window.location.hash.slice(1)
 
 /**
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
  */ 
-window.onload = () => {
-    let hash = window.location.hash
-    if(hash.startsWith("#")){
-        hash = window.location.hash?.slice(1)
-        if(!(hash.startsWith("http:") || hash.startsWith("https:"))){
-            // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-            let e = new CustomEvent("expandError", { detail: {"uri":hash}, bubbles:true})
-            document.dispatchEvent(e)
-            return
-        }
+window.onhashchange = window.onload = () => {
+    glossHashID = window.location.hash.slice(1)
+    if(!(glossHashID.startsWith("http:") || glossHashID.startsWith("https:"))){
+        // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+        let e = new CustomEvent("expandError", { detail: {"uri":glossHashID}, bubbles:true})
+        document.dispatchEvent(e)
+        return
     }
     
     const glossForm = document.getElementById("named-gloss")
-    if(hash) {
+    if(glossHashID) {
         setFieldDisabled(true)
-        document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
+        document.querySelector("gog-references-browser").setAttribute("gloss-uri", glossHashID)
         document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.remove("is-hidden"))
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
         const deleteGlossBtn = glossForm.querySelector(".dropGloss")
@@ -55,7 +52,7 @@ window.onload = () => {
             glossResult.insertAdjacentHTML('beforeend', `<a href="#${anno.id.split('/').pop()}">${anno.title}</a>`)
         })
     })
-    if(!hash){
+    if(!glossHashID){
        // These items have default values that are dirty on fresh forms.
         glossForm.querySelector("select[custom-text-key='language']").$isDirty = true
     }
@@ -428,8 +425,7 @@ addEventListener('deer-updated', async (event) => {
             console.log("GLOSS FULLY SAVED")
             const ev = new CustomEvent("Thank you for your Gloss Submission!")
             globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
-            const hash = window.location.hash?.slice(1)
-            if(!hash){
+            if(!glossHashID){
                 setTimeout(() => {
                     window.location = `ng.html#${entityID}`
                     window.location.reload()
