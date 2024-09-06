@@ -95,43 +95,34 @@ document.addEventListener("GlossDeleteError", function(event){
     console.error(event.error)
 })
 
-/**
- * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
- * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
- * This event will come after all deer-view-rendered events have finished.
- * @see deer-record.js DeerReport.constructor()  
- */
-addEventListener('deer-form-rendered', event => {
+addEventListener('deer-form-rendered', initGlossForm)
+function initGlossForm(event){
     let whatRecordForm = event.target.id
+    if(whatRecordForm !== "named-gloss") return
     let annotationData = event.detail
-    switch (whatRecordForm) {
-        case "named-gloss":
-            // supporting forms populated
-            const entityType = annotationData.type ?? annotationData["@type"] ?? null
-            if(entityType !== "Gloss" && entityType !== "named-gloss"){
-                document.querySelector(".gloss-needed").classList.add("is-hidden")
-                const ev = new CustomEvent("Gloss Details Error")
-                look.classList.add("text-error")
-                look.innerText = `The provided #entity of type '${entityType}' is not a 'Gloss'.`
-                globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Gloss'.`, false)
-                return
-            }
-            prefillTagsArea(annotationData["tags"], event.target)
-            prefillText(annotationData["text"], event.target)
-            if(event.detail.targetChapter && !event.detail["_section"]) {
-                // This conditional is solely to support Glossing Matthew data and accession it into the new encoding.
-                const canonRef = document.querySelector('[deer-key="canonicalReference"]')
-                canonRef.value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
-                canonRef.dispatchEvent(new Event('input', { bubbles: true }))
-                parseSections()
-            }
-            break
-        default:
+    const entityType = annotationData.type ?? annotationData["@type"] ?? null
+    if(entityType !== "Gloss" && entityType !== "named-gloss"){
+        document.querySelector(".gloss-needed").classList.add("is-hidden")
+        const ev = new CustomEvent("Gloss Details Error")
+        look.classList.add("text-error")
+        look.innerText = `The provided #entity of type '${entityType}' is not a 'Gloss'.`
+        globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Gloss'.`, false)
+        return
     }
+    prefillTagsArea(annotationData["tags"], event.target)
+    prefillText(annotationData["text"], event.target)
+    if(event.detail.targetChapter && !event.detail["_section"]) {
+        // This conditional is solely to support Glossing Matthew data and accession it into the new encoding.
+        const canonRef = document.querySelector('[deer-key="canonicalReference"]')
+        canonRef.value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
+        canonRef.dispatchEvent(new Event('input', { bubbles: true }))
+        parseSections()
+    }
+    removeEventListener('deer-form-rendered', initFragmentForm)
     setTimeout(() => {
         setFieldDisabled(false)
     }, 200)
-})
+}
 
 /**
  * When a Gloss is submitted for creation or update it will have multiple shelfmarks to make WitnessFragments against.
@@ -451,12 +442,13 @@ addEventListener('deer-updated', async (event) => {
  */ 
 addEventListener('expandError', event => {
     const uri = event.detail.uri
+    const msg = event.detail.error ? event.detail.error : `Error getting data for '${uri}'`
     const ev = new CustomEvent("Gloss Details Error")
     document.getElementById("named-gloss").classList.add("is-hidden")
     document.querySelector("gog-references-browser").classList.add("is-hidden")
     look.classList.add("text-error")
     look.innerText = "Could not get Gloss information."
-    globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
+    globalFeedbackBlip(ev, msg, false)
 })
 
 /**

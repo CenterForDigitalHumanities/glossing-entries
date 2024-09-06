@@ -33,13 +33,14 @@ document.addEventListener("gloss-modal-visible", function(event){
  */ 
 addEventListener('expandError', event => {
     const uri = event.detail.uri
+    const msg = event.detail.error ? event.detail.error : `Error getting data for '${uri}'`
     const ev = new CustomEvent("Witness Details Error")
     look.classList.add("text-error")
     look.innerText = "Could not get Witness Fragment information."
     witnessFragmentForm.remove()
     needs.remove()
     loading.classList.add("is-hidden")
-    globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
+    globalFeedbackBlip(ev, msg, false)
 })
 
 /**
@@ -68,8 +69,6 @@ document.addEventListener("WitnessFragmentDeleteError", function(event){
     console.error(event.error)
 })
 
-
-
 /*
  * TODO we need to consider onhashchange handling for the entity forms on the gloss-witness.html page.
  */
@@ -83,15 +82,17 @@ document.addEventListener("WitnessFragmentDeleteError", function(event){
  * Set fixed value fields and make those inputs dirty.
  */ 
 window.onload = async () => {
-    setPublicCollections()
-    setListings()
-    const deleteWitnessButton = document.querySelector(".deleteWitness")
-
+    const ev_err = new CustomEvent("Expand Error")
     if(witnessFragmentID){
+        if(!(witnessFragmentID.startsWith("http:") || witnessFragmentID.startsWith("https:"))){
+            // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+            broadcast(ev_err, "expandError", document, {"uri":witnessFragmentID, "error":"Location hash is not a URI."})
+            return
+        }
         // We will trust the source the db tells us belongs to this Witness Fragment.  Ignore ?tpen-project
         tpenProjectURI = null
     }
-    if(tpenProjectURI){
+    else if(tpenProjectURI){
         if(!tpenProjectURI.includes("t-pen.org")){
             const ev = new CustomEvent("TPEN Project Error")
             look.classList.add("text-error")
@@ -112,9 +113,9 @@ window.onload = async () => {
         needs.classList.remove("is-hidden")
         loading.classList.add("is-hidden")
     }
+    const deleteWitnessButton = document.querySelector(".deleteWitness")
 
     if(witnessFragmentID){
-        addEventListener('deer-form-rendered', initFragmentForm)
         existingManuscriptWitness = await getManuscriptWitnessFromFragment(witnessFragmentID)
         .then(existingWitnessURI => existingWitnessURI)
         .catch(err => {
@@ -122,12 +123,16 @@ window.onload = async () => {
             globalFeedbackBlip(ev, `The check for existing Witnesses failed.`, false)
             throw err
         })
+        if(!existingManuscriptWitness){
+            //broadcast(ev_err, "expandError", document, {"uri":witnessFragmentID, "error":"This WitnessFragment is not a part of any ManuscriptWitness."})
+            console.error("This WitnessFragment is not a part of any ManuscriptWitness.")
+            return
+        }
         const submitBtn = witnessFragmentForm.querySelector("input[type='submit']")
         const deleteBtn = witnessFragmentForm.querySelector(".deleteWitness")
         submitBtn.value = "Update Witness"
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
-        witnessFragmentForm.setAttribute("deer-id", witnessFragmentID)
         manuscriptWitnessForm.setAttribute("deer-id", existingManuscriptWitness)
     }
     else{
@@ -163,15 +168,28 @@ window.onload = async () => {
     })
 }
 
+addEventListener('deer-form-rendered', initFragmentForm)
 /**
  * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
  * Note this only needs to occur one time on page load.
  */ 
 function initFragmentForm(event){
     let whatRecordForm = event.target?.id
-    let annotationData = event.detail ?? {}
-    const $elem = event.target
     if(whatRecordForm !== "witnessFragmentForm") return
+
+    let annotationData = event.detail ?? {}
+    const entityType = annotationData.type ?? annotationData["@type"] ?? null
+    if(entityType !== "WitnessFragment"){
+        const ev = new CustomEvent("Gloss Details Error")
+        look.classList.add("text-error")
+        look.innerText = `The provided #entity of type '${entityType}' is not a 'WitnessFragment'.`
+        witnessFragmentForm.remove()
+        needs.remove()
+        loading.classList.add("is-hidden")
+        globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'WitnessFragment'.`, false)
+        return
+    }
+    const $elem = event.target
     // We will need to know the reference for addButton() so let's get it out there now.
     const sourceURI = annotationData?.source?.value
     tpenProjectURI = tpenProjectURI ? tpenProjectURI : sourceURI
@@ -979,6 +997,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
             preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
         }
         if(witnessFragmentID || manuscriptWitnessForm.hasAttribute("matched")){
+            loading.classList.add("is-hidden")
             witnessFragmentForm.classList.remove("is-hidden")
         }
         return
@@ -1079,6 +1098,7 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
             preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
         }
         if(witnessFragmentID || manuscriptWitnessForm.hasAttribute("matched")){
+            loading.classList.add("is-hidden")
             witnessFragmentForm.classList.remove("is-hidden")
         }
     })
