@@ -23,7 +23,7 @@ addEventListener('deer-view-rendered', doStuff)
 /**
  * Default behaviors to run on page load.
  */ 
-window.onhashchange = () => {
+window.onhashchange = window.onload =  () => {
 	witnessFragmentID = window.location.hash.slice(1)
     if(!(witnessFragmentID.startsWith("http:") || witnessFragmentID.startsWith("https:"))){
         // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
