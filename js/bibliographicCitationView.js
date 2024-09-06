@@ -304,18 +304,16 @@ class BibliographicCitationView extends HTMLElement {
     })
 
     let hash = window.location.hash.slice(1)
-    if (hash) {
-      if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
-        // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-        let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
-        this.dispatchEvent(e)
-        return
-      }
-      this.querySelector(".referenceDiv").classList.remove("is-hidden")
-      queryBibliographicCitations(hash).then((citations) => {
-        this.updateCitations(citations)
-      })
+    if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
+      // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+      let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
+      this.dispatchEvent(e)
+      return
     }
+    this.querySelector(".referenceDiv").classList.remove("is-hidden")
+    queryBibliographicCitations(hash).then((citations) => {
+      this.updateCitations(citations)
+    })
 
     this.addEventListener("click", async (event) => {
       const target = event.target
