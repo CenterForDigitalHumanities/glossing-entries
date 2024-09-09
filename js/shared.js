@@ -1146,6 +1146,8 @@ async function initiateMatch(manuscriptWitnessID){
  * We only expect one Manuscript Witnesses with the given shelfmark, but the functionality below can handle more than one.
  * Turns those Manuscript Witnesses into actionable buttons so the user can pick one to make Fragments for.
  * 
+ * TODO:  If there is only one match, we could just initiateMatch() instead of building the picker.
+ * 
  * @param matches A string Manuscript Witness URI or an Array of those strings.
  */
 function populateManuscriptWitnessChoices(matches){

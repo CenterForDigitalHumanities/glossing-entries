@@ -968,7 +968,7 @@ checkForManuscriptsBtn.addEventListener('click', async (ev) => {
  * We use that information to preselect text and paginate 'attach' buttons in the Gloss picker.
  * In this case, we know the source URI.
  * Query RERUM or cache for those Witness Fragments.  We need to know their references and selections.
- * Note: 
+ * TODO: 
  * If we can decouple this from preselectLines() it can become a shared function in shared.js 
  * This seems to do both the logic of getting the fragments and the UI work to put them on screen.
  * 
