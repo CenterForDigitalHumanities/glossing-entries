@@ -118,7 +118,7 @@ function initGlossForm(event){
         canonRef.dispatchEvent(new Event('input', { bubbles: true }))
         parseSections()
     }
-    removeEventListener('deer-form-rendered', initFragmentForm)
+    removeEventListener('deer-form-rendered', initGlossForm)
     setTimeout(() => {
         setFieldDisabled(false)
     }, 200)
