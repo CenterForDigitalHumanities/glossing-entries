@@ -120,7 +120,7 @@ window.onload = async () => {
         .then(existingWitnessURI => existingWitnessURI)
         .catch(err => {
             const ev = new CustomEvent("Query Error")
-            globalFeedbackBlip(ev, `The check for existing Witnesses failed.`, false)
+            globalFeedbackBlip(ev, `The check for existing Manuscript Witnesses failed.`, false)
             throw err
         })
         if(!existingManuscriptWitness){
