@@ -543,7 +543,7 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
     const typecheck = entity ? entity.type ?? entitype["@type"] ?? "" : ""
     if(typecheck !== "WitnessFragment"){
         const entity_err = new CustomEvent("Bad Entity")
-        broadcast(entity_err, "WitnessFragmentDeleteError", document, {"@id":witnessFragmentURI, "error":`Provided entity '${witnessFragmentURI} is not a WitnessFragment`} )
+        broadcast(entity_err, "WitnessFragmentDeleteError", document, {"@id":witnessFragmentURI, "error":`Provided entity '${witnessFragmentURI}'' is not a WitnessFragment`} )
         return
     }    
     // No extra clicks while you await.
@@ -641,7 +641,7 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
     const typecheck = entity ? entity.type ?? entitype["@type"] ?? "" : ""
     if(typecheck !== "ManuscriptWitness"){
         const entity_err = new CustomEvent("Bad Entity")
-        broadcast(entity_err, "ManuscriptWitnessDeleteError", document, {"@id":manuscriptWitnessURI, "error":`Provided entity '${manuscriptWitnessURI} is not a ManuscriptWitness`} )
+        broadcast(entity_err, "ManuscriptWitnessDeleteError", document, {"@id":manuscriptWitnessURI, "error":`Provided entity '${manuscriptWitnessURI}'' is not a ManuscriptWitness`} )
         return
     }    
     // No extra clicks while you await.
@@ -745,7 +745,7 @@ async function deleteGloss(glossURI, redirect=false) {
     // There should only be one ManuscriptWitness with this shelfmark.  When we detect that type, we've found it.
     if(!(typecheck === "Gloss" || typecheck === "named-gloss")){
         const entity_err = new CustomEvent("Bad Entity")
-        broadcast(entity_err, "GlossDeleteError", document, {"@id":glossURI, "error":`Provided entity '${glossURI} is not a Gloss`} )
+        broadcast(entity_err, "GlossDeleteError", document, {"@id":glossURI, "error":`Provided entity '${glossURI}'' is not a Gloss`} )
         return
     }   
     // Confirm they want to do this
