@@ -511,7 +511,7 @@ class ReferencesBrowser extends HTMLElement {
         /**
          * Get all ManuscriptWitness entity URIs that reference this Gloss.
          * @param source A String that is either a text body or a URI to a text resource.
-         * @return 
+         * @return An Array of Manuscript Witness URIs
          */ 
         async function getAllManuscriptWitnessesOfGloss(glossURI){
             const historyWildcard = { "$exists": true, "$size": 0 }

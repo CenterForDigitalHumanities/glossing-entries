@@ -502,12 +502,10 @@ function paginateButtonsAfterSubmit(glossURIs){
 }
 
 /**
- * After a source text loads we need to know if there are any existing Witness Fragments for it.
- * We use that information to preselect text and paginate 'attach' buttons in the Gloss picker.
- * In this case, we know the existing Manuscript Witness
- * Query RERUM or cache for those Witness Fragments.  We need to know their references and selections.
+ * Query RERUM or cache for Witness Fragments related to the provided input
  * 
  * @param manuscriptWitnessURI - The ManuscriptWitness URI whose WitnessFragments you want.
+ * @return An Array of WitnessFragment URIs
  */ 
 async function getAllWitnessFragmentsOfManuscript(manuscriptWitnessURI){
     if(!manuscriptWitnessURI) return    
@@ -1050,7 +1048,10 @@ async function getManuscriptWitnessFromSource(source=null){
 }
 
 /**
- * @param source A String that is either a text body or a URI to a text resource.
+ * Query RERUM or cache for Witness Fragments related to the provided input
+ * 
+ * @param glossURI - The Gloss URI whose WitnessFragments you want.
+ * @return An Array of WitnessFragment URIs
  */ 
 async function getAllWitnessFragmentsOfGloss(glossURI){
     const historyWildcard = { "$exists": true, "$size": 0 }
