@@ -31,18 +31,19 @@ class GlossModalActivationButton extends HTMLElement {
         this.querySelector("input[type='button']").addEventListener("click", toggleModal)
 
         function hasAllFormRequirements(){
-            if(witnessFragmentForm !== undefined){
-                let all = true
-                const requiredElems = witnessFragmentForm.querySelectorAll(".required")
-                for(const r of requiredElems){
-                    if(!r?.value){
-                        all = false
-                        return
-                    }
+            if(witnessFragmentForm === undefined) return false
+            let all = true
+            const requiredElems = witnessFragmentForm.querySelectorAll(".required")
+            for(const r of requiredElems){
+                if(!r?.value){
+                    all = false
+                    break
                 }
-                return all 
             }
-            return false
+            // Extra check if the user provided a depiction.  It has to be a URI.
+            const depictionVal = witnessFragmentForm.querySelector("input[deer-key='depiction']")?.value
+            if(depictionVal && !isURI(depictionVal)) all = false
+            return all 
         }
 
         /**
@@ -53,7 +54,7 @@ class GlossModalActivationButton extends HTMLElement {
             if(document.location.pathname.includes("gloss-transcription") || document.location.pathname.includes("gloss-witness")){
                 if(!hasAllFormRequirements()){
                     const blip = new CustomEvent("You must fill out all required form fields")
-                    utils.globalFeedbackBlip(blip, `Please provide all required Witness form values first.`, false)
+                    utils.globalFeedbackBlip(blip, `Please check all provided and required Witness Fragment form values.`, false)
                     return
                 }
             }
