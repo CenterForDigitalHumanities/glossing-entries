@@ -13,6 +13,10 @@ var glossHashID = window.location.hash.slice(1)
  */ 
 window.onload = () => {
     const glossForm = document.getElementById("named-gloss")
+    if(!glossHashID){
+        loading.classList.add("is-hidden")
+        document.querySelector(".gloss-needed").classList.remove("is-hidden")
+    } 
     // Add pagination to the form submit so users know work is happening in the background
     glossForm.addEventListener("submit", (e) => {inProgress(e, true)})
     if(glossHashID) {
@@ -104,7 +108,6 @@ function initGlossForm(event){
     let annotationData = event.detail
     const entityType = annotationData.type ?? annotationData["@type"] ?? null
     if(entityType !== "Gloss" && entityType !== "named-gloss"){
-        document.querySelector(".gloss-needed").classList.add("is-hidden")
         const ev = new CustomEvent("Gloss Details Error")
         look.classList.add("text-error")
         look.innerText = `The provided #entity of type '${entityType}' is not a 'Gloss'.`
@@ -121,6 +124,8 @@ function initGlossForm(event){
         parseSections()
     }
     removeEventListener('deer-form-rendered', initGlossForm)
+    loading.classList.add("is-hidden")
+    document.querySelector(".gloss-needed").classList.remove("is-hidden")
     setTimeout(() => {
         setFieldDisabled(false)
     }, 200)
@@ -451,6 +456,8 @@ addEventListener('expandError', event => {
     look.classList.add("text-error")
     look.innerText = "Could not get Gloss information."
     globalFeedbackBlip(ev, msg, false)
+    loading.classList.add("is-hidden")
+    document.querySelector(".gloss-needed").classList.remove("is-hidden")
 })
 
 /**

@@ -550,3 +550,8 @@ textarea:disabled, select:disabled {
 input.required, textarea.required, select.required{
     border: 1px solid black;
 }
+
+.loadingMsg{
+    color: white;
+    padding-top: 4em;
+}
