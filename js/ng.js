@@ -20,7 +20,7 @@ window.onload = () => {
     // Add pagination to the form submit so users know work is happening in the background
     glossForm.addEventListener("submit", (e) => {inProgress(e, true)})
     if(glossHashID) {
-        if(!(glossHashID.startsWith("http:") || glossHashID.startsWith("https:"))){
+        if(!isURI(glossHashID)){
             // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
             const ev_err = new CustomEvent("Expand Error")
             broadcast(ev_err, "expandError", document, {"uri":glossHashID, "error":"Location hash is not a URI."})
@@ -106,6 +106,8 @@ function initGlossForm(event){
     let whatRecordForm = event.target.id
     if(whatRecordForm !== "named-gloss") return
     let annotationData = event.detail
+    // FIXME not sure why deer-form-render fires in cases of expandError here still.
+    if(!annotationData["@id"]) return
     const entityType = annotationData.type ?? annotationData["@type"] ?? null
     if(entityType !== "Gloss" && entityType !== "named-gloss"){
         const ev = new CustomEvent("Gloss Details Error")

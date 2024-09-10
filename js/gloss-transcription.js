@@ -84,7 +84,7 @@ document.addEventListener("WitnessFragmentDeleteError", function(event){
 window.onload = async () => {
     const ev_err = new CustomEvent("Expand Error")    
     if(witnessFragmentID){
-        if(!(witnessFragmentID.startsWith("http:") || witnessFragmentID.startsWith("https:"))){
+        if(!isURI(witnessFragmentID)){
             // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
             broadcast(ev_err, "expandError", document, {"uri":witnessFragmentID, "error":"Location hash is not a URI."})
             return
