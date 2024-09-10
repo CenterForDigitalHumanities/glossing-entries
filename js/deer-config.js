@@ -243,6 +243,7 @@ export default {
                 `,
                 then: (elem) => {
                     const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    elem.querySelector("#ngForm").addEventListener("submit", (e) => {inProgress(e, true)})
                     let numloaded = 0
                     let total = 0
                     const filterPresent = deerUtils.getURLParameter("gog-filter")
