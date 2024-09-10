@@ -540,10 +540,10 @@ async function getAllWitnessFragmentsOfManuscript(manuscriptWitnessURI){
 async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
     if(!witnessFragmentURI) return
     const entity = await fetch(witnessFragmentURI).then(resp => resp.json()).catch(err => {throw err})
-    const typecheck = entity ? entity.type ?? entitype["@type"] ?? "" : ""
+    const typecheck = entity ? entity.type ?? entity["@type"] ?? "" : ""
     if(typecheck !== "WitnessFragment"){
         const entity_err = new CustomEvent("Bad Entity")
-        broadcast(entity_err, "WitnessFragmentDeleteError", document, {"@id":witnessFragmentURI, "error":`Provided entity '${witnessFragmentURI}' is not a WitnessFragment`} )
+        broadcast(entity_err, "WitnessFragmentDeleteError", document, {"@id":witnessFragmentURI, "error":`Entity type '${typecheck}' is not a WitnessFragment`} )
         return
     }    
     // No extra clicks while you await.
@@ -638,10 +638,10 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
 async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false){
     if(!manuscriptWitnessURI) return
     const entity = await fetch(manuscriptWitnessURI).then(resp => resp.json()).catch(err => {throw err})
-    const typecheck = entity ? entity.type ?? entitype["@type"] ?? "" : ""
+    const typecheck = entity ? entity.type ?? entity["@type"] ?? "" : ""
     if(typecheck !== "ManuscriptWitness"){
         const entity_err = new CustomEvent("Bad Entity")
-        broadcast(entity_err, "ManuscriptWitnessDeleteError", document, {"@id":manuscriptWitnessURI, "error":`Provided entity '${manuscriptWitnessURI}' is not a ManuscriptWitness`} )
+        broadcast(entity_err, "ManuscriptWitnessDeleteError", document, {"@id":manuscriptWitnessURI, "error":`Entity type '${typecheck}' is not a ManuscriptWitness`} )
         return
     }    
     // No extra clicks while you await.
@@ -741,11 +741,11 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
 async function deleteGloss(glossURI, redirect=false) {
     if(!glossURI) return
     const entity = await fetch(glossURI).then(resp => resp.json()).catch(err => {throw err})
-    const typecheck = entity ? entity.type ?? entitype["@type"] ?? "" : ""
+    const typecheck = entity ? entity.type ?? entity["@type"] ?? "" : ""
     // There should only be one ManuscriptWitness with this shelfmark.  When we detect that type, we've found it.
     if(!(typecheck === "Gloss" || typecheck === "named-gloss")){
         const entity_err = new CustomEvent("Bad Entity")
-        broadcast(entity_err, "GlossDeleteError", document, {"@id":glossURI, "error":`Provided entity '${glossURI}' is not a Gloss`} )
+        broadcast(entity_err, "GlossDeleteError", document, {"@id":glossURI, "error":`Entity type '${typecheck}' is not a Gloss`} )
         return
     }   
     // Confirm they want to do this
