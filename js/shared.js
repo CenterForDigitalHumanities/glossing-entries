@@ -474,7 +474,8 @@ function normalizeString(str){
 }
 
 /**
- * Paginate the '➥ attach' and possibly '✓ attached' button(s) after a Witness submission.
+ * Paginate the '➥ attach' and possibly '✓ attached' button(s) after a WitnessFragment submission.
+ * This supports the submissions through the glossModal as well, as that triggers a WitnessFragment submission.
  * 
  * @param glossURIs - An array of Gloss URIs to match on which buttons need some pagination
  */ 
@@ -504,7 +505,6 @@ function paginateButtonsAfterSubmit(glossURIs){
             }
         })    
     })
-    inProgress(null, false)
 }
 
 /**

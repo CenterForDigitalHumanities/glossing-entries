@@ -362,7 +362,7 @@ function setFragmentFormDefaults(){
         el.classList.add("pre-select")
     })
 
-    // Clear in "in progress" UI mechanic as the submit actions has completed now.
+    // Clear in "in progress" UI mechanic as the submit action has completed now.
     inProgress(null, false)
 
     console.log("WITNESS FORM RESET")
