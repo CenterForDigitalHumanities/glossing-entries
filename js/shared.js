@@ -69,7 +69,6 @@ class CustomConfirmModal extends HTMLElement {
     resolveConfirm(result) {
         const resolve_ev = new CustomEvent("Confirm Modal Event")
         broadcast(resolve_ev, "customModalConfirm", this, {"confirmed": result})
-        //this.dispatchEvent(new CustomEvent("customModalConfirm", {detail: {confirmed: result}}))
         this.remove()
     }
 }
