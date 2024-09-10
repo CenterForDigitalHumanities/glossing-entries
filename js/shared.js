@@ -1318,8 +1318,8 @@ function setFieldDisabled(disabled = true) {
 
 /**
  * A pagination effect to let the user know an action is in progress.
- * This is for the custom confirm modal which confirms submit and delete actions.
  * UIs can clear this indicator in the listeners for the completion of those submit and delete actions.
+ * @see CustomConfirmModal
  * 
  * FIXME: Give something more obvious to the user.
  *   Shadow out the form
