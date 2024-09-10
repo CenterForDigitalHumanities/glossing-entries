@@ -102,6 +102,10 @@ document.addEventListener("GlossDeleteError", function(event){
 })
 
 addEventListener('deer-form-rendered', initGlossForm)
+/**
+ * Paginate the custom data fields in the Gloss form.  Only happens if the page has a hash.
+ * Note this only needs to occur one time on page load.
+ */ 
 function initGlossForm(event){
     let whatRecordForm = event.target.id
     if(whatRecordForm !== "named-gloss") return

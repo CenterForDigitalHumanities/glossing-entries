@@ -170,7 +170,7 @@ window.onload = async () => {
 
 addEventListener('deer-form-rendered', initFragmentForm)
 /**
- * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
+ * Paginate the custom data fields in the WitnessFragment form.  Only happens if the page has a hash.
  * Note this only needs to occur one time on page load.
  */ 
 function initFragmentForm(event){
