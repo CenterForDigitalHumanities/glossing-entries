@@ -82,7 +82,7 @@ document.addEventListener("WitnessFragmentDeleteError", function(event){
  * Set fixed value fields and make those inputs dirty.
  */ 
 window.onload = async () => {
-    const ev_err = new CustomEvent("Expand Error")
+    const ev_err = new CustomEvent("Expand Error")    
     if(witnessFragmentID){
         if(!(witnessFragmentID.startsWith("http:") || witnessFragmentID.startsWith("https:"))){
             // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
@@ -361,6 +361,9 @@ function setFragmentFormDefaults(){
         el.classList.remove("persists")
         el.classList.add("pre-select")
     })
+
+    // Clear in "in progress" UI mechanic as the submit actions has completed now.
+    inProgress(null, false)
 
     console.log("WITNESS FORM RESET")
 }
@@ -987,7 +990,8 @@ async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceVal
      * If so, use that cached info to perform the UI tasks and break out of the function.
      */ 
     if(Object.keys(witnessFragmentsObj).length > 0){
-        for(const witnessInfo in Object.values(witnessFragmentsObj)){
+        for(const witnessInfo of Object.values(witnessFragmentsObj)){
+            if(!witnessInfo?.glosses || !witnessInfo?.selections) continue
             witnessInfo.glosses.forEach(glossURI => {
                 // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
                 document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {

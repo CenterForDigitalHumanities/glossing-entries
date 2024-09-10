@@ -34,32 +34,6 @@ document.querySelectorAll("form[deer-type]").forEach(form => {
         }
     }, true)
 })
-
-/**
- * UI/UX for when the user uses this page to delete an existing #ManuscriptWitness
- */
-document.addEventListener("ManuscriptWitnessDeleted", function(event){
-    const ev = new CustomEvent("This Witness Fragment has been deleted.")
-    if(event.detail.redirect){
-        globalFeedbackBlip(ev, `Witness Fragment deleted.  You will be redirected.`, true)
-        addEventListener("globalFeedbackFinished", () => {
-            location.reload()
-        })
-    }
-})
-
-/**
- * UI/UX for when this page has an error attempting to delete an existing #ManuscriptWitness.
- * The form becomes locked down and an error message is show.
- */
-document.addEventListener("ManuscriptWitnessDeleteError", function(event){
-    const ev = new CustomEvent("ManuscriptWitness Delete Error")
-    globalFeedbackBlip(ev, `There was an deleting the Witness Fragment with URI ${event.detail["@id"]}`, false)
-    addEventListener("globalFeedbackFinished", () => {
-        setFieldDisabled(true)
-    })
-    console.error(event.error)
-})
 </script>
 
 </html>

@@ -13,6 +13,8 @@ var glossHashID = window.location.hash.slice(1)
  */ 
 window.onload = () => {
     const glossForm = document.getElementById("named-gloss")
+    // Add pagination to the form submit so users know work is happening in the background
+    glossForm.addEventListener("submit", (e) => {inProgress(e, true)})
     if(glossHashID) {
         if(!(glossHashID.startsWith("http:") || glossHashID.startsWith("https:"))){
             // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
@@ -551,26 +553,11 @@ function prefillText(textObj, form) {
 
     const textVal = textObj.textValue
     if (!textVal) {
-        console.warn("There is no text recorded for this witness")
+        console.warn("There is no text recorded for this Gloss")
         return false
     }
     if(textElem){
         textElem.value = textVal
         textElem.setAttribute("value", textVal)
     }
-}
-
-/**
- * Enable/Disable all form fields
- * @param {boolean} disabled - Set all form fields used to have this value for their `disabled` attribute
- */
-function setFieldDisabled(disabled = true) {
-    document.querySelectorAll('input,textarea,select,button').forEach(e => {
-        if(disabled){
-            e.setAttribute("disabled", "")
-        }
-        else{
-            e.removeAttribute("disabled")
-        }
-    })
 }

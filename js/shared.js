@@ -67,7 +67,8 @@ class CustomConfirmModal extends HTMLElement {
     }
 
     resolveConfirm(result) {
-        this.dispatchEvent(new CustomEvent('confirm', {detail: {confirmed: result}}))
+        const resolve_ev = new CustomEvent("Confirm Modal Event")
+        broadcast(resolve_ev, "customModalConfirm", this, {"confirmed": result})
         this.remove()
     }
 }
@@ -391,8 +392,9 @@ async function showCustomConfirm(message) {
     document.body.appendChild(confirmModal);
 
     return new Promise(resolve => {
-        confirmModal.addEventListener('confirm', event => {
+        confirmModal.addEventListener('customModalConfirm', event => {
             resolve(event.detail.confirmed)
+            if(event.detail.confirmed) inProgress(event, true)
         }, {once: true})
     })
 }
@@ -499,6 +501,7 @@ function paginateButtonsAfterSubmit(glossURIs){
             }
         })    
     })
+    inProgress(null, false)
 }
 
 /**
@@ -1292,4 +1295,35 @@ function isURI(urlString){
     catch(e){ 
         return false
     }
+}
+
+/**
+ * Enable/Disable all form fields
+ * @param {boolean} disabled - Set all form fields used to have this value for their `disabled` attribute
+ */
+function setFieldDisabled(disabled = true) {
+    document.querySelectorAll('input,textarea,select,button').forEach(e => {
+        if(disabled){
+            e.setAttribute("disabled", "")
+        }
+        else{
+            e.removeAttribute("disabled")
+        }
+    })
+}
+
+/**
+ * A pagination effect to let the user know an action is in progress.
+ * This is for the custom confirm modal which confirms submit and delete actions.
+ * UIs can clear this indicator in the listeners for the completion of those submit and delete actions.
+ * 
+ * FIXME: Give something more obvious to the user.
+ *   Shadow out the form
+ *   Make the button pulse
+ *   Show the loading gif in the button
+ *   etc.
+ */ 
+function inProgress(event, disabled=true){
+    // The disabled=false flag can be used to re-enable things
+    setFieldDisabled(disabled)
 }
