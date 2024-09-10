@@ -1154,7 +1154,7 @@ async function initiateMatch(manuscriptWitnessID){
         }
         const shelfmark = annos[0].body.identifier.value
         manuscriptWitnessForm.setAttribute("matched", true)
-        activateFragmentForm(manuscriptWitnessID, shelfmark, true)
+        activateFragmentForm(manuscriptWitnessID, shelfmark, false)
         const e = new CustomEvent("Manuscript Witness Loaded")
         globalFeedbackBlip(e, `Manuscript Witness Loaded`, true)
     })
