@@ -69,6 +69,7 @@ class CustomConfirmModal extends HTMLElement {
     resolveConfirm(result) {
         const resolve_ev = new CustomEvent("Confirm Modal Event")
         broadcast(resolve_ev, "customModalConfirm", this, {"confirmed": result})
+        //this.dispatchEvent(new CustomEvent("customModalConfirm", {detail: {confirmed: result}}))
         this.remove()
     }
 }
@@ -394,7 +395,12 @@ async function showCustomConfirm(message) {
     return new Promise(resolve => {
         confirmModal.addEventListener('customModalConfirm', event => {
             resolve(event.detail.confirmed)
-            if(event.detail.confirmed) inProgress(event, true)
+            // The resolve function above needs a little time to finish.  inProgress() makes the button it wants to click disabled too fast.
+            if(event.detail.confirmed) {
+                setTimeout(function() {
+                    inProgress(event, true)
+                }, 250)
+            }
         }, {once: true})
     })
 }
@@ -406,8 +412,6 @@ async function showCustomConfirm(message) {
  * 
  * There is no way to 'decrypt' the output.  You will never be able to determine the original string.
  * Sorry not sorry
- * 
- * Original copyright (c) Paul Johnston & Greg Holt
  * 
  * @param str - Anything this programming language considers a valid 'String' type
  * @note numbers and arrays are supported as is.  JSON can be supported if you stringify() it.
