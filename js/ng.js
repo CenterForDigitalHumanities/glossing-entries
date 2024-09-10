@@ -106,7 +106,6 @@ function initGlossForm(event){
     let whatRecordForm = event.target.id
     if(whatRecordForm !== "named-gloss") return
     let annotationData = event.detail ?? {}
-    // FIXME not sure why deer-form-render fires in cases of expandError still.
     if(!annotationData["@id"]) return
     const entityType = annotationData.type ?? annotationData["@type"] ?? null
     if(entityType !== "Gloss" && entityType !== "named-gloss"){
