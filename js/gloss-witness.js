@@ -403,6 +403,7 @@ function initFragmentForm(event){
     let whatRecordForm = event.target?.id
     if(whatRecordForm !== "witnessFragmentForm") return
     let annotationData = event.detail ?? {}
+    if(!annotationData["@id"]) return
     const entityType = annotationData.type ?? annotationData["@type"] ?? null
     if(entityType !== "WitnessFragment"){
         const ev = new CustomEvent("Fragment Details Error")
