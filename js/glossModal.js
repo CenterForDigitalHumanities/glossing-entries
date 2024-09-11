@@ -31,18 +31,19 @@ class GlossModalActivationButton extends HTMLElement {
         this.querySelector("input[type='button']").addEventListener("click", toggleModal)
 
         function hasAllFormRequirements(){
-            if(witnessFragmentForm !== undefined){
-                let all = true
-                const requiredElems = witnessFragmentForm.querySelectorAll(".required")
-                for(const r of requiredElems){
-                    if(!r?.value){
-                        all = false
-                        return
-                    }
+            if(witnessFragmentForm === undefined) return false
+            let all = true
+            const requiredElems = witnessFragmentForm.querySelectorAll(".required")
+            for(const r of requiredElems){
+                if(!r?.value){
+                    all = false
+                    break
                 }
-                return all 
             }
-            return false
+            // Extra check if the user provided a depiction.  It has to be a URI.
+            const depictionVal = witnessFragmentForm.querySelector("input[deer-key='depiction']")?.value
+            if(depictionVal && !isURI(depictionVal)) all = false
+            return all 
         }
 
         /**
@@ -53,7 +54,7 @@ class GlossModalActivationButton extends HTMLElement {
             if(document.location.pathname.includes("gloss-transcription") || document.location.pathname.includes("gloss-witness")){
                 if(!hasAllFormRequirements()){
                     const blip = new CustomEvent("You must fill out all required form fields")
-                    utils.globalFeedbackBlip(blip, `Please provide all required Witness form values first.`, false)
+                    utils.globalFeedbackBlip(blip, `Please check all provided and required Witness Fragment form values.`, false)
                     return
                 }
             }
@@ -163,7 +164,10 @@ class GlossModal extends HTMLElement {
         this.innerHTML = this.template
         const $this = this
         const $form = this.querySelector("form")
-        const textWitnessID = window.location.hash.substr(1)
+        const textWitnessID = window.location.hash.slice(1)
+
+        // Add pagination for the gloss modal submit so users know work is happening in the background
+        $form.addEventListener("submit", (e) => {inProgress(e, true)})
 
         // Catch the entity creation announcement from DEER
         addEventListener('deer-updated', event => {
@@ -224,6 +228,7 @@ class GlossModal extends HTMLElement {
                     globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
                     // Announce a modal specific event with the details from the DEER announcement
                     utils.broadcast(event, `gloss-modal-saved`, $this, event.detail ?? {})
+                    inProgress(null, false)
                 })
                 .catch(err => {
                     console.error("ERROR PROCESSING SOME FORM FIELDS")
@@ -236,7 +241,7 @@ class GlossModal extends HTMLElement {
 
         // 'Submit' click event handler
         this.querySelector(".button.primary").addEventListener("click", event => {
-              $this.querySelector("input[type='submit']").click()
+          $this.querySelector("input[type='submit']").click()
         })
 
         // 'Cancel' click event handler

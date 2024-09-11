@@ -41,6 +41,26 @@
             await setPublicCollections() 
             await setListings()
         }
+
+        /**
+         * UI/UX for when the user uses this page to delete an existing #Gloss
+         */
+        document.addEventListener("GlossDeleted", function(event){
+            const ev = new CustomEvent("This Gloss has been deleted.")
+            globalFeedbackBlip(ev, `Gloss deleted`, true)
+            document.querySelector(`[deer-id="${event.detail["@id"]}"]`).closest("li").remove()
+            document.querySelector("deer-view[deer-template='managedlist']").listCache.delete(event.detail["@id"])
+        })
+
+        /**
+         * UI/UX for when this page has an error attempting to delete an existing #Gloss
+         * The form becomes locked down and an error message is show.
+         */
+        document.addEventListener("GlossDeleteError", function(event){
+            const ev = new CustomEvent("Gloss Delete Error")
+            globalFeedbackBlip(ev, `There was an issue removing the Gloss with URI ${event.detail["@id"]}.  This item may still appear in collections.`, false)
+            console.error(event.error)
+        })
     </script>
 </body>
 
