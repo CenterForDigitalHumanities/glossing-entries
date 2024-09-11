@@ -478,39 +478,40 @@ class ReferencesBrowser extends HTMLElement {
         const witnessList = $this.querySelector(".glossWitnesses")
         const witnessInput = $this.querySelector(".witnessInput")
         const glossURI = $this.getAttribute("gloss-uri") ? decodeURIComponent($this.getAttribute("gloss-uri")) : null
-        if(glossURI){
-            getAllManuscriptWitnessesOfGloss(glossURI)
-            .then(manuscriptSet => {
+        if(!glossURI){
+            witnessList.querySelector("li").innerHTML = `<b> Add Witness References Above! </b>`
+            return
+        }
+        getAllManuscriptWitnessesOfGloss(glossURI)
+        .then(manuscripts => {
+            if(manuscripts.length > 0){ 
                 witnessList.innerHTML = ""
-                const manuscripts = [...manuscriptSet.values()]
-                if(manuscripts.length > 0){ 
-                    $this.classList.remove("is-hidden")
-                    for(const manuscriptURI of manuscripts){
-                        const li = document.createElement("li")
-                        li.setAttribute("deer-id", manuscriptURI)
-                        const a = document.createElement("a")
-                        a.classList.add("deer-view")
-                        a.setAttribute("deer-template", "shelfmark")
-                        a.setAttribute("deer-id", manuscriptURI)
-                        a.setAttribute("target", "_blank")
-                        a.setAttribute("href", `manuscript-profile.html#${manuscriptURI}`)
-                        a.innerHTML = "loading..." 
-                        li.appendChild(a)
-                        witnessList.appendChild(li)
-                        utils.broadcast(undefined, "deer-view", document, { set: [a] }) 
-                    }
+                $this.classList.remove("is-hidden")
+                for(const manuscriptURI of manuscripts){
+                    const li = document.createElement("li")
+                    li.setAttribute("deer-id", manuscriptURI)
+                    const a = document.createElement("a")
+                    a.classList.add("deer-view")
+                    a.setAttribute("deer-template", "shelfmark")
+                    a.setAttribute("deer-id", manuscriptURI)
+                    a.setAttribute("target", "_blank")
+                    a.setAttribute("href", `manuscript-profile.html#${manuscriptURI}`)
+                    a.innerHTML = "loading..." 
+                    li.appendChild(a)
+                    witnessList.appendChild(li)
+                    utils.broadcast(undefined, "deer-view", document, { set: [a] }) 
                 }
-                else{
-                    witnessList.querySelector("li").innerHTML = `<b> No Witnesses Found.  Create one now! </b>`    
-                }
-            })
-        }
-        else{
-            witnessList.querySelector("li").innerHTML = `<b> Add Witness References Above! </b>`    
-        }
+            }
+            else{
+                witnessList.querySelector("li").innerHTML = `<b> No Witness References Found.  Add One Above! </b>`    
+            }
+        })
+
 
         /**
+         * Get all ManuscriptWitness entity URIs that reference this Gloss.
          * @param source A String that is either a text body or a URI to a text resource.
+         * @return An Array of Manuscript Witness URIs
          */ 
         async function getAllManuscriptWitnessesOfGloss(glossURI){
             const historyWildcard = { "$exists": true, "$size": 0 }
@@ -591,7 +592,7 @@ class ReferencesBrowser extends HTMLElement {
                 allManuscriptWitnesses = new Set([...allManuscriptWitnesses, ...manuscriptUriSet])
             }
 
-            return allManuscriptWitnesses
+            return [...allManuscriptWitnesses]
         }
         /**
          * Click event handler for Add Theme.  Takes the user input and adds the string to the Set if it isn't already included.

@@ -1,4 +1,4 @@
-const witnessFragmentID = window.location.hash.substr(1)
+var witnessFragmentID = window.location.hash.slice(1)
 let referencedGlossID = null
 let existingManuscriptWitness = null
 let sourceURI = getURLParameter("source-uri") ? decodeURIComponent(getURLParameter("source-uri")) : null
@@ -39,12 +39,37 @@ document.addEventListener("gloss-modal-visible", function(event){
  */ 
 addEventListener('expandError', event => {
     const uri = event.detail.uri
-    const ev = new CustomEvent("Witness Details Error")
+    const msg = event.detail.error ? event.detail.error : `Error getting data for '${uri}'`
+    const ev = new CustomEvent("Witness Fragment Details Error")
     look.classList.add("text-error")
-    look.innerText = "Could not get Witness information."
+    look.innerText = "Could not get Witness Fragment information."
     witnessFragmentForm.remove()
+    needs.remove()
     loading.classList.add("is-hidden")
-    globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
+    globalFeedbackBlip(ev, msg, false)
+})
+
+/**
+ * UI/UX for when the user uses this page to delete an existing #WitnessFragment
+ */
+document.addEventListener("WitnessFragmentDeleted", function(event){
+    const ev = new CustomEvent("This Gloss has been deleted.")
+    if(event.detail.redirect){
+        globalFeedbackBlip(ev, `Witness Fragment deleted.  You will be redirected.`, true)
+        addEventListener("globalFeedbackFinished", () => {
+            location.href = "gloss-witness.html"
+        })
+    }
+})
+
+/**
+ * UI/UX for when this page has an error attempting to delete an existing #WitnessFragment
+ * The form becomes locked down and an error message is show.
+ */
+document.addEventListener("WitnessFragmentDeleteError", function(event){
+    const ev = new CustomEvent("WitnessFragment Delete Error")
+    globalFeedbackBlip(ev, `Error deleting the Witness Fragment with URI ${event.detail["@id"]}`, false)
+    console.error(event.error)
 })
 
 /**
@@ -70,7 +95,7 @@ function setFragmentFormDefaults(){
         s.removeAttribute("deer-source")
     })
     // For when we test
-    //form.querySelector("input[deer-key='creator']").value = "cuba&thehabes"
+    // form.querySelector("input[deer-key='creator']").value = "BryanDeleteRefactor"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""
@@ -166,8 +191,18 @@ function setFragmentFormDefaults(){
         el.classList.add("pre-select")
     })
 
+    // Clear in "in progress" UI mechanic as the submit actions has completed now.
+    inProgress(null, false)
+
     console.log("WITNESS FORM RESET")
 }
+
+/*
+ * TODO we need to consider onhashchange handling for the entity forms on the gloss-witness.html page.
+ */
+// window.onhashchange = () => {
+//     witnessFragmentID = window.location.hash.slice(1)
+// }
 
 /**
  * Attach all the event handlers to the custom key areas.
@@ -175,9 +210,13 @@ function setFragmentFormDefaults(){
  * Set fixed value fields and make those inputs dirty.
  */ 
 window.onload = async () => {
-    setPublicCollections()
-    setListings()
+    const ev_err = new CustomEvent("Expand Error")
     if(witnessFragmentID){
+        if(!isURI(witnessFragmentID)){
+            // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+            broadcast(ev_err, "expandError", document, {"uri":witnessFragmentID, "error":"Location hash is not a URI."})
+            return
+        }
         // We will trust the source the db tells us belongs to this Witness Fragment.  Ignore ?source-uri
         sourceURI = null
     }
@@ -188,7 +227,6 @@ window.onload = async () => {
             sourceElem.setAttribute("value", sourceURI)
             sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
         })
-        document.querySelector("source-text-selector").setAttribute("source-uri", sourceURI)
     }
     else{
         needs.classList.remove("is-hidden")
@@ -198,37 +236,43 @@ window.onload = async () => {
 
     if(witnessFragmentID){
         // Usually will not include ?wintess-uri and if it does that source is overruled by the value of this textWitness's source annotation.
-        addEventListener('deer-form-rendered', initFragmentForm)
         existingManuscriptWitness = await getManuscriptWitnessFromFragment(witnessFragmentID)
         .then(existingWitnessURI => existingWitnessURI)
         .catch(err => {
             const ev = new CustomEvent("Query Error")
-            globalFeedbackBlip(ev, `The check for existing Witnesses failed.`, false)
+            globalFeedbackBlip(ev, `The check for existing Manuscript Witnesses failed.`, false)
             throw err
         })
+        if(!existingManuscriptWitness){
+            //broadcast(ev_err, "expandError", document, {"uri":witnessFragmentID, "error":"This WitnessFragment is not a part of any ManuscriptWitness."})
+            console.error("This WitnessFragment is not a part of any ManuscriptWitness.  This is an error.")
+            return
+        }
         const submitBtn = witnessFragmentForm.querySelector("input[type='submit']")
         const deleteBtn = witnessFragmentForm.querySelector(".deleteWitness")
         needs.classList.add("is-hidden")
         submitBtn.value = "Update Witness"
         submitBtn.classList.remove("is-hidden")
         deleteBtn.classList.remove("is-hidden")
-        witnessFragmentForm.setAttribute("deer-id", witnessFragmentID)
         manuscriptWitnessForm.setAttribute("deer-id", existingManuscriptWitness)
     }
     else{
         // These items have default values that are dirty on fresh forms.
         witnessFragmentForm.querySelector("select[custom-text-key='language']").$isDirty = true
+        // special handler for ?wintess-uri=
         if(sourceURI) {
-            // special handler for ?wintess-uri=
-            addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource(null, sourceURI))
+            // Load in the ManuscriptWitness first
             const match = await getManuscriptWitnessFromSource(sourceURI)
             if(match) {
-                initiateMatch(match)
+                await initiateMatch(match)
             }
             else{
                 loading.classList.add("is-hidden")
                 manuscriptWitnessForm.classList.remove("is-hidden")
             }
+            // Now load in all the fragments
+            addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource(null, sourceURI))
+            document.querySelector("source-text-selector").setAttribute("source-uri", sourceURI)
         }
     }
 
@@ -248,7 +292,7 @@ window.onload = async () => {
     })
     deleteWitnessButton.addEventListener("click", async ev => {
         if(await showCustomConfirm("The witness will be deleted.  This action cannot be undone.")){
-            deleteWitnessFragment(true)
+            deleteWitnessFragment(witnessFragmentID, true)
         }
     })
 }
@@ -259,15 +303,122 @@ window.onload = async () => {
 addEventListener('deer-view-rendered', addButton)
 
 /**
- * Paginate the custom data fields in the Witness form.  Only happens if the page has a hash.
+ * After a filterableListItem_glossSelector loads, we need to determine what to do with its 'attach' button.
+ * In create/update scenarios, this will result in the need to click a button
+ * In loading scenarios, if a text witness URI was supplied to the page it will have a gloss which should appear as 'attached'.
+ */ 
+function addButton(event) {
+    const template_container = event.target
+    if(template_container.getAttribute("deer-template") !== "filterableListItem_glossSelector") return
+    const obj = event.detail
+    const gloss_li = template_container.firstElementChild
+    const createScenario = template_container.hasAttribute("create-scenario")
+    const updateScenario = template_container.hasAttribute("update-scenario")
+    // A new Gloss has been introduced and is done being cached.
+    let inclusionBtn = document.createElement("input")
+    inclusionBtn.setAttribute("type", "button")
+    inclusionBtn.setAttribute("data-id", obj["@id"])
+    let already = false
+    if(witnessFragmentsObj?.referencedGlosses){
+        already = witnessFragmentsObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
+    }
+    if(updateScenario){
+        inclusionBtn.setAttribute("disabled", "")
+        inclusionBtn.setAttribute("value", "✓ attached")
+        inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button success`)  
+    }
+    else{
+        // Either a create scenario, or neither (just loading up)
+        inclusionBtn.setAttribute("title", `${already ? "This gloss was attached in the past.  Be sure before you attach it." : "Attach This Gloss and Save" }`)
+        inclusionBtn.setAttribute("value", `${already ? "❢" : "➥"} attach`)
+        inclusionBtn.setAttribute("class", `toggleInclusion ${already} button primary`)
+
+        // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
+        if(witnessFragmentID && referencedGlossID === obj["@id"]){
+            // Make this button appear as 'attached'
+            inclusionBtn.setAttribute("disabled", "")
+            inclusionBtn.setAttribute("value", "✓ attached")
+            inclusionBtn.setAttribute("title", "This Gloss is already attached!")
+            inclusionBtn.classList.remove("primary")
+            inclusionBtn.classList.add("success")
+        }
+    }
+    inclusionBtn.addEventListener('click', async ev => {
+        ev.preventDefault()
+        ev.stopPropagation()
+        const form = ev.target.closest("form")
+        let blip = new CustomEvent("Blip")
+        // There must be a shelfmark
+        if(!form.querySelector("input[deer-key='identifier']").value){
+            blip = new CustomEvent("You must provide a Shelfmark value.")
+            globalFeedbackBlip(blip, `You must provide a Shelfmark value.`, false)
+            return
+        }
+        // There must be a selection
+        if(!form.querySelector("input[custom-key='selections']").value){
+            blip = new CustomEvent("Select some text first.")
+            globalFeedbackBlip(blip, `Select some text first.`, false)
+            return   
+        }
+        const glossIncipit = ev.target.closest("li").getAttribute("data-title")
+        const note = ev.target.classList.contains("attached-to-source") 
+           ? `This Gloss has already been attached to this source.  Normally it would not appear in the same source a second time.  Be sure before you attach this Gloss.\nSave this textual witness for Gloss '${glossIncipit}'?`
+           : `Save this textual witness for Gloss '${glossIncipit}'?`
+        if((createScenario || updateScenario) || await showCustomConfirm(note)){
+            const customKey = form.querySelector("input[custom-key='references']")
+            const uri = ev.target.getAttribute("data-id")
+            if(customKey.value !== uri){
+                customKey.value = uri 
+                customKey.setAttribute("value", uri) 
+                customKey.$isDirty = true
+                form.$isDirty = true
+                form.querySelector("input[type='submit']").click()    
+            }
+            else{
+                globalFeedbackBlip(ev, `This textual witness is already attached to Gloss '${glossIncipit}'`, false)
+            }
+        }                    
+    })
+    gloss_li.prepend(inclusionBtn)
+    
+    if(createScenario) { inclusionBtn.click() }
+    else if(updateScenario) { 
+        // Set the references input with the new gloss URI and update the form
+        const refKey = witnessFragmentForm.querySelector("input[custom-key='references']")
+        if(refKey.value !== obj["@id"]){
+            refKey.value = obj["@id"]
+            refKey.setAttribute("value", obj["@id"]) 
+            refKey.$isDirty = true
+            witnessFragmentForm.$isDirty = true
+            witnessFragmentForm.querySelector("input[type='submit']").click() 
+        }
+    }
+}
+
+addEventListener('deer-form-rendered', initFragmentForm)
+/**
+ * Paginate the custom data fields in the WitnessFragment form.  Only happens if the page has a hash.
  * Note this only needs to occur one time on page load.
  */ 
 function initFragmentForm(event){
     let whatRecordForm = event.target?.id
+    if(whatRecordForm !== "witnessFragmentForm") return
     let annotationData = event.detail ?? {}
+    if(!annotationData["@id"]) return
+    const entityType = annotationData.type ?? annotationData["@type"] ?? null
+    if(entityType !== "WitnessFragment"){
+        const ev = new CustomEvent("Fragment Details Error")
+        look.classList.add("text-error")
+        look.innerText = `The provided #entity of type '${entityType}' is not a 'WitnessFragment'.`
+        witnessFragmentForm.remove()
+        needs.remove()
+        loading.classList.add("is-hidden")
+        globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'WitnessFragment'.`, false)
+        return
+    }
     const textSelectionElem = document.querySelector("source-text-selector")
     const $elem = event.target
-    if(whatRecordForm !== "witnessFragmentForm") return
     const source = annotationData?.source?.value
     if(!source) {
         const ev = new CustomEvent("Witness Fragment does not have a source")
@@ -298,10 +449,12 @@ function initFragmentForm(event){
     else{
         if(isURI(source)) {
             sourceURI = source
-            addEventListener('source-text-loaded', ev => {
-               getAllWitnessFragmentsOfSource(selections, sourceURI)
-            })
-            if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
+            if(!textSelectionElem.getAttribute("source-uri")) {
+                textSelectionElem.setAttribute("source-uri", sourceURI)
+                addEventListener('source-text-loaded', ev => {
+                   getAllWitnessFragmentsOfSource(selections, sourceURI)
+                })
+            }
         }
         else{
             // We will not be able to show or load or preselect or actively select any text here...
@@ -732,7 +885,7 @@ async function loadUserInput(ev, which){
             textElem.setAttribute("hash", hash)
             match = await getManuscriptWitnessFromSource(hash)
             if(match) {
-                initiateMatch(match)
+                await initiateMatch(match)
             }
             else{
                 loading.classList.add("is-hidden")
@@ -755,7 +908,7 @@ async function loadUserInput(ev, which){
             loading.classList.remove("is-hidden")
             match = await getManuscriptWitnessFromSource(hash)
             if(match) {
-                initiateMatch(match)
+                await initiateMatch(match)
             }
             else{
                 loading.classList.add("is-hidden")
@@ -855,6 +1008,154 @@ checkForManuscriptsBtn.addEventListener('click', async (ev) => {
     populateManuscriptWitnessChoices(match)
     manuscriptWitnessForm.querySelectorAll(".detect-witness").forEach(elem => elem.classList.add("is-hidden"))
 })
+
+/**
+ * After a source text loads we need to know if there are any existing Witness Fragments for it.
+ * We use that information to preselect text and paginate 'attach' buttons in the Gloss picker.
+ * In this case, we know the source URI.
+ * Query RERUM or cache for those Witness Fragments.  We need to know their references and selections.
+ * TODO: 
+ * If we can decouple this from preselectLines() it can become a shared function in shared.js 
+ * This seems to do both the logic of getting the fragments and the UI work to put them on screen.
+ * 
+ * @param event - source-text-loaded 
+ */ 
+async function getAllWitnessFragmentsOfSource(fragmentSelections=null, sourceValue=null){
+    if(!sourceValue) return
+    const lineSelectorElem = document.querySelector(".lineSelector")
+    if(!(lineSelectorElem?.hasAttribute("source-text-loaded") || lineSelectorElem?.hasAttribute("tpen-lines-loaded"))){
+        console.error("There is no reason to run this function because we cannot supply the results to a non-existent UI.  Wait for the text content to load.")
+        return 
+    }
+    /**
+     * Other asyncronous loading functionality may already know the glosses and their fragments.
+     * @see witnessFragmentsObj
+     * If so, use that cached info to perform the UI tasks and break out of the function.
+     */ 
+    if(Object.keys(witnessFragmentsObj).length > 0){
+        for(const witnessInfo of Object.values(witnessFragmentsObj)){
+            if(!witnessInfo?.glosses || !witnessInfo?.selections) continue
+            witnessInfo.glosses.forEach(glossURI => {
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
+                    btn.classList.add("attached-to-source")
+                })    
+            })
+            preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
+        }
+        if(witnessFragmentID || manuscriptWitnessForm.hasAttribute("matched")){
+            loading.classList.add("is-hidden")
+            witnessFragmentForm.classList.remove("is-hidden")
+        }
+        return
+    }
+    const historyWildcard = { "$exists": true, "$size": 0 }
+    // Each source annotation targets a Witness.
+    // Get all the source annotations whose value is this source string (URI or text string)
+    const sourceAnnosQuery = {
+        "body.source.value": isURI(sourceValue) ? httpsIdArray(sourceValue) : sourceValue,
+        "__rerum.history.next": historyWildcard,
+        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+    }
+
+    const fragmentUriSet = await getPagedQuery(100, 0, sourceAnnosQuery)
+    .then(annos => {
+        return new Set(annos.map(anno => anno.target))
+    })
+    .catch(err => {
+        console.error(err)
+        return Promise.reject([])
+    })
+
+    let glossUriSet = new Set()    
+    let all = []
+    for (const fragmentURI of fragmentUriSet){
+        // Each Witness has an Annotation whose body.value references [a Gloss]
+        const referencesAnnosQuery = {
+            "target" : httpsIdArray(fragmentURI),
+            "body.references.value": { $exists:true },
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        // It also has selections we need to highlight
+        const selectionsAnnosQuery = {
+            "target" : httpsIdArray(fragmentURI),
+            "body.selections.value": { $exists:true },
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+        }
+        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(referencesAnnosQuery)
+        })
+        .then(response => response.json())
+        .then(annos => {
+            // Keep this information in the witnessFragmentsObj from shared.js
+            if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
+            witnessFragmentsObj[fragmentURI].glosses = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
+            glossUriSet = new Set([...glossUriSet, ...new Set(annos.map(anno => anno.body.references.value).flat())])
+            return Promise.resolve(witnessFragmentsObj)
+        })
+        .catch(err => {
+            console.error(err)
+            return Promise.reject([])
+        }))
+
+        all.push(fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+            method: "POST",
+            mode: 'cors',
+            headers: {
+                "Content-Type": "application/json;charset=utf-8"
+            },
+            body: JSON.stringify(selectionsAnnosQuery)
+        })
+        .then(response => response.json())
+        .then(annos => {
+            // Keep this information in the witnessFragmentsObj from shared.js
+            if(!witnessFragmentsObj.hasOwnProperty(fragmentURI)) witnessFragmentsObj[fragmentURI] = {}
+            const existingSelections = witnessFragmentsObj[fragmentURI].selections ? witnessFragmentsObj[fragmentURI].selections : []
+            const moreSelections = annos.map(anno => anno.body.selections.value).flat()
+            const selections = new Set([...existingSelections, ...moreSelections])
+            witnessFragmentsObj[fragmentURI].selections = [...selections.values()]
+            return Promise.resolve(witnessFragmentsObj)
+        })
+        .catch(err => {
+            console.error(err)
+            return Promise.reject([])
+        })
+        )
+    }
+
+    Promise.all(all)
+    .then(success => {
+        witnessFragmentsObj.referencedGlosses = glossUriSet
+        for(const fragmentURI in witnessFragmentsObj){
+            if(fragmentURI === "referencedGlosses") continue
+            const witnessInfo = witnessFragmentsObj[fragmentURI]
+            witnessInfo.glosses.forEach(glossURI => {
+                // For each Gloss URI find its corresponding 'attach' button and ensure it is classed as a Gloss that is already attached to this source.
+                document.querySelectorAll(`.toggleInclusion[data-id="${glossURI}"]`).forEach(btn => {
+                    btn.classList.add("attached-to-source")
+                })    
+            })
+            preselectLines(witnessInfo.selections, witnessFragmentForm, fragmentSelections)
+        }
+        if(witnessFragmentID || manuscriptWitnessForm.hasAttribute("matched")){
+            loading.classList.add("is-hidden")
+            witnessFragmentForm.classList.remove("is-hidden")
+        }
+    })
+    .catch(err => {
+        console.error("Witnesses Object Error")
+        console.error(err)
+        const ev = new CustomEvent("Witnesses Object Error")
+        globalFeedbackBlip(ev, `Witnesses Object Error`, false)
+    })
+}
 
 /**
  * Used with capstureSelectedText().  There is a range of line elements and any one of them may already contain a mark.  

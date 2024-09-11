@@ -21,10 +21,6 @@
             visibility: hidden;
             height: 0px;
         }
-        .loadingMsg{
-            color: white;
-            padding-top: 4em;
-        }
         line:nth-child(2n) {
             background-color: unset;
         }
@@ -101,11 +97,11 @@
             <div class="col">
                 <div>
                     <p class="detect-witness"> 
-                        You must load in a Manuscript Witness.  Enter a shelfmark below to get started.  When finished, click the button to check for existing Witnesses.
+                        You must load in a Manuscript Witness.  Enter a shelfmark below to get started.  When finished, click the button to check for existing Manuscripts.
                     </p>
                 </div>
                 <div id="manuscriptsFound" class="is-hidden">
-                    <h4> Manuscripts Found.  Choose a Manuscript from below or create a new one. </h4>
+                    <h4> Manuscripts Found. Confirm Manuscript from below or provide a new shelfmark and check again. </h4>
                     <div id="manuscriptsResult"></div>
                 </div>
             </div>
@@ -127,7 +123,7 @@
     </form>
 
     <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
-    <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment" deer-context="http://purl.org/dc/terms">
+    <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment" deer-context="http://purl.org/dc/terms" hash-id>
         <p> 
             Fill out the form below to create a Witness Fragment for the Manuscript loaded in.  Submit the Fragment by identifying a Gloss and clicking '➥ attach'.  Note the Manuscript remains the same for each Fragment you submit. 
         </p>

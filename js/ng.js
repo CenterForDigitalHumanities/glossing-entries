@@ -1,28 +1,39 @@
 
-const glossHashID = window.location.hash.substring(1)
+var glossHashID = window.location.hash.slice(1)
+
+/**
+ * TODO we need to consider onhashchange handling for the entity forms on the gloss-witness.html page.
+ */
+// window.onhashchange = () => {
+//     glossHashID = window.location.hash.slice(1)
+// }
 
 /**
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
  */ 
 window.onload = () => {
-    let hash = window.location.hash
-    if(hash.startsWith("#")){
-        hash = window.location.hash.substring(1)
-        if(!(hash.startsWith("http:") || hash.startsWith("https:"))){
+    const glossForm = document.getElementById("named-gloss")
+    if(!glossHashID){
+        loading.classList.add("is-hidden")
+        document.querySelector(".gloss-needed").classList.remove("is-hidden")
+    } 
+    // Add pagination to the form submit so users know work is happening in the background
+    glossForm.addEventListener("submit", (e) => {inProgress(e, true)})
+    if(glossHashID) {
+        if(!isURI(glossHashID)){
             // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-            let e = new CustomEvent("expandError", { detail: {"uri":hash}, bubbles:true})
-            document.dispatchEvent(e)
+            const ev_err = new CustomEvent("Expand Error")
+            broadcast(ev_err, "expandError", document, {"uri":glossHashID, "error":"Location hash is not a URI."})
             return
         }
-    }
-    
-    const glossForm = document.getElementById("named-gloss")
-    if(hash) {
         setFieldDisabled(true)
-        document.querySelector("gog-references-browser").setAttribute("gloss-uri", hash)
-        document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.remove("is-hidden"))
+        document.querySelector("gog-references-browser").setAttribute("gloss-uri", glossHashID)
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
-        glossForm.querySelector(".dropGloss").classList.remove("is-hidden")
+        const deleteGlossBtn = glossForm.querySelector(".dropGloss")
+        deleteGlossBtn.classList.remove("is-hidden")
+        deleteGlossBtn.addEventListener('click', ev => {
+            deleteGloss(glossHashID, true)
+        })
     }
     const labelElem = glossForm.querySelector('input[deer-key="title"]')
     const textElem = glossText
@@ -51,7 +62,7 @@ window.onload = () => {
             glossResult.insertAdjacentHTML('beforeend', `<a href="#${anno.id.split('/').pop()}">${anno.title}</a>`)
         })
     })
-    if(!hash){
+    if(!glossHashID){
        // These items have default values that are dirty on fresh forms.
         glossForm.querySelector("select[custom-text-key='language']").$isDirty = true
     }
@@ -66,44 +77,64 @@ window.onload = () => {
     })
 }
 
+/**
+ * UI/UX for when the user uses this page to delete an existing #Gloss
+ */
+document.addEventListener("GlossDeleted", function(event){
+    const ev = new CustomEvent("This Gloss has been deleted.")
+    globalFeedbackBlip(ev, `Gloss deleted.  You will be redirected.`, true)
+    addEventListener("globalFeedbackFinished", () => {
+        location.href = "glosses.html"
+    })
+})
 
 /**
- * Detects that all annotation data is gathered and all HTML of the form is in the DOM and can be interacted with.
- * This is important for pre-filling or pre-selecting values of multi select areas, dropdown, checkboxes, etc. 
- * This event will come after all deer-view-rendered events have finished.
- * @see deer-record.js DeerReport.constructor()  
+ * UI/UX for when this page has an error attempting to delete an existing #Gloss
+ * The form becomes locked down and an error message is show.
  */
-addEventListener('deer-form-rendered', event => {
+document.addEventListener("GlossDeleteError", function(event){
+    const ev = new CustomEvent("Gloss Delete Error")
+    globalFeedbackBlip(ev, `There was an issue removing the Gloss with URI ${event.detail["@id"]}.  This item may still appear in collections.`, false)
+    addEventListener("globalFeedbackFinished", () => {
+        setFieldDisabled(true)
+    })
+    console.error(event.error)
+})
+
+addEventListener('deer-form-rendered', initGlossForm)
+/**
+ * Paginate the custom data fields in the Gloss form.  Only happens if the page has a hash.
+ * Note this only needs to occur one time on page load.
+ */ 
+function initGlossForm(event){
     let whatRecordForm = event.target.id
-    let annotationData = event.detail
-    switch (whatRecordForm) {
-        case "named-gloss":
-            // supporting forms populated
-            const entityType = annotationData.type ?? annotationData["@type"] ?? null
-            if(entityType !== "Gloss" && entityType !== "named-gloss"){
-                document.querySelector(".gloss-needed").classList.add("is-hidden")
-                const ev = new CustomEvent("Gloss Details Error")
-                look.classList.add("text-error")
-                look.innerText = `The provided #entity of type '${entityType}' is not a 'Gloss'.`
-                globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Gloss'.`, false)
-                return
-            }
-            prefillTagsArea(annotationData["tags"], event.target)
-            prefillText(annotationData["text"], event.target)
-            if(event.detail.targetChapter && !event.detail["_section"]) {
-                // This conditional is solely to support Glossing Matthew data and accession it into the new encoding.
-                const canonRef = document.querySelector('[deer-key="canonicalReference"]')
-                canonRef.value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
-                canonRef.dispatchEvent(new Event('input', { bubbles: true }))
-                parseSections()
-            }
-            break
-        default:
+    if(whatRecordForm !== "named-gloss") return
+    let annotationData = event.detail ?? {}
+    if(!annotationData["@id"]) return
+    const entityType = annotationData.type ?? annotationData["@type"] ?? null
+    if(entityType !== "Gloss" && entityType !== "named-gloss"){
+        const ev = new CustomEvent("Gloss Details Error")
+        look.classList.add("text-error")
+        look.innerText = `The provided #entity of type '${entityType}' is not a 'Gloss'.`
+        globalFeedbackBlip(ev, `Provided Entity of type '${entityType}' is not a 'Gloss'.`, false)
+        return
     }
+    prefillTagsArea(annotationData["tags"], event.target)
+    prefillText(annotationData["text"], event.target)
+    if(event.detail.targetChapter && !event.detail["_section"]) {
+        // This conditional is solely to support Glossing Matthew data and accession it into the new encoding.
+        const canonRef = document.querySelector('[deer-key="canonicalReference"]')
+        canonRef.value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
+        canonRef.dispatchEvent(new Event('input', { bubbles: true }))
+        parseSections()
+    }
+    removeEventListener('deer-form-rendered', initGlossForm)
+    loading.classList.add("is-hidden")
+    document.querySelector(".gloss-needed").classList.remove("is-hidden")
     setTimeout(() => {
         setFieldDisabled(false)
     }, 200)
-})
+}
 
 /**
  * When a Gloss is submitted for creation or update it will have multiple shelfmarks to make WitnessFragments against.
@@ -401,8 +432,7 @@ addEventListener('deer-updated', async (event) => {
             console.log("GLOSS FULLY SAVED")
             const ev = new CustomEvent("Thank you for your Gloss Submission!")
             globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
-            const hash = window.location.hash.substring(1)
-            if(!hash){
+            if(!glossHashID){
                 setTimeout(() => {
                     window.location = `ng.html#${entityID}`
                     window.location.reload()
@@ -424,12 +454,15 @@ addEventListener('deer-updated', async (event) => {
  */ 
 addEventListener('expandError', event => {
     const uri = event.detail.uri
+    const msg = event.detail.error ? event.detail.error : `Error getting data for '${uri}'`
     const ev = new CustomEvent("Gloss Details Error")
     document.getElementById("named-gloss").classList.add("is-hidden")
+    document.querySelector("gog-references-browser").classList.add("is-hidden")
     look.classList.add("text-error")
     look.innerText = "Could not get Gloss information."
-    document.querySelectorAll(".redirectToWitness").forEach(div => div.classList.add("is-hidden"))
-    globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
+    globalFeedbackBlip(ev, msg, false)
+    loading.classList.add("is-hidden")
+    document.querySelector(".gloss-needed").classList.remove("is-hidden")
 })
 
 /**
@@ -532,156 +565,11 @@ function prefillText(textObj, form) {
 
     const textVal = textObj.textValue
     if (!textVal) {
-        console.warn("There is no text recorded for this witness")
+        console.warn("There is no text recorded for this Gloss")
         return false
     }
     if(textElem){
         textElem.value = textVal
         textElem.setAttribute("value", textVal)
     }
-}
-/**
- * Redirects or opens a new tab to the witness page for the given gloss.
- * @param {boolean} tpen - Indicates whether to redirect to T-PEN for the witness page.
- */
-function witnessForGloss(tpen){
-    const title = document.getElementById("named-gloss").querySelector("input[deer-key='title']").value
-    if(!title) return
-    const encodedFilter = encodeContentState(JSON.stringify({"title" : title}))
-    if(tpen){
-        //window.location = `gloss-transcription.html?gog-filter=${encodedFilter}`
-        window.open(`gloss-transcription.html?gog-filter=${encodedFilter}`, "_blank")
-    }
-    else{
-        //window.location = `gloss-witness.html?gog-filter=${encodedFilter}`
-        window.open(`fragment-profile.html?gog-filter=${encodedFilter}`, "_blank")
-    }
-}
-
-/**
- * A Gloss entity is being deleted through the ng.html interface.  
- * Delete the Gloss, the Annotations targeting the Gloss, the Witnesses of the Gloss, and the Witnesses' Annotations.
- * Remove this Gloss from the public list.
- * Paginate by redirecting to glosses.html.
- * 
- * @param id {String} The Gloss IRI.
- */
-async function deleteGloss(id=glossHashID) {
-    if(!id){
-        alert(`No URI supplied for delete.  Cannot delete.`)
-        return
-    }
-    if(await isPublicGloss(id)){
-        const ev = new CustomEvent("Gloss is public")
-        globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
-        return
-    }
-    let allWitnessesOfGloss = await getAllWitnessFragmentsOfGloss(id)
-    allWitnessesOfGloss = Array.from(allWitnessesOfGloss)
-    // Confirm they want to do this
-    if (!await showCustomConfirm(`Really delete this Gloss and remove its Witnesses?\n(Cannot be undone)`)) return
-
-    const historyWildcard = { "$exists": true, "$size": 0 }
-
-    // Get all Annotations throughout history targeting this object that were generated by this application.
-    const allAnnotationsTargetingEntityQueryObj = {
-        target: httpsIdArray(id),
-        "__rerum.generatedBy" : httpsIdArray(__constants.generator)
-    }
-    const allEntityAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
-    .then(annos => annos.map(anno => anno["@id"]))
-    .catch(err => {
-        alert("Could not gather Annotations to delete.")
-        console.log(err)
-        return null
-    })
-
-    // This is bad enough to stop here, we will not continue on towards deleting the entity.
-    if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
-
-    const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
-        return fetch(`${__constants.tiny}/delete`, {
-            method: "DELETE",
-            body: JSON.stringify({"@id":annoUri.replace(/^https?:/, 'https:')}),
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            }
-        })
-        .then(r => {
-            if(!r.ok) throw new Error(r.text)
-        })
-        .catch(err => { 
-            console.warn(`There was an issue removing an Annotation: ${annoUri}`)
-            console.log(err)
-            const ev = new CustomEvent("RERUM error")
-            globalFeedbackBlip(ev, `There was an issue removing an Annotation: ${annoUri}`, false)
-        })
-    })
-
-    const allWitnessDeletes = allWitnessesOfGloss.map(witnessURI => {
-        return deleteWitness(witnessURI, false)
-    })
-
-    // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
-    await Promise.all(allEntityAnnotations).then(success => {
-        console.log("Connected Annotationss successfully removed.")
-    })
-    .catch(err => {
-        // OK they may be orphaned.  We will continue on towards deleting the entity.
-        console.warn("There was an issue removing connected Annotations.")
-        console.log(err)
-    })
-
-    // Wait for these to succeed or fail before moving on.  If the page finishes and redirects before this is done, that would be a bummer.
-    await Promise.all(allWitnessDeletes).then(success => {
-        console.log("Connected Witnesses successfully removed.")
-    })
-    .catch(err => {
-        // OK they may be orphaned.  We will continue on towards deleting the entity.
-        console.warn("There was an issue removing connected Witnesses.")
-        console.log(err)
-    })
-
-    // Now the entity itself
-    fetch(`${__constants.tiny}/delete`, {
-        method: "DELETE",
-        body: JSON.stringify({ "@id": id }),
-        headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Authorization": `Bearer ${window.GOG_USER.authorization}`
-        }
-    })
-    .then(r => {
-        if(r.ok){
-            const ev = new CustomEvent("This Gloss has been deleted.")
-            globalFeedbackBlip(ev, `Gloss deleted.  You will be redirected.`, true)
-            addEventListener("globalFeedbackFinished", () => {
-                location.href = "glosses.html"
-            })
-        }
-        else{ 
-            throw new Error(r.text)
-        }
-    })
-    .catch(err => {
-        alert(`There was an issue removing the Gloss with URI ${id}.  This item may still appear in collections.`)
-        console.log(err)
-    })
-
-}
-
-/**
- * Enable/Disable all form fields
- * @param {boolean} disabled - Set all form fields used to have this value for their `disabled` attribute
- */
-function setFieldDisabled(disabled = true) {
-    document.querySelectorAll('input,textarea,select,button').forEach(e => {
-        if(disabled){
-            e.setAttribute("disabled", "")
-        }
-        else{
-            e.removeAttribute("disabled")
-        }
-    })
 }
