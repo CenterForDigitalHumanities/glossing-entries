@@ -138,17 +138,18 @@ window.onload = async () => {
     else{
         witnessFragmentForm.querySelector("select[custom-text-key='language']").$isDirty = true
         if(tpenProjectURI) {
-            // special handler for ?wintess-uri=
-            addEventListener('tpen-lines-loaded', () => getAllWitnessFragmentsOfSource(null, tpenProjectURI))
-            document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
+            // Load in the ManuscriptWitness first
             const match = await getManuscriptWitnessFromSource(tpenProjectURI)
             if(match) {
-                initiateMatch(match)
+                await initiateMatch(match)
             }
             else{
                 loading.classList.add("is-hidden")
                 manuscriptWitnessForm.classList.remove("is-hidden")
             }
+            // Now load in all the fragments
+            addEventListener('tpen-lines-loaded', () => getAllWitnessFragmentsOfSource(null, tpenProjectURI))
+            document.querySelector("tpen-line-selector").setAttribute("tpen-project", tpenProjectURI)
         }
     }
 

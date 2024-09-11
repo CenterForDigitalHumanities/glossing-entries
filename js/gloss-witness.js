@@ -227,7 +227,6 @@ window.onload = async () => {
             sourceElem.setAttribute("value", sourceURI)
             sourceElem.dispatchEvent(new Event('input', { bubbles: true }))
         })
-        document.querySelector("source-text-selector").setAttribute("source-uri", sourceURI)
     }
     else{
         needs.classList.remove("is-hidden")
@@ -260,17 +259,20 @@ window.onload = async () => {
     else{
         // These items have default values that are dirty on fresh forms.
         witnessFragmentForm.querySelector("select[custom-text-key='language']").$isDirty = true
+        // special handler for ?wintess-uri=
         if(sourceURI) {
-            // special handler for ?wintess-uri=
-            addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource(null, sourceURI))
+            // Load in the ManuscriptWitness first
             const match = await getManuscriptWitnessFromSource(sourceURI)
             if(match) {
-                initiateMatch(match)
+                await initiateMatch(match)
             }
             else{
                 loading.classList.add("is-hidden")
                 manuscriptWitnessForm.classList.remove("is-hidden")
             }
+            // Now load in all the fragments
+            addEventListener('source-text-loaded', () => getAllWitnessFragmentsOfSource(null, sourceURI))
+            document.querySelector("source-text-selector").setAttribute("source-uri", sourceURI)
         }
     }
 
@@ -447,10 +449,12 @@ function initFragmentForm(event){
     else{
         if(isURI(source)) {
             sourceURI = source
-            addEventListener('source-text-loaded', ev => {
-               getAllWitnessFragmentsOfSource(selections, sourceURI)
-            })
-            if(!textSelectionElem.getAttribute("source-uri")) textSelectionElem.setAttribute("source-uri", sourceURI)
+            if(!textSelectionElem.getAttribute("source-uri")) {
+                textSelectionElem.setAttribute("source-uri", sourceURI)
+                addEventListener('source-text-loaded', ev => {
+                   getAllWitnessFragmentsOfSource(selections, sourceURI)
+                })
+            }
         }
         else{
             // We will not be able to show or load or preselect or actively select any text here...
@@ -881,7 +885,7 @@ async function loadUserInput(ev, which){
             textElem.setAttribute("hash", hash)
             match = await getManuscriptWitnessFromSource(hash)
             if(match) {
-                initiateMatch(match)
+                await initiateMatch(match)
             }
             else{
                 loading.classList.add("is-hidden")
@@ -904,7 +908,7 @@ async function loadUserInput(ev, which){
             loading.classList.remove("is-hidden")
             match = await getManuscriptWitnessFromSource(hash)
             if(match) {
-                initiateMatch(match)
+                await initiateMatch(match)
             }
             else{
                 loading.classList.add("is-hidden")

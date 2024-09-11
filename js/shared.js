@@ -1136,7 +1136,7 @@ async function initiateMatch(manuscriptWitnessID){
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
     // We need to know the shelfmark to activate the Witness Fragment form because they MUST match.
-    fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
+    return fetch(`${__constants.tiny}/query?limit=100&skip=0`, {
         method: "POST",
         mode: 'cors',
         headers: {
@@ -1155,8 +1155,6 @@ async function initiateMatch(manuscriptWitnessID){
         const shelfmark = annos[0].body.identifier.value
         manuscriptWitnessForm.setAttribute("matched", true)
         activateFragmentForm(manuscriptWitnessID, shelfmark, false)
-        const e = new CustomEvent("Manuscript Witness Loaded")
-        globalFeedbackBlip(e, `Manuscript Witness Loaded`, true)
     })
     .catch(err => {
         console.error(`Error loading in the manuscript '${manuscriptWitnessID}'`)
