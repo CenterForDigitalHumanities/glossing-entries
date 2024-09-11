@@ -445,6 +445,8 @@ line.selected.just {
     filter: invert(100%);
     background-color: black;
     text-align: center;
+    color: white;
+    padding-top: 4em;
 }
 
 #glossResult, .glossResult{
@@ -549,9 +551,4 @@ textarea:disabled, select:disabled {
 
 input.required, textarea.required, select.required{
     border: 1px solid black;
-}
-
-.loadingMsg{
-    color: white;
-    padding-top: 4em;
 }
