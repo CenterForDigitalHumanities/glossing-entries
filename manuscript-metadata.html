@@ -62,7 +62,7 @@
         <div class="row">
             <div class="col">
                 <label class="">Language:</label>
-                <select custom-text-key="language" title="select language" class="">
+                <select deer-key="language" title="select language" class="">
                     <option value="la" selected="">Latin</option>
                     <option value="de">German</option>
                     <option value="fr">French</option>
@@ -120,24 +120,12 @@
                 <input id="rendering" type="url" deer-key="seeAlso">
             </div>
         </div>
-        <button type="submit" class="btn btn-primary" disabled>
-            Update Manuscript Metadata
-        </button>
-        
+        <input class="button primary" type="submit" value="Update Manuscript Metadata"/>
     </form>
 
     <gog-footer class="container"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
-
-    <script>
-        try {
-            let hashURL = new URL(location.hash.substring(1))
-        } catch (error) {
-            location.href = confirm('Use this form to update an existing Manuscript Witness. Select one from the list first.')
-            ? 'manuscripts.html'
-            : 'index.html'
-        }
-    </script>
+    <script src="js/manuscript-metadata.js"></script>
 </body>
 
 </html>
