@@ -445,6 +445,8 @@ line.selected.just {
     filter: invert(100%);
     background-color: black;
     text-align: center;
+    color: white;
+    padding-top: 4em;
 }
 
 #glossResult, .glossResult{

@@ -398,7 +398,7 @@ DEER.TEMPLATES.glossLines = function (obj, options = {}) {
                         "@context": "http://iiif.io/api/presentation/3/context.json",
                         "@type": "AnnotationPage",
                         "partOf": {
-                            "id": location.hash.substr(1),
+                            "id": location.hash.slice(1),
                             "type": "Manifest"
                         },
                         target: page.getAttribute('deer-id'),
@@ -456,7 +456,7 @@ DEER.TEMPLATES.glossLines = function (obj, options = {}) {
                 const historyWildcard = { $exists: true, $type: 'array', $eq: [] }
                 const query = {
                     motivation: "linking",
-                    'partOf.id': UTILS.httpsIdArray(location.hash.substr(1)),
+                    'partOf.id': UTILS.httpsIdArray(location.hash.slice(1)),
                     '__rerum.history.next': historyWildcard
                 }
 
@@ -1649,7 +1649,7 @@ export default class DeerRender {
                 if (this.id) {
                     this.id = (!this.id.includes("localhost")) ? this.id.replace(/^https?:/, 'https:') : this.id // avoid mixed content
                     limiter(() => fetch(this.id).then(response => response.json()).then(obj => RENDER.element(this.elem, obj)).catch(err => {
-                        broadcast(undefined, "expandError", document, { uri:this.id, error:err, message: `Could not get details for '${this.id}'` })
+                        UTILS.broadcast(undefined, "expandError", document, { uri:this.id, error:err, message: `Could not get details for '${this.id}'` })
                         return err
                     }))
                 } else if (this.collection) {

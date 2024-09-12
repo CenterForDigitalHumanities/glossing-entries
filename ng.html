@@ -19,7 +19,12 @@
     <p id="look" class="bg-light">
         Create and describe a Gloss phrase relevant to how it appears within texts.  A Gloss may be repeated within the same text or across multiple texts but should only be created once.  Avoid creating a new Gloss unless it does not already exist.
     </p>
-    <div class="gloss-needed">
+    <div id="loading">
+        <p class="loadingMsg"> 
+            Please be patient while we get things together...  
+        </p>
+    </div>
+    <div class="gloss-needed is-hidden">
         <gog-references-browser class="bg-light"> </gog-references-browser>
         <form id="named-gloss" deer-type="Gloss" deer-context="http://purl.org/dc/terms" hash-id>
             <h4> Provide Gloss Information </h4>
@@ -72,7 +77,7 @@
                 </div>
             </div>
             <input type="submit" value="Create" class="col add-update">
-            <input type="button" onclick="deleteGloss()" class="dropGloss button error" value="Drop Gloss" />
+            <input type="button" class="dropGloss button error is-hidden" value="Drop Gloss" />
         </form>
     </div>
     <gog-footer class="row"></gog-footer>

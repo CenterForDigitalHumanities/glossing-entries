@@ -303,23 +303,17 @@ class BibliographicCitationView extends HTMLElement {
         modal.style.display = "block"
     })
 
-    let hash = window.location.hash
-    if (hash.startsWith("#")) {
-      hash = window.location.hash.substring(1)
-      if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
-        // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-        let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
-        this.dispatchEvent(e)
-        return
-      }
+    let hash = window.location.hash.slice(1)
+    if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
+      // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+      let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
+      this.dispatchEvent(e)
+      return
     }
-
-    if (hash) {
-      this.querySelector(".referenceDiv").classList.remove("is-hidden")
-      queryBibliographicCitations(hash).then((citations) => {
-        this.updateCitations(citations)
-      })
-    }
+    this.querySelector(".referenceDiv").classList.remove("is-hidden")
+    queryBibliographicCitations(hash).then((citations) => {
+      this.updateCitations(citations)
+    })
 
     this.addEventListener("click", async (event) => {
       const target = event.target
@@ -434,15 +428,12 @@ class BibliographicCitationView extends HTMLElement {
     deleteBibliographicCitation(citationId).then(() => {
       const successfulUpdateEvent = new CustomEvent("Bibliographic citation deleted successfully.")
       globalFeedbackBlip(successfulUpdateEvent, "Bibliographic citation deleted successfully.", true)
-      let hash = window.location.hash
-      if (hash.startsWith("#")) {
-        hash = window.location.hash.substring(1)
-        if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
-          // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-          let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
-          document.dispatchEvent(e)
-          return
-        }
+      let hash = window.location.hash.slice(1)
+      if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
+        // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+        let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
+        document.dispatchEvent(e)
+        return
       }
 
       queryBibliographicCitations(hash).then((citations) => {
@@ -609,15 +600,12 @@ async function addBibliographicCitationToGloss(citationContent, glossId) {
         return savedCitation
       })
 
-      let hash = window.location.hash
-      if (hash.startsWith("#")) {
-        hash = window.location.hash.substring(1)
-        if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
-          // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
-          let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
-          document.dispatchEvent(e)
-          return
-        }
+      let hash = window.location.hash.slice(1)
+      if (!(hash.startsWith("http:") || hash.startsWith("https:"))) {
+        // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+        let e = new CustomEvent("expandError", { detail: { uri: hash }, bubbles: true })
+        document.dispatchEvent(e)
+        return
       }
 
       queryBibliographicCitations(hash).then((citations) => {
