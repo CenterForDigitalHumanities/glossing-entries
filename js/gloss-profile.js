@@ -16,11 +16,6 @@ addEventListener('expandError', event => {
 })
 
 /**
- * When a deer-view loads, you might want to do stuff
- */ 
-addEventListener('deer-view-rendered', doStuff)
-
-/**
  * Default behaviors to run on page load.
  */ 
 window.onhashchange = window.onload = () => {
@@ -34,8 +29,9 @@ window.onhashchange = window.onload = () => {
 }
 
 /**
- * Things to do after the view for the WitnessFragment profile has rendered and has all the data.
+ * Things to do after the view for the Gloss profile has rendered and has all the data.
  */ 
-function doStuff(event){
+function init(event){
 	document.querySelector("gog-references-browser").classList.remove("is-hidden")
 }
+addEventListener('deer-view-rendered', init)
