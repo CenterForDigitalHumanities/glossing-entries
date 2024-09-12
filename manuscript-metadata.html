@@ -39,7 +39,23 @@
                     placeholder="e.g., St. Gall, Stiftsbibliothek 132" class="required"
                     title="Enter manuscript shelfmark or short bibliographic citation of author and title for the witness, e.g. 'St. Gall, Stiftsbibliothek 132' or 'Kuttner, Repertorium'">
             </div>
-
+        </div>
+        <div class="row">
+            <div class="col">
+                <details>
+                    <summary>
+                        <label>Level of Authority:</label>
+                    </summary>
+                    <small>Sometimes a manuscript is a singe primary text and other times it is a collation of authoritative texts.  Designate a level of authority, if known.</small>
+                </details>
+                <select type="text" deer-key="_originAuthority" class="" title="authority of witness">
+                    <option value="unknown" selected>Unknown</option>
+                    <option value="single">Single Primary Text</option>
+                    <option value="collation">Collation of Reported Witnesses</option>
+                    <option value="non-authoritative">Non-authoritative Text</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
             <div class="col">
                 <details>
                     <summary>
