@@ -1827,9 +1827,6 @@ export default {
                     const loading = document.createElement("div")
                     loading.classList.add("profile-loading")
                     if(!(obj?.["@type"] === "Gloss" || obj?.["@type"] === "named-gloss")){
-                        //heading.classList.add("text-error")
-                        //heading.innerText = `Invalid Entity Type '${obj?.["@type"]}'`
-                        //elem.appendChild(heading)
                         deerUtils.broadcast(undefined, "expandError", document, { uri:obj["@id"], error:`Entity type '${obj?.["@type"]}' is not 'Gloss'` })
                         return
                     }
@@ -1848,10 +1845,12 @@ export default {
                     elem.appendChild(heading)
                     elem.appendChild(loading)
 
-                    // How many/which ManuscriptWitnesses or WitnessFragments reference this gloss (via 'attach')?
-                    // Is this gloss in the public list?
-                    // Are there related or cited third-party Gloss materials?
-                    // 
+                    /**
+                     * TODO get connected information and draw some more HTML
+                     * How many/which ManuscriptWitnesses or WitnessFragments reference this gloss (via 'attach')?
+                     * Is this gloss in the public list?
+                     * Are there related or cited third-party Gloss materials?
+                     */ 
 
                     loading.remove()
                 }
