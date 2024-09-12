@@ -1,24 +1,137 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="utf-8">
-        <title>Gallery of Glosses</title>
-        <link rel="stylesheet" href="css/gloss.css">
-        <link href="favicon.ico" rel="icon" type="image/x-icon" />
-        <script src="js/auth.js" type="module"></script>
-        <script src="js/deer.js" type="module"></script>
-        <script src="js/layout.js" type="module"></script>
-        <script src="js/shared.js"></script>
-    </head>
+<head>
+    <meta charset="utf-8">
+    <title>Gallery of Glosses</title>
+    <link rel="stylesheet" href="css/gloss.css">
+    <link href="favicon.ico" rel="icon" type="image/x-icon" />
+    <script src="js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/layout.js" type="module"></script>
+    <script src="js/shared.js"></script>
+</head>
 
-    <body class="container">
-        <gog-header></gog-header>
-        <h2 class="bg-basic"> Manuscript Metadata </h2>
-        <p class="bg-basic"> This page is not ready.  Check back later. </p>
-        <gog-footer class="container"></gog-footer>
-        <div id="globalFeedback" class="card is-center"></div>
-        <!-- <script src="js/manuscript-metadata.js"></script> -->
-    </body>
+<body class="container">
+    <gog-header class="container"></gog-header>
+    <h2 class="bg-basic"> Manuscript Witness Metadata </h2>
+    <p id="look" class="bg-light"> 
+        Provide a Manuscript Witness URI via the URL hash (#id) and add or update the information below.
+    </p>
+    <div id="loading">
+        <p class="loadingMsg"> 
+            Please be patient while we get things together...  
+        </p>
+    </div>
+    <form class="is-hidden" id="manuscriptWitnessForm" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms" hash-id>
+        <input is="auth-creator" type="hidden" deer-key="creator" />
+        <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
+        <div class="row">
+            <div class="col">
+                <details>
+                    <summary>
+                        <label for="shelfmark">Shelfmark or Short Citation:</label>
+                    </summary>
+                    <small>Enter manuscript shelfmark or short bibliographic citation of author and title for the
+                        witness, e.g. 'St. Gall, Stiftsbibliothek 132' or 'Kuttner, Repertorium'.</small>
+                </details>
+                <input required type="text" id="shelfmark" deer-key="identifier"
+                    placeholder="e.g., St. Gall, Stiftsbibliothek 132" class="required"
+                    title="Enter manuscript shelfmark or short bibliographic citation of author and title for the witness, e.g. 'St. Gall, Stiftsbibliothek 132' or 'Kuttner, Repertorium'">
+            </div>
+
+            <div class="col">
+                <details>
+                    <summary>
+                        <label for="date">Date:</label>
+                    </summary>
+                    <small>Enter date; if not known, enter approximate date by the decade, e.g. 1180 if believed to date
+                        to 1170s, or by quarter century, e.g. 1175 if believed to date to third quarter of 12th
+                        century.</small>
+                </details>
+                <input type="text" id="date" deer-key="date" placeholder="e.g., 1175" class=""
+                    title="Enter date of the manuscript, e.g. '1100'">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <details>
+                    <summary>
+                        <label for="citation">Full Bibliographic Citation:</label>
+                    </summary>
+                    <small>In case of early modern or modern printed edition, provide full bibliographical
+                        details.</small>
+                </details>
+                <textarea name="citation" id="citation" deer-key="_citation"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <label class="">Language:</label>
+                <select deer-key="language" title="select language" class="">
+                    <option value="la" selected="">Latin</option>
+                    <option value="de">German</option>
+                    <option value="fr">French</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+
+            <div class="col">
+                <details>
+                    <summary>
+                        <label>Place of Origin:</label>
+                    </summary>
+                    <small>For manuscripts, specify city, cathedral, or monastery of composition, if known.</small>
+                </details>
+                <input type="text" deer-key="_originLocal" class="" title="city, cathedral, or monastery">
+            </div>
+            <div class="col">
+                <details>
+                    <summary>
+                        <label>Region of Origin:</label>
+                    </summary>
+                    <small>For manuscripts, specify geographical region of composition, if known.</small>
+                </details>
+                <input type="text" deer-key="_originRegion" class="" title="geographical region of composition">
+            </div>
+        </div>
+        <h4>External Links and References</h4>
+        <div class="row">
+            <div class="col">
+                <details>
+                    <summary>
+                        <label for="iiifManifest">IIIF Manifest:</label>
+                    </summary>
+                    <small>Enter URL only of Manifest or Collection of JSON-LD Resource.</small>
+                </details>
+                <input id="iiifManifest" type="url" deer-key="_iiifManifest">
+            </div>
+            <div class="col">
+                <details>
+                    <summary>
+                        <label for="OnlineLink">External Resource Link:</label>
+                    </summary>
+                    <small>Provide something like URL, permalink, or DOI.</small>
+                </details>
+                <input id="OnlineLink" type="url" deer-key="url">
+            </div>
+            <div class="col">
+                <details>
+                    <summary>
+                        <label for="rendering">Online Facsimile View:</label>
+                    </summary>
+                    <small>Provide something like a link to the Google Books entry or digitized manuscript
+                        catalog.</small>
+                </details>
+                <input id="rendering" type="url" deer-key="seeAlso">
+            </div>
+        </div>
+        <input class="button primary" type="submit" value="Update Manuscript Metadata"/>
+    </form>
+
+    <gog-footer class="container"></gog-footer>
+    <div id="globalFeedback" class="card is-center"></div>
+    <script src="js/manuscript-metadata.js"></script>
+</body>
 
 </html>
