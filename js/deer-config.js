@@ -1781,6 +1781,81 @@ export default {
                     // elem.appendChild(data)
                 }
             }
+        },
+
+        /**
+         * There may just be a single Gloss profile on a page.
+         * There may be multiple, such as a version of glosses.html that uses this template in the list/table it builds.
+         * Can this template work for both cases?
+         */ 
+        glossProfile: function (obj, options = {}) {
+            return{
+                html: `
+                    <style>
+                        .red {
+                            color: var(--color-accent);
+                            display: inline-block;
+                        }
+                        .profile-loading {
+                            position: relative;
+                            display: inline-block;
+                            background-image: url(../images/load-blocks.gif);
+                            background-repeat: no-repeat;
+                            height: 3em;
+                            width: 4em;
+                            -webkit-filter: invert(100%);
+                            filter: invert(100%);
+                            background-size: 4em;
+                            top: 1em;
+                        }
+                        .tag.small.secondary{
+                            margin-left: 0.65em;
+                        }
+                        .no-input input{
+                            display: none;
+                        }
+                    </style>
+                `,
+                then: async (elem) => {
+                    // If these become expensive query driven templates we can add their expanded information into the expandedEntities cache.
+                    // If we do that, we will need to offer a way to reset the cache on interfaces that use this template
+                    // let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    // cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    // localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+
+                    const heading = document.createElement("h4")
+                    const loading = document.createElement("div")
+                    loading.classList.add("profile-loading")
+                    if(!(obj?.["@type"] === "Gloss" || obj?.["@type"] === "named-gloss")){
+                        //heading.classList.add("text-error")
+                        //heading.innerText = `Invalid Entity Type '${obj?.["@type"]}'`
+                        //elem.appendChild(heading)
+                        deerUtils.broadcast(undefined, "expandError", document, { uri:obj["@id"], error:`Entity type '${obj?.["@type"]}' is not 'Gloss'` })
+                        return
+                    }
+                    const edit = document.createElement("a")
+                    edit.classList.add("tag")
+                    edit.classList.add("small")
+                    edit.classList.add("secondary")
+                    edit.innerText = "edit"
+                    edit.setAttribute("type", "button")
+                    edit.setAttribute("target", "_blank")
+                    edit.setAttribute("href", `ng.html#${obj["@id"]}`)
+
+                    heading.classList.add("red")
+                    heading.innerText = obj?.title?.value ? obj.title.value : "[ unlabeled ]"
+                    heading.appendChild(edit)
+                    elem.appendChild(heading)
+                    elem.appendChild(loading)
+
+                    // How many/which ManuscriptWitnesses or WitnessFragments reference this gloss (via 'attach')?
+                    // Is this gloss in the public list?
+                    // Are there related or cited third-party Gloss materials?
+                    // 
+
+                    loading.remove()
+                }
+            }
         }
     },
     version: "alpha"
