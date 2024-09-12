@@ -14,10 +14,16 @@
 
 <body class="container">
     <gog-header class="container"></gog-header>
-
     <h2 class="bg-basic"> Manuscript Witness Metadata </h2>
-
-    <form id="manuscriptWitnessForm" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms" hash-id>
+    <p id="look" class="bg-light"> 
+        Provide a Manuscript Witness URI via the URL hash (#id) and add or update the information below.
+    </p>
+    <div id="loading">
+        <p class="loadingMsg"> 
+            Please be patient while we get things together...  
+        </p>
+    </div>
+    <form class="is-hidden" id="manuscriptWitnessForm" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms" hash-id>
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
         <div class="row">
