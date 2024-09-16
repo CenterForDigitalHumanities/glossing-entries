@@ -47,14 +47,30 @@
             </div>
             <div class="row">
                 <label class="col-3 col-2-md text-right">Canonical Reference Locator: <i class="fas fa-info-circle icon-help" title="Enter a reference to the location in the source text being glossed, e.g. 'Matthew 5:1' or 'Sententiae, liber 2, dist. 17' or 'Decretum C.32 q.1 c.3'."></i></label>
-                <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
-                <button class="col-6" type="button" role="button" onclick="parseSections()">parse sections</button>
-                <label class="col-3 col-2-md text-right">Document: <i class="fas fa-info-circle icon-help" title="Specify the title of the document or source text being glossed."></i></label>
-                <input type="text" deer-key="_document" placeholder='e.g., "Matthew"' class="col-9 col-4-md">
-                <label class="col-3 col-2-md text-right">Section: <i class="fas fa-info-circle icon-help" title="Indicate the larger section or chapter of the text, e.g. 'liber 2' or 'C.32'."></i></label>
-                <input type="text" deer-key="_section" placeholder="chapter" class="col-9 col-4-md">
-                <label class="col-3 col-2-md text-right">Subsection(s): <i class="fas fa-info-circle icon-help" title="Specify the subsection or verse of the text, e.g. 'dist. 17' or 'q.1 c.3'."></i></label>
-                <input type="text" deer-key="_subsection" placeholder="verse" class="col-9 col-4-md">
+                <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col">
+            </div>
+            <div class="row reverse">
+                <div class="col-9-md bg-light card">
+                    <header>
+                        <h4>Encoding for better searching</h4>
+                    </header>
+                    <div class="row">
+                        <div class="col">
+                            <label>Document: <i class="fas fa-info-circle icon-help" title="Specify the title of the document or source text being glossed."></i></label>
+                            <input type="text" deer-key="_document" placeholder='e.g., "Matthew"'>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <label>Section: <i class="fas fa-info-circle icon-help" title="Indicate the larger section or chapter of the text, e.g. 'liber 2' or 'C.32'."></i></label>
+                            <input type="text" deer-key="_section" placeholder="chapter">
+                        </div>
+                        <div class="col">
+                            <label>Subsection(s): <i class="fas fa-info-circle icon-help" title="Specify the subsection or verse of the text, e.g. 'dist. 17' or 'q.1 c.3'."></i></label>
+                            <input type="text" deer-key="_subsection" placeholder="verse">
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="row">
                 <label class="col-3 col-2-md text-right">Target Text: <i class="fas fa-info-circle icon-help" title="If applicable, specify the particular word or phrase (lemma) the gloss is commenting on, e.g. 's.v. potestas' or 'In principio'."></i></label>
