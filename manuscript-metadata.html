@@ -44,16 +44,16 @@
             <div class="col">
                 <details>
                     <summary>
-                        <label>Level of Authority:</label>
+                        <label>Authority:</label>
                     </summary>
-                    <small>Sometimes a manuscript is a singe primary text and other times it is a collation of authoritative texts.  Designate a level of authority, if known.</small>
+                    <small>
+                        Sometimes a document is a singe primary or stand-alone text and other times it is a collation of authoritative texts.  Select from the choices below to designate this Manuscript Witness as authoritative, if known.
+                    </small>
                 </details>
-                <select type="text" deer-key="_originAuthority" class="" title="authority of witness">
-                    <option value="unknown" selected>Unknown</option>
-                    <option value="single">Single Primary Text</option>
-                    <option value="collation">Collation of Reported Witnesses</option>
-                    <option value="non-authoritative">Non-authoritative Text</option>
-                    <option value="other">Other</option>
+                <select deer-key="_originAuthority" class="" title="authority of witness">
+                    <option value="N/A" selected>N/A</option>
+                    <option value="authoritative">Authoritative Document</option>
+                    <option value="non-authoritative">Non-authoritative Document</option>
                 </select>
             </div>
             <div class="col">
