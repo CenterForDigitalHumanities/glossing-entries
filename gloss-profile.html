@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Gallery of Glosses</title>
+        <link rel="stylesheet" href="css/gloss.css">
+        <link href="favicon.ico" rel="icon" type="image/x-icon" />
+        <script src="js/auth.js" type="module"></script>
+        <script src="js/deer.js" type="module"></script>
+        <script src="js/layout.js" type="module"></script>
+        <script src="js/shared.js"></script>
+    </head>
+    <body class="container">
+        <gog-header></gog-header>
+        <h2 class="bg-basic"> Gloss Profile </h2>
+        <p id="look" class="bg-light"> Provide a Gloss URI via the URL hash (#id).  Connected information will appear below.</p>
+
+        <deer-view class="bg-basic" deer-template="glossProfile" hash-id> GLOSS PROFILE VIEW LOADING... </deer-view>
+        <gog-references-browser class="bg-light is-hidden" view-only> </gog-references-browser>
+
+        <gog-footer class="container"></gog-footer>
+        <div id="globalFeedback" class="card is-center"></div>
+        <script src="js/gloss-profile.js"></script>
+    </body>
+</html>

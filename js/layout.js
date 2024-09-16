@@ -449,11 +449,11 @@ class ReferencesBrowser extends HTMLElement {
 
         </style>
         <h4> See Witness References </h4>
-        <p> 
+        <p class="data-input"> 
             Have a Witness or two in mind?  Provide shelfmarks below to create Witnesses when you submit this Gloss.<br>
             Witnesses queued to be created when you submit can be removed by clicking the '<span style="color:red;">x</span>' symbol.
         </p>
-         <form id="GlossReferenceForm" class="row bg-light">
+         <form id="GlossReferenceForm" class="row bg-light data-input">
             <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
             <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="submit" value="Add Witness Reference" >
         </form>
@@ -475,11 +475,14 @@ class ReferencesBrowser extends HTMLElement {
     connectedCallback() {
         this.innerHTML = this.template
         const $this = this
+        if($this.hasAttribute("view-only")){
+            $this.querySelectorAll(".data-input").forEach(e => e.classList.add("is-hidden"))
+        }
         const witnessList = $this.querySelector(".glossWitnesses")
         const witnessInput = $this.querySelector(".witnessInput")
         const glossURI = $this.getAttribute("gloss-uri") ? decodeURIComponent($this.getAttribute("gloss-uri")) : null
         if(!glossURI){
-            witnessList.querySelector("li").innerHTML = `<b> Add Witness References Above! </b>`
+            witnessList.querySelector("li").innerHTML = `<b class="data-input"> Add Witness References Above! </b>`
             return
         }
         getAllManuscriptWitnessesOfGloss(glossURI)
@@ -503,7 +506,10 @@ class ReferencesBrowser extends HTMLElement {
                 }
             }
             else{
-                witnessList.querySelector("li").innerHTML = `<b> No Witness References Found.  Add One Above! </b>`    
+                witnessList.querySelector("li").innerHTML = `<b class="data-input"> No Witness References Found.  Add One Above! </b>`    
+            }
+            if($this.hasAttribute("view-only")){
+                $this.querySelectorAll(".data-input").forEach(e => e.classList.add("is-hidden"))
             }
         })
 
