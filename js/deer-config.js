@@ -1318,7 +1318,7 @@ export default {
                                 // This object was not cached so we do not have its properties.
                                 // Make this a deer-view so this Manuscript is expanded and we can make attributes from its properties.
                                 let div = document.createElement("tr")
-                                div.setAttribute("deer-link", "manuscript-profile.html#")
+                                div.setAttribute("deer-link", "manuscript-metadata.html#")
                                 div.setAttribute("deer-template", "filterableListItem_msList")
                                 div.setAttribute("deer-id", manuscriptID)
                                 if(filterPresent) div.classList.add("is-hidden")

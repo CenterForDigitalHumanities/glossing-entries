@@ -650,6 +650,8 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
         broadcast(entity_err, "ManuscriptWitnessDeleteError", document, {"@id":manuscriptWitnessURI, "error":`Entity type '${typecheck}' is not a ManuscriptWitness`} )
         return
     }    
+    // Confirm they want to do this
+    if (!await showCustomConfirm(`Really delete this Manuscript Witness and remove its Witness Fragments?\n(Cannot be undone)`)) return
     // No extra clicks while you await.
     if(redirect) document.querySelector(".dropManuscript")?.setAttribute("disabled", "true")
     const manuscript_annos_query = {
