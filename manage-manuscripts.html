@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>Gallery of Glosses</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="css/gloss.css">
+    <script src="js/auth.js" type="module"></script>
+    <script src="js/deer.js" type="module"></script>
+    <script src="js/layout.js" type="module"></script>
+    <script src="js/shared.js"></script>
+</head>
+
+<body class="container">
+    <gog-header></gog-header>
+    <h2 class="bg-basic"> Manage Manuscripts </h2>
+    <p class="bg-basic"> This page is not ready.  Check back later. </p>
+    <!-- <div class="row">
+        <div class="column is-full-width">
+            <p class="bg-basic"> 
+                The '✓' symbol indicates a Manuscript is already public or that it has been chosen to become public.<br>
+                The '❌' symbol indicates a Manuscript is not available to the public or that it has been chosen to be removed from the public list.<br>
+                Click any Manuscript title to view statuses and management options for that Manuscript.<br>
+                If the button below is active, you have unsaved changes to the list.  Make sure to save your changes.<br>
+                If you do not see a button, it will appear when all Manuscripts have loaded. <br><br>
+                <button id="saveList" class="button primary is-hidden" role="button" disabled>Submit Change of Public Manuscripts</button>
+            </p>
+            <deer-view class="bg-basic" id="ngCollectionList" deer-listing 
+                deer-collection="GoG-Named-Manuscripts" deer-template="managedlist" deer-link="ng.html#" >
+                Getting the Gallery of Glosses Manuscript Collection&hellip;
+            </deer-view>
+        </div>
+    </div> -->
+    <gog-footer class="container"></gog-footer>
+    <div id="globalFeedback" class="card is-center"></div>
+    <script> 
+        window.onload = async () => { 
+            await setPublicCollections() 
+            await setListings()
+        }
+
+        /**
+         * UI/UX for when the user uses this page to delete an existing #Manuscript
+         */
+        document.addEventListener("ManuscriptDeleted", function(event){
+            const ev = new CustomEvent("This Manuscript has been deleted.")
+            globalFeedbackBlip(ev, `Manuscript deleted`, true)
+            document.querySelector(`[deer-id="${event.detail["@id"]}"]`).closest("li").remove()
+            document.querySelector("deer-view[deer-template='managedlist']").listCache.delete(event.detail["@id"])
+        })
+
+        /**
+         * UI/UX for when this page has an error attempting to delete an existing #Manuscript
+         * The form becomes locked down and an error message is show.
+         */
+        document.addEventListener("ManuscriptDeleteError", function(event){
+            const ev = new CustomEvent("Manuscript Delete Error")
+            globalFeedbackBlip(ev, `There was an issue removing the Manuscript with URI ${event.detail["@id"]}.  This item may still appear in collections.`, false)
+            console.error(event.error)
+        })
+    </script>
+</body>
+
+</html>

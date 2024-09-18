@@ -1,12 +1,20 @@
-/*
-* TODO
-*/
-try {
-    let hashURL = new URL(location.hash.slice(1))
-} catch (error) {
-    location.href = confirm('Use this form to update an existing Manuscript Witness. Select one from the list first.')
-    ? 'manuscripts.html'
-    : 'index.html'
+var hashURL = window.location.hash.slice(1)
+
+window.onload = () => {
+    if(!hashURL) location.href = confirm('Use this form to update an existing Manuscript Witness. Select one from the list first.')
+        ? 'manuscripts.html'
+        : 'index.html'
+    
+    if(!isURI(hashURL)){
+        // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
+        const ev_err = new CustomEvent("Expand Error")
+        broadcast(ev_err, "expandError", document, {"uri":hashURL, "error":"Location hash is not a URI."})
+        return
+    }
+    const deleteManuscriptBtn = manuscriptWitnessForm.querySelector(".dropManuscript")
+    deleteManuscriptBtn.addEventListener('click', ev => {
+        deleteManuscriptWitness(hashURL, true)
+    })
 }
 
 // Navigate away if the entity they provided is not the correct type
@@ -50,4 +58,28 @@ addEventListener('expandError', event => {
     manuscriptWitnessForm.remove()
     loading.classList.add("is-hidden")
     globalFeedbackBlip(ev, msg, false)
+})
+
+/**
+ * UI/UX for when the user uses this page to delete an existing #Manuscript
+ */
+document.addEventListener("ManuscriptWitnessDeleted", function(event){
+    const ev = new CustomEvent("This Manuscript Witness has been deleted.")
+    globalFeedbackBlip(ev, `Manuscript deleted.  You will be redirected.`, true)
+    addEventListener("globalFeedbackFinished", () => {
+        location.href = "manuscripts.html"
+    })
+})
+
+/**
+ * UI/UX for when this page has an error attempting to delete an existing #Manuscript
+ * The form becomes locked down and an error message is show.
+ */
+document.addEventListener("ManuscriptWitnessDeleteError", function(event){
+    const ev = new CustomEvent("Manuscript Delete Error")
+    globalFeedbackBlip(ev, `There was an issue removing the Manuscript Witness with URI ${event.detail["@id"]}.  This item may still appear in collections.`, false)
+    addEventListener("globalFeedbackFinished", () => {
+        setFieldDisabled(true)
+    })
+    console.error(event.error)
 })

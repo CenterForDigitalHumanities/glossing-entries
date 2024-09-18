@@ -651,7 +651,7 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
         return
     }    
     // No extra clicks while you await.
-    if(redirect) document.querySelector(".deleteWitness")?.setAttribute("disabled", "true")
+    if(redirect) document.querySelector(".dropManuscript")?.setAttribute("disabled", "true")
     const manuscript_annos_query = {
         "target" : httpsIdArray(manuscriptWitnessURI),
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
