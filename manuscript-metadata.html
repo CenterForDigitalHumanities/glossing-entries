@@ -10,6 +10,16 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/shared.js"></script>
+    <style> 
+        .alert{
+            border-left: 4px solid #E0CB52;
+            background: #FCFAEE;
+            padding-top: 5px;
+            padding-bottom: 20px;
+            padding-left: 20px;
+            padding-right: 24px;
+        }
+    </style>
 </head>
 
 <body class="container">
@@ -24,6 +34,9 @@
         </p>
     </div>
     <form class="is-hidden" id="manuscriptWitnessForm" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms" hash-id>
+        <p class="alert">
+            If you are looking to find Glosses in text related to this Manuscript Witness go to <a href="gloss-witness.html">gloss-witness.html</a> or <a href="gloss-transcription">gloss-transcription.html</a>.  Use the shelfmark below to find this Manuscript Witness.
+        </p>
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
         <div class="row">
