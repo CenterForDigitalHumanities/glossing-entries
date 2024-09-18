@@ -90,7 +90,6 @@ class GlossHeader extends HTMLElement {
         <a ${GlossHeader.#stylizeTab("./ng.html")}>🆕 New gloss</a>
         <a ${GlossHeader.#stylizeTab("./gloss-transcription.html")}>🔍 Detect glosses</a>
         <a ${GlossHeader.#stylizeTab("./manage-glosses.html")}>💾 Manage glosses</a>
-        <a ${GlossHeader.#stylizeTab("./themes.html")}>🎨 Themes</a>
     </div>
     </header></template>
         `,'text/html').head.firstChild
