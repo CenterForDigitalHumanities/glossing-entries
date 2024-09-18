@@ -27,6 +27,16 @@ function initManuscriptWitnessForm(event){
 }
 
 /**
+ * The DEER announcement for when all form fields have been saved or updated.
+ * Give localized feedback of successful form submissions
+ * 
+ */ 
+addEventListener('deer-updated', async (event) => {
+    const ev = new CustomEvent("Manuscript Metadata Updated")
+    globalFeedbackBlip(ev, `Manuscript Metadata Updated!`, true)
+})
+
+/**
  * The DEER announcement for when there is an error expanding for a URI.
  * Note there is more information in event.detail.error
  * Note the troublesome URI is in event.detail.uri
