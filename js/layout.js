@@ -474,44 +474,6 @@ class ReferencesBrowser extends HTMLElement {
     connectedCallback() {
         this.innerHTML = this.template
         const $this = this
-        if($this.hasAttribute("view-only")){
-            $this.querySelectorAll(".data-input").forEach(e => e.classList.add("is-hidden"))
-        }
-        const witnessList = $this.querySelector(".glossWitnesses")
-        const witnessInput = $this.querySelector(".witnessInput")
-        const glossURI = $this.getAttribute("gloss-uri") ? decodeURIComponent($this.getAttribute("gloss-uri")) : null
-        if(!glossURI){
-            witnessList.querySelector("li").innerHTML = `<b class="data-input"> Add Witness References Above! </b>`
-            return
-        }
-        getAllManuscriptWitnessesOfGloss(glossURI)
-        .then(manuscripts => {
-            if(manuscripts.length > 0){ 
-                witnessList.innerHTML = ""
-                $this.classList.remove("is-hidden")
-                for(const manuscriptURI of manuscripts){
-                    const li = document.createElement("li")
-                    li.setAttribute("deer-id", manuscriptURI)
-                    const a = document.createElement("a")
-                    a.classList.add("deer-view")
-                    a.setAttribute("deer-template", "shelfmark")
-                    a.setAttribute("deer-id", manuscriptURI)
-                    a.setAttribute("target", "_blank")
-                    a.setAttribute("href", `manuscript-profile.html#${manuscriptURI}`)
-                    a.innerHTML = "loading..." 
-                    li.appendChild(a)
-                    witnessList.appendChild(li)
-                    utils.broadcast(undefined, "deer-view", document, { set: [a] }) 
-                }
-            }
-            else{
-                witnessList.querySelector("li").innerHTML = `<b class="data-input"> No Witness References Found.  Add One Above! </b>`    
-            }
-            if($this.hasAttribute("view-only")){
-                $this.querySelectorAll(".data-input").forEach(e => e.classList.add("is-hidden"))
-            }
-        })
-
 
         /**
          * Get all ManuscriptWitness entity URIs that reference this Gloss.
@@ -656,6 +618,45 @@ class ReferencesBrowser extends HTMLElement {
         }
 
         $this.querySelector("#GlossReferenceForm").addEventListener("submit", $this.addReference)
+
+        if($this.hasAttribute("view-only")){
+            $this.querySelectorAll(".data-input").forEach(e => e.classList.add("is-hidden"))
+        }
+        const witnessList = $this.querySelector(".glossWitnesses")
+        const witnessInput = $this.querySelector(".witnessInput")
+        const glossURI = $this.getAttribute("gloss-uri") ? decodeURIComponent($this.getAttribute("gloss-uri")) : null
+        if(!glossURI){
+            witnessList.querySelector("li").innerHTML = `<b class="data-input"> Add Witness References Above! </b>`
+            return
+        }
+        getAllManuscriptWitnessesOfGloss(glossURI)
+        .then(manuscripts => {
+            if(manuscripts.length > 0){ 
+                witnessList.innerHTML = ""
+                $this.classList.remove("is-hidden")
+                for(const manuscriptURI of manuscripts){
+                    const li = document.createElement("li")
+                    li.setAttribute("deer-id", manuscriptURI)
+                    const a = document.createElement("a")
+                    a.classList.add("deer-view")
+                    a.setAttribute("deer-template", "shelfmark")
+                    a.setAttribute("deer-id", manuscriptURI)
+                    a.setAttribute("target", "_blank")
+                    a.setAttribute("href", `manuscript-profile.html#${manuscriptURI}`)
+                    a.innerHTML = "loading..." 
+                    li.appendChild(a)
+                    witnessList.appendChild(li)
+                    utils.broadcast(undefined, "deer-view", document, { set: [a] }) 
+                }
+            }
+            else{
+                witnessList.querySelector("li").innerHTML = `<b class="data-input"> No Witness References Found.  Add One Above! </b>`    
+            }
+            if($this.hasAttribute("view-only")){
+                $this.querySelectorAll(".data-input").forEach(e => e.classList.add("is-hidden"))
+            }
+        })
+
     }
     static get observedAttributes() { return ['gloss-uri'] }
 }

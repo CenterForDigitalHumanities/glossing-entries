@@ -77,17 +77,17 @@ customElements.define('custom-confirm-modal', CustomConfirmModal)
 let witnessFragmentsObj = {}
 
 //For when we test, so we can easily find and blow away junk data
-// setTimeout(() => {
-//     document.querySelectorAll("input[deer-key='creator']").forEach(el => {
-//         el.value="BryanDeleteRefactor"
-//         el.setAttribute("value", "BryanDeleteRefactor")
-//     })
-//     document.querySelectorAll("form").forEach(el => {
-//         el.setAttribute("deer-creator", "BryanDeleteRefactor")
-//     })
-//     if(!window.GOG_USER) window.GOG_USER = {}
-//     window.GOG_USER["http://store.rerum.io/agent"] = "BryanDeleteRefactor"
-// }, 4000)
+setTimeout(() => {
+    document.querySelectorAll("input[deer-key='creator']").forEach(el => {
+        el.value="BryanReleaseCheckup"
+        el.setAttribute("value", "BryanReleaseCheckup")
+    })
+    document.querySelectorAll("form").forEach(el => {
+        el.setAttribute("deer-creator", "BryanReleaseCheckup")
+    })
+    if(!window.GOG_USER) window.GOG_USER = {}
+    window.GOG_USER["http://store.rerum.io/agent"] = "BryanReleaseCheckup"
+}, 4000)
 
 let __constants = {}
 setConstants()
