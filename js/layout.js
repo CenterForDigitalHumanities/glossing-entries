@@ -443,21 +443,21 @@ class ReferencesBrowser extends HTMLElement {
             }
 
             .bumper {
-                margin-top: 1em;
+                
             }
 
         </style>
-        <h4> See Witness References </h4>
-        <p class="data-input"> 
-            Have a Witness or two in mind?  Provide shelfmarks below to create Witnesses when you submit this Gloss.<br>
-            Witnesses queued to be created when you submit can be removed by clicking the '<span style="color:red;">x</span>' symbol.
+        <h4> Manuscript References </h4>
+        <p class="data-input">
+            If you know of texts this Gloss appears in, provide shelfmarks below to connect with those Manuscripts when you submit this Gloss.<br>
         </p>
-         <form id="GlossReferenceForm" class="row bg-light data-input">
+        <form id="GlossReferenceForm" class="row bg-light data-input">
             <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
             <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="submit" value="Add Witness Reference" >
         </form>
         <p class="bumper"> 
-            Known and queued Witnesses of this Gloss are displayed below.  Click a known Witness for details about the Witness.
+            Below you will see shelfmarks for Manuscript Witnesses that contain this Gloss, if any.  Click a known Manuscript Witness to view its details.  
+            Manuscript Witnesses queued to be created when you submit can be removed by clicking the '<span style="color:red;">x</span>' symbol.
         </p>
         <ul class="glossWitnesses">
             <li class="wait"> Looking for Witnesses... </li>
