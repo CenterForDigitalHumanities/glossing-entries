@@ -1677,6 +1677,10 @@ export default {
                         .tag.small.secondary{
                             margin-left: 0.65em;
                         }
+
+                        h5{
+                            margin-top: 1em;
+                        }
                     </style>
                 `,
                 then: async (elem) => {
@@ -1731,6 +1735,7 @@ export default {
                     obj.fragments = {
                         "value":[...fragmentUriSet]
                     }
+
                     const sources = await Promise.all([...fragmentUriSet.values()].map( frag => {
                         // Each Witness Fragment has a source.  Witness Fragments of the same Manuscript Witness may have difference sources.
                         const sourceAnnosQuery = {
@@ -1756,8 +1761,8 @@ export default {
                             console.error(err)
                             return undefined
                         })
-                    })
-                    )
+                    }))
+
                     // Only unique entries, duplicates are extraneous.  Ignore undefined in the Set.
                     let sourcesSet = new Set(sources)
                     sourcesSet.delete(undefined)
@@ -1776,9 +1781,22 @@ export default {
                     fragmentCount.innerText = `# of registered fragments: ${fragmentUriSet.size}`
                     elem.appendChild(fragmentCount)
 
-                    // const data = document.createElement("pre")
-                    // data.innerText = JSON.stringify(obj, null, 4)
-                    // elem.appendChild(data)
+                    // Turn these into a list of links
+                    const linkHeading = document.createElement("h5")
+                    linkHeading.innerText= "Witness Fragment Links"
+                    elem.appendChild(linkHeading)
+                    const linkList = document.createElement("ul")
+                    obj.fragments.value.forEach((uri, index) => {
+                        let item = document.createElement("li")
+                        let link = document.createElement("a")
+                        link.setAttribute("target", "_blank")
+                        link.setAttribute("href", `fragment-metadata.html#${uri}`)
+                        link.innerText = `Witness Fragment #${index+1}`
+                        //link.innerText = uri
+                        item.appendChild(link)
+                        linkList.appendChild(item)
+                    })
+                    elem.appendChild(linkList)
                 }
             }
         },

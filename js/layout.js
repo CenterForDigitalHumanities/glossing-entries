@@ -453,7 +453,7 @@ class ReferencesBrowser extends HTMLElement {
         </p>
         <form id="GlossReferenceForm" class="row bg-light data-input">
             <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
-            <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="submit" value="Add Witness Reference" >
+            <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="submit" value="Add Manuscript Reference" >
         </form>
         <p class="bumper"> 
             Below you will see shelfmarks for Manuscript Witnesses that contain this Gloss, if any.  Click a known Manuscript Witness to view its details.  
@@ -626,7 +626,7 @@ class ReferencesBrowser extends HTMLElement {
         const witnessInput = $this.querySelector(".witnessInput")
         const glossURI = $this.getAttribute("gloss-uri") ? decodeURIComponent($this.getAttribute("gloss-uri")) : null
         if(!glossURI){
-            witnessList.querySelector("li").innerHTML = `<b class="data-input"> Add Witness References Above! </b>`
+            witnessList.querySelector("li").innerHTML = `<b class="data-input"> Add Manuscript References Above! </b>`
             return
         }
         getAllManuscriptWitnessesOfGloss(glossURI)
