@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
     <head>
         <meta charset="utf-8">
         <title>Gallery of Glosses</title>
@@ -10,15 +9,28 @@
         <script src="js/deer.js" type="module"></script>
         <script src="js/layout.js" type="module"></script>
         <script src="js/shared.js"></script>
+        <style>
+            #forNow {
+                padding: 0.5em;
+                border-radius: 0.2em;
+                font-weight: bold;
+                padding: 20px;
+            }
+        </style>
     </head>
 
     <body class="container">
         <gog-header></gog-header>
         <h2 class="bg-basic"> Witness Fragment Metadata </h2>
-        <p class="bg-basic"> This page is not ready.  Check back later. </p>
+        <p id="look" class="bg-light"> 
+            This page is under construction and will direct you to other pages for now.  Use the links that appear below.
+        </p>
+        <div id="forNow" class="bg-light">  
+            Determining link...
+        </div>
+        <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment" deer-context="http://purl.org/dc/terms" hash-id></form>
         <gog-footer class="container"></gog-footer>
         <div id="globalFeedback" class="card is-center"></div>
         <script src="js/fragment-metadata.js"></script>
     </body>
-
 </html>

@@ -80,7 +80,7 @@ class AuthButton extends HTMLButtonElement {
             this.innerText = `Logout ${GOG_USER.nickname}`
             this.removeAttribute('disabled')
             const loginEvent = new CustomEvent('gog-authenticated',{detail:window.GOG_USER})
-            this.dispatchEvent(loginEvent)
+            document.dispatchEvent(loginEvent)
         })
     }
 }

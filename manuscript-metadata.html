@@ -10,6 +10,16 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/shared.js"></script>
+    <style> 
+        .alert{
+            border-left: 4px solid #E0CB52;
+            background: #FCFAEE;
+            padding-top: 5px;
+            padding-bottom: 20px;
+            padding-left: 20px;
+            padding-right: 24px;
+        }
+    </style>
 </head>
 
 <body class="container">
@@ -24,6 +34,9 @@
         </p>
     </div>
     <form class="is-hidden" id="manuscriptWitnessForm" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms" hash-id>
+        <p class="alert">
+            To find Glosses in text related to this Manuscript Witness go to <a href="gloss-witness.html">gloss-witness.html</a> or <a href="gloss-transcription.html">gloss-transcription.html</a>.
+        </p>
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
         <div class="row">
@@ -143,11 +156,25 @@
             </div>
         </div>
         <input class="button primary" type="submit" value="Update Manuscript Metadata"/>
+        <input type="button" class="dropManuscript button error" value="Drop Manuscript" />
     </form>
 
     <gog-footer class="container"></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script src="js/manuscript-metadata.js"></script>
 </body>
-
+<script>
+    /**
+     * Make sure DEER forms do not submit when a user hits "Enter".
+     */
+    document.querySelectorAll("form[deer-type]").forEach(form => {
+        form.addEventListener("keydown", (e) => {
+            if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
+                if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
+                    e.preventDefault()
+                }
+            }
+        }, true)
+    })
+</script>
 </html>
