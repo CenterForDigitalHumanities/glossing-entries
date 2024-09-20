@@ -6,14 +6,13 @@ var witnessFragmentID = window.location.hash.slice(1)
  * Note the troublesome URI is in event.detail.uri
  */ 
 addEventListener('expandError', event => {
-	document.querySelector("deer-view").remove()
+    forNow.remove()
     const uri = event.detail.uri
     const ev = new CustomEvent("Witness Details Error")
     look.classList.add("text-error")
     look.innerText = "Could not get Witness information."
     globalFeedbackBlip(ev, `Error getting data for '${uri}'`, false)
 })
-
 
 /**
  * When a deer-view loads, you might want to do stuff
