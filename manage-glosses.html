@@ -45,6 +45,21 @@
         /**
          * UI/UX for when the user uses this page to delete an existing #Gloss
          */
+        document.addEventListener("gog-authenticated", function(event){
+            // This page is only for admins
+            const user = event.detail
+            if(!user["http://rerum.io/user_roles"].roles.includes("glossing_user_manager")){
+                const ev = new CustomEvent("Not Authorized")
+                globalFeedbackBlip(ev, `You must be an admin to manage Glosses.  You will be redirected.`, false)
+                addEventListener("globalFeedbackFinished", () => {
+                    location.href = "glosses.html"
+                })
+            }
+        })
+
+        /**
+         * UI/UX for when the user uses this page to delete an existing #Gloss
+         */
         document.addEventListener("GlossDeleted", function(event){
             const ev = new CustomEvent("This Gloss has been deleted.")
             globalFeedbackBlip(ev, `Gloss deleted`, true)
