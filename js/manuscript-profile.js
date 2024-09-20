@@ -25,7 +25,7 @@ addEventListener('deer-view-rendered', doStuff)
  */ 
 window.onhashchange = window.onload = () => {
 	manuscriptWitnessID = window.location.hash.slice(1)
-    if(!(manuscriptWitnessID.startsWith("http:") || manuscriptWitnessID.startsWith("https:"))){
+    if(!isURI(manuscriptWitnessID)){
         // DEER will not even attempt to expand this.  We need to mock the DEER expandError.
         const ev_err = new CustomEvent("Expand Error")
         broadcast(ev_err, "expandError", document, {"uri":manuscriptWitnessID, "error":"Location hash is not a URI."})
