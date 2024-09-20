@@ -49,7 +49,7 @@
             const user = event.detail
             if(!user["http://rerum.io/user_roles"].roles.includes("glossing_user_manager")){
                 const ev = new CustomEvent("Not Authorized")
-                globalFeedbackBlip(ev, `You must be an admin to manage Manuscripts.  You will be redirected.`, false)
+                globalFeedbackBlip(ev, `You must have the manager role to manage Manuscripts.  You will be redirected.`, false)
                 addEventListener("globalFeedbackFinished", () => {
                     location.href = "manuscripts.html"
                 })
