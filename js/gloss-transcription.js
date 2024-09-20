@@ -267,7 +267,7 @@ function setFragmentFormDefaults(){
         s.removeAttribute("deer-source")
     })
     // For when we test
-    // form.querySelector("input[deer-key='creator']").value = "BryanDeleteRefactor"
+    //form.querySelector("input[deer-key='creator']").value = "BryanReleaseCheckup"
     
     const labelElem = form.querySelector("input[deer-key='title']")
     labelElem.value = ""

@@ -51,7 +51,7 @@
         This page automatically applied a text resource.  If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
     </p>
     <p id="look" class="bg-light">
-       Connect Virtual Glosses With Real World Text.  Please load in a Manuscript.
+       Connect Virtual Glosses With Real World Text.  Please load in a Manuscript.  The text from that resource will load and can be selected.  Selected text can then be attached to a new or existing Gloss.  Note that a text selection and shelfmark are required.
     </p>
     <div id="needs" class="row bg-basic is-hidden">
         <div class="col">
@@ -92,12 +92,11 @@
     <form id="manuscriptWitnessForm" class="is-hidden" deer-type="ManuscriptWitness" deer-context="http://purl.org/dc/terms">
         <input is="auth-creator" type="hidden" deer-key="creator" />
         <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
-        <!-- <input type="hidden" custom-key="source" witness-source> -->
         <div id="manuscriptWitnessCheck" class="row">
             <div class="col">
                 <div>
                     <p class="detect-witness"> 
-                        You must load in a Manuscript Witness.  Enter a shelfmark below to get started.  When finished, click the button to check for existing Manuscripts.
+                        You must load in a Manuscript Witness.  Enter a shelfmark below to get started.  When finished, click the button to check for existing Manuscripts.  If none exist, you will see the option to create one and continue.
                     </p>
                 </div>
                 <div id="manuscriptsFound" class="is-hidden">
@@ -124,6 +123,7 @@
 
     <!-- Once a mansucript witness is known the URI should be placed into the hidden "partOf" field -->
     <form id="witnessFragmentForm" class="is-hidden" deer-type="WitnessFragment" deer-context="http://purl.org/dc/terms" hash-id>
+        <h4> Provide Witness Fragment Information </h4>
         <p> 
             Fill out the form below to create a Witness Fragment for the Manuscript loaded in.  Submit the Fragment by identifying a Gloss and clicking '➥ attach'.  Note the Manuscript remains the same for each Fragment you submit. 
         </p>
