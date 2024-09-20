@@ -42,8 +42,8 @@
             await setListings()
         }
 
-        /**
-         * UI/UX for when the user uses this page to delete an existing #Gloss
+         /**
+         * Check user roles once the user known.  This page is only for managers.
          */
         document.addEventListener("gog-authenticated", function(event){
             // This page is only for admins
