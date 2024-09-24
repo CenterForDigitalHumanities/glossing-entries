@@ -87,7 +87,7 @@ class GlossHeader extends HTMLElement {
     <div class="tabs is-hidden">
     <slot name="tabs">
         <a ${GlossHeader.#stylizeTab("./glosses.html")}>✏️ Glosses</a>
-        <a ${GlossHeader.#stylizeTab("./ng.html")}>🆕 New gloss</a>
+        <a ${GlossHeader.#stylizeTab("./gloss-metadata.html")}>🆕 New gloss</a>
         <a ${GlossHeader.#stylizeTab("./gloss-transcription.html")}>🔍 Detect glosses</a>
         <a ${GlossHeader.#stylizeTab("./manage-glosses.html")}>💾 Manage glosses</a>
     </div>

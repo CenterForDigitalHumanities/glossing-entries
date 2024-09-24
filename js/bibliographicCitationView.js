@@ -1,5 +1,5 @@
 /**
- * A focused pop up containing the Gloss deer-form, similar to the form on ng.html.
+ * A focused pop up containing the Gloss deer-form, similar to the form on gloss-metadata.html.
  * It can be included on any HTML page.  It fires events for when the DEER form contained within has been saved.
  */
 class BibliographicCitationView extends HTMLElement {
