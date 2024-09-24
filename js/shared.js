@@ -739,7 +739,7 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
 }
 
 /**
- * A Gloss entity is being deleted through ng.html or ??.  
+ * A Gloss entity is being deleted through gloss-metadata.html or ??.  
  * Delete the Gloss, the Annotations targeting the Gloss, the WitnesseFragments of the Gloss, and the WitnessFragments' Annotations.
  * DO NOT delete a Gloss if it is on the public list.  That's a separate function.  See manageGlossModal.js and manage-glosses.html.
  * 
@@ -1265,11 +1265,11 @@ addEventListener('gloss-modal-saved', event => {
     div.classList.add("deer-view")
     div.setAttribute("deer-template", "filterableListItem_glossSelector")
     div.setAttribute("deer-id", gloss["@id"])
-    div.setAttribute("deer-link", "ng.html#")
+    div.setAttribute("deer-link", "gloss-metadata.html#")
     li.setAttribute("data-title", title)
     
     // We know the title already so this makes a handy placeholder :)
-    li.innerHTML = `<span class="serifText"><a target="_blank" href="ng.html#${gloss["@id"]}">${title}...</a></span>`
+    li.innerHTML = `<span class="serifText"><a target="_blank" href="gloss-metadata.html#${gloss["@id"]}">${title}...</a></span>`
     // This helps filterableListItem_glossSelector know how to style the attach button, and also lets us know to change count/total loaded Glosses.
     if(witnessFragmentID){
         div.setAttribute("update-scenario", "true")

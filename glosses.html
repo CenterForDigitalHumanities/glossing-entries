@@ -28,7 +28,7 @@
     </section>
 
     <deer-view id="ngCollectionList" deer-collection="GoG-Named-Glosses"
-        deer-link="ng.html#" deer-template="ngListFilterable" class="bg-basic">
+        deer-link="gloss-metadata.html#" deer-template="ngListFilterable" class="bg-basic">
         Loading&hellip;
     </deer-view>
     
@@ -49,7 +49,7 @@
                 'Gloss Created. Redirecting to Details...',
                 true
             )
-            addEventListener('globalFeedbackFinished', () => location.href = `ng.html#${event.detail['@id']}`)
+            addEventListener('globalFeedbackFinished', () => location.href = `gloss-metadata.html#${event.detail['@id']}`)
         })
 
         /**
