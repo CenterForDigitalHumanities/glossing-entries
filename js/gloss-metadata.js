@@ -434,7 +434,7 @@ addEventListener('deer-updated', async (event) => {
             globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
             if(!glossHashID){
                 setTimeout(() => {
-                    window.location = `ng.html#${entityID}`
+                    window.location = `gloss-metadata.html#${entityID}`
                     window.location.reload()
                 }, 2000)    
             }

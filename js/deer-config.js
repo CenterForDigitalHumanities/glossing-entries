@@ -337,7 +337,7 @@ export default {
                                 // This object was not cached so we do not have its properties.
                                 // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
                                 let div = document.createElement("tr")
-                                div.setAttribute("deer-link", "ng.html#")
+                                div.setAttribute("deer-link", "gloss-metadata.html#")
                                 div.setAttribute("deer-template", "filterableListItem_ngList")
                                 div.setAttribute("deer-id", glossID)
                                 if(filterPresent) div.classList.add("is-hidden")
@@ -728,7 +728,7 @@ export default {
                                 // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
                                 let div = document.createElement("div")
                                 div.setAttribute("deer-template", "filterableListItem_glossSelector")
-                                div.setAttribute("deer-link", "ng.html#")
+                                div.setAttribute("deer-link", "gloss-metadata.html#")
                                 div.setAttribute("deer-id", glossID)
                                 if(filterPresent) div.classList.add("is-hidden")
                                 div.classList.add("deer-view")
@@ -1856,7 +1856,7 @@ export default {
                     edit.innerText = "edit"
                     edit.setAttribute("type", "button")
                     edit.setAttribute("target", "_blank")
-                    edit.setAttribute("href", `ng.html#${obj["@id"]}`)
+                    edit.setAttribute("href", `gloss-metadata.html#${obj["@id"]}`)
 
                     heading.classList.add("red")
                     heading.innerText = obj?.title?.value ? obj.title.value : "[ unlabeled ]"
