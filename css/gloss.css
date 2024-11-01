@@ -24,6 +24,7 @@ html {
   background: radial-gradient(circle, transparent 20%, #e5e5f7 20%, #e5e5f7 80%, transparent 80%, transparent), radial-gradient(circle, transparent 20%, #e5e5f7 20%, #e5e5f7 80%, transparent 80%, transparent) 25px 25px, linear-gradient(#d3d5ff 2px, transparent 2px) 0 -1px, linear-gradient(90deg, #d3d5ff 2px, #e5e5f7 2px) -1px 0;
   background-size: 50px 50px, 50px 50px, 25px 25px, 25px 25px;
   min-height: 100%;
+  padding: 2em 0;
 }
 
 gog-header,gog-footer {
