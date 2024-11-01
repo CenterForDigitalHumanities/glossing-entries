@@ -19,9 +19,11 @@
 }
 
 html {
-  background: rgb(131,58,180);
-background: linear-gradient(293deg, rgba(131,58,180,0) 0%, rgba(253,29,29,0.12648809523809523) 82%, rgba(31,14,129,1) 83%, rgba(71,30,255,0.8155637254901961) 89%, rgba(253,64,39,1) 89%, rgba(252,176,69,1) 100%);
-min-height: 100%;
+  background-color: #e5e5f7;
+  opacity: 0.8;
+  background: radial-gradient(circle, transparent 20%, #e5e5f7 20%, #e5e5f7 80%, transparent 80%, transparent), radial-gradient(circle, transparent 20%, #e5e5f7 20%, #e5e5f7 80%, transparent 80%, transparent) 25px 25px, linear-gradient(#d3d5ff 2px, transparent 2px) 0 -1px, linear-gradient(90deg, #d3d5ff 2px, #e5e5f7 2px) -1px 0;
+  background-size: 50px 50px, 50px 50px, 25px 25px, 25px 25px;
+  min-height: 100%;
 }
 
 gog-header,gog-footer {
