@@ -31,23 +31,52 @@
             <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
             <input is="auth-creator" type="hidden" deer-key="creator" />
             <div class="row">
-                <label class="col-3 col-2-md text-right">Gloss Text: <i class="fas fa-info-circle icon-help" title="Enter the full text content of the gloss here."></i></label>
-                <textarea custom-text-key="text" id="glossText" placeholder="text content" rows="2" class="col-9 col-10-md required" required></textarea>
-                <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
-                <select custom-text-key="language" name="textLang" id="textLang" class="col-3 col-2-md">
-                    <option value="la" selected>Latin</option>
-                    <option value="de">German</option>
-                    <option value="fr">French</option>
-                    <option value="en">English</option>
-                </select>
+                <div class="col">
+                    <details>
+                        <summary>
+                            <label for="glossText">Gloss Text:</label>
+                        </summary>
+                        <small>Enter the complete text of the gloss as it appears in the source.</small>
+                    </details>
+                    <textarea custom-text-key="text" id="glossText" placeholder="text content" rows="2" class="required" required></textarea>
+                </div>
             </div>
             <div class="row">
-                <label class="col-3 col-2-md text-right">Description: <i class="fas fa-info-circle icon-help" title="If desired, add public information or comments on this gloss."></i></label>
-                <input type="text" deer-key="description" placeholder="description" class="col-9 col-10-md">
+                <div class="col">
+                    <details>
+                        <summary>
+                            <label for="description">Description:</label>
+                        </summary>
+                        <small>If desired, add public information or comments on this gloss. The description should 
+                            be brief and informative, providing context for the gloss text.</small>
+                    </details>
+                    <input type="text" deer-key="description" id="description" placeholder="description">
+                </div>
+                <div class="col">
+                    <details>
+                        <summary>
+                            <label for="textLang">Language:</label>
+                        </summary>
+                        <small>Select the primary language of the gloss text.</small>
+                    </details>
+                    <select custom-text-key="language" name="textLang" id="textLang">
+                        <option value="la" selected>Latin</option>
+                        <option value="de">German</option>
+                        <option value="fr">French</option>
+                        <option value="en">English</option>
+                    </select>
+                </div>
             </div>
             <div class="row">
-                <label class="col-3 col-2-md text-right">Canonical Reference Locator: <i class="fas fa-info-circle icon-help" title="Enter a reference to the location in the source text being glossed, e.g. 'Matthew 5:1' or 'Sententiae, liber 2, dist. 17' or 'Decretum C.32 q.1 c.3'."></i></label>
-                <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col">
+                <div class="col">
+                    <details>
+                        <summary>
+                            <label for="canonicalReference">Canonical Reference Locator:</label>
+                        </summary>
+                        <small>Enter a reference to the location in the source text being glossed, e.g. 'Matthew 5:1' or 'Sententiae, liber 2, dist. 17' or 'Decretum C.32 q.1 c.3'.</small>
+                    </details>
+                    <input type="text" deer-key="canonicalReference" id="canonicalReference" placeholder='e.g., "Matthew 5:1"'>
+                </div>
             </div>
             <div class="row">
                 <div class="col-3-md">
@@ -67,33 +96,76 @@
                     </header>
                     <div class="row">
                         <div class="col">
-                            <label>Document: <i class="fas fa-info-circle icon-help" title="Specify the title of the document or source text being glossed."></i></label>
-                            <input type="text" deer-key="_document" placeholder='e.g., "Matthew"'>
+                            <details>
+                                <summary>
+                                    <label for="document">Document:</label>
+                                </summary>
+                                <small>Specify the title of the document or source text being glossed.</small>
+                            </details>
+                            <input type="text" deer-key="_document" id="document" placeholder='e.g., "Matthew"'>
                         </div>
                     </div>
                     <div class="row">
                         <div class="col">
-                            <label>Section: <i class="fas fa-info-circle icon-help" title="Indicate the larger section or chapter of the text, e.g. 'liber 2' or 'C.32'."></i></label>
-                            <input type="text" deer-key="_section" placeholder="chapter">
+                            <details>
+                                <summary>
+                                    <label for="section">Section:</label>
+                                </summary>
+                                <small>Indicate the larger section or chapter of the text, e.g. 'liber 2' or 'C.32'.</small>
+                            </details>
+                            <input type="text" deer-key="_section" id="section" placeholder="chapter">
                         </div>
                         <div class="col">
-                            <label>Subsection(s): <i class="fas fa-info-circle icon-help" title="Specify the subsection or verse of the text, e.g. 'dist. 17' or 'q.1 c.3'."></i></label>
-                            <input type="text" deer-key="_subsection" placeholder="verse">
+                            <details>
+                                <summary>
+                                    <label for="subsection">Subsection(s):</label>
+                                </summary>
+                                <small>Specify the subsection or verse of the text, e.g. 'dist. 17' or 'q.1 c.3'.</small>
+                            </details>
+                            <input type="text" deer-key="_subsection" id="subsection" placeholder="verse">
                         </div>
                     </div>
                 </div>
             </div>
             <div class="row">
-                <label class="col-3 col-2-md text-right">Target Text: <i class="fas fa-info-circle icon-help" title="If applicable, specify the particular word or phrase (lemma) the gloss is commenting on, e.g. 's.v. potestas' or 'In principio'."></i></label>
-                <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text"></textarea>
-                <label class="col-3 col-2-md text-right">Label for display: <i class="fas fa-info-circle icon-help" title="Enter the incipit or some other identifying label."></i></label>
-                <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
-                <label class="col-3 col-2-md text-right">Edition: <i class="fas fa-info-circle icon-help" title="If desired, enter information for the standard edition, along with page and line numbers, of the text being glossed or provide a digital identifier for a text section."></i></label>
-                <input type="text" deer-key="_edition" placeholder="Edition" class="col-9 col-10-md">
-                <label class="col-3 col-2-md text-right">Notes: <i class="fas fa-info-circle icon-help" title="Enter internal information about or notes for this gloss."></i></label>
-                <textarea type="text" deer-key="_notes" placeholder="internal notes" class="col-9 col-10-md"></textarea>
+                <div class="col">
+                    <details>
+                        <summary>
+                            <label for="title">Label for display:</label>
+                        </summary>
+                        <small>Enter the incipit or some other identifying label.</small>
+                    </details>
+                    <input type="text" deer-key="title" id="title" placeholder="Short label">
+                    <details>
+                        <summary>
+                            <label for="edition">Edition:</label>
+                        </summary>
+                        <small>If desired, enter information for the standard edition, along with page and line numbers, of the text being glossed or provide a digital identifier for a text section.</small>
+                    </details>
+                    <input type="text" deer-key="_edition" id="edition" placeholder="Edition">
+                </div>
+                <div class="col">
+                    <details>
+                        <summary>
+                            <label for="targetedText">Target Text:</label>
+                        </summary>
+                        <small>If applicable, specify the particular word or phrase (lemma) the gloss is commenting on, e.g. 's.v. potestas' or 'In principio'.</small>
+                    </details>
+                    <textarea deer-key="targetedText" id="targetedText" rows="2" placeholder="target text"></textarea>
+                </div>
             </div>
-            <div class="row reverse">
+            <div class="row">
+                <div class="col">
+                    <details>
+                        <summary>
+                            <label for="notes">Notes:</label>
+                        </summary>
+                        <small>Enter internal information about or notes for this gloss.</small>
+                    </details>
+                    <textarea deer-key="_notes" id="notes" placeholder="internal notes"></textarea>
+                </div>
+            </div>
+            <div class="row">
                 <gog-tag-widget class="col"> </gog-tag-widget>
                 <div class="col">
                     <h4>External Links and References</h4>
