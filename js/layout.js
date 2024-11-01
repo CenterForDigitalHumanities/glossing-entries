@@ -421,6 +421,7 @@ class ReferencesBrowser extends HTMLElement {
                 padding: 0.2em 1em;
                 cursor: pointer;
                 color: var(--color-primary);
+                text-transform: inherit;
             }
 
             .remove-witness:after {
@@ -451,13 +452,15 @@ class ReferencesBrowser extends HTMLElement {
                 <input class="addWitnessTag button" type="submit" value="Add Manuscript Reference" >
             </div>
         </form>
-        <p class="bumper"> 
+        <div class="is-hidden">
+        <p> 
             Below you will see shelfmarks for Manuscripts that contain this Gloss.  
             Remove by clicking the <span style="color:red;">x</span>.
         </p>
         <ul class="glossWitnesses">
             <li class="wait"> Looking for Witnesses... </li>
         </ul>
+        </div>
         </div>
     `
     constructor() {
@@ -570,6 +573,7 @@ class ReferencesBrowser extends HTMLElement {
             let dup = false
             // Don't add a second reference to the same thing.  We cannot make two Witnesses of the same identifier.
             const existing = witnessList.querySelectorAll("a")
+            witnessList.closest('div').classList.remove("is-hidden")
             for(const a of existing){
                 if(a.innerText === name){
                     dup = true 
@@ -626,6 +630,7 @@ class ReferencesBrowser extends HTMLElement {
             witnessList.querySelector("li").innerHTML = `<b class="data-input"> Add Manuscript References Above! </b>`
             return
         }
+        witnessList.closest('div').classList.remove("is-hidden")
         getAllManuscriptWitnessesOfGloss(glossURI)
         .then(manuscripts => {
             if(manuscripts.length > 0){ 
