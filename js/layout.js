@@ -89,7 +89,7 @@ class GlossFooter extends HTMLElement {
 customElements.define('gog-footer', GlossFooter)
 
 class GlossHeader extends HTMLElement {
-    static #stylizeTab(dir="") {
+    static #stylizeTab(dir = "") {
         return `href="${dir}"${window.location.pathname === dir.slice(1) ? ' style="border-top: 5px solid var(--color-primary); padding-top: 5px;"' : ""}}`
     }
     #template = new DOMParser().parseFromString(`<template id="headerTemplate">
@@ -101,7 +101,7 @@ class GlossHeader extends HTMLElement {
     </a>
         <button class="button primary" is="auth-button">login</button>
     </header></template>
-        `,'text/html').head.firstChild
+        `, 'text/html').head.firstChild
     constructor() {
         super()
         const shadowRoot = this.attachShadow({ mode: "open" })
@@ -112,7 +112,7 @@ class GlossHeader extends HTMLElement {
 customElements.define('gog-header', GlossHeader)
 
 class OSNotice extends HTMLElement {
-    template  = `
+    template = `
     <div class="osNotice bg-basic"> 
         <style>
             .osNotice{
@@ -126,7 +126,7 @@ class OSNotice extends HTMLElement {
         </style>
         This site is open source.  <a target="_blank" href="https://github.com/CenterForDigitalHumanities/glossing-entries">Improve this page</a>
     </div>`
-    
+
     constructor() {
         super()
     }
@@ -170,10 +170,12 @@ class TagWidget extends HTMLElement {
         <p class="col-12 col-12-md">Gloss tags are displayed below the input. Click the red 'x' to remove the tag.
         </p>
         <input type="hidden" deer-key="tags" deer-input-type="Set">
-        <label class="col-3 col-2-md text-right">
-            Tag Name 
-            <i class="fas fa-info-circle icon-help" title="Identify a key term or feature of the gloss, e.g. 'incarnatio' or 'OT citation' or 'linguistic observation'. You can also identify specific citations to other texts or allegations as tags, e.g. 'X 3.16.4'."></i>
-        </label>
+            <details>
+                <summary><label class="col-3 col-2-md text-right">
+            Tag Name </label></summary>
+                Identify a key term or feature of the gloss, e.g. 'incarnatio' or 'OT citation' or 'linguistic observation'. 
+                You can also identify specific citations to other texts or allegations as tags, e.g. 'X 3.16.4'.
+            </details>
         <input type="text" class="col-9 col-4-md tagInput" placeholder="Add one tag at a time">
         <button class="smaller"> Add Tag </button>
         <div class="selectedEntities col-12 col-12-md"></div>
@@ -185,22 +187,22 @@ class TagWidget extends HTMLElement {
         const $this = this
         this.innerHTML = this.template
         const addBtn = this.querySelector("button")
-        this.querySelector(".tagInput").addEventListener("beforeinput",event=>{
+        this.querySelector(".tagInput").addEventListener("beforeinput", event => {
             //Enter or other line break actions.  Note not to overrule TAB for accessibility reasons.
-            if(event.inputType === "insertLineBreak"){
+            if (event.inputType === "insertLineBreak") {
                 event.preventDefault()
                 addBtn.click()
                 return false
             }
             //Assuming comma means 'add so I can do another'.  Should any other key cause this?
-            if([','].includes(event.data)) {
+            if ([','].includes(event.data)) {
                 event.preventDefault()
                 addBtn.click()
                 return false
             }
         })
         addBtn.addEventListener("click", addTag)
-        
+
         /**
          * Click event handler for Add Tag.  Takes the user input and adds the string to the Set if it isn't already included.
          * Includes pagination.
@@ -242,7 +244,7 @@ class TagWidget extends HTMLElement {
          * Includes pagination.
          * This function is exposed so that the HTML pages can call upon it during pagination moments. 
          * */
-        this.removeTag = function(event) {
+        this.removeTag = function (event) {
             event.preventDefault()
             event.stopPropagation()
             const tagName = event.target.getAttribute("tag-name").toLowerCase()
@@ -319,15 +321,15 @@ class ThemeWidget extends HTMLElement {
         const $this = this
         this.innerHTML = this.template
         const addBtn = this.querySelector("button")
-        this.querySelector(".themeInput").addEventListener("beforeinput",event=>{
+        this.querySelector(".themeInput").addEventListener("beforeinput", event => {
             //Enter or other line break actions.  Note not to overrule TAB for accessibility reasons.
-            if(event.inputType === "insertLineBreak"){
+            if (event.inputType === "insertLineBreak") {
                 event.preventDefault()
                 addBtn.click()
                 return false
             }
             //Assuming comma means 'add so I can do another'.  Should any other key cause this?
-            if([','].includes(event.data)) {
+            if ([','].includes(event.data)) {
                 event.preventDefault()
                 addBtn.click()
                 return false
@@ -375,7 +377,7 @@ class ThemeWidget extends HTMLElement {
          * Includes pagination.
          * This function is exposed so that the HTML pages can call upon it during pagination moments. 
          * */
-        this.removeTheme = function(event) {
+        this.removeTheme = function (event) {
             event.preventDefault()
             event.stopPropagation()
             const themeName = event.target.getAttribute("theme-name").toLowerCase()
@@ -467,9 +469,9 @@ class ReferencesBrowser extends HTMLElement {
         super()
     }
     attributeChangedCallback(name, oldValue, newValue) {
-      if(name === "gloss-uri" && newValue && oldValue !== newValue){
-        this.connectedCallback()
-      }
+        if (name === "gloss-uri" && newValue && oldValue !== newValue) {
+            this.connectedCallback()
+        }
     }
     connectedCallback() {
         this.innerHTML = this.template
@@ -479,48 +481,48 @@ class ReferencesBrowser extends HTMLElement {
          * Get all ManuscriptWitness entity URIs that reference this Gloss.
          * @param source A String that is either a text body or a URI to a text resource.
          * @return An Array of Manuscript Witness URIs
-         */ 
-        async function getAllManuscriptWitnessesOfGloss(glossURI){
+         */
+        async function getAllManuscriptWitnessesOfGloss(glossURI) {
             const historyWildcard = { "$exists": true, "$size": 0 }
 
             const gloss_witness_annos_query = {
-                "body.references.value" : httpsIdArray(glossURI),
-                '__rerum.history.next':{ $exists: true, $type: 'array', $eq: [] },
-                "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+                "body.references.value": httpsIdArray(glossURI),
+                '__rerum.history.next': { $exists: true, $type: 'array', $eq: [] },
+                "__rerum.generatedBy": httpsIdArray(__constants.generator)
             }
             let fragmentUriSet = await getPagedQuery(100, 0, gloss_witness_annos_query)
-            .then(async(annos) => {
-                const fragments = annos.map(async(anno) => {
-                    const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => {throw err})
-                    if(entity["@type"] && entity["@type"] === "WitnessFragment"){
-                        return anno.target
-                    }
-                    // This will end up in the Set
-                    return undefined
+                .then(async (annos) => {
+                    const fragments = annos.map(async (anno) => {
+                        const entity = await fetch(anno.target).then(resp => resp.json()).catch(err => { throw err })
+                        if (entity["@type"] && entity["@type"] === "WitnessFragment") {
+                            return anno.target
+                        }
+                        // This will end up in the Set
+                        return undefined
+                    })
+                    const fragmentsOnly = await Promise.all(fragments).catch(err => { throw err })
+                    return new Set(fragmentsOnly)
                 })
-                const fragmentsOnly = await Promise.all(fragments).catch(err => {throw err} )
-                return new Set(fragmentsOnly)
-            })
-            .catch(err => {
-                console.error(err)
-                throw err
-            })
+                .catch(err => {
+                    console.error(err)
+                    throw err
+                })
             // Remove the undefined entry if present
             fragmentUriSet.delete(undefined)
-            if(fragmentUriSet.size === 0){
+            if (fragmentUriSet.size === 0) {
                 console.log(`There are no Manuscript Witnesses that reference the Gloss '${glossURI}'`)
                 return new Set()
             }
             // There are many fragments that reference this Gloss.  Those fragments are all a part of different Manuscript Witnesses.
             // Put all of thise different Manuscript Witnesses into a Set to return.
             let allManuscriptWitnesses = new Set()
-            for await(const fragmentURI of [...fragmentUriSet.values()]){
+            for await (const fragmentURI of [...fragmentUriSet.values()]) {
                 //each fragment has partOf Annotations letting you know the Manuscripts it is a part of.
                 const partOfAnnosQuery = {
-                    "body.partOf.value": {"$exists":true},
+                    "body.partOf.value": { "$exists": true },
                     "target": httpsIdArray(fragmentURI),
                     "__rerum.history.next": historyWildcard,
-                    "__rerum.generatedBy" : httpsIdArray(__constants.generator)
+                    "__rerum.generatedBy": httpsIdArray(__constants.generator)
                 }
                 let manuscriptUriSet = await fetch(`${__constants.tiny}/query?limit=1&skip=0`, {
                     method: "POST",
@@ -530,29 +532,29 @@ class ReferencesBrowser extends HTMLElement {
                     },
                     body: JSON.stringify(partOfAnnosQuery)
                 })
-                .then(response => response.json())
-                .then(async(annos) => {
-                    const manuscripts = annos.map(async(anno) => {
-                        const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(err => {throw err})
-                        if(entity["@type"] && entity["@type"] === "ManuscriptWitness"){
-                            return anno.body.partOf.value
-                        }
-                        // This will end up in the Set
-                        return undefined
+                    .then(response => response.json())
+                    .then(async (annos) => {
+                        const manuscripts = annos.map(async (anno) => {
+                            const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(err => { throw err })
+                            if (entity["@type"] && entity["@type"] === "ManuscriptWitness") {
+                                return anno.body.partOf.value
+                            }
+                            // This will end up in the Set
+                            return undefined
+                        })
+                        const manuscriptWitnessesOnly = await Promise.all(manuscripts).catch(err => { throw err })
+                        return new Set(manuscriptWitnessesOnly)
                     })
-                    const manuscriptWitnessesOnly = await Promise.all(manuscripts).catch(err => {throw err} )
-                    return new Set(manuscriptWitnessesOnly)
-                })
-                .catch(err => {
-                    console.error(err)
-                    throw err
-                })
+                    .catch(err => {
+                        console.error(err)
+                        throw err
+                    })
                 manuscriptUriSet.delete(undefined)
-                if(manuscriptUriSet.size === 0){
+                if (manuscriptUriSet.size === 0) {
                     console.error(`There is no Manuscript Witness for fragment '${fragmentURI}'`)
                     continue
                 }
-                else if(manuscriptUriSet.size > 1){
+                else if (manuscriptUriSet.size > 1) {
                     console.error("There are many Manuscript Witnesses when we only expect one.")
                     continue
                 }
@@ -565,28 +567,28 @@ class ReferencesBrowser extends HTMLElement {
          * Click event handler for Add Theme.  Takes the user input and adds the string to the Set if it isn't already included.
          * Includes pagination.
          * */
-        this.addReference = async function(event) {
+        this.addReference = async function (event) {
             event.preventDefault()
             event.stopPropagation()
             const name = witnessInput.value
-            if(!name) return
+            if (!name) return
             let dup = false
             // Don't add a second reference to the same thing.  We cannot make two Witnesses of the same identifier.
             const existing = witnessList.querySelectorAll("a")
             witnessList.closest('div').classList.remove("is-hidden")
-            for(const a of existing){
-                if(a.innerText === name){
-                    dup = true 
+            for (const a of existing) {
+                if (a.innerText === name) {
+                    dup = true
                     break
                 }
             }
-            if(dup){
+            if (dup) {
                 const e = new CustomEvent("No Duplicates")
                 globalFeedbackBlip(e, `Duplicate Witnesses are not allowed.  Change the shelfmark.`, false)
                 return
             }
             let matchedWitnessURI = await getManuscriptWitnessFromShelfmark(name.trim())
-            if(!matchedWitnessURI) matchedWitnessURI = ""
+            if (!matchedWitnessURI) matchedWitnessURI = ""
             witnessList.querySelector("li.wait")?.remove()
             const li = document.createElement("li")
             const a = document.createElement("a")
@@ -612,7 +614,7 @@ class ReferencesBrowser extends HTMLElement {
          * Includes pagination.
          * This function is exposed so that the HTML pages can call upon it during pagination moments. 
          * */
-        this.removeReference = function(event) {
+        this.removeReference = function (event) {
             event.preventDefault()
             event.stopPropagation()
             event.target.closest("li").remove()
@@ -620,44 +622,44 @@ class ReferencesBrowser extends HTMLElement {
 
         $this.querySelector("#GlossReferenceForm").addEventListener("submit", $this.addReference)
 
-        if($this.hasAttribute("view-only")){
+        if ($this.hasAttribute("view-only")) {
             $this.querySelectorAll(".data-input").forEach(e => e.classList.add("is-hidden"))
         }
         const witnessList = $this.querySelector(".glossWitnesses")
         const witnessInput = $this.querySelector(".witnessInput")
         const glossURI = $this.getAttribute("gloss-uri") ? decodeURIComponent($this.getAttribute("gloss-uri")) : null
-        if(!glossURI){
+        if (!glossURI) {
             witnessList.querySelector("li").innerHTML = `<b class="data-input"> Add Manuscript References Above! </b>`
             return
         }
         witnessList.closest('div').classList.remove("is-hidden")
         getAllManuscriptWitnessesOfGloss(glossURI)
-        .then(manuscripts => {
-            if(manuscripts.length > 0){ 
-                witnessList.innerHTML = ""
-                $this.classList.remove("is-hidden")
-                for(const manuscriptURI of manuscripts){
-                    const li = document.createElement("li")
-                    li.setAttribute("deer-id", manuscriptURI)
-                    const a = document.createElement("a")
-                    a.classList.add("deer-view")
-                    a.setAttribute("deer-template", "shelfmark")
-                    a.setAttribute("deer-id", manuscriptURI)
-                    a.setAttribute("target", "_blank")
-                    a.setAttribute("href", `manuscript-profile.html#${manuscriptURI}`)
-                    a.innerHTML = "loading..." 
-                    li.appendChild(a)
-                    witnessList.appendChild(li)
-                    utils.broadcast(undefined, "deer-view", document, { set: [a] }) 
+            .then(manuscripts => {
+                if (manuscripts.length > 0) {
+                    witnessList.innerHTML = ""
+                    $this.classList.remove("is-hidden")
+                    for (const manuscriptURI of manuscripts) {
+                        const li = document.createElement("li")
+                        li.setAttribute("deer-id", manuscriptURI)
+                        const a = document.createElement("a")
+                        a.classList.add("deer-view")
+                        a.setAttribute("deer-template", "shelfmark")
+                        a.setAttribute("deer-id", manuscriptURI)
+                        a.setAttribute("target", "_blank")
+                        a.setAttribute("href", `manuscript-profile.html#${manuscriptURI}`)
+                        a.innerHTML = "loading..."
+                        li.appendChild(a)
+                        witnessList.appendChild(li)
+                        utils.broadcast(undefined, "deer-view", document, { set: [a] })
+                    }
                 }
-            }
-            else{
-                witnessList.querySelector("li").innerHTML = `<b class="data-input"> No Witness References Found.  Add One Above! </b>`    
-            }
-            if($this.hasAttribute("view-only")){
-                $this.querySelectorAll(".data-input").forEach(e => e.classList.add("is-hidden"))
-            }
-        })
+                else {
+                    witnessList.querySelector("li").innerHTML = `<b class="data-input"> No Witness References Found.  Add One Above! </b>`
+                }
+                if ($this.hasAttribute("view-only")) {
+                    $this.querySelectorAll(".data-input").forEach(e => e.classList.add("is-hidden"))
+                }
+            })
 
     }
     static get observedAttributes() { return ['gloss-uri'] }
