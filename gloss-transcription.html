@@ -27,15 +27,17 @@
 <body class="container">
     <gog-header></gog-header>
     <h2 class="bg-basic"> Gloss Transcription Witness </h2>
-    <p id="look" class="bg-light"> 
+    <p id="look" class="bg-light is-hidden"> 
         Connect Virtual Glosses With T-PEN Transcriptions. Please provide a T-PEN Project in order to load in a Manuscript.  The transcription text from that project will appear and can be selected.  Selected text can then be attached to a new or existing Gloss.  Note that a text selection and shelfmark are required.
     </p>
     <div id="needs" class="row bg-basic is-hidden">
-        <p class="howTo"> 
-            It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  We will check for existing Manuscript Witnesses with that transcription content.
+        <div class="howTo"> 
+            <p class="alert">It looks like you haven't provided a TPEN Manifest URI.
+            If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  We will check for existing Manuscript Witnesses with that transcription content.
+            </p>
             <input id="resourceURI" type="text" placeholder="Enter T-PEN Manifest URI or 4 digit TPEN code"/>
             <input id="loadInput" class="button primary" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
-        </p>
+        </div>
     </div>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
     <div id="loading">
@@ -61,7 +63,7 @@
             </div>
         </div>
         <div class="row">
-            <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
+            <label class="col-3 col-2-md text-right">Shelfmark</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
         </div>
         <div class="row">
