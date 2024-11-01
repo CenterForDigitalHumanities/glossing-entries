@@ -411,13 +411,6 @@ customElements.define('gog-theme-widget', ThemeWidget)
 class ReferencesBrowser extends HTMLElement {
     template = `
         <style>
-            gog-references-browser{
-                position: relative;
-                display: block;
-                border-radius: 0.2em;
-                padding: 20px;
-            }
-
             .glossWitnesses{
                 margin-bottom: 0.2em;
             }
@@ -446,31 +439,26 @@ class ReferencesBrowser extends HTMLElement {
                 height: 2.2em;
             }
 
-            .witness-queued a {
-                color: var(--color-grey);
-                text-decoration: underline;
-            }
-
-            .bumper {
-                
-            }
-
         </style>
+        <div class="card">
         <h4> Manuscript References </h4>
-        <p class="data-input">
-            If you know of texts this Gloss appears in, provide shelfmarks below to connect with those Manuscripts when you submit this Gloss.<br>
-        </p>
-        <form id="GlossReferenceForm" class="row bg-light data-input">
-            <input type="text" class="col-8 col-4-md witnessInput" placeholder="New shelfmark goes here">
-            <input class="addWitnessTag button secondary smaller col-4 col-3-md" type="submit" value="Add Manuscript Reference" >
+        <form id="GlossReferenceForm" class="data-input">
+        <div class="grouped">
+            <p class="col">
+                <label for="addShelfMarkQuick">Provide shelfmarks below to connect Manuscripts when you submit this Gloss.</label>
+                <input id="addShelfMarkQuick" type="text" class=" witnessInput" placeholder="New shelfmark goes here">
+               </p>
+                <input class="addWitnessTag button" type="submit" value="Add Manuscript Reference" >
+            </div>
         </form>
         <p class="bumper"> 
-            Below you will see shelfmarks for Manuscript Witnesses that contain this Gloss, if any.  Click a known Manuscript Witness to view its details.  
-            Manuscript Witnesses queued to be created when you submit can be removed by clicking the '<span style="color:red;">x</span>' symbol.
+            Below you will see shelfmarks for Manuscripts that contain this Gloss.  
+            Remove by clicking the <span style="color:red;">x</span>.
         </p>
         <ul class="glossWitnesses">
             <li class="wait"> Looking for Witnesses... </li>
         </ul>
+        </div>
     `
     constructor() {
         super()
@@ -598,7 +586,7 @@ class ReferencesBrowser extends HTMLElement {
             witnessList.querySelector("li.wait")?.remove()
             const li = document.createElement("li")
             const a = document.createElement("a")
-            li.classList.add("witness-queued")
+            li.classList.add("witness-queued", "tag", "text-primary", "bd-primary")
             li.setAttribute("matched-manuscript", matchedWitnessURI)
             li.setAttribute("title", "This Witness is queued")
             a.setAttribute("target", "_blank")

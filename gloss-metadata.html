@@ -16,7 +16,7 @@
 <body class="container">
     <gog-header></gog-header>
     <h2 class="bg-basic"> <span class="add-update">Add</span> Gloss </h2>
-    <p id="look" class="bg-light">
+    <p id="look" class="is-hidden bg-light">
         Create and describe a Gloss phrase relevant to how it appears within texts.  A Gloss may be repeated within the same text or across multiple texts but should only be created once.  Avoid creating a new Gloss unless it does not already exist.
     </p>
     <div id="loading">
@@ -25,7 +25,7 @@
         </p>
     </div>
     <div class="gloss-needed is-hidden">
-        <gog-references-browser class="bg-light"> </gog-references-browser>
+        <gog-references-browser> </gog-references-browser>
         <form id="named-gloss" deer-type="Gloss" deer-context="http://purl.org/dc/terms" hash-id>
             <h4> Provide Gloss Information </h4>
             <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
