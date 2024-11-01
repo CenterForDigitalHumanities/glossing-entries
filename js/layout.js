@@ -3,22 +3,79 @@ import { default as utils } from './deer-utils.js'
 class GlossFooter extends HTMLElement {
     template = `
     <footer>
-    <style>
-        footer {
-            margin-top: 1.5em
-        }
-    </style>
-    <a href="./index.html">🏠</a>
-        <a href="./glosses.html">📑</a>
-        <a rel="noopener noreferrer" title="View on GitHub"
-            href="https://github.com/CenterForDigitalHumanities/glossing-entries" target="_blank">
-            <svg height="16" class="octicon octicon-mark-github" viewBox="0 0 16 16" version="1.1" width="16"
-                aria-hidden="true">
-                <path fill-rule="evenodd"
-                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
-                </path>
-            </svg>
-        </a>
+        <style>
+            footer {
+                margin-top: 2em;
+                padding: 1em;
+                background-color: var(--bg-secondary-color);
+                font-size: 0.9em;
+            }
+            .footer-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1em;
+            }
+            .footer-section {
+                margin: 0.5em;
+            }
+            .footer-section h3 {
+                font-size: 1.1em;
+                margin-bottom: 0.5em;
+            }
+            footer a {
+                color: var(--color-primary);
+                text-decoration: none;
+            }
+            footer a:hover {
+                text-decoration: underline;
+            }
+            .github-link svg {
+                vertical-align: middle;
+            }
+            .footer-nav {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            .footer-nav li {
+                margin-bottom: 0.5em;
+            }
+        </style>
+        <div class="footer-grid">
+            <div class="footer-section">
+                <h3>Navigation</h3>
+                <ul class="footer-nav">
+                    <li><a href="./index.html">Home</a></li>
+                    <li><a href="./glosses.html">Browse Glosses</a></li>
+                    <li><a href="./manuscripts.html">Browse Manuscripts</a></li>
+                    <li><a href="./manage-glosses.html">Manage Glosses</a></li>
+                    <li><a href="./gloss-metadata.html">Add New Gloss</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>About</h3>
+                <p><a href="https://galleryofglosses.org/docs/about">About the Project</a></p>
+                <p><a class="github-link" href="https://github.com/CenterForDigitalHumanities/glossing-entries" target="_blank">
+                    <svg height="16" viewBox="0 0 16 16" version="1.1" width="16" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path>
+                    </svg>
+                    Source Code
+                </a></p>
+                <p><a href="https://centerfordigitalhumanities.github.io/blog">
+                Research Computing Group updates
+                </a></p>
+                <p><a href="https://galleryofglosses.org/docs/acknowledgements">Project Team</a></p>
+            </div>
+            <div class="footer-section">
+                <h3>Acknowledgments</h3>
+                <p>This project is supported by the College of Arts & Sciences and the Research Computing Group at 
+                Saint Louis University and generous funding from the (USA) National Endowment for the Humanities</p>
+                <div class="row is-center">
+                    <img class="col" src="https://galleryofglosses.org/assets/images/slu-primary-blue-rgb.png" alt="Saint Louis University Logo" style="width: 100px;">
+                    <img class="col" src="https://galleryofglosses.org/assets/images/NEH-seal.jpg" alt="NEH Logo" style="width: 100px;">
+                </div>
+            </div>
+        </div>
     </footer>
     `
     constructor() {
@@ -36,61 +93,13 @@ class GlossHeader extends HTMLElement {
         return `href="${dir}"${window.location.pathname === dir.slice(1) ? ' style="border-top: 5px solid var(--color-primary); padding-top: 5px;"' : ""}}`
     }
     #template = new DOMParser().parseFromString(`<template id="headerTemplate">
+        <link rel="stylesheet" href="/css/gloss.css">
     <header>
-        <style>
-        .headerimg{
-            pointer-events: none;
-            display: none;
-        }
-        :host {
-            --bg-color: hsl(0, 0%, 100%);
-            --bg-secondary-color: hsl(240, 14%, 96%);
-            --color-primary: hsl(215 35% 50%);
-            --color-accent: hsl(12.75deg 80% 40%);
-            --color-lightGrey: hsl(218, 14%, 85%);
-            --color-grey: hsl(231, 5%, 48%);
-            --color-darkGrey: hsl(216, 4%, 26%);
-            --color-error: hsl(0, 64%, 53%);
-            --color-success: hsl(113, 81%, 41%);
-            --grid-maxWidth: 120rem;
-            --grid-gutter: 2rem;
-            --font-size: 1.6rem;
-        }
-        ::slotted(a), slot a{
-            border-bottom: 2px solid var(--color-lightGrey);
-            background-color: var(--bg-color);
-            color: var(--color-darkGrey);
-            -ms-flex: 0 1 auto;
-            flex: 0 1 auto;
-            padding: 1rem 2rem;
-            text-align: center;
-            text-decoration: none;
-            font-family: 'Eczar',serif;
-            white-space: nowrap;
-            color: var(--color-primary);
-            transition: all .2s;
-        }
-        ::slotted(a:hover), slot a:hover {
-            /*color: var(--color-accent)!important;
-            background-color: var(--bg-secondary-color);
-            border-bottom: 2px solid var(--color-darkGrey);
-            border-color: var(--color-accent);
-            opacity: 1;*/
-            background-color: var(--color-primary);
-            color: var(--bg-color);
-        }
-    </style>
-    <link rel="stylesheet" href="css/gloss.css">
-    <button class="button primary" is="auth-button">login</button>
-    <img class="headerimg" src="media/gog-logo.jpg" alt="banner">
-    <a href="/"><h1 class="title">Gallery of Glosses Data Entry</h1></a>
-    <div class="tabs is-hidden">
-    <slot name="tabs">
-        <a ${GlossHeader.#stylizeTab("./glosses.html")}>✏️ Glosses</a>
-        <a ${GlossHeader.#stylizeTab("./gloss-metadata.html")}>🆕 New gloss</a>
-        <a ${GlossHeader.#stylizeTab("./gloss-transcription.html")}>🔍 Detect glosses</a>
-        <a ${GlossHeader.#stylizeTab("./manage-glosses.html")}>💾 Manage glosses</a>
-    </div>
+<a href="/" class="brand is-vertical-align is-full-width is-center">
+        <img src="images/gog-logo.png" alt="Gallery of Glosses Logo">
+        &nbsp;{ data entry }
+    </a>
+        <button class="button primary" is="auth-button">login</button>
     </header></template>
         `,'text/html').head.firstChild
     constructor() {
