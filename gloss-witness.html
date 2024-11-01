@@ -50,22 +50,25 @@
     <p id="reset" class="bg-basic is-hidden"> 
         This page automatically applied a text resource.  If this isn't the text you want to use then <a onclick="startOver()">click here to start over</a>.
     </p>
-    <p id="look" class="bg-light">
+    <p id="look" class="bg-light is-hidden">
        Connect Virtual Glosses With Real World Text.  Please load in a Manuscript.  The text from that resource will load and can be selected.  Selected text can then be attached to a new or existing Gloss.  Note that a text selection and shelfmark are required.
     </p>
     <div id="needs" class="row bg-basic is-hidden">
         <div class="col">
-            <p class="howTo"> 
-                It looks like you haven't provided a Manuscript Witness or text content yet.  Please choose a way to provide the text content which contains the Glosses you would like to identify.  We will check for existing Manuscript Witnesses with that content.
-            </p>
+            <div class="howTo"> 
+                <p class="alert">
+                    Please choose a way to provide the text content which contains the Glosses you would like to identify. 
+                    We will check for existing Manuscript Witnesses with that content.
+                </p>
+            </div>
             <nav user-input class="tabs is-full">
               <a name="uri" onclick="changeUserInput(event, 'uri')" class="ui-tab active">I want to provide a URI</a>
               <a name="file" onclick="changeUserInput(event, 'file')" class="ui-tab">I want to upload a file</a>
               <a name="cp" onclick="changeUserInput(event, 'cp')" class="ui-tab">I want to copy and paste</a>
             </nav>
-            <div user-input="uri" class="userInput">
+            <div user-input="uri" class="userInput grouped">
                 <input id="resourceURI" type="text" placeholder="Provide URI of Web Resource"/>
-                <input id="loadURI" type="button" onclick="loadUserInput(event, 'uri')" value="Load URI" />    
+                <input id="loadURI" class="button primary" type="button" onclick="loadUserInput(event, 'uri')" value="Load URI" />    
             </div>
             <div user-input="file" class="userInput is-hidden">
                 <p class="howTo"> 
@@ -106,7 +109,7 @@
             </div>
         </div>
         <div class="row">
-            <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
+            <label class="col-3 col-2-md text-right">Shelfmark</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
         </div>
         <div class="row">
