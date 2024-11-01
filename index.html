@@ -10,8 +10,8 @@
     <script src="js/deer.js" type="module"></script>
     <script src="js/layout.js" type="module"></script>
     <script src="js/shared.js"></script>
-    <style> 
-        a.button{
+    <style>
+        a.button {
             margin: 1em 0em;
             display: block;
         }
@@ -20,17 +20,17 @@
             margin-left: 0rem;
         }
 
-        p{
+        p {
             position: relative;
             z-index: 2;
         }
 
-        .options{
+        .options {
             text-align: center;
             position: relative;
         }
 
-        .alert{
+        .alert {
             border-left: 4px solid #E0CB52;
             background: #FCFAEE;
             padding-top: 5px;
@@ -39,35 +39,84 @@
             padding-right: 24px;
         }
 
-        .secondary{
+        .secondary {
             cursor: not-allowed;
         }
-
     </style>
 </head>
 
 <body class="container">
-    <a href="/"><h1 class="title">Gallery of Glosses Data Entry</h1></a>
+    <a href="/" class="brand is-vertical-align is-full-width is-center">
+        <img src="images/gog-logo.png" alt="Gallery of Glosses Logo">
+        &nbsp;{ data entry }
+    </a>
     <div class="content">
-        <p class="alert">
-            Note if you are not here for data entry or data management, you may be looking for the public site.  <a href="https://gallery-of-glosses.vercel.app/">Go there now!</a>
-        </p>
-        <h4> Data Entry and Viewing Options </h4>
-        <div class="options row">
-            <div class="col-6">
-                <a href="./gloss-metadata.html" class="button primary">Create a New Gloss</a>
-                <a href="./glosses.html" class="button primary">Browse Gloss Collection</a>
-                <a href="./manage-glosses.html" class="button primary">Manage Glosses</a>
-            </div>
-            <div class="col-6">
-                <a href="./gloss-transcription.html" class="button primary">Detect Glosses in T-PEN Transcriptions</a>
-                <a href="./gloss-witness.html" class="button primary">Detect Glosses in Text</a>
-                <a href="./manuscripts.html" class="button primary">Browse Manuscripts With Glosses</a>
-            </div>
+        <h4> Add Glosses to the Gallery </h4>
+        <div class="row">
+            <a href="./gloss-metadata.html" class="card col text-light bg-primary">
+                <i class="pull-right fa fa-3x fa-edit"></i>
+                <header>
+                    <h4 class="text-white">Create a New Gloss</h4>
+                </header>
+                <p>
+                    Propose a single Gloss to the Gallery. You might reference multiple manuscript witnesses to it.
+                </p>
+            </a>
+            <a href="./gloss-transcription.html" class="card col text-light bg-primary">
+                <i class="pull-right fa fa-3x fa-search"></i>
+                <header>
+                    <h4 class="text-white">Detect T&#8209;PEN Transcriptions</h4>
+                </header>
+                <p>
+                    Import a T&#8209;PEN transcription project and extract the instances of Glosses.
+                </p>
+            </a>
+            <a href="./gloss-witness.html" class="card col text-light bg-primary">
+                <i class="pull-right fa fa-3x fa-file-alt"></i>
+                <header>
+                    <h4 class="text-white">Detect Glosses in Text</h4>
+                </header>
+                <p>
+                    Identify and analyze glosses within textual witnesses.
+                </p>
+            </a>
         </div>
+        <h4> Review Existing Glosses and Manuscript Witnesses </h4>
+        <div class="row">
+            <a href="./manage-glosses.html" class="card col text-light bg-primary">
+                <i class="pull-right fa fa-3x fa-cogs"></i>
+                <header>
+                    <h4 class="text-white">Manage Glosses</h4>
+                </header>
+                <p>
+                    Mark Glosses for review, update, or deletion. Connect them to Manuscript Witnesses.
+                </p>
+            </a>
+            <a href="./glosses.html" class="card col text-light bg-primary">
+                <i class="pull-right fa fa-3x fa-project-diagram"></i>
+                <header>
+                    <h4 class="text-white">Browse Gloss Collection</h4>
+                </header>
+                <p>
+                    Explore the Glosses contributed to the Gallery by tag and incipit.
+                </p>
+            </a>
+            <a href="./manuscripts.html" class="card col text-light bg-primary">
+                <i class="pull-right fa fa-3x fa-book"></i>
+                <header>
+                    <h4 class="text-white">Browse Manuscripts</h4>
+                </header>
+                <p>
+                    Explore manuscripts that contain glosses and their details.
+                </p>
+            </a>
+        </div>
+        <p class="alert">
+            This site is for data entry. To view the Gallery of Glosses, visit
+            <a href="https://galleryofglosses.org">GalleryOfGlosses.org</a>.
+        </p>
     </div>
     <gog-footer class="container"></gog-footer>
-    <os-notice></os-notice>
 </body>
 
 </html>

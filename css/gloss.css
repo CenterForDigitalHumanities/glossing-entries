@@ -4,7 +4,7 @@
 @import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css');
 
 :root {
-  --bg-color: hsl(0, 0%, 100%);
+  --bg-color: hsla(0, 0%, 100%,.8);
   --bg-secondary-color: hsl(240, 14%, 96%);
   --color-primary: hsl(215 35% 50%);
   --color-accent: hsl(12.75deg 80% 40%);
@@ -16,6 +16,12 @@
   --grid-maxWidth: 120rem;
   --grid-gutter: 2rem;
   --font-size: 1.6rem;
+}
+
+html {
+  background: rgb(131,58,180);
+background: linear-gradient(293deg, rgba(131,58,180,0) 0%, rgba(253,29,29,0.12648809523809523) 82%, rgba(31,14,129,1) 83%, rgba(71,30,255,0.8155637254901961) 89%, rgba(253,64,39,1) 89%, rgba(252,176,69,1) 100%);
+min-height: 100%;
 }
 
 gog-header,gog-footer {
@@ -87,7 +93,7 @@ textarea.taller {
   z-index: -1;
 }
 
-h1.title {
+h1.title, .brand {
   color:var(--color-accent);
   text-shadow: 1px 1px 0 hsl(215 35% 50%), -1px -1px 0 hsl(215 35% 50%), 1px -1px 0 hsl(215 35% 50%), -1px 1px 0 hsl(215 35% 50%);
   font-size: 3em;
