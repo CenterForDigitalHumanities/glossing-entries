@@ -178,7 +178,8 @@ function alertReturn(noid) {
  * @param {array} allResults - The accumulated results from all pages.
  * @returns {Promise} - A promise resolving to an array of query results.
  */
-function getPagedQuery(lim, it = 0, queryObj, allResults = []) {
+async function getPagedQuery(lim, it = 0, queryObj, allResults = []) {
+    if(!__constants?.tiny) await setConstants()
     return fetch(`${__constants.tiny}/query?limit=${lim}&skip=${it}`, {
         method: "POST",
         mode: "cors",
@@ -314,6 +315,7 @@ if (document.readyState === 'interactive' || 'loaded') loadHashId()
  * @returns {Promise<Array>} - A promise that resolves to an array of matching glosses.
  */
 async function findMatchingIncipits(incipit, titleStart) {
+    if(!constants?.generator) await setConstants()
     if (incipit?.length < 5) { 
         const ev = new CustomEvent(`Text "${incipit}" is too short to consider.`)
         globalFeedbackBlip(ev, `Text "${incipit}" is too short to consider for this check.`, false)
@@ -373,6 +375,7 @@ function undoBrowserSelection(s){
  * @return boolean true when a Gloss URI is in the public list
  */ 
 async function isPublicGloss(glossID){
+    if(!constants?.ngCollection) await setConstants()
     const publicList = await fetch(__constants.ngCollection).then(resp => resp.json()).catch(err => {return null})
     if(!publicList || !publicList?.itemListElement){
         throw new Error("Unable to fetch public list to check against")
@@ -515,6 +518,7 @@ function paginateButtonsAfterSubmit(glossURIs){
  */ 
 async function getAllWitnessFragmentsOfManuscript(manuscriptWitnessURI){
     if(!manuscriptWitnessURI) return    
+    if(!__constants?.generator) await setConstants()
     const historyWildcard = { "$exists": true, "$size": 0 }
 
     // Each Fragment is partOf a Manuscript.
@@ -545,6 +549,7 @@ async function getAllWitnessFragmentsOfManuscript(manuscriptWitnessURI){
 */
 async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
     if(!witnessFragmentURI) return
+    if(!__constants?.generator) await setConstants()
     const entity = await fetch(witnessFragmentURI).then(resp => resp.json()).catch(err => {throw err})
     const typecheck = entity ? entity.type ?? entity["@type"] ?? "" : ""
     if(typecheck !== "WitnessFragment"){
@@ -643,6 +648,7 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
 */
 async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false){
     if(!manuscriptWitnessURI) return
+    if(!__constants?.generator) await setConstants()
     const entity = await fetch(manuscriptWitnessURI).then(resp => resp.json()).catch(err => {throw err})
     const typecheck = entity ? entity.type ?? entity["@type"] ?? "" : ""
     if(typecheck !== "ManuscriptWitness"){
@@ -748,6 +754,7 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
  */
 async function deleteGloss(glossURI, redirect=false) {
     if(!glossURI) return
+    if(!__constants?.generator) await setConstants()
     const entity = await fetch(glossURI).then(resp => resp.json()).catch(err => {throw err})
     const typecheck = entity ? entity.type ?? entity["@type"] ?? "" : ""
     // There should only be one ManuscriptWitness with this shelfmark.  When we detect that type, we've found it.
@@ -986,6 +993,7 @@ async function getManuscriptWitnessFromSource(source=null){
         globalFeedbackBlip(ev, `You must provide a source.`, false)
         return
     }
+    if(!__constants?.generator) await setConstants()
     const historyWildcard = { "$exists": true, "$size": 0 }
     const sourceAnnosQuery = {
         "body.source.value": isURI(source) ? httpsIdArray(source) : source,
@@ -1080,6 +1088,7 @@ async function getManuscriptWitnessFromSource(source=null){
  * @return An Array of WitnessFragment URIs
  */ 
 async function getAllWitnessFragmentsOfGloss(glossURI){
+    if(!__constants?.generator) await setConstants()
     const historyWildcard = { "$exists": true, "$size": 0 }
 
     const gloss_witness_annos_query = {
@@ -1130,6 +1139,7 @@ function fragmentFormReset(event){
  */ 
 async function initiateMatch(manuscriptWitnessID){
     if(!manuscriptWitnessID) return
+    if(!__constants?.generator) await setConstants()
     const historyWildcard = { "$exists": true, "$size": 0 }
     const shelfmarkAnnosQuery = {
         "body.identifier.value": {"$exists":true},
