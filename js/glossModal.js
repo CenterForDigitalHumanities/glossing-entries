@@ -101,17 +101,6 @@ class GlossModal extends HTMLElement {
             .modal form{
 
             }
-            details {
-                display: inline;
-                color: var(--color-primary);
-            }
-            details > summary {
-                display: inline;
-                cursor: help;
-            }
-            details > summary:hover {
-                text-decoration: underline;
-            }
         </style>
         <div class="window-shadow"> 
             <div class="modal container">

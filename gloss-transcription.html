@@ -101,23 +101,23 @@
                 <input type="text" deer-key="title" placeholder="Label" class="is-hidden">
                 <details>
                     <summary>
-                        <label>Shelfmark or Short Citation:</label>
+                        <label for="shelfmarkInput">Shelfmark or Short Citation:</label>
                     </summary>
                     <small>Enter manuscript shelfmark or short bibliographic citation of author and title for the
                         witness,
                         e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’.</small>
                 </details>
-                <input type="text" deer-key="identifier" required
+                <input id="shelfmarkInput" type="text" deer-key="identifier" required
                     placeholder="e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’" class="required" disabled>
             </div>
             <div class="col">
                 <details>
                     <summary>
-                        <label>Folio or Page:</label>
+                        <label for="folioInput">Folio or Page:</label>
                     </summary>
                     <small>Folio or page number from this Witness where the gloss is found.</small>
                 </details>
-                <input type="text" deer-key="_folio" placeholder="e.g, 132r">
+                <input id="folioInput" type="text" deer-key="_folio" placeholder="e.g, 132r">
             </div>
         </div>
         <div class="row">
