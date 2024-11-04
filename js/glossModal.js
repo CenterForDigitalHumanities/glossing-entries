@@ -117,25 +117,37 @@ class GlossModal extends HTMLElement {
                         <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
                         <input is="auth-creator" type="hidden" deer-key="creator" />
                         <div class="row">
-                            <label class="col-3 col-2-md text-right">Gloss Text: <i class="fas fa-info-circle icon-help" title="Enter the full text content of the gloss here."></i></label>
-                            <textarea custom-text-key="text" name="glossText" placeholder="text content" rows="2" class="col-9 col-10-md"></textarea>
-                            <label for="textLang" class="col-3 col-2-md text-right">Language:</label>
-                            <select custom-text-key="language" name="textLang" class="col-3 col-2-md">
-                                <option value="la" selected>Latin</option>
-                                <option value="de">German</option>
-                                <option value="fr">French</option>
-                                <option value="en">English</option>
-                            </select>
+                            <div class="col">
+                                <details><summary><label>Gloss Text</label></summary>Enter the full text content of the gloss here.</details>
+                                <textarea custom-text-key="text" name="glossText" placeholder="text content" rows="2"></textarea>
+                            </div>
+                            <div class="col-3">
+                                <label>Language</label>
+                                <select custom-text-key="language" name="textLang">
+                                    <option value="la" selected>Latin</option>
+                                    <option value="de">German</option>
+                                    <option value="fr">French</option>
+                                    <option value="en">English</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="row">
-                            <label class="col-3 col-2-md text-right">Canonical Reference Locator: <i class="fas fa-info-circle icon-help" title="Enter a reference to the location in the source text being glossed, e.g. 'Matthew 5:1' or 'Sententiae, liber 2, dist. 17' or 'Decretum C.32 q.1 c.3'."></i></label>
-                            <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"' class="col-9 col-4-md">
+                            <div class="col">
+                                    <details><summary><label>Canonical Reference Locator</label></summary>Enter a reference to the location in the source text being glossed, e.g. 'Matthew 5:1' or 'Sententiae, liber 2, dist. 17' or 'Decretum C.32 q.1 c.3'.</details>
+                                <input type="text" deer-key="canonicalReference" placeholder='e.g., "Matthew 5:1"'>
+                            </div>
                         </div>
                         <div class="row">
-                            <label class="col-3 col-2-md text-right">Target Text: <i class="fas fa-info-circle icon-help" title="If applicable, specify the particular word or phrase (lemma) the gloss is commenting on, e.g. 's.v. potestas' or 'In principio'."></i></label>
-                            <textarea deer-key="targetedText" rows="2" class="col-9 col-10-md" placeholder="target text"></textarea>
-                            <label class="col-3 col-2-md text-right">Label for display: <i class="fas fa-info-circle icon-help" title="Enter the incipit or some other identifying label."></i></label>
-                            <input type="text" deer-key="title" placeholder="Short label" class="col-9 col-10-md">
+                            <div class="col">
+                                <details><summary><label>Target Text</label></summary>If applicable, specify the particular word or phrase (lemma) the gloss is commenting on, e.g. 's.v. potestas' or 'In principio'.</details>
+                                <textarea deer-key="targetedText" rows="2" placeholder="target text"></textarea>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <details><summary><label>Label for display</label></summary>Enter the incipit or some other identifying label.</details>
+                                <input type="text" deer-key="title" placeholder="Short label">
+                            </div>
                         </div>
                         <div class="row">
                             <gog-tag-widget class="col"></gog-tag-widget>

@@ -14,28 +14,40 @@
     <script src="js/shared.js"></script>
     <script src="js/mark.min.js"></script>
     <style>
-       input.required, textarea.required{
+        input.required, textarea.required{
             border: 1px solid black;
-       }
+        }
        .pageContainer.is-toggled{
             visibility: hidden;
             height: 0px;
-       }
+        }
+        #manuscriptsResult .tag{
+            cursor: pointer;
+            text-transform: none;
+        }
+        #manuscriptsResult .tag:hover{
+            color: var(--color-success);
+            border-color: var(--color-success);
+        }
     </style>
 </head>
 
 <body class="container">
     <gog-header></gog-header>
     <h2 class="bg-basic"> Gloss Transcription Witness </h2>
-    <p id="look" class="bg-light"> 
+    <p id="look" class="bg-light is-hidden"> 
         Connect Virtual Glosses With T-PEN Transcriptions. Please provide a T-PEN Project in order to load in a Manuscript.  The transcription text from that project will appear and can be selected.  Selected text can then be attached to a new or existing Gloss.  Note that a text selection and shelfmark are required.
     </p>
     <div id="needs" class="row bg-basic is-hidden">
-        <p class="howTo"> 
-            It looks like you haven't provided a TPEN Manifest URI.  If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  We will check for existing Manuscript Witnesses with that transcription content.
-            <input id="resourceURI" type="text" placeholder="Enter T-PEN Manifest URI or 4 digit TPEN code"/>
-            <input id="loadInput" class="button primary" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
-        </p>
+        <div class="howTo"> 
+            <p class="alert">It looks like you haven't provided a TPEN Manifest URI.
+            If you are not using the <code>?tpen-project=</code> URL parameter, you can supply a URI here.  We will check for existing Manuscript Witnesses with that transcription content.
+            </p>
+            <p class="grouped">
+                <input id="resourceURI" type="text" placeholder="Enter T-PEN Manifest URI or 4 digit TPEN code"/>
+                <input id="loadInput" class="button primary" type="button" onclick="loadURI(event)" value="Load TPEN Manifest" />
+            </p>
+        </div>
     </div>
     <!-- Perhaps this could be a Custom Element widget of some kind -->
     <div id="loading">
@@ -61,7 +73,7 @@
             </div>
         </div>
         <div class="row">
-            <label class="col-3 col-2-md text-right">Shelfmark &#10082;</label>
+            <label class="col-3 col-2-md text-right">Shelfmark</label>
             <input type="text" deer-key="identifier" placeholder="A Shelfmark is required" class="col-9 col-10-md required" required>
         </div>
         <div class="row">
@@ -89,23 +101,23 @@
                 <input type="text" deer-key="title" placeholder="Label" class="is-hidden">
                 <details>
                     <summary>
-                        <label>Shelfmark or Short Citation:</label>
+                        <label for="shelfmarkInput">Shelfmark or Short Citation:</label>
                     </summary>
                     <small>Enter manuscript shelfmark or short bibliographic citation of author and title for the
                         witness,
                         e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’.</small>
                 </details>
-                <input type="text" deer-key="identifier" required
+                <input id="shelfmarkInput" type="text" deer-key="identifier" required
                     placeholder="e.g. ‘St. Gall, Stiftsbibliothek 132’ or ‘Kuttner, Repertorium’" class="required" disabled>
             </div>
             <div class="col">
                 <details>
                     <summary>
-                        <label>Folio or Page:</label>
+                        <label for="folioInput">Folio or Page:</label>
                     </summary>
                     <small>Folio or page number from this Witness where the gloss is found.</small>
                 </details>
-                <input type="text" deer-key="_folio" placeholder="e.g, 132r">
+                <input id="folioInput" type="text" deer-key="_folio" placeholder="e.g, 132r">
             </div>
         </div>
         <div class="row">
@@ -206,7 +218,7 @@
             </deer-view>
         </div>
     </form>
-    <gog-footer class="row"></gog-footer>
+    <gog-footer></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <gloss-modal class="is-hidden"></gloss-modal>
     <script src="js/gloss-transcription.js"></script>
