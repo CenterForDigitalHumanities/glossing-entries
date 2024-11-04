@@ -797,9 +797,9 @@ resourceFile.addEventListener("change", function(event){
             fileText.value = reader.result
             fileText.classList.add("taller")
             loadFile.classList.remove("is-hidden")
-            setTimeout( () => {
-                window.scrollTo({ "top": document.body.scrollHeight, "behavior": "smooth" })
-            }, 500)
+            // setTimeout( () => {
+            //     window.scrollTo({ "top": document.body.scrollHeight, "behavior": "smooth" })
+            // }, 500)
         }
         else{
             const ev = new CustomEvent("Could not load file contents or file was empty")
@@ -836,11 +836,11 @@ function changeUserInput(event, which){
         userInput.classList.add("is-hidden")
         if(userInput.getAttribute("user-input") === which){
             userInput.classList.remove("is-hidden")
-            if(which === "cp"){
-                setTimeout( () => {
-                    window.scrollTo({ "top": document.body.scrollHeight, "behavior": "smooth" })
-                }, 500)
-            }
+            // if(which === "cp"){
+            //     setTimeout( () => {
+            //         window.scrollTo({ "top": document.body.scrollHeight, "behavior": "smooth" })
+            //     }, 500)
+            // }
         }
     })
 }
