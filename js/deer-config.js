@@ -1851,15 +1851,16 @@ function hideSearchBar() {
  * @returns {HTMLTableRowElement} - Original HTML <tr> element reference with the modifications
  */
 function modifyTableTR(tr, obj) {
-    let canonicalReference = obj?.canonicalReference?.value
+    let canonicalReference = obj?.canonicalReference?.value || ""
     let doc = obj?._document?.value
     const section = obj?._section?.value || obj?.targetChapter?.value
     const subsection = obj?._subsection?.value || obj?.targetVerse?.value
-    // FIXME we might not want to default to just 'Matthew' here
-    if(!doc && (section && subsection)) doc = "Matthew"
-    if(doc && section && subsection) canonicalReference = `${doc} ${section}:${subsection}`
-    if(!canonicalReference) canonicalReference = ""
 
+    // FIXME we might not want to default to just 'Matthew' here.  This is back support for old data.
+    if(!doc && (section && subsection)) doc = "Matthew"
+
+    if(doc && section && subsection) canonicalReference = `${doc} ${section}:${subsection}`
+    
     tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
     tr.insertAdjacentHTML('afterbegin', `<td>${canonicalReference}</td>`)
 
@@ -1867,6 +1868,7 @@ function modifyTableTR(tr, obj) {
         tr.insertAdjacentHTML('beforeend', `<td style="white-space: nowrap; overflow: auto; text-overflow: clip; max-width: 10em;">${obj["tags"]["value"]["items"]}</td>`)
     else
         tr.insertAdjacentHTML('beforeend', "<td></td>")
+    
     return tr
 }
 
