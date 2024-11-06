@@ -226,16 +226,6 @@ function globalFeedbackBlip(event, message, success) {
 }
 
 /**
- * These filters will be provided to HTML pages via the URL parameter ?gog-filter.
- * The value will be a Base64 Encoded JSON object.
- * The object is decoded here and returned as JSON.  
- */
-function filtersFromURL() {
-    const encoded = getURLParameter("gog-filter")
-    let decodedJSON = decodeContentState(encoded)
-    return decodedJSON
-}
-/**
  * Encodes content state JSON to a Base64 URL.
  * @param {string} contentStateJSON - The content state JSON to encode.
  * @returns {string} - The Base64 URL encoded string.
@@ -280,7 +270,7 @@ function restorePadding(s) {
 /**
  * A 'catch all' blip for forms submits that have not been set up with their own yet.
  * Note form submits that do have their own cause two blips for now.
- * Note we would like to be able to delete this and have each form submit give their own message.
+ * FIXME we would like to be able to delete this and have each form submit give their own message.
  */ 
 document.addEventListener('deer-updated', event => {
     globalFeedbackBlip(event, `Saving ${event.detail.name ? "'" + event.detail.name + "' " : ""}successful!`, true)
