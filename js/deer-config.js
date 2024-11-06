@@ -84,84 +84,6 @@ export default {
      * or an HTML String.
      */
     TEMPLATES: {
-        msList: function (obj, options = {}) {
-            let tmpl = `<a href="./manage-mss.html" class="button">Manage Manuscript Glosses</a> <h2>Manuscripts</h2>`
-            if (options.list) {
-                tmpl += `<ul>`
-                obj[options.list].forEach((val, index) => {
-                    tmpl += `<li>
-                    <a href="${options.link}${val['@id']}">
-                    [ <deer-view deer-id="${val["@id"]}" deer-template="prop" deer-key="alternative"></deer-view> ] <deer-view deer-id="${val["@id"]}" deer-template="label">${index + 1}</deer-view>
-                    </a>
-                    </li>`
-                })
-                tmpl += `</ul>`
-            }
-            return tmpl
-        },
-        ngList: function (obj, options = {}) {
-            let html = `<a href="./manage-glosses.html" class="button">Manage Glosses</a> <h2>Glosses</h2>
-            <input type="text" placeholder="&hellip;Type to filter by incipit" class="is-hidden">`
-            if (options.list) {
-                html += `<ul>`
-                obj[options.list].forEach((val, index) => {
-                    html += `<li>
-                    <a href="${options.link}${val['@id']}">
-                    <span deer-id="${val["@id"]}">${index + 1}</span>
-                    </a>
-                    </li>`
-                })
-                html += `</ul>`
-            }
-            const then = async (elem) => {
-                const listing = elem.getAttribute("deer-listing")
-                const pendingLists = !listing || fetch(listing).then(res => res.json())
-                    .then(list => {
-                        list[elem.getAttribute("deer-list") ?? "itemListElement"]?.forEach(item => {
-                            const record = elem.querySelector(`[deer-id='${item?.['@id'] ?? item?.id ?? item}'`)
-                            if (typeof record === 'object' && record.nodeType !== undefined) {
-                                record.innerHTML = item.label
-                                record.closest('a').classList.add("cached")
-                            }
-                        })
-                    })
-                await pendingLists
-                const newView = new Set()
-                elem.querySelectorAll("a:not(.cached) span").forEach((item,index) => {
-                    item.classList.add("deer-view")
-                    item.setAttribute("deer-template","label")
-                    newView.add(item)
-                })
-                const filter = elem.querySelector('input')
-                filter.classList.remove('is-hidden')
-                filter.addEventListener('input',ev=>debounce(filterGlosses(ev?.target.value)))
-                /**
-                 * Filters list items based on a search query by toggling their visibility.
-                 * 
-                 * This function applies a case-insensitive search to the text content of each <li> element within the specified container.
-                 * If the text content of an <li> element includes the query string, that element is shown; otherwise, it is hidden.
-                 * This function also applies a smooth transition effect for showing and hiding elements.
-                 *
-                 * @param {string} queryString The search string used to filter list items. Default is an empty string.
-                 */
-                function filterGlosses(queryString=''){
-                    const query = queryString.trim().toLowerCase()
-                    for (const prop in query) {
-                        if (typeof query[prop] === 'string') {
-                            query[prop] = query[prop].trim()
-                        }
-                    }
-                    const items = elem.querySelectorAll('li')
-                    items.forEach(el=>{
-                        const action = el.textContent.trim().toLowerCase().includes(query) ? "remove" : "add"
-                        el.classList[action](`is-hidden`,`un${action}-item`)
-                        setTimeout(()=>el.classList.remove(`un${action}-item`),500)
-                    })
-                }
-                deerUtils.broadcast(undefined, "deer-view", document, { set: newView })
-            }
-            return { html, then }
-        },
         /**
          * The Gloss list on glosses.html
          * Users should see the GoG-Named-Glosses collection.  They can filter the list of titles using a text input that matches on title.
@@ -1929,27 +1851,24 @@ function hideSearchBar() {
  * @returns {HTMLTableRowElement} - Original HTML <tr> element reference with the modifications
  */
 function modifyTableTR(tr, obj) {
+    let canonicalReference = obj?.canonicalReference?.value || ""
+    let doc = obj?._document?.value
+    const section = obj?._section?.value || obj?.targetChapter?.value
+    const subsection = obj?._subsection?.value || obj?.targetVerse?.value
+
+    // FIXME we might not want to default to just 'Matthew' here.  This is back support for old data.
+    if(!doc && (section && subsection)) doc = "Matthew"
+
+    if(doc && section && subsection) canonicalReference = `${doc} ${section}:${subsection}`
+    
     tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
-    tr.insertAdjacentHTML('afterbegin', `<td>${
-        "canonicalReference" in obj ? obj["canonicalReference"]["value"] :
-        `${
-            "_document" in obj && obj["_document"]["value"] ? obj["_document"]["value"] : "Untitled"
-        }${
-            "targetChapter" in obj && obj["targetChapter"]["value"] ? ` ${obj["targetChapter"]["value"]}` :
-            "_section" in obj && obj["_section"]["value"] ? ` ${obj["_section"]["value"]}` :
-            " _"
-        }${
-            "targetVerse" in obj && obj["targetVerse"]["value"] ? `:${obj["targetVerse"]["value"]}` :
-            "_subsection" in obj && obj["targetVerse"]["value"] ? `:${obj["targetVerse"]["value"]}` :
-            ":_"
-        }`
-    }</td>`)
+    tr.insertAdjacentHTML('afterbegin', `<td>${canonicalReference}</td>`)
+
     if ("tags" in obj && obj["tags"]["value"] && "items" in obj["tags"]["value"] && obj["tags"]["value"]["items"])
         tr.insertAdjacentHTML('beforeend', `<td style="white-space: nowrap; overflow: auto; text-overflow: clip; max-width: 10em;">${obj["tags"]["value"]["items"]}</td>`)
     else
         tr.insertAdjacentHTML('beforeend', "<td></td>")
-    if (tr.firstChild.innerHTML === "Untitled _:_")
-        tr.firstChild.innerHTML = ""
+    
     return tr
 }
 

@@ -118,5 +118,27 @@
     </div>
     <gog-footer></gog-footer>
 </body>
+<script> 
+    function redirectFromLogin(){
 
+        // From auth.js since we don't use it here
+        function b64toUrl(base64str) {
+            return window.atob(base64str.replace(/-/g, "+").replace(/_/g, "/"))
+        }
+
+        // From auth.js since we don't use it here
+        const getReferringPage = () => {
+            try {
+                return b64toUrl(location.hash.split("state=")[1].split("&")[0])
+            } catch (err) {
+                return ""
+            }
+        }
+
+        const ref = getReferringPage()
+        if (ref && ref !== location.href) { location.href = ref }
+    }
+
+    redirectFromLogin()
+</script>
 </html>

@@ -71,29 +71,6 @@ export default {
             throw err
         })
     },
-    listFromCollection: function (collectionId) {
-        let queryObj = {
-            body: {
-                targetCollection: collectionId
-            }
-        }
-        return fetch(`${DEER.URLS.QUERY}?limit=100&skip=0`, {
-            method: "POST",
-            mode: 'cors',
-            headers:{
-                "Content-Type" : "application/json;charset=utf-8"
-            },
-            body: JSON.stringify(queryObj)
-        }).then(response => response.json())
-            .then(function (pointers) {
-                let list = []
-                pointers.map(tc => list.push(fetch(tc.target).then(response => response.json())))
-                return Promise.all(list)
-            })
-            .then(function (list) {
-                return list
-            })
-    },
     getValue: function (property, alsoPeek = [], asType) {
         // TODO: There must be a best way to do this...
         let prop;
@@ -429,24 +406,6 @@ export default {
     },
 
     /**
-     * Remove array values that are objects or arrays.  We have decided these are not meant to be put to the interface.
-     */
-    cleanArray: function (arr) {
-        let UTILS = this
-        return arr.filter((arrItem) => {
-            if (Array.isArray(arrItem)) {
-                UTILS.warning("An annotation body value array contained an array.  We ignored it.  See ignored value below.")
-                UTILS.warning(arrItem)
-            } else if (typeof arrItem === "object") {
-                //TODO how should we handle?
-                UTILS.warning("An annotation body value array contained an object.  We ignored it.  See ignored value below.")
-                UTILS.warning(arrItem)
-            }
-            return ["string", "number"].indexOf(typeof arrItem) > -1
-        })
-    },
-
-    /**
      * Get the array of data from the container object, so long at it is one of the containers we support (so we know where to look.) 
      */
     getArrayFromObj: function (containerObj, inputElem) {
@@ -613,19 +572,6 @@ export default {
             if (pair[0] == variable) { return pair[1] }
         }
         return (false)
-    },
-    filtersFromURL: function(filters=[]) {
-        filters = {
-            "incipit":{
-                "value" : "An incipit example",
-                "chainLogic" : "$or"
-            },
-            "chapter":{
-                "value" : 1,
-                "chainLogic" : "$and"
-            }
-        }
-        return filters
     },
     handleErrorBlip(response){
         const ev = new CustomEvent("RERUM error")

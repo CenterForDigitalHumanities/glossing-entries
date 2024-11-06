@@ -65,7 +65,7 @@ class AuthButton extends HTMLButtonElement {
                 login() // Perform login if not authenticated.
             }
             const ref = getReferringPage()
-            if (Boolean(ref) && ref !== location.href) { location.href = ref }
+            if (ref && ref !== location.href) { location.href = ref }
             if (!(result?.idToken ?? result?.accessToken)){
                 console.error("There was missing token information from the login. Reset the cached User")
                 window.GOG_USER = {}
