@@ -26,7 +26,7 @@ window.onload = () => {
             broadcast(ev_err, "expandError", document, {"uri":glossHashID, "error":"Location hash is not a URI."})
             return
         }
-        setFieldDisabled(true)
+        // setFieldDisabled(true)
         document.querySelector("gog-references-browser").setAttribute("gloss-uri", glossHashID)
         document.querySelectorAll(".addWitnessBtn").forEach(btn => btn.classList.remove("is-hidden"))
         const deleteGlossBtn = glossForm.querySelector(".dropGloss")
