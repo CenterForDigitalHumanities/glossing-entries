@@ -272,9 +272,9 @@ function restorePadding(s) {
  * Note form submits that do have their own cause two blips for now.
  * FIXME we would like to be able to delete this and have each form submit give their own message.
  */ 
-document.addEventListener('deer-updated', event => {
-    globalFeedbackBlip(event, `Saving ${event.detail.name ? "'" + event.detail.name + "' " : ""}successful!`, true)
-})
+// document.addEventListener('deer-updated', event => {
+//     globalFeedbackBlip(event, `Saving ${event.detail.name ? "'" + event.detail.name + "' " : ""}successful!`, true)
+// })
 
 /** Auth */
 /**

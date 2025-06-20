@@ -392,7 +392,7 @@ addEventListener('deer-updated', async (event) => {
         $elem.querySelector("select[custom-text-key='language']"),
         $elem.querySelector("textarea[custom-text-key='text']")
     ]
-    if(customTextElems.filter(el => el.$isDirty).length > 0){
+    if(customTextElems.filter(el => el.$isDirty).length > 0) {
         // One of the text properties has changed so we need the text object
         const language = customTextElems[0].value
         const text = customTextElems[1].value
@@ -429,20 +429,36 @@ addEventListener('deer-updated', async (event) => {
             console.error(err)
         })
         .then(success => {
-            console.log("GLOSS FULLY SAVED")
-            const ev = new CustomEvent("Thank you for your Gloss Submission!")
-            globalFeedbackBlip(ev, `Thank you for your Gloss Submission!`, true)
+            console.log("FORM FULLY SAVED")
+            const ev = new CustomEvent("Gloss Submitted!")
+            globalFeedbackBlip(ev, `Gloss Submission!`, true)
             if(!glossHashID){
                 setTimeout(() => {
                     window.location = `gloss-metadata.html#${entityID}`
                     window.location.reload()
                 }, 2000)    
             }
+            else{
+                inProgress(null, false)
+            }
         })
         .catch(err => {
             console.error("ERROR PROCESSING SOME FORM FIELDS")
             console.error(err)
         })
+    }
+    else{
+        const ev = new CustomEvent("Gloss Submitted!")
+        globalFeedbackBlip(ev, `Gloss Submitted!`, true)
+        if(!glossHashID){
+            setTimeout(() => {
+                window.location = `gloss-metadata.html#${entityID}`
+                window.location.reload()
+            }, 2000)    
+        }
+        else{
+            inProgress(null, false)
+        }
     }
 
 })
