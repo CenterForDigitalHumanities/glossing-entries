@@ -305,7 +305,7 @@ if (document.readyState === 'interactive' || 'loaded') loadHashId()
  * @returns {Promise<Array>} - A promise that resolves to an array of matching glosses.
  */
 async function findMatchingIncipits(incipit, titleStart) {
-    if(!constants?.generator) await setConstants()
+    if(!__constants?.generator) await setConstants()
     if (incipit?.length < 5) { 
         const ev = new CustomEvent(`Text "${incipit}" is too short to consider.`)
         globalFeedbackBlip(ev, `Text "${incipit}" is too short to consider for this check.`, false)
@@ -365,7 +365,7 @@ function undoBrowserSelection(s){
  * @return boolean true when a Gloss URI is in the public list
  */ 
 async function isPublicGloss(glossID){
-    if(!constants?.ngCollection) await setConstants()
+    if(!__constants?.ngCollection) await setConstants()
     const publicList = await fetch(__constants.ngCollection).then(resp => resp.json()).catch(err => {return null})
     if(!publicList || !publicList?.itemListElement){
         throw new Error("Unable to fetch public list to check against")
