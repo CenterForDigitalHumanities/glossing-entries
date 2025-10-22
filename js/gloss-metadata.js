@@ -540,10 +540,7 @@ function prefillTagsArea(tagData, form = document.getElementById("named-gloss"))
     }
     const tagsInput = form.querySelector("input[deer-key='tags']")
     const source = tagData.source
-    if (source?.citationSource) {
-        tagsInput.setAttribute("deer-source", source.citationSource ?? "") 
-    }
-    
+    if (source?.citationSource) tagsInput.setAttribute("deer-source", source.citationSource) 
     tagsInput.value = arr_names.join(",")
     let area = tagsInput.nextElementSibling //The view or select should always be just after the input tracking the values from it.
     //Now build the little tags
