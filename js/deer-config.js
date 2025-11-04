@@ -866,7 +866,6 @@ export default {
                     const filterPresent = containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
-                    const negotiatedId = obj['@id'] ?? obj.id
                     a.setAttribute("href", options.link + negotiatedId)
                     a.setAttribute("target", "_blank")
                     // Turn each property into an attribute for the <li> element
@@ -968,7 +967,6 @@ export default {
                     li.setAttribute("deer-id", glossID)
                     let a = document.createElement("a")
                     a.classList.add("galleryEntry")
-                    const negotiatedId = obj['@id'] ?? obj.id
                     a.setAttribute("href", options.link + negotiatedId)
                     a.setAttribute("target", "_blank")
                     a.setAttribute("glossid", glossID)
@@ -1434,7 +1432,6 @@ export default {
                     const filterPresent = containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getValue(obj.identifier) ? deerUtils.getValue(obj.identifier) : "Label Unprocessable"
-                    const negotiatedId = obj['@id'] ?? obj.id
                     a.setAttribute("href", options.link + negotiatedId)
                     a.setAttribute("target", "_blank")
                     // Turn each property into an attribute for the <li> element
