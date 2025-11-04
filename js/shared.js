@@ -1269,12 +1269,12 @@ addEventListener('gloss-modal-saved', event => {
     // Make this a deer-view so this Gloss is expanded and cached, resulting in more attributes for this element to be filtered on.
     div.classList.add("deer-view")
     div.setAttribute("deer-template", "filterableListItem_glossSelector")
-    div.setAttribute("deer-id", negotiatedId)
+    div.setAttribute("deer-id", glossURI)
     div.setAttribute("deer-link", "gloss-metadata.html#")
     li.setAttribute("data-title", title)
     
     // We know the title already so this makes a handy placeholder :)
-    li.innerHTML = `<span class="serifText"><a target="_blank" href="gloss-metadata.html#${negotiatedId}">${title}...</a></span>`
+    li.innerHTML = `<span class="serifText"><a target="_blank" href="gloss-metadata.html#${glossURI}">${title}...</a></span>`
     // This helps filterableListItem_glossSelector know how to style the attach button, and also lets us know to change count/total loaded Glosses.
     if(witnessFragmentID){
         div.setAttribute("update-scenario", "true")
