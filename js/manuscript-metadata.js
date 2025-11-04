@@ -23,7 +23,7 @@ function initManuscriptWitnessForm(event){
     let whatRecordForm = event.target?.id
     if(whatRecordForm !== "manuscriptWitnessForm") return
     let annotationData = event.detail ?? {}
-    const negotiatedId = annotationData["@id"] ?? annotaitonData.id
+    const negotiatedId = annotationData["@id"] ?? annotationData.id
     if(!negotiatedId) return
     const entityType = annotationData.type ?? annotationData["@type"] ?? null
     if(entityType !== "ManuscriptWitness"){
