@@ -182,7 +182,7 @@ class ManageGlossModal extends HTMLElement {
                 const publicList = await fetch(__constants.ngCollection).then(resp => resp.json()).catch(err => {return null})
                 const items = publicList.itemListElement.filter(obj => {
                     const negotiatedId = obj["@id"] ?? obj.id
-                    return obj["@id"].split().pop() !== glossURI.split().pop()
+                    return obj["@id"].split('/').pop() !== glossURI.split('/').pop()
                 })
                 const list = {
                     '@id': __constants.ngCollection,
