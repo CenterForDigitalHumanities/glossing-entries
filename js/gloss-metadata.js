@@ -364,7 +364,7 @@ async function generateWitnessesOnSubmit(glossid){
                 },
                 "value" : [glossid]
             }
-            const negotiatedCreatedPartOfAnnoId = reatedPartOfAnno["@id"] ?? reatedPartOfAnno.id
+            const negotiatedCreatedPartOfAnnoId = createdPartOfAnno["@id"] ?? createdPartOfAnno.id
             createdWitnessFragment.partOf = {
                 "source":{
                     "citationSource":negotiatedCreatedPartOfAnnoId
