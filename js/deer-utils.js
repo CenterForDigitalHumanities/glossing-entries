@@ -171,7 +171,8 @@ export default {
                         } catch (err) { continue }
                         if (!body) { continue }
                         if (body.evidence) {
-                            obj.evidence = (typeof body.evidence === "object") ? body.evidence["@id"] : body.evidence;
+                            const negotiatedId = body.evidence["@id"] ?? body.evidence.id
+                            obj.evidence = (typeof body.evidence === "object") ? negotiatedId : body.evidence;
                         }
                         if (!Array.isArray(body)) {
                             body = [body]

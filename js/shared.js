@@ -370,7 +370,10 @@ async function isPublicGloss(glossID){
     if(!publicList || !publicList?.itemListElement){
         throw new Error("Unable to fetch public list to check against")
     }
-    const publicListUris = publicList.itemListElement.map(obj => obj["@id"].split("/").pop())
+    const publicListUris = publicList.itemListElement.map(obj => {
+        const negotiatedId = obj["@id"] ?? obj.id
+        return negotiatedId.split("/").pop()
+    })
     return publicListUris.includes(glossID.split("/").pop())
 }
 
@@ -563,7 +566,7 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
             body: JSON.stringify(annos_query)
         })
         .then(resp => resp.json()) 
-        .then(annos => annos.map(anno => anno["@id"]))
+        .then(annos => annos.map(anno => anno["@id"] ?? anno.id))
         .catch(err => {
             return null
         })
@@ -663,7 +666,7 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
             body: JSON.stringify(manuscript_annos_query)
         })
         .then(resp => resp.json()) 
-        .then(annos => annos.map(anno => anno["@id"]))
+        .then(annos => annos.map(anno => anno["@id"] ?? anno.id))
         .catch(err => {
             return null
         })
@@ -1257,7 +1260,8 @@ addEventListener('gloss-modal-saved', event => {
     const list = view.querySelector("ul")
     const modal = event.target
     const title = modal.querySelector("form").querySelector("input[deer-key='title']").value
-    const glossURI = gloss["@id"].replace(/^https?:/, 'https:')
+    const negotiatedId = gloss["@id"] ?? gloss.id
+    const glossURI = negotiatedId.replace(/^https?:/, 'https:')
     modal.classList.add("is-hidden")
 
     const li = document.createElement("li")
@@ -1265,12 +1269,12 @@ addEventListener('gloss-modal-saved', event => {
     // Make this a deer-view so this Gloss is expanded and cached, resulting in more attributes for this element to be filtered on.
     div.classList.add("deer-view")
     div.setAttribute("deer-template", "filterableListItem_glossSelector")
-    div.setAttribute("deer-id", gloss["@id"])
+    div.setAttribute("deer-id", negotiatedId)
     div.setAttribute("deer-link", "gloss-metadata.html#")
     li.setAttribute("data-title", title)
     
     // We know the title already so this makes a handy placeholder :)
-    li.innerHTML = `<span class="serifText"><a target="_blank" href="gloss-metadata.html#${gloss["@id"]}">${title}...</a></span>`
+    li.innerHTML = `<span class="serifText"><a target="_blank" href="gloss-metadata.html#${negotiatedId}">${title}...</a></span>`
     // This helps filterableListItem_glossSelector know how to style the attach button, and also lets us know to change count/total loaded Glosses.
     if(witnessFragmentID){
         div.setAttribute("update-scenario", "true")

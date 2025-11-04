@@ -457,7 +457,8 @@ class BibliographicCitationView extends HTMLElement {
     selectedEntities.innerHTML = ""
 
     citations.forEach((citation) => {
-      this.citationsMap[citation["@id"]] = citation.citation
+      const negotiatedId = citation["@id"] ?? citation.id
+      this.citationsMap[negotiatedId] = citation.citation
       const citationContent = this.createCitationCard(citation)
       selectedEntities.insertAdjacentHTML("beforeend", citationContent)
     })
@@ -474,7 +475,7 @@ class BibliographicCitationView extends HTMLElement {
     const previewContent = citation.citation.length > 40 ? citation.citation.substring(0, 40) + "…" : citation.citation
 
     return `
-            <div class="referenceCard" data-id="${citation["@id"]}">
+            <div class="referenceCard" data-id="${citation["@id"] ?? citation.id}">
                 
                 <div class="referenceCardActions">
                     ${
