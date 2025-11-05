@@ -387,7 +387,6 @@ function addButton(event) {
     else if(updateScenario) { 
         // Set the references input with the new gloss URI and update the form
         const refKey = witnessFragmentForm.querySelector("input[custom-key='references']")
-        const negotiatedId = obj["@id"] ?? obj.id
         if(refKey.value !== negotiatedId){
             refKey.value = negotiatedId
             refKey.setAttribute("value", negotiatedId) 
