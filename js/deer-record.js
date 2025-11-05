@@ -37,7 +37,7 @@ async function renderChange(mutationsList) {
                     obj = JSON.parse(localStorage.getItem(id))
                 } catch (err) {/* fail silently if JSON parsing fails */ }
                 const negotiatedId = obj["@id"] ?? obj.id
-                if (!obj ?? !negotiatedId) {
+                if (!obj || !negotiatedId) {
                     // If no object found, fetch it from the network.
                     id = id.replace(/^https?:/, 'https:') // avoid mixed content
                     obj = await fetch(id).then(response => response.json()).catch(error => error)
