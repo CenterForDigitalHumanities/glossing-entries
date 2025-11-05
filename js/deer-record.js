@@ -43,7 +43,7 @@ async function renderChange(mutationsList) {
                     obj = await fetch(id).then(response => response.json()).catch(error => error)
                     if (obj) {
                         // Store fetched object in local storage for future use.
-                        localStorage.setItem(negotiatedId, JSON.stringify(obj))
+                        localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
                     } else {
                         return false
                     }
