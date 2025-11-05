@@ -43,7 +43,7 @@ async function renderChange(mutationsList) {
                     id = id.replace(/^https?:/, 'https:') // avoid mixed content
                     obj = await fetch(id).then(response => response.json()).catch(error => error)
                     if (obj) {
-                        localStorage.setItem(negotiatedId, JSON.stringify(obj))
+                        localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
                     } else {
                         return false
                     }
