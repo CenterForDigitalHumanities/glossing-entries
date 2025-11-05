@@ -62,7 +62,7 @@ document.addEventListener("WitnessFragmentDeleted", function(event){
  */
 document.addEventListener("WitnessFragmentDeleteError", function(event){
     const ev = new CustomEvent("WitnessFragment Delete Error")
-    globalFeedbackBlip(ev, `There was an deleting the Witness Fragment with URI ${event.detail["@id"] ?? event.detail.id}`, false)
+    globalFeedbackBlip(ev, `There was an error deleting the Witness Fragment with URI ${event.detail["@id"] ?? event.detail.id}`, false)
     addEventListener("globalFeedbackFinished", () => {
         setFieldDisabled(true)
     })
