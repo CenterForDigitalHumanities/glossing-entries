@@ -392,8 +392,8 @@ function addButton(event) {
     inclusionBtn.setAttribute("type", "button")
     inclusionBtn.setAttribute("data-id", obj["@id"])
     let already = false
+    const negotiatedId = obj["@id"] ?? obj.id
     if(witnessFragmentsObj?.referencedGlosses){
-        const negotiatedId = obj["@id"] ?? obj.id
         already = witnessFragmentsObj.referencedGlosses.has(negotiatedId) ? "attached-to-source" : ""
     }
     if(updateScenario){
