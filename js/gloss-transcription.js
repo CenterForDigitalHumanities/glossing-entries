@@ -384,15 +384,15 @@ function addButton(event) {
     const template_container = event.target
     if(template_container.getAttribute("deer-template") !== "filterableListItem_glossSelector") return
     const obj = event.detail
+    const negotiatedId = obj["@id"] ?? obj.id
     const gloss_li = template_container.firstElementChild
     const createScenario = template_container.hasAttribute("create-scenario")
     const updateScenario = template_container.hasAttribute("update-scenario")
     // A new Gloss has been introduced and is done being cached.
     let inclusionBtn = document.createElement("input")
     inclusionBtn.setAttribute("type", "button")
-    inclusionBtn.setAttribute("data-id", obj["@id"])
+    inclusionBtn.setAttribute("data-id", negotiatedId)
     let already = false
-    const negotiatedId = obj["@id"] ?? obj.id
     if(witnessFragmentsObj?.referencedGlosses){
         already = witnessFragmentsObj.referencedGlosses.has(negotiatedId) ? "attached-to-source" : ""
     }
