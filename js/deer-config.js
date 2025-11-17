@@ -1709,16 +1709,45 @@ export default {
                     linkHeading.innerText= "Witness Fragment Links"
                     elem.appendChild(linkHeading)
                     const linkList = document.createElement("ul")
-                    obj.fragments.value.forEach((uri, index) => {
-                        let item = document.createElement("li")
-                        let link = document.createElement("a")
-                        link.setAttribute("target", "_blank")
-                        link.setAttribute("href", `fragment-metadata.html#${uri}`)
-                        link.innerText = `Witness Fragment #${index+1}`
-                        //link.innerText = uri
-                        item.appendChild(link)
-                        linkList.appendChild(item)
+                    
+                    // Fetch fragment data to get labels
+                    const fragmentPromises = obj.fragments.value.map(async (uri, index) => {
+                        try {
+                            const fragmentData = await deerUtils.expand(uri)
+                            const identifier = fragmentData?.identifier?.value || ""
+                            const folio = fragmentData?._folio?.value || ""
+                            
+                            let label
+                            if (identifier && folio) {
+                                label = `${identifier} - ${folio}`
+                            } else if (identifier) {
+                                label = identifier
+                            } else if (folio) {
+                                label = `Folio ${folio}`
+                            } else {
+                                label = `Witness Fragment #${index + 1}`
+                            }
+                            
+                            return { uri, label, index }
+                        } catch (err) {
+                            console.error(`Error fetching fragment ${uri}:`, err)
+                            return { uri, label: `Witness Fragment #${index + 1}`, index }
+                        }
                     })
+                    
+                    // Wait for all fragments to be fetched and then display them
+                    Promise.all(fragmentPromises).then(fragments => {
+                        fragments.forEach(({ uri, label }) => {
+                            let item = document.createElement("li")
+                            let link = document.createElement("a")
+                            link.setAttribute("target", "_blank")
+                            link.setAttribute("href", `fragment-metadata.html#${uri}`)
+                            link.innerText = label
+                            item.appendChild(link)
+                            linkList.appendChild(item)
+                        })
+                    })
+                    
                     elem.appendChild(linkList)
                 }
             }
