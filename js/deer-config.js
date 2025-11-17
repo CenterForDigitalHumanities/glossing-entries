@@ -1859,7 +1859,7 @@ function modifyTableTR(tr, obj) {
     // FIXME we might not want to default to just 'Matthew' here.  This is back support for old data.
     if(!doc && (section && subsection)) doc = "Matthew"
 
-    if(doc && section && subsection) canonicalReference = `${doc} ${section}:${subsection}`
+    if(doc && section && subsection) canonicalReference = `${doc} ${section}.${subsection}`
     
     tr.style = "border-bottom: 0.1em solid var(--color-lightGrey);"
     tr.insertAdjacentHTML('afterbegin', `<td>${canonicalReference}</td>`)
