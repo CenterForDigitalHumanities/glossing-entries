@@ -1746,6 +1746,8 @@ export default {
                             item.appendChild(link)
                             linkList.appendChild(item)
                         })
+                    }).catch(err => {
+                        console.error("Error loading fragment labels:", err)
                     })
                     
                     elem.appendChild(linkList)
