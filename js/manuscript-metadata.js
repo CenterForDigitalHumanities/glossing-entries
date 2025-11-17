@@ -23,7 +23,8 @@ function initManuscriptWitnessForm(event){
     let whatRecordForm = event.target?.id
     if(whatRecordForm !== "manuscriptWitnessForm") return
     let annotationData = event.detail ?? {}
-    if(!annotationData["@id"]) return
+    const negotiatedId = annotationData["@id"] ?? annotationData.id
+    if(!negotiatedId) return
     const entityType = annotationData.type ?? annotationData["@type"] ?? null
     if(entityType !== "ManuscriptWitness"){
         location.href = confirm('Entity provided is not a ManuscriptWitness.  Select one from the list.')
@@ -77,7 +78,7 @@ document.addEventListener("ManuscriptWitnessDeleted", function(event){
  */
 document.addEventListener("ManuscriptWitnessDeleteError", function(event){
     const ev = new CustomEvent("Manuscript Delete Error")
-    globalFeedbackBlip(ev, `There was an issue removing the Manuscript Witness with URI ${event.detail["@id"]}.  This item may still appear in collections.`, false)
+    globalFeedbackBlip(ev, `There was an issue removing the Manuscript Witness with URI ${event.detail["@id"] ?? event.detail.id}.  This item may still appear in collections.`, false)
     addEventListener("globalFeedbackFinished", () => {
         setFieldDisabled(true)
     })

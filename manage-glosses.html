@@ -63,8 +63,9 @@
         document.addEventListener("GlossDeleted", function(event){
             const ev = new CustomEvent("This Gloss has been deleted.")
             globalFeedbackBlip(ev, `Gloss deleted`, true)
-            document.querySelector(`[deer-id="${event.detail["@id"]}"]`).closest("li").remove()
-            document.querySelector("deer-view[deer-template='managedlist']").listCache.delete(event.detail["@id"])
+            const negotiatedId = event.detail["@id"] ?? event.detail.id
+            document.querySelector(`[deer-id="${negotiatedId}"]`).closest("li").remove()
+            document.querySelector("deer-view[deer-template='managedlist']").listCache.delete(negotiatedId)
         })
 
         /**
@@ -73,7 +74,7 @@
          */
         document.addEventListener("GlossDeleteError", function(event){
             const ev = new CustomEvent("Gloss Delete Error")
-            globalFeedbackBlip(ev, `There was an issue removing the Gloss with URI ${event.detail["@id"]}.  This item may still appear in collections.`, false)
+            globalFeedbackBlip(ev, `There was an issue removing the Gloss with URI ${event.detail["@id"] ?? event.detail.id}.  This item may still appear in collections.`, false)
             console.error(event.error)
         })
     </script>

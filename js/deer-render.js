@@ -38,7 +38,8 @@ async function renderChange(mutationsList) {
                 try {
                     obj = JSON.parse(localStorage.getItem(id))
                 } catch (err) { }
-                if (!obj?.["@id"]) {
+                const negotiatedId = obj["@id"] ?? obj.id
+                if (!negotiatedId) {
                     id = id.replace(/^https?:/, 'https:') // avoid mixed content
                     obj = await fetch(id).then(response => response.json()).catch(error => error)
                     if (obj) {
@@ -53,7 +54,7 @@ async function renderChange(mutationsList) {
                 let listensTo = mutation.target.getAttribute(DEER.LISTENING)
                 if (listensTo) {
                     mutation.target.addEventListener(DEER.EVENTS.CLICKED, e => {
-                        let loadId = e.detail["@id"]
+                        let loadId = e.detail["@id"] ?? e.detail.id
                         if (loadId === listensTo) { mutation.target.setAttribute("deer-id", loadId) }
                     })
                 }
@@ -187,13 +188,13 @@ DEER.TEMPLATES.folioTranscription = function (obj, options = {}) {
                 ${ms.sequences[0].canvases.slice(0, 10).reduce((a, b) => a += `
                 <div class="page">
                     <h3>${b.label}</h3> 
-                    <a href="./layout.html?partOf=${elem.getAttribute("deer-partof")}#${ms['@id']}">(edit layout)</a>
-                    <a href="./align-glosses.html#${ms['@id']}">(align Glosses)</a>
+                    <a href="./layout.html?partOf=${elem.getAttribute("deer-partof")}#${ms['@id'] ?? ms.id}">(edit layout)</a>
+                    <a href="./align-glosses.html#${ms['@id'] ?? ms.id}">(align Glosses)</a>
                     <div class="pull-right col-6">
                         <img src="${b.images[0].resource['@id']}">
                     </div>
                         ${b.otherContent[0].resources.reduce((aa, bb) => aa += `
-                        <span class="line" title="${bb["@id"]}">${bb.resource["cnt:chars"].length ? bb.resource["cnt:chars"] : "[ empty line ]"}</span>
+                        <span class="line" title="${bb["@id"] ?? bb.id}">${bb.resource["cnt:chars"].length ? bb.resource["cnt:chars"] : "[ empty line ]"}</span>
                         `, ``)}
                 </div>
                 `, ``)}
@@ -310,7 +311,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 const deduplicatedList = UTILS.removeDuplicates(obj[options.list], '@id')
                 total = deduplicatedList.length                
                 deduplicatedList.forEach((val, index) => {
-                    const glossID = val["@id"].replace(/^https?:/, 'https:')
+                    const negotiatedId = val["@id"] ?? val.id
+                    const glossID = negotiatedId.replace(/^https?:/, 'https:')
                     const publishedStatus = document.createElement("span")
                     publishedStatus.classList.add("pubStatus")
                     publishedStatus.setAttribute("glossid", glossID)
@@ -491,7 +493,10 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             fetch(url).then(r => r.json())
             .then(list => {
                 elem.listCache = new Set()
-                list.itemListElement?.forEach(item => elem.listCache.add(item['@id'].replace(/^https?:/, 'https:')))
+                list.itemListElement?.forEach(item => {
+                    const negotiatedId = item['@id'] ?? item.id
+                    elem.listCache.add(negotiatedId.replace(/^https?:/, 'https:'))
+                })
                 for (const span of elem.querySelectorAll('.pubStatus')) {
                     const li = span.parentElement
                     const a = li.querySelector("a")
@@ -624,7 +629,8 @@ DEER.TEMPLATES.entity = function (obj, options = {}) {
             if (Array.isArray(value)) {
                 value.forEach((v, index) => {
                     let name = UTILS.getLabel(v, (v.type ?? v['@type'] ?? label + '' + index))
-                    list += (v["@id"]) ? `<dd><a href="#${v["@id"]}">${name}</a></dd>` : `<dd ${DEER.SOURCE}="${UTILS.getValue(v.source, "citationSource")}">${UTILS.getValue(v)}</dd>`
+                    let negotiatedId = v["@id"] ?? v.id
+                    list += (negotiatedId) ? `<dd><a href="#${negotiatedId}">${name}</a></dd>` : `<dd ${DEER.SOURCE}="${UTILS.getValue(v.source, "citationSource")}">${UTILS.getValue(v)}</dd>`
                 })
             } else {
                 // a single, probably
@@ -642,7 +648,8 @@ DEER.TEMPLATES.entity = function (obj, options = {}) {
                 let v = UTILS.getValue(value)
                 if (typeof v === "object") { v = UTILS.getLabel(v) }
                 if (v === "[ unlabeled ]") { v = v['@id'] ?? v.id ?? "[ complex value unknown ]" }
-                list += (value['@id']) ? `<dd ${DEER.SOURCE}="${UTILS.getValue(value.source, "citationSource")}"><a href="${options.link ?? ""}#${value['@id']}">${v}</a></dd>` : `<dd ${DEER.SOURCE}="${UTILS.getValue(value, "citationSource")}">${v}</dd>`
+                const negotiatedId = value['@id'] ?? value.id
+                list += (negotiatedId) ? `<dd ${DEER.SOURCE}="${UTILS.getValue(value.source, "citationSource")}"><a href="${options.link ?? ""}#${negotiatedId}">${v}</a></dd>` : `<dd ${DEER.SOURCE}="${UTILS.getValue(value, "citationSource")}">${v}</dd>`
             }
         }
     }

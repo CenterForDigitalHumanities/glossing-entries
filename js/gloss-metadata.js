@@ -94,7 +94,7 @@ document.addEventListener("GlossDeleted", function(event){
  */
 document.addEventListener("GlossDeleteError", function(event){
     const ev = new CustomEvent("Gloss Delete Error")
-    globalFeedbackBlip(ev, `There was an issue removing the Gloss with URI ${event.detail["@id"]}.  This item may still appear in collections.`, false)
+    globalFeedbackBlip(ev, `There was an issue removing the Gloss with URI ${event.detail["@id"] ?? event.detail.id}.  This item may still appear in collections.`, false)
     addEventListener("globalFeedbackFinished", () => {
         setFieldDisabled(true)
     })
@@ -110,7 +110,8 @@ function initGlossForm(event){
     let whatRecordForm = event.target.id
     if(whatRecordForm !== "named-gloss") return
     let annotationData = event.detail ?? {}
-    if(!annotationData["@id"]) return
+    const negotiatedId = annotationData["@id"] ?? annotationData.id
+    if(!negotiatedId) return
     const entityType = annotationData.type ?? annotationData["@type"] ?? null
     if(entityType !== "Gloss" && entityType !== "named-gloss"){
         const ev = new CustomEvent("Gloss Details Error")
@@ -201,7 +202,9 @@ async function generateWitnessesOnSubmit(glossid){
         })
         .then(res => res.json())
         .catch(err => {throw err})
-        if(matchedManuscript["@id"] && createdWitnessFragment["@id"]){
+        const matchedManuscriptNegotiatedId = matchedManuscript["@id"] ?? matchedManuscript.id
+        const createdWitnessFragmentNegotiatedId = createdWitnessFragment["@id"] ?? createdWitnessFragment.id
+        if(matchedManuscriptNegotiatedId && createdWitnessFragmentNegotiatedId){
             let identifierObj_Manuscript = {
                 "@context":"http://www.w3.org/ns/anno.jsonld",
                 "@type":"Annotation",
@@ -210,7 +213,7 @@ async function generateWitnessesOnSubmit(glossid){
                         "value":user_input
                     }
                 },
-                "target": matchedManuscript["@id"],
+                "target": matchedManuscriptNegotiatedId,
                 "creator": window.GOG_USER["http://store.rerum.io/agent"]
             }
             let targetCollectionObj = {
@@ -219,7 +222,7 @@ async function generateWitnessesOnSubmit(glossid){
                 "body":{
                     "targetCollection": "GoG-Manuscripts"
                 },
-                "target": matchedManuscript["@id"],
+                "target": matchedManuscriptNegotiatedId,
                 "creator": window.GOG_USER["http://store.rerum.io/agent"]
             }
             let identifierObj_Fragment = {
@@ -230,7 +233,7 @@ async function generateWitnessesOnSubmit(glossid){
                         "value":user_input
                     }
                 },
-                "target": createdWitnessFragment["@id"],
+                "target": createdWitnessFragmentNegotiatedId,
                 "creator": window.GOG_USER["http://store.rerum.io/agent"]
             }
             let partOfObj = {
@@ -238,10 +241,10 @@ async function generateWitnessesOnSubmit(glossid){
                 "@type":"Annotation",
                 "body":{
                     "partOf":{
-                        "value":matchedManuscript["@id"]
+                        "value":matchedManuscriptNegotiatedId
                     }
                 },
-                "target": createdWitnessFragment["@id"],
+                "target": createdWitnessFragmentNegotiatedId,
                 "creator": window.GOG_USER["http://store.rerum.io/agent"]
             }
             let referencesObj = {
@@ -252,13 +255,13 @@ async function generateWitnessesOnSubmit(glossid){
                         "value":[glossid]
                     }
                 },
-                "target": createdWitnessFragment["@id"],
+                "target": createdWitnessFragmentNegotiatedId,
                 "creator": window.GOG_USER["http://store.rerum.io/agent"]
             }
             
             const a = witness_li.querySelector("a")
-            witness_li.setAttribute("deer-id", matchedManuscript["@id"])
-            a.setAttribute("href", `manuscript-profile.html#${matchedManuscript["@id"]}`)
+            witness_li.setAttribute("deer-id", matchedManuscriptNegotiatedId)
+            a.setAttribute("href", `manuscript-profile.html#${matchedManuscriptNegotiatedId}`)
             let createdIdentifierAnno_Manuscript = null
             let createdTargetCollectionAnno = null
             let [
@@ -327,41 +330,46 @@ async function generateWitnessesOnSubmit(glossid){
                 .then(res => res.json())
                 .catch(err => {throw err})
             }
-
-            witness_li.setAttribute("deer-source", createdReferencesAnno["@id"])
-            a.setAttribute("deer-source", createdIdentifierAnno_Fragment["@id"])
+            const createdReferencesAnnoNegotiatedId = createdReferencesAnno["@id"] ?? createdReferencesAnno.id
+            const createdIdentifierAnno_FragmentNegotiatedId = createdIdentifierAnno_Fragment["@id"] ?? createdIdentifierAnno_Fragment.id
+            witness_li.setAttribute("deer-source", createdReferencesAnnoNegotiatedId)
+            a.setAttribute("deer-source", createdIdentifierAnno_FragmentNegotiatedId)
             witness_li.querySelector("span").remove()
             witness_li.classList.remove("witness-queued")
 
             createdWitnessFragment.identifier = {
                 "source":{
-                    "citationSource":createdIdentifierAnno_Fragment["@id"]
+                    "citationSource":createdIdentifierAnno_FragmentNegotiatedId
                 },
                 "value" : user_input
             }
+            const negotiatedManuscriptIdentifier = createdIdentifierAnno_Manuscript["@id"] ?? createdIdentifierAnno_Manuscript.id
             matchedManuscript.identifier = {
                 "source":{
-                    "citationSource": createdIdentifierAnno_Manuscript ? createdIdentifierAnno_Manuscript["@id"] : "already_existed"
+                    "citationSource": negotiatedManuscriptIdentifier ?? "already_existed"
                 },
                 "value" : user_input
             }
+            const negotiatedCreatedTargetCollectionAnnoId = createdTargetCollectionAnno["@id"] ?? createdTargetCollectionAnno.id
             matchedManuscript.targetCollection = {
                 "source":{
-                    "citationSource": createdTargetCollectionAnno ? createdTargetCollectionAnno["@id"] : "already_existed"
+                    "citationSource": negotiatedCreatedTargetCollectionAnnoId ?? "already_existed"
                 },
                 "value" : "GoG-Manuscripts"
             }
+
             createdWitnessFragment.references = {
                 "source":{
-                    "citationSource":createdReferencesAnno["@id"]
+                    "citationSource":createdReferencesAnnoNegotiatedId
                 },
                 "value" : [glossid]
             }
+            const negotiatedCreatedPartOfAnnoId = createdPartOfAnno["@id"] ?? createdPartOfAnno.id
             createdWitnessFragment.partOf = {
                 "source":{
-                    "citationSource":createdPartOfAnno["@id"]
+                    "citationSource":negotiatedCreatedPartOfAnnoId
                 },
-                "value" : matchedManuscript["@id"]
+                "value" : matchedManuscriptNegotiatedId
             }
         }
         allInvolvedEntities.manuscripts.push(matchedManuscript)
@@ -384,7 +392,7 @@ addEventListener('deer-updated', async (event) => {
     event.preventDefault()
     event.stopPropagation()
     let witness = null
-    const entityID = event.detail["@id"]  
+    const entityID = event.detail["@id"] ?? event.detail.id
     // Only have to await this if we care to stop processing on error
     const generatedQuickReferences = await generateWitnessesOnSubmit(entityID)
 
@@ -421,8 +429,8 @@ addEventListener('deer-updated', async (event) => {
         })
         .then(res => res.json())
         .then(a => {
-            customTextElems[0].setAttribute("deer-source", a["@id"])
-            customTextElems[1].setAttribute("deer-source", a["@id"])
+            customTextElems[0].setAttribute("deer-source", a["@id"] ?? a.id)
+            customTextElems[1].setAttribute("deer-source", a["@id"] ?? a.id)
         })
         .catch(err => {
             console.error(`Could not generate 'text' property Annotation`)

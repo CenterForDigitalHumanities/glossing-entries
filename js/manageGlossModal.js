@@ -74,12 +74,13 @@ class ManageGlossModal extends HTMLElement {
         // Create the modal dynamically from the chosen glosses data, provided as the parameter here.
         this.open = (glossData) => {
             // TODO esc to close?
-            if(!glossData || !glossData["@id"]){
+            const negotiatedId = glossData["@id"] ?? glossData.id
+            if(!glossData || !negotiatedId){
                 const ev = new CustomEvent("Cannot manage this gloss")
                 deerUtils.globalFeedbackBlip(ev, `Please wait for this Gloss to load.`, false)
                 return
             }
-            const glossID = glossData["@id"].replace(/^https?:/, 'https:')
+            const glossID = negotiatedId.replace(/^https?:/, 'https:')
             const published = glossData.published
             const glossText = glossData.text
             const glossTitle = `${published ? "✓" : "❌"}  ${glossData.title}`
@@ -179,7 +180,10 @@ class ManageGlossModal extends HTMLElement {
             async function removeGlossFromPublicList(glossURI){
                 if(!glossURI) throw new Error("There was no gloss uri provided to delete.")
                 const publicList = await fetch(__constants.ngCollection).then(resp => resp.json()).catch(err => {return null})
-                const items = publicList.itemListElement.filter(obj => obj["@id"].split().pop() !== glossURI.split().pop())
+                const items = publicList.itemListElement.filter(obj => {
+                    const negotiatedId = obj["@id"] ?? obj.id
+                    return negotiatedId.split('/').pop() !== glossURI.split('/').pop()
+                })
                 const list = {
                     '@id': __constants.ngCollection,
                     '@context': 'https://schema.org/',
@@ -236,7 +240,7 @@ class ManageGlossModal extends HTMLElement {
                 "__rerum.generatedBy" : httpsIdArray(__constants.generator)
             }
             const allEntityAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
-            .then(annos => annos.map(anno => anno["@id"]))
+            .then(annos => annos.map(anno => anno["@id"] ?? anno.id))
             .catch(err => {
                 alert("Could not gather Annotations to delete.")
                 console.log(err)

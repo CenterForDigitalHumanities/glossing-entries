@@ -36,7 +36,8 @@ async function renderChange(mutationsList) {
                     // Attempt to retrieve the data object from local storage.
                     obj = JSON.parse(localStorage.getItem(id))
                 } catch (err) {/* fail silently if JSON parsing fails */ }
-                if (!obj ?? !obj["@id"]) {
+                const negotiatedId = obj["@id"] ?? obj.id
+                if (!obj || !negotiatedId) {
                     // If no object found, fetch it from the network.
                     id = id.replace(/^https?:/, 'https:') // avoid mixed content
                     obj = await fetch(id).then(response => response.json()).catch(error => error)
@@ -56,7 +57,7 @@ async function renderChange(mutationsList) {
                 let listensTo = mutation.target.getAttribute(DEER.LISTENING)
                 if (listensTo) {
                     mutation.target.addEventListener(DEER.EVENTS.CLICKED, e => {
-                        let loadId = e.detail["@id"]
+                        let loadId = e.detail["@id"] ?? e.detail.id
                         if (loadId === listensTo) { mutation.target.setAttribute("deer-id", loadId) }
                     })
                 }
@@ -249,7 +250,8 @@ export default class DeerReport {
         if (this.elem.getAttribute(DEER.ITEMTYPE) === "simple") {
             return this.simpleUpsert(event).then(entity => {
                 //Notice that sipleUpsert may return {} in certain controlled situations, causing an undefined error here, on purpose.
-                this.elem.setAttribute(DEER.ID, entity["@id"])
+                const negotiatedId = entity["@id"] ?? entity.id
+                this.elem.setAttribute(DEER.ID, negotiatedId)
                 new DeerReport(this.elem)
             })
         }
@@ -314,7 +316,7 @@ export default class DeerReport {
                     let action = (inputId) ? "UPDATE" : "CREATE"
                     let annotation = {
                         "@type": "Annotation",
-                        target: entity["@id"],
+                        target: entity["@id"] ?? entity.id,
                         body: {}
                     }
                     /**
@@ -400,7 +402,7 @@ export default class DeerReport {
                         return response.json()
                     })
                     .then(anno => {
-                        input.setAttribute(DEER.SOURCE, anno.new_obj_state["@id"])
+                        input.setAttribute(DEER.SOURCE, anno.new_obj_state["@id"] ?? anno.new_obj_state.id)
                         if(anno.new_obj_state.evidence)input.setAttribute(DEER.EVIDENCE, anno.new_obj_state.evidence)
                         if(anno.new_obj_state.motivation)input.setAttribute(DEER.MOTIVATION, anno.new_obj_state.motivation)
                         if(anno.new_obj_state.creator)input.setAttribute(DEER.ATTRIBUTION, anno.new_obj_state.creator)
@@ -417,7 +419,7 @@ export default class DeerReport {
             })
         }).bind(this))
             .then(entity => {
-                this.elem.setAttribute(DEER.ID, entity["@id"])
+                this.elem.setAttribute(DEER.ID, entity["@id"] ?? entity.id)
                 new DeerReport(this.elem)
             })
     }
