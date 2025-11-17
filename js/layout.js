@@ -444,14 +444,14 @@ class ReferencesBrowser extends HTMLElement {
 
         </style>
         <div class="card">
-        <h4> Manuscript References </h4>
+        <h4> Gloss Witnesses </h4>
         <form id="GlossReferenceForm" class="data-input">
         <div class="grouped">
             <p class="col">
                 <label for="addShelfMarkQuick">Provide shelfmarks below to connect Manuscripts when you submit this Gloss.</label>
                 <input id="addShelfMarkQuick" type="text" class=" witnessInput" placeholder="New shelfmark goes here">
                </p>
-                <input class="addWitnessTag button" type="submit" value="Add Manuscript Reference" >
+                <input class="addWitnessTag button" type="submit" value="Add Gloss Witness" >
             </div>
         </form>
         <div class="is-hidden">
@@ -629,7 +629,7 @@ class ReferencesBrowser extends HTMLElement {
         const witnessInput = $this.querySelector(".witnessInput")
         const glossURI = $this.getAttribute("gloss-uri") ? decodeURIComponent($this.getAttribute("gloss-uri")) : null
         if (!glossURI) {
-            witnessList.querySelector("li").innerHTML = `<b class="data-input"> Add Manuscript References Above! </b>`
+            witnessList.querySelector("li").innerHTML = `<b class="data-input"> Add Gloss Witnesses Above! </b>`
             return
         }
         witnessList.closest('div').classList.remove("is-hidden")
