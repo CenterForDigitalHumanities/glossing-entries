@@ -18,7 +18,7 @@ const AUDIENCE = "https://cubap.auth0.com/api/v2/"
 const CLIENT_ID = "4TztHfVXjvs4H6ByCOXgwxtgA8IEQHsD"
 const DOMAIN = "cubap.auth0.com"
 
-// Persisted-session keys. `userToken` is kept for backwards compatibility.
+// Persisted-session storage keys.
 const SESSION_KEY = "gog_session"
 const LOGIN_ATTEMPT_KEY = "gog_login_attempt"
 
@@ -57,12 +57,10 @@ const persistSession = (result) => {
         accessToken: result.accessToken,
         payload: result.idTokenPayload
     }))
-    localStorage.setItem("userToken", result.idToken) // back-compat
 }
 // Remove any persisted session.
 const clearSession = () => {
     localStorage.removeItem(SESSION_KEY)
-    localStorage.removeItem("userToken")
 }
 // Apply an authenticated user to the page: cache in memory, refresh creator inputs, announce.
 const applyUser = (user) => {
@@ -90,10 +88,11 @@ const logout = () => {
     webAuth.logout({ returnTo: origin })
 }
 // Login functionality, supports passing custom Auth0 authorize() options.
-// (Removed the old { authParamsMap:{app:'glossing'} } — not a valid auth0.js v9 option, so
-//  Auth0 stripped it and warned. If app scoping is ever needed, send it deliberately.)
+// We always send { authParamsMap: { app: 'glossing' } }. auth0.js v9 ignores the unknown key
+// today, but we keep sending it so app scoping can be enabled server-side without a client
+// change. `custom` overrides it when a caller needs different authorize() options.
 const login = (custom = {}) => {
-    webAuth.authorize(custom)
+    webAuth.authorize({ authParamsMap: { app: 'glossing' }, ...custom })
 }
 // Decode the `state` referrer from the hash, returning it only if it is a same-origin
 // http(s) URL — never cross-origin or javascript:/data: — to avoid open-redirect/injection.
@@ -121,14 +120,13 @@ const handleAuthRedirect = () => {
     const finish = (result) => {
         persistSession(result)
         sessionStorage.removeItem(LOGIN_ATTEMPT_KEY)
+        // Auth0 always redirects to origin (the root landing, which has no auth-button), so the
+        // referrer is a different page; bounce there and let its connectedCallback hydrate from
+        // the now-cached session.
         const ref = safeReferrer()
         if (ref && ref !== location.href) { location.href = ref; return }
-        // Staying here: strip the token hash and hydrate the current page.
+        // Fallback (no usable referrer): strip the token hash so it doesn't linger in the URL.
         history.replaceState(null, '', location.pathname + location.search)
-        const user = toUser(result.idTokenPayload, result.accessToken)
-        applyUser(user)
-        const btn = document.querySelector('[is="auth-button"]')
-        if (btn) { markLoggedIn(btn, user) }
     }
 
     // Auth0 verifies the id_token signature, nonce, and state inside parseHash. If that
@@ -176,7 +174,7 @@ class AuthButton extends HTMLButtonElement {
                 if (sessionStorage.getItem(LOGIN_ATTEMPT_KEY)) {
                     sessionStorage.removeItem(LOGIN_ATTEMPT_KEY)
                     this.innerText = 'login'
-                    this.onclick = login
+                    this.onclick = () => login()
                     return
                 }
                 sessionStorage.setItem(LOGIN_ATTEMPT_KEY, '1')
