@@ -1,11 +1,11 @@
 /**
  * @module AuthButton Adds custom element for login/logout of Auth0, based on configuration below.
  * @author cubap
- * 
- * @description This module includes a custom `<button is="auth-button">` element for authentication within 
+ *
+ * @description This module includes a custom `<button is="auth-button">` element for authentication within
  * the Gallery of Glosses Project, specifically the data entry interfaces.
- * Notes: 
- * - Include this module and a button[is='auth-button'] element to use. 
+ * Notes:
+ * - Include this module and a button[is='auth-button'] element to use.
  * - Add the `disabled` property on any page that should be available to the public, but knowing the user may be helpful.
  * - This can be made more generic by passing in the constants and parameterizing {app:'glossing'}.
  */
@@ -15,40 +15,135 @@ import 'https://cdn.auth0.com/js/auth0/9.19.0/auth0.min.js'
 
 // Authentication configuration constants
 const AUDIENCE = "https://cubap.auth0.com/api/v2/"
-const ISSUER_BASE_URL = "cubap.auth0.com"
 const CLIENT_ID = "4TztHfVXjvs4H6ByCOXgwxtgA8IEQHsD"
 const DOMAIN = "cubap.auth0.com"
+
+// Persisted-session keys. `userToken` is kept for backwards compatibility.
+const SESSION_KEY = "gog_session"
+const LOGIN_ATTEMPT_KEY = "gog_login_attempt"
 
 // Initialize web authentication using Auth0
 const webAuth = new auth0.WebAuth({
     "domain": DOMAIN,
     "clientID": CLIENT_ID,
     "audience": AUDIENCE,
-    "scope": "read:roles update:current_user_metadata name nickname picture email profile openid offline_access",
+    "scope": "read:roles update:current_user_metadata name nickname picture email profile openid",
     "redirectUri": origin,
     "responseType": "id_token token",
     "state": urlToBase64(location.href)
 })
 
+// --- Session persistence helpers --------------------------------------------
+// A persisted session is { idToken, accessToken, payload }. `payload` is the verified
+// idTokenPayload, so `payload.exp` (epoch seconds) is the token expiry — no decode needed.
+
+// Read the persisted session, or null.
+const getSession = () => {
+    const raw = localStorage.getItem(SESSION_KEY)
+    if (!raw) { return null }
+    try {
+        const session = JSON.parse(raw)
+        return session?.payload ? session : null
+    } catch (err) { return null }
+}
+// True if the session's id token has not expired.
+const isLive = (session) => session?.payload?.exp * 1000 > Date.now()
+// Build the in-memory user (payload + authorization) from a session or fresh auth result.
+const toUser = (payload, accessToken) => ({ ...payload, authorization: accessToken })
+// Persist tokens + verified payload so auth survives navigation without checkSession.
+const persistSession = (result) => {
+    localStorage.setItem(SESSION_KEY, JSON.stringify({
+        idToken: result.idToken,
+        accessToken: result.accessToken,
+        payload: result.idTokenPayload
+    }))
+    localStorage.setItem("userToken", result.idToken) // back-compat
+}
+// Remove any persisted session.
+const clearSession = () => {
+    localStorage.removeItem(SESSION_KEY)
+    localStorage.removeItem("userToken")
+}
+// Apply an authenticated user to the page: cache in memory, refresh creator inputs, announce.
+const applyUser = (user) => {
+    window.GOG_USER = user
+    document.querySelectorAll('[is="auth-creator"]').forEach(el => el.connectedCallback())
+    document.dispatchEvent(new CustomEvent('gog-authenticated', { detail: window.GOG_USER }))
+}
+// Reflect an authenticated user on an auth-button.
+const markLoggedIn = (btn, user) => {
+    btn.innerText = `Logout ${user.nickname ?? ''}`.trim()
+    btn.onclick = logout
+    btn.removeAttribute('disabled')
+}
+// Defined, anonymous user so consumers reading GOG_USER.authorization have a value.
+const setAnonymous = () => { window.GOG_USER = { authorization: "none" } }
+
+// --- Login / logout ---------------------------------------------------------
+
 // Logout functionality
 const logout = () => {
-    localStorage.removeItem("userToken")
+    clearSession()
+    sessionStorage.removeItem(LOGIN_ATTEMPT_KEY)
     delete window.GOG_USER
     document.querySelectorAll('[is="auth-creator"]').forEach(el=>el.connectedCallback())
     webAuth.logout({ returnTo: origin })
 }
-// Login functionality, supports passing custom configuration
-const login = (custom) => {
-    webAuth.authorize(Object.assign({ authParamsMap: { 'app': 'glossing' } },custom))
+// Login functionality, supports passing custom Auth0 authorize() options.
+// (Removed the old { authParamsMap:{app:'glossing'} } — not a valid auth0.js v9 option, so
+//  Auth0 stripped it and warned. If app scoping is ever needed, send it deliberately.)
+const login = (custom = {}) => {
+    webAuth.authorize(custom)
 }
-// Helper function to get referring page from URL state
-const getReferringPage = () => {
+// Decode the `state` referrer from the hash, returning it only if it is a same-origin
+// http(s) URL — never cross-origin or javascript:/data: — to avoid open-redirect/injection.
+const safeReferrer = () => {
+    let ref
+    try { ref = b64toUrl(location.hash.split("state=")[1].split("&")[0]) }
+    catch (err) { return "" }
     try {
-        return b64toUrl(location.hash.split("state=")[1].split("&")[0])
-    } catch (err) {
-        return ""
-    }
+        const url = new URL(ref, origin)
+        return url.origin === origin ? url.href : ""
+    } catch (err) { return "" }
 }
+
+// --- Redirect-token capture -------------------------------------------------
+// Runs on every page load (auth.js is imported everywhere, including the root
+// landing). When Auth0 redirects back with tokens in the hash, capture and
+// persist them here so the implicit-flow result is never discarded.
+const handleAuthRedirect = () => {
+    const params = new URLSearchParams(location.hash.replace(/^#/, ''))
+    if (params.has('error')) { return }
+    if (!params.has('access_token') && !params.has('id_token')) { return }
+
+    // parseHash has verified the token (signature + nonce + state). Persist it, then
+    // either bounce to the page the user started on, or hydrate in place.
+    const finish = (result) => {
+        persistSession(result)
+        sessionStorage.removeItem(LOGIN_ATTEMPT_KEY)
+        const ref = safeReferrer()
+        if (ref && ref !== location.href) { location.href = ref; return }
+        // Staying here: strip the token hash and hydrate the current page.
+        history.replaceState(null, '', location.pathname + location.search)
+        const user = toUser(result.idTokenPayload, result.accessToken)
+        applyUser(user)
+        const btn = document.querySelector('[is="auth-button"]')
+        if (btn) { markLoggedIn(btn, user) }
+    }
+
+    // Auth0 verifies the id_token signature, nonce, and state inside parseHash. If that
+    // fails we MUST reject the hash — decoding it ourselves would be an authentication
+    // bypass (a forged #id_token=... would be trusted). Clear the hash and let the
+    // guarded login flow surface/retry; the one-shot guard prevents a loop.
+    webAuth.parseHash({ hash: location.hash }, (err, result) => {
+        if (err || !result?.idToken) {
+            history.replaceState(null, '', location.pathname + location.search)
+            return
+        }
+        finish(result)
+    })
+}
+
 // Custom HTMLButtonElement to manage authentication
 class AuthButton extends HTMLButtonElement {
     constructor() {
@@ -59,28 +154,42 @@ class AuthButton extends HTMLButtonElement {
     }
     // Lifecycle callback to handle session check and response handling
     connectedCallback() {
+        const isPublic = this.getAttribute('disabled') !== null
+
+        // 1) Trust a non-expired cached session — no silent auth, no redirect.
+        const session = getSession()
+        if (isLive(session)) {
+            const user = toUser(session.payload, session.accessToken)
+            applyUser(user)
+            markLoggedIn(this, user)
+            return
+        }
+
+        // 2) Otherwise try Auth0 silent auth (works only where 3rd-party cookies are allowed).
         webAuth.checkSession({}, (err, result) => {
-            if (err) {
-                if (this.getAttribute('disabled') !== null) { return }
-                login() // Perform login if not authenticated.
-            }
-            const ref = getReferringPage()
-            if (ref && ref !== location.href) { location.href = ref }
-            if (!(result?.idToken ?? result?.accessToken)){
-                console.error("There was missing token information from the login. Reset the cached User")
-                window.GOG_USER = {}
-                window.GOG_USER.authorization = "none"
-                localStorage.removeItem("userToken")
+            if (err || !(result?.idToken ?? result?.accessToken)) {
+                setAnonymous()
+                clearSession()
+
+                if (isPublic) { return }
+                // 3) Guard: allow at most ONE automatic login redirect per tab session.
+                if (sessionStorage.getItem(LOGIN_ATTEMPT_KEY)) {
+                    sessionStorage.removeItem(LOGIN_ATTEMPT_KEY)
+                    this.innerText = 'login'
+                    this.onclick = login
+                    return
+                }
+                sessionStorage.setItem(LOGIN_ATTEMPT_KEY, '1')
+                login()
                 return
             }
-            localStorage.setItem("userToken", result.idToken)
-            window.GOG_USER = result.idTokenPayload
-            window.GOG_USER.authorization = result.accessToken
-            document.querySelectorAll('[is="auth-creator"]').forEach(el=>el.connectedCallback())
-            this.innerText = `Logout ${GOG_USER.nickname}`
-            this.removeAttribute('disabled')
-            const loginEvent = new CustomEvent('gog-authenticated',{detail:window.GOG_USER})
-            document.dispatchEvent(loginEvent)
+
+            // Silent auth succeeded — persist + hydrate like a fresh login.
+            sessionStorage.removeItem(LOGIN_ATTEMPT_KEY)
+            persistSession(result)
+            const user = toUser(result.idTokenPayload, result.accessToken)
+            applyUser(user)
+            markLoggedIn(this, user)
         })
     }
 }
@@ -101,6 +210,10 @@ class AuthCreator extends HTMLInputElement {
 }
 
 customElements.define('auth-creator', AuthCreator, { extends: 'input' })
+
+// Capture any Auth0 redirect tokens as soon as this module loads, before the
+// auth-button's silent-auth path runs.
+handleAuthRedirect()
 
 
 /**
