@@ -32,10 +32,7 @@ const webAuth = new auth0.WebAuth({
     "responseType": "id_token token",
     "state": urlToBase64(location.href)
 })
-
-// --- Session persistence helpers --------------------------------------------
 // A persisted session is { idToken, accessToken, payload }. `payload` is the verified
-// idTokenPayload, so `payload.exp` (epoch seconds) is the token expiry — no decode needed.
 
 // Read the persisted session, or null.
 const getSession = () => {
@@ -77,8 +74,6 @@ const markLoggedIn = (btn, user) => {
 // Defined, anonymous user so consumers reading GOG_USER.authorization have a value.
 const setAnonymous = () => { window.GOG_USER = { authorization: "none" } }
 
-// --- Login / logout ---------------------------------------------------------
-
 // Logout functionality
 const logout = () => {
     clearSession()
@@ -88,9 +83,7 @@ const logout = () => {
     webAuth.logout({ returnTo: origin })
 }
 // Login functionality, supports passing custom Auth0 authorize() options.
-// We always send { authParamsMap: { app: 'glossing' } }. auth0.js v9 ignores the unknown key
-// today, but we keep sending it so app scoping can be enabled server-side without a client
-// change. `custom` overrides it when a caller needs different authorize() options.
+// We always send { authParamsMap: { app: 'glossing' } }.
 const login = (custom = {}) => {
     webAuth.authorize({ authParamsMap: { app: 'glossing' }, ...custom })
 }
@@ -106,10 +99,7 @@ const safeReferrer = () => {
     } catch (err) { return "" }
 }
 
-// --- Redirect-token capture -------------------------------------------------
-// Runs on every page load (auth.js is imported everywhere, including the root
-// landing). When Auth0 redirects back with tokens in the hash, capture and
-// persist them here so the implicit-flow result is never discarded.
+// Redirect behavior and token capture
 const handleAuthRedirect = () => {
     const params = new URLSearchParams(location.hash.replace(/^#/, ''))
     if (params.has('error')) { return }
@@ -120,19 +110,12 @@ const handleAuthRedirect = () => {
     const finish = (result) => {
         persistSession(result)
         sessionStorage.removeItem(LOGIN_ATTEMPT_KEY)
-        // Auth0 always redirects to origin (the root landing, which has no auth-button), so the
-        // referrer is a different page; bounce there and let its connectedCallback hydrate from
-        // the now-cached session.
         const ref = safeReferrer()
         if (ref && ref !== location.href) { location.href = ref; return }
         // Fallback (no usable referrer): strip the token hash so it doesn't linger in the URL.
         history.replaceState(null, '', location.pathname + location.search)
     }
 
-    // Auth0 verifies the id_token signature, nonce, and state inside parseHash. If that
-    // fails we MUST reject the hash — decoding it ourselves would be an authentication
-    // bypass (a forged #id_token=... would be trusted). Clear the hash and let the
-    // guarded login flow surface/retry; the one-shot guard prevents a loop.
     webAuth.parseHash({ hash: location.hash }, (err, result) => {
         if (err || !result?.idToken) {
             history.replaceState(null, '', location.pathname + location.search)
@@ -146,7 +129,7 @@ const handleAuthRedirect = () => {
 class AuthButton extends HTMLButtonElement {
     constructor() {
         super()
-        this.onclick = logout // Binds logout function to button click.
+        this.onclick = logout
         this.login = login
         this.logout = logout
     }
@@ -154,7 +137,7 @@ class AuthButton extends HTMLButtonElement {
     connectedCallback() {
         const isPublic = this.getAttribute('disabled') !== null
 
-        // 1) Trust a non-expired cached session — no silent auth, no redirect.
+        // Trust a non-expired cached session — no silent auth, no redirect.
         const session = getSession()
         if (isLive(session)) {
             const user = toUser(session.payload, session.accessToken)
@@ -163,14 +146,14 @@ class AuthButton extends HTMLButtonElement {
             return
         }
 
-        // 2) Otherwise try Auth0 silent auth (works only where 3rd-party cookies are allowed).
+        //Otherwise try Auth0 silent auth (works only where 3rd-party cookies are allowed).
         webAuth.checkSession({}, (err, result) => {
             if (err || !(result?.idToken ?? result?.accessToken)) {
                 setAnonymous()
                 clearSession()
 
                 if (isPublic) { return }
-                // 3) Guard: allow at most ONE automatic login redirect per tab session.
+                // Allow at most ONE automatic login redirect per tab session.
                 if (sessionStorage.getItem(LOGIN_ATTEMPT_KEY)) {
                     sessionStorage.removeItem(LOGIN_ATTEMPT_KEY)
                     this.innerText = 'login'
