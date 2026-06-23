@@ -3,5 +3,11 @@
     "msCollection" : "https://devstore.rerum.io/v1/id/610ad6f1ffce846a83e70613",
     "generator" : "http://devstore.rerum.io/v1/id/5afeebf3e4b0b0d588705d90",
     "tiny" : "https://tinydev.rerum.io/app",
-    "rerum" : "https://devstore.rerum.io/v1"
+    "rerum" : "https://devstore.rerum.io/v1",
+    "auth0": {
+        "domain": "cubap.auth0.com",
+        "clientId": "4TztHfVXjvs4H6ByCOXgwxtgA8IEQHsD",
+        "audience": "https://cubap.auth0.com/api/v2/",
+        "scope": "read:roles update:current_user_metadata name nickname picture email profile openid offline_access"
+    }
 }

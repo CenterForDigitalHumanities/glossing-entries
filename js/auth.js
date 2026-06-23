@@ -10,45 +10,54 @@
  * - This can be made more generic by passing in the constants and parameterizing {app:'glossing'}.
  */
 
-// Import Auth0 library
-import 'https://cdn.auth0.com/js/auth0/9.19.0/auth0.min.js'
+// Import modern Auth0 SPA SDK
+import Auth0Client from 'https://cdn.auth0.com/js/auth0-spa-js/2.1.3/auth0-spa-js.production.js'
 
-// Authentication configuration constants
-const AUDIENCE = "https://cubap.auth0.com/api/v2/"
-const ISSUER_BASE_URL = "cubap.auth0.com"
-const CLIENT_ID = "4TztHfVXjvs4H6ByCOXgwxtgA8IEQHsD"
-const DOMAIN = "cubap.auth0.com"
+// Load Auth0 configuration from properties.json (falls back to hardcoded defaults for backward compatibility)
+const __authConfig = await fetch("../properties.json").then(r => r.json()).catch(() => ({}))
 
-// Initialize web authentication using Auth0
-const webAuth = new auth0.WebAuth({
-    "domain": DOMAIN,
-    "clientID": CLIENT_ID,
-    "audience": AUDIENCE,
-    "scope": "read:roles update:current_user_metadata name nickname picture email profile openid offline_access",
-    "redirectUri": origin,
-    "responseType": "id_token token",
-    "state": urlToBase64(location.href)
-})
+// Authentication configuration constants - loaded from properties.json with fallback defaults
+const AUTH0_DOMAIN = __authConfig.auth0?.domain ?? "cubap.auth0.com"
+const AUTH0_CLIENT_ID = __authConfig.auth0?.clientId ?? "4TztHfVXjvs4H6ByCOXgwxtgA8IEQHsD"
+const AUTH0_AUDIENCE = __authConfig.auth0?.audience ?? "https://cubap.auth0.com/api/v2/"
+const AUTH0_REDIRECT_URI = __authConfig.auth0?.redirectUri ?? origin
+const AUTH0_SCOPE = __authConfig.auth0?.scope ?? "read:roles update:current_user_metadata name nickname picture email profile openid offline_access"
+
+// Initialize Auth0 SPA client (replaces deprecated auth0.WebAuth)
+let auth0Client = null
+
+async function getAuth0Client() {
+    if (auth0Client) return auth0Client
+    auth0Client = new Auth0Client({
+        domain: AUTH0_DOMAIN,
+        clientId: AUTH0_CLIENT_ID,
+        audience: AUTH0_AUDIENCE,
+        scope: AUTH0_SCOPE,
+        redirectUri: AUTH0_REDIRECT_URI,
+        useRefreshTokens: true,
+        cacheLocation: "localstorage"
+    })
+    return auth0Client
+}
 
 // Logout functionality
-const logout = () => {
+const logout = async () => {
     localStorage.removeItem("userToken")
     delete window.GOG_USER
-    document.querySelectorAll('[is="auth-creator"]').forEach(el=>el.connectedCallback())
-    webAuth.logout({ returnTo: origin })
+    document.querySelectorAll('[is="auth-creator"]').forEach(el => el.connectedCallback())
+    const client = await getAuth0Client()
+    client.logout({ returnTo: AUTH0_REDIRECT_URI })
 }
+
 // Login functionality, supports passing custom configuration
-const login = (custom) => {
-    webAuth.authorize(Object.assign({ authParamsMap: { 'app': 'glossing' } },custom))
+const login = async (custom) => {
+    const client = await getAuth0Client()
+    client.loginWithRedirect({
+        appState: { returnTo: location.href },
+        ...custom
+    })
 }
-// Helper function to get referring page from URL state
-const getReferringPage = () => {
-    try {
-        return b64toUrl(location.hash.split("state=")[1].split("&")[0])
-    } catch (err) {
-        return ""
-    }
-}
+
 // Custom HTMLButtonElement to manage authentication
 class AuthButton extends HTMLButtonElement {
     constructor() {
@@ -58,30 +67,53 @@ class AuthButton extends HTMLButtonElement {
         this.logout = logout
     }
     // Lifecycle callback to handle session check and response handling
-    connectedCallback() {
-        webAuth.checkSession({}, (err, result) => {
-            if (err) {
+    async connectedCallback() {
+        try {
+            const client = await getAuth0Client()
+            // Check if user is authenticated
+            const isAuthenticated = await client.isAuthenticated()
+
+            if (!isAuthenticated) {
                 if (this.getAttribute('disabled') !== null) { return }
                 login() // Perform login if not authenticated.
+                return
             }
-            const ref = getReferringPage()
-            if (ref && ref !== location.href) { location.href = ref }
-            if (!(result?.idToken ?? result?.accessToken)){
+
+            // Get user profile and raw idToken for Bearer auth
+            const user = await client.getUser()
+            const idTokenClaims = await client.getIdTokenClaims()
+
+            if (!idTokenClaims) {
                 console.error("There was missing token information from the login. Reset the cached User")
                 window.GOG_USER = {}
                 window.GOG_USER.authorization = "none"
                 localStorage.removeItem("userToken")
                 return
             }
-            localStorage.setItem("userToken", result.idToken)
-            window.GOG_USER = result.idTokenPayload
-            window.GOG_USER.authorization = result.accessToken
-            document.querySelectorAll('[is="auth-creator"]').forEach(el=>el.connectedCallback())
-            this.innerText = `Logout ${GOG_USER.nickname}`
+
+            // Get the raw idToken string for Bearer token auth (matches TinyMatt #18 backend)
+            // The __raw property contains the actual JWT string
+            const rawIdToken = idTokenClaims.__raw
+
+            // Store the raw idToken as the Bearer token
+            localStorage.setItem("userToken", rawIdToken)
+
+            // Set global user object - use idToken as the authorization Bearer token
+            window.GOG_USER = user
+            window.GOG_USER.authorization = rawIdToken
+
+            document.querySelectorAll('[is="auth-creator"]').forEach(el => el.connectedCallback())
+            this.innerText = `Logout ${user.nickname}`
             this.removeAttribute('disabled')
-            const loginEvent = new CustomEvent('gog-authenticated',{detail:window.GOG_USER})
+
+            const loginEvent = new CustomEvent('gog-authenticated', { detail: window.GOG_USER })
             document.dispatchEvent(loginEvent)
-        })
+        } catch (err) {
+            // If checkSession fails (no cached session), trigger login
+            if (this.getAttribute('disabled') !== null) { return }
+            console.warn("Auth session check failed, initiating login:", err.message)
+            login()
+        }
     }
 }
 
@@ -101,23 +133,5 @@ class AuthCreator extends HTMLInputElement {
 }
 
 customElements.define('auth-creator', AuthCreator, { extends: 'input' })
-
-
-/**
- * Follows the 'base64url' rules to decode a string.
- * @param {String} base64str from `state` parameter in the hash from Auth0
- * @returns referring URL
- */
-function b64toUrl(base64str) {
-    return window.atob(base64str.replace(/-/g, "+").replace(/_/g, "/"))
-}
-/**
- * Follows the 'base64url' rules to encode a string.
- * @param {String} url from `window.location.href`
- * @returns encoded string to pass as `state` to Auth0
- */
-function urlToBase64(url) {
-    return window.btoa(url).replace(/\//g, "_").replace(/\+/g, "-").replace(/=+$/, "")
-}
 
 export default {AuthButton, AuthCreator}
