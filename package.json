@@ -4,5 +4,9 @@
   },
   "scripts": {
     "test": "jest"
+  },
+  "dependencies": {
+    "@auth0/auth0-spa-js": "^2.21.2",
+    "auth0-spa-js": "^1.6.5"
   }
 }
