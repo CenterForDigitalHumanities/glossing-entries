@@ -45,7 +45,7 @@ const auth0Client = await window.auth0.createAuth0Client({
     useRefreshTokens: false,
     cacheLocation: 'localstorage',
     onRedirectCallback: (appState) => {
-        // Stay on the current page, just clean up OAuth params from URL
+        // Just clean up OAuth params from URL — handleLoginRedirect will redirect after saving the token
         history.replaceState({}, document.title, location.pathname)
     }
 })
@@ -60,6 +60,8 @@ const logout = () => {
 
 // Login functionality, supports passing custom configuration
 const login = (custom) => {
+    // Save the current page so we can return to it after login
+    sessionStorage.setItem('authReturnTo', `${location.pathname}${location.search}`)
     auth0Client.loginWithRedirect({
         authorizationParams: {
             redirect_uri: REDIRECT_URI
@@ -85,7 +87,13 @@ async function handleLoginRedirect() {
         document.querySelectorAll('[is="auth-creator"]').forEach(el => el.connectedCallback())
         const loginEvent = new CustomEvent('gog-authenticated', { detail: window.GOG_USER })
         document.dispatchEvent(loginEvent)
-        return true
+        // Return to the page the user was on before login
+        const returnTo = sessionStorage.getItem('authReturnTo')
+        sessionStorage.removeItem('authReturnTo')
+        if (returnTo && returnTo !== location.pathname) {
+            window.location.href = returnTo
+            return true
+        }
     } catch (err) {
         console.error("Auth redirect error:", err)
     }
