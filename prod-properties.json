@@ -8,6 +8,6 @@
         "domain": "cubap.auth0.com",
         "clientId": "4TztHfVXjvs4H6ByCOXgwxtgA8IEQHsD",
         "audience": "https://cubap.auth0.com/api/v2/",
-        "scope": "read:roles update:current_user_metadata name nickname picture email profile openid offline_access"
+        "scope": "openid profile email nickname picture"
     }
 }
