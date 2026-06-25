@@ -34,16 +34,7 @@ jobs:
       - name: Deploy to server
         run: |
           DEPLOY_DIR="/opt/tomcat/webapps/glossing"
-          if [ -d "$DEPLOY_DIR/.git" ]; then
-            cd "$DEPLOY_DIR"
-            git stash
-            git checkout main
-            git pull
-            git checkout $GITHUB_HEAD_REF
-            git pull
-          else
-            # Fresh clone - remove old files first
-            rm -rf "$DEPLOY_DIR"/*
-            rm -rf "$DEPLOY_DIR"/.[!.]*
-            git clone --branch $GITHUB_HEAD_REF https://github.com/CenterForDigitalHumanities/glossing-entries.git "$DEPLOY_DIR"
-          fi
+          sudo rm -rf "$DEPLOY_DIR"/*
+          sudo rm -rf "$DEPLOY_DIR"/.[!.]*
+          sudo cp -r * "$DEPLOY_DIR/"
+          sudo cp .gitignore "$DEPLOY_DIR/" 2>/dev/null || true
