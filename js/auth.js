@@ -264,7 +264,6 @@ function checkAuth(requiredRole, redirectUrl, message) {
 
     // Safety timeout: if no auth event fires within 10s, deny access
     // (user is not logged in and therefore doesn't have the role)
-    // Extended from 5s to account for async checkSession in AuthButton.
     setTimeout(() => {
         if (!window.GOG_USER) {
             denyAccess()
