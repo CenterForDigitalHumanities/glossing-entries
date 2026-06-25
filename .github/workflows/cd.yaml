@@ -31,10 +31,17 @@ jobs:
     runs-on: ${{ matrix.machines }}
     steps:
       - uses: actions/checkout@master
-      - run: |
-          cd /opt/tomcat/webapps/glossing/
-          git stash
-          git checkout main
-          git pull
-          git checkout $GITHUB_HEAD_REF
-          git pull
+      - name: Deploy to server
+        run: |
+          DEPLOY_DIR="/opt/tomcat/webapps/glossing"
+          if [ -d "$DEPLOY_DIR/.git" ]; then
+            cd "$DEPLOY_DIR"
+            git stash
+            git checkout main
+            git pull
+            git checkout $GITHUB_HEAD_REF
+            git pull
+          else
+            sudo rm -rf "$DEPLOY_DIR"
+            git clone --branch $GITHUB_HEAD_REF https://github.com/CenterForDigitalHumanities/glossing-entries.git "$DEPLOY_DIR"
+          fi
