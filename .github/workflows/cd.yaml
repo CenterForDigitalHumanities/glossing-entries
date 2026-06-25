@@ -34,7 +34,7 @@ jobs:
       - name: Deploy to server
         run: |
           DEPLOY_DIR="/opt/tomcat/webapps/glossing"
-          sudo rm -rf "$DEPLOY_DIR"/*
-          sudo rm -rf "$DEPLOY_DIR"/.[!.]*
-          sudo cp -r * "$DEPLOY_DIR/"
-          sudo cp .gitignore "$DEPLOY_DIR/" 2>/dev/null || true
+          rm -rf "$DEPLOY_DIR"/*
+          rm -rf "$DEPLOY_DIR"/.[!.]*
+          cp -r * "$DEPLOY_DIR/"
+          cp .gitignore "$DEPLOY_DIR/" 2>/dev/null || true
