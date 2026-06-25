@@ -40,13 +40,13 @@ const auth0Client = await window.auth0.createAuth0Client({
     clientId: AUTH0_CLIENT_ID,
     scope: AUTH0_SCOPE,
     authorizationParams: {
-        redirect_uri: REDIRECT_URI
+        redirect_uri: REDIRECT_URI,
+        audience: AUTH0_AUDIENCE
     },
     useRefreshTokens: false,
     cacheLocation: 'localstorage',
     onRedirectCallback: (appState) => {
-        // Just clean up OAuth params from URL — handleLoginRedirect will redirect after saving the token
-        history.replaceState({}, document.title, location.pathname)
+        // URL cleanup happens after successful auth restoration below.
     }
 })
 
@@ -64,7 +64,8 @@ const login = (custom) => {
     sessionStorage.setItem('authReturnTo', `${location.pathname}${location.search}`)
     auth0Client.loginWithRedirect({
         authorizationParams: {
-            redirect_uri: REDIRECT_URI
+            redirect_uri: REDIRECT_URI,
+            audience: AUTH0_AUDIENCE
         }
     })
 }
@@ -80,6 +81,23 @@ async function handleLoginRedirect() {
         await auth0Client.handleRedirectCallback()
         const claims = await auth0Client.getUser()
         const token = await auth0Client.getIdTokenClaims()
+
+        // The app array may be stored in various claim keys depending on Auth0 configuration
+        const appClaim = claims["http://rerum.io/apps"] ?? claims.apps ?? claims.app
+        if (Array.isArray(appClaim) && !appClaim.includes("glossing")) {
+            console.warn("User does not have 'glossing' in their app array. Redirecting to login for consent.")
+            localStorage.removeItem("userToken")
+            // Force a fresh login to trigger the consent screen
+            auth0Client.loginWithRedirect({
+                authorizationParams: {
+                    redirect_uri: REDIRECT_URI,
+                    audience: AUTH0_AUDIENCE,
+                    prompt: 'consent' // Force consent screen
+                }
+            })
+            return false
+        }
+
         // Use idToken as the Bearer token for API requests (Issue #308)
         localStorage.setItem("userToken", token.__raw)
         window.GOG_USER = claims
@@ -87,6 +105,8 @@ async function handleLoginRedirect() {
         document.querySelectorAll('[is="auth-creator"]').forEach(el => el.connectedCallback())
         const loginEvent = new CustomEvent('gog-authenticated', { detail: window.GOG_USER })
         document.dispatchEvent(loginEvent)
+        // Clean up OAuth params from URL after successful auth
+        history.replaceState({}, document.title, location.pathname)
         // Return to the page the user was on before login
         const returnTo = sessionStorage.getItem('authReturnTo')
         sessionStorage.removeItem('authReturnTo')
@@ -103,6 +123,65 @@ async function handleLoginRedirect() {
 // Handle redirect on module load (only if we're processing a callback)
 await handleLoginRedirect()
 
+/**
+ * Page-level auth guard.
+ * Checks if the current user has the required role(s).
+ * Handles both synchronous (GOG_USER already set from cached token) and
+ * asynchronous (waits for gog-authenticated event after redirect) cases.
+ *
+ * @param {string|string[]} requiredRole - Role or array of roles the user must have.
+ * @param {string} redirectUrl - URL to redirect unauthorized users to.
+ * @param {string} message - Message to show before redirecting.
+ */
+function checkAuth(requiredRole, redirectUrl, message) {
+    const roles = Array.isArray(requiredRole) ? requiredRole : [requiredRole]
+
+    function hasRequiredRole(user) {
+        if (!user) return false
+        const userRoles = user["http://rerum.io/user_roles"]?.roles
+        if (!Array.isArray(userRoles)) return false
+        return roles.some(r => userRoles.includes(r))
+    }
+
+    function denyAccess() {
+        if (typeof globalFeedbackBlip === "function") {
+            const ev = new CustomEvent("Not Authorized")
+            globalFeedbackBlip(ev, message, false)
+            addEventListener("globalFeedbackFinished", () => {
+                location.href = redirectUrl
+            })
+        } else {
+            // Fallback if globalFeedbackBlip isn't available yet
+            location.href = redirectUrl
+        }
+    }
+
+    // Synchronous check: GOG_USER may already be set from cached token
+    if (window.GOG_USER) {
+        if (!hasRequiredRole(window.GOG_USER)) {
+            denyAccess()
+        }
+        return
+    }
+
+    // Asynchronous check: wait for gog-authenticated event
+    const onAuth = (e) => {
+        if (!hasRequiredRole(e.detail)) {
+            denyAccess()
+        }
+        document.removeEventListener("gog-authenticated", onAuth)
+    }
+    document.addEventListener("gog-authenticated", onAuth)
+
+    // Safety timeout: if no auth event fires within 5s, deny access
+    // (user is not logged in and therefore doesn't have the role)
+    setTimeout(() => {
+        if (!window.GOG_USER) {
+            denyAccess()
+        }
+    }, 5000)
+}
+
 // Helper function to get referring page from URL state
 const getReferringPage = () => {
     try {
@@ -115,13 +194,27 @@ const getReferringPage = () => {
 class AuthButton extends HTMLButtonElement {
     constructor() {
         super()
-        // Don't set onclick here - we handle it in connectedCallback
-        this.login = login
-        this.logout = logout
     }
+
+    /**
+     * Restore button state from current window.GOG_USER.
+     * Called on initial connect and when gog-authenticated fires.
+     */
+    _restoreAuthState() {
+        if (!window.GOG_USER) return false
+        const user = window.GOG_USER
+        this.innerText = `Logout ${user.nickname ?? user.email?.split('@')[0] ?? 'User'}`
+        this.onclick = logout
+        this.removeAttribute('disabled')
+        return true
+    }
+
     // Lifecycle callback to handle session check and response handling
     connectedCallback() {
-        // Check for a cached token in localStorage first
+        // First check if GOG_USER is already set (e.g., after redirect return)
+        if (this._restoreAuthState()) return
+
+        // Check for a cached token in localStorage
         const cachedToken = localStorage.getItem("userToken")
         if (cachedToken) {
             // Try to decode the cached token to validate it
@@ -134,12 +227,14 @@ class AuthButton extends HTMLButtonElement {
                     window.GOG_USER = payload
                     window.GOG_USER.authorization = cachedToken
                     document.querySelectorAll('[is="auth-creator"]').forEach(el => el.connectedCallback())
-                    this.innerText = `Logout ${payload.nickname}`
-                    this.onclick = logout
-                    this.removeAttribute('disabled')
                     const loginEvent = new CustomEvent('gog-authenticated', { detail: window.GOG_USER })
                     document.dispatchEvent(loginEvent)
-                    return
+                    if (this._restoreAuthState()) {
+                        // Listen for gog-authenticated in case another module refreshes GOG_USER
+                        this._authListener = (e) => this._restoreAuthState()
+                        document.addEventListener('gog-authenticated', this._authListener)
+                        return
+                    }
                 } else {
                     // Token expired, clear it
                     localStorage.removeItem("userToken")
@@ -153,6 +248,10 @@ class AuthButton extends HTMLButtonElement {
         // No valid cached token - set up button for login on click
         this.onclick = login
         this.innerText = 'Login'
+
+        // Listen for gog-authenticated event (fires when login completes on another page load)
+        this._authListener = () => this._restoreAuthState()
+        document.addEventListener('gog-authenticated', this._authListener)
     }
 }
 

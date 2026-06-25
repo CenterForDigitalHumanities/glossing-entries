@@ -42,20 +42,16 @@
             await setListings()
         }
 
-         /**
-         * Check user roles once the user known.  This page is only for managers.
+        /**
+         * Guard: this page is only for users with the glossing_user_manager role.
+         * checkAuth handles both the synchronous case (GOG_USER already set from
+         * cached token) and the async case (waits for gog-authenticated event).
          */
-        document.addEventListener("gog-authenticated", function(event){
-            // This page is only for admins
-            const user = event.detail
-            if(!user["http://rerum.io/user_roles"].roles.includes("glossing_user_manager")){
-                const ev = new CustomEvent("Not Authorized")
-                globalFeedbackBlip(ev, `You must have the manager role to manage Glosses.  You will be redirected.`, false)
-                addEventListener("globalFeedbackFinished", () => {
-                    location.href = "glosses.html"
-                })
-            }
-        })
+        checkAuth(
+            "glossing_user_manager",
+            "glosses.html",
+            "You must have the manager role to manage Glosses.  You will be redirected."
+        )
 
         /**
          * UI/UX for when the user uses this page to delete an existing #Gloss
