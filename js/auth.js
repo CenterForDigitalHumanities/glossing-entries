@@ -299,16 +299,7 @@ class AuthButton extends HTMLButtonElement {
 
         // Try silent auth (works only where 3rd-party cookies are allowed).
         // This is a fallback for browsers that support it; we don't block on it.
-        auth0Client.checkSession().then((result) => {
-            if (result?.idToken) {
-                persistSession(result)
-                localStorage.setItem("userToken", result.idToken)
-                const user = toUser(result.idTokenPayload, result.idToken)
-                applyUser(user)
-                markLoggedIn(this, user)
-            }
-        }).catch(() => {
-            // Silent auth failed (expected on ITP browsers) — fall through to manual login.
+        const handleNoSession = () => {
             setAnonymous()
             clearSession()
 
@@ -323,6 +314,22 @@ class AuthButton extends HTMLButtonElement {
             }
             sessionStorage.setItem(LOGIN_ATTEMPT_KEY, '1')
             login()
+        }
+
+        auth0Client.checkSession().then((result) => {
+            if (result?.idToken) {
+                persistSession(result)
+                localStorage.setItem("userToken", result.idToken)
+                const user = toUser(result.idTokenPayload, result.idToken)
+                applyUser(user)
+                markLoggedIn(this, user)
+            } else {
+                // checkSession resolved but no valid session — fall through to manual login
+                handleNoSession()
+            }
+        }).catch(() => {
+            // Silent auth failed (expected on ITP browsers) — fall through to manual login.
+            handleNoSession()
         })
     }
 }
