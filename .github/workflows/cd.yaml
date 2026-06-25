@@ -43,5 +43,5 @@ jobs:
             git pull
           else
             sudo rm -rf "$DEPLOY_DIR"
-            git clone --branch $GITHUB_HEAD_REF https://github.com/CenterForDigitalHumanities/glossing-entries.git "$DEPLOY_DIR"
+            sudo rsync -a --exclude='.git' . "$DEPLOY_DIR/"
           fi
