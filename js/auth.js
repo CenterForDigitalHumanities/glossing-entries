@@ -18,47 +18,50 @@
  * The idToken is used as the Bearer token for API requests (matching TinyMatt #18 backend).
  */
 
-// Load Auth0 SPA SDK from local UMD build (CDN was blocked)
-// The UMD build exposes createAuth0Client on window when loaded as a script tag
-const script = document.createElement('script')
-script.src = '../js/auth0-spa-js.production.js'
-await new Promise((resolve, reject) => {
-    script.onload = resolve
-    script.onerror = reject
-    document.head.appendChild(script)
-})
-
-// Load Auth0 configuration from properties.json (falls back to hardcoded defaults)
-const __authConfig = await fetch("../properties.json").then(r => r.json()).catch(() => ({}))
-
-// Authentication configuration constants
-const AUTH0_DOMAIN = __authConfig.auth0?.domain ?? "cubap.auth0.com"
-const AUTH0_CLIENT_ID = __authConfig.auth0?.clientId ?? "4TztHfVXjvs4H6ByCOXgwxtgA8IEQHsD"
-const AUTH0_AUDIENCE = __authConfig.auth0?.audience ?? "https://cubap.auth0.com/api/v2/"
-const AUTH0_SCOPE = __authConfig.auth0?.scope ?? "openid profile email nickname picture"
-
 // Storage keys
 const SESSION_KEY = "gog_session"
 const REFERRER_KEY = "gog_referrer"
 
-// Use explicit redirect URI to avoid trailing slash mismatches with Auth0
+// Authentication configuration constants (needed outside try block for login/logout)
+const __authConfig = await fetch("../properties.json").then(r => r.json()).catch(() => ({}))
+const AUTH0_DOMAIN = __authConfig.auth0?.domain ?? "cubap.auth0.com"
+const AUTH0_CLIENT_ID = __authConfig.auth0?.clientId ?? "4TztHfVXjvs4H6ByCOXgwxtgA8IEQHsD"
+const AUTH0_AUDIENCE = __authConfig.auth0?.audience ?? "https://cubap.auth0.com/api/v2/"
+const AUTH0_SCOPE = __authConfig.auth0?.scope ?? "openid profile email nickname picture"
 const REDIRECT_URI = `${location.protocol}//${location.host}`
 
-// Create Auth0 SPA client instance (PKCE flow, no iframe needed)
-const auth0Client = await window.auth0.createAuth0Client({
-    domain: AUTH0_DOMAIN,
-    clientId: AUTH0_CLIENT_ID,
-    scope: AUTH0_SCOPE,
-    authorizationParams: {
-        redirect_uri: REDIRECT_URI,
-        audience: AUTH0_AUDIENCE,
-    },
-    useRefreshTokens: false,
-    cacheLocation: 'localstorage',
-    onRedirectCallback: (appState) => {
-        // URL cleanup happens after successful auth restoration below.
-    }
-})
+// Auth0 client — may be null if storage is blocked or SDK fails to load
+let auth0Client = null
+
+try {
+    // Load Auth0 SPA SDK from local UMD build (CDN was blocked)
+    // The UMD build exposes createAuth0Client on window when loaded as a script tag
+    const script = document.createElement('script')
+    script.src = '../js/auth0-spa-js.production.js'
+    await new Promise((resolve, reject) => {
+        script.onload = resolve
+        script.onerror = reject
+        document.head.appendChild(script)
+    })
+
+    // Create Auth0 SPA client instance (PKCE flow, no iframe needed)
+    auth0Client = await window.auth0.createAuth0Client({
+        domain: AUTH0_DOMAIN,
+        clientId: AUTH0_CLIENT_ID,
+        scope: AUTH0_SCOPE,
+        authorizationParams: {
+            redirect_uri: REDIRECT_URI,
+            audience: AUTH0_AUDIENCE,
+        },
+        useRefreshTokens: false,
+        cacheLocation: 'localstorage',
+        onRedirectCallback: (appState) => {
+            // URL cleanup happens after successful auth restoration below.
+        }
+    })
+} catch (err) {
+    console.warn("Auth0 client failed to initialize (storage blocked or SDK error):", err.message)
+}
 
 // --- Session helpers ---
 
@@ -110,11 +113,17 @@ const logout = () => {
     clearSession()
     delete window.GOG_USER
     document.querySelectorAll('[is="auth-creator"]').forEach(el => el.connectedCallback())
-    auth0Client.logout({ logoutParams: { returnTo: origin } })
+    if (auth0Client) {
+        auth0Client.logout({ logoutParams: { returnTo: origin } })
+    }
 }
 
 // Login: save the current URL as referrer, redirect to Auth0.
 const login = (custom = {}) => {
+    if (!auth0Client) {
+        console.error("Cannot login: Auth0 client not initialized (storage may be blocked)")
+        return
+    }
     sessionStorage.setItem(REFERRER_KEY, location.href)
     auth0Client.loginWithRedirect({
         authorizationParams: {
@@ -132,6 +141,10 @@ const login = (custom = {}) => {
 async function handleLoginRedirect() {
     const hasCode = location.search.includes("code=") || location.hash.includes("code=")
     if (!hasCode) {
+        return false
+    }
+    if (!auth0Client) {
+        console.error("Cannot handle login redirect: Auth0 client not initialized (storage may be blocked)")
         return false
     }
     try {
