@@ -163,7 +163,9 @@
     <div id="globalFeedback" class="card is-center"></div>
     <script src="js/manuscript-metadata.js"></script>
 </body>
-<script>
+<script type="module">
+    await initAuth({ requireLogin: true })
+
     /**
      * Make sure DEER forms do not submit when a user hits "Enter".
      */

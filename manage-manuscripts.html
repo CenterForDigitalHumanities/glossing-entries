@@ -35,14 +35,16 @@
     </div> -->
     <gog-footer></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
-    <script> 
+    <script type="module">
+        await initAuth({ requireLogin: true })
+
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()
         }
 
         /**
-         * Check user roles once the user known.  This page is only for managers.
+         * Guard: this page is only for users with the glossing_user_manager role.
          */
         checkAuth(
             "glossing_user_manager",

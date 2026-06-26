@@ -32,7 +32,9 @@
 
     </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
-    <script>
+    <script type="module">
+        await initAuth({ requireLogin: true })
+
         window.onhashchange = onload = () => {
             let params = (new URL(document.location)).searchParams
             let glossid = window.location.hash.slice(1)

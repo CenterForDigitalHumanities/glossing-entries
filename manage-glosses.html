@@ -36,7 +36,9 @@
     <div id="globalFeedback" class="card is-center"></div>
     <manage-gloss-modal class="is-hidden"></manage-gloss-modal>
 
-    <script> 
+    <script type="module">
+        await initAuth({ requireLogin: true })
+
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()
@@ -44,8 +46,6 @@
 
         /**
          * Guard: this page is only for users with the glossing_user_manager role.
-         * checkAuth handles both the synchronous case (GOG_USER already set from
-         * cached token) and the async case (waits for gog-authenticated event).
          */
         checkAuth(
             "glossing_user_manager",
