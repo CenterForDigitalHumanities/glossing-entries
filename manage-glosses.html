@@ -14,7 +14,7 @@
     <script src="js/manageGlossModal.js" type="module"></script>
 </head>
 
-<body class="container">
+<body class="container" data-require-login>
     <gog-header></gog-header>
     <div class="row">
         <div class="column is-full-width">
@@ -37,8 +37,6 @@
     <manage-gloss-modal class="is-hidden"></manage-gloss-modal>
 
     <script type="module">
-        await initAuth({ requireLogin: true })
-
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()
@@ -47,7 +45,7 @@
         /**
          * Guard: this page is only for users with the glossing_user_manager role.
          */
-        checkAuth(
+        window.checkAuth(
             "glossing_user_manager",
             "glosses.html",
             "You must have the manager role to manage Glosses.  You will be redirected."

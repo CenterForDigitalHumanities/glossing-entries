@@ -10,7 +10,7 @@
         <script src="js/layout.js" type="module"></script>
         <script src="js/shared.js"></script>
     </head>
-    <body class="container">
+    <body class="container" data-require-login>
         <gog-header></gog-header>
         <h2 class="bg-basic"> Manuscript Witness Profile </h2>
         <p id="look" class="bg-light"> Provide a Manuscript Witness URI via the URL hash (#id).  Connected information will appear below.</p>
@@ -20,8 +20,5 @@
         <gog-footer></gog-footer>
         <div id="globalFeedback" class="card is-center"></div>
         <script src="js/manuscript-profile.js"></script>
-        <script type="module">
-            await initAuth({ requireLogin: true })
-        </script>
     </body>
 </html>

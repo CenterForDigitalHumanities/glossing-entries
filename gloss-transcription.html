@@ -32,7 +32,7 @@
     </style>
 </head>
 
-<body class="container">
+<body class="container" data-require-login>
     <gog-header></gog-header>
     <h2 class="bg-basic"> Gloss Transcription Witness </h2>
     <p id="look" class="bg-light is-hidden"> 
@@ -224,8 +224,6 @@
     <script src="js/gloss-transcription.js"></script>
 </body>
 <script type="module">
-    await initAuth({ requireLogin: true })
-
     /**
      * Make sure DEER forms do not submit when a user hits "Enter".
      */

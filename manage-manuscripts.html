@@ -13,7 +13,7 @@
     <script src="js/shared.js"></script>
 </head>
 
-<body class="container">
+<body class="container" data-require-login>
     <gog-header></gog-header>
     <h2 class="bg-basic"> Manage Manuscripts </h2>
     <p class="bg-basic"> This page is not ready.  Check back later. </p>
@@ -36,8 +36,6 @@
     <gog-footer></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
     <script type="module">
-        await initAuth({ requireLogin: true })
-
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()
@@ -46,7 +44,7 @@
         /**
          * Guard: this page is only for users with the glossing_user_manager role.
          */
-        checkAuth(
+        window.checkAuth(
             "glossing_user_manager",
             "manuscripts.html",
             "You must have the manager role to manage Manuscripts.  You will be redirected."

@@ -19,7 +19,7 @@
         </style>
     </head>
 
-    <body class="container">
+    <body class="container" data-require-login>
         <gog-header></gog-header>
         <h2 class="bg-basic"> Witness Fragment Metadata </h2>
         <p id="look" class="bg-light"> 
@@ -32,8 +32,5 @@
         <gog-footer></gog-footer>
         <div id="globalFeedback" class="card is-center"></div>
         <script src="js/fragment-metadata.js"></script>
-        <script type="module">
-            await initAuth({ requireLogin: true })
-        </script>
     </body>
 </html>
