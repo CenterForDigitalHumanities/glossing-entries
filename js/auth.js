@@ -55,6 +55,7 @@ const AUTH0_SCOPE = __authConfig.auth0?.scope ?? "openid profile email nickname 
 // Persisted-session storage keys
 const SESSION_KEY = "gog_session"
 const LOGIN_ATTEMPT_KEY = "gog_login_attempt"
+const REFERRER_KEY = "gog_referrer"
 
 // Use explicit redirect URI to avoid trailing slash mismatches with Auth0
 const REDIRECT_URI = `${location.protocol}//${location.host}`
@@ -349,7 +350,5 @@ class AuthCreator extends HTMLInputElement {
 }
 
 customElements.define('auth-creator', AuthCreator, { extends: 'input' })
-
-window.login = login;
 
 export default { AuthButton, AuthCreator }
