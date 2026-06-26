@@ -350,4 +350,6 @@ class AuthCreator extends HTMLInputElement {
 
 customElements.define('auth-creator', AuthCreator, { extends: 'input' })
 
+window.login = login;
+
 export default { AuthButton, AuthCreator }
