@@ -145,14 +145,12 @@ const login = (custom = {}) => {
 
 // Decode the `state` referrer from the hash, returning it only if it is a same-origin
 // http(s) URL — never cross-origin or javascript:/data: — to avoid open-redirect/injection.
-const safeReferrer = () => {
-    let ref
-    try { ref = b64toUrl(location.hash.split("state=")[1].split("&")[0]) }
-    catch { return "" }
+function safeReferrer() {
     try {
-        const url = new URL(ref, origin)
-        return url.origin === origin ? url.href : ""
-    } catch { return "" }
+        return sessionStorage.getItem(REFERRER_KEY) || ""
+    } catch {
+        return ""
+    }
 }
 
 // Handle the redirect callback from Auth0 after login
