@@ -183,15 +183,17 @@ async function handleLoginRedirect() {
         }
 
         // Persist the full session (token + verified payload) for reliable restore
-        persistSession({ idToken: token.__raw, accessToken: token.__raw, idTokenPayload: claims })
+        // Use `token` as idTokenPayload — it contains `exp` which `isLive()` checks.
+        // `claims` from getUser() lacks `exp`, so the session would always look expired.
+        persistSession({ idToken: token.__raw, accessToken: token.__raw, idTokenPayload: token })
         // Also store raw token for backward compatibility
         localStorage.setItem("userToken", token.__raw)
 
         // Clear login attempt tracker now that login succeeded
         sessionStorage.removeItem(LOGIN_ATTEMPT_KEY)
 
-        // Apply user state
-        const user = toUser(claims, token.__raw)
+        // Apply user state — merge user profile claims with token claims for full profile
+        const user = toUser({ ...token, ...claims }, token.__raw)
         applyUser(user)
 
         // Clean up OAuth params from URL after successful auth
