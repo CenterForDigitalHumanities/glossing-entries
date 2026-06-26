@@ -132,6 +132,7 @@ const logout = () => {
 // Login functionality, supports passing custom configuration
 // We always send the current page as `state` so Auth0 returns us there.
 const login = (custom = {}) => {
+    sessionStorage.setItem(REFERRER_KEY, location.href);
     auth0Client.loginWithRedirect({
         authorizationParams: {
             redirect_uri: REDIRECT_URI,
