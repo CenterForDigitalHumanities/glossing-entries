@@ -206,7 +206,8 @@ export default {
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
-                            const glossID = val["@id"].replace(/^https?:/, 'https:')
+                            const negotiatedId = val["@id"] ?? val.id
+                            const glossID = negotiatedId.replace(/^https?:/, 'https:')
                             let li = document.createElement("td")
                             li.setAttribute("deer-id", glossID)
                             let a = document.createElement("a")
@@ -436,7 +437,8 @@ export default {
                     }
 
                     li.setAttribute("data-expanded", "true")
-                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    const negotiatedId = obj["@id"] ?? obj.id
+                    cachedFilterableEntities.set(negotiatedId.replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
                     a.appendChild(span)
                     li.appendChild(a)
@@ -449,7 +451,7 @@ export default {
                     const filterPresent = containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
-                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("href", options.link + negotiatedId)
                     a.setAttribute("target", "_blank")
                     // Turn each property into an attribute for the <li> element
                     if(filterPresent) elem.classList.add("is-hidden")
@@ -588,7 +590,8 @@ export default {
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
                             let inclusionBtn = document.createElement("input")
-                            const glossID = val['@id'].replace(/^https?:/, 'https:')
+                            const negotiatedId = val['@id'] ?? val.id
+                            const glossID = negotiatedId.replace(/^https?:/, 'https:')
                             inclusionBtn.setAttribute("type", "button")
                             inclusionBtn.classList.add("toggleInclusion")
                             inclusionBtn.classList.add("button")
@@ -860,7 +863,8 @@ export default {
                     }
 
                     li.setAttribute("data-expanded", "true")
-                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    const negotiatedId = obj["@id"] ?? obj.id
+                    cachedFilterableEntities.set(negotiatedId.replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
                     a.appendChild(span)
                     li.appendChild(a)
@@ -872,7 +876,7 @@ export default {
                     const filterPresent = containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getLabel(obj) ? deerUtils.getLabel(obj) : "Label Unprocessable"
-                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("href", options.link + negotiatedId)
                     a.setAttribute("target", "_blank")
                     // Turn each property into an attribute for the <li> element
                     if(filterPresent) elem.classList.add("is-hidden")
@@ -958,7 +962,8 @@ export default {
                     let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     const containingListElem = elem.closest("deer-view")
                     // Be careful.  The publish list stores items via http://, but everything else is https://.  Beware the false mismatch.
-                    const glossID = obj["@id"].replace(/^https?:/, 'https:')
+                    const negotiatedId = obj["@id"] ?? obj.id
+                    const glossID = negotiatedId.replace(/^https?:/, 'https:')
                     const type = obj.name && obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
                     let listCache = elem.closest("deer-view[deer-template='managedlist']").listCache
                     const included = listCache.has(glossID)
@@ -972,7 +977,7 @@ export default {
                     li.setAttribute("deer-id", glossID)
                     let a = document.createElement("a")
                     a.classList.add("galleryEntry")
-                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("href", options.link + negotiatedId)
                     a.setAttribute("target", "_blank")
                     a.setAttribute("glossid", glossID)
                     a.setAttribute("data-public", included ? "true" : "false" )
@@ -1202,7 +1207,8 @@ export default {
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
                         total = deduplicatedList.length                
                         deduplicatedList.forEach((val, index) => {
-                            const manuscriptID = val["@id"].replace(/^https?:/, 'https:')
+                            const negotiatedId = val["@id"] ?? val.id
+                            const manuscriptID = negotiatedId.replace(/^https?:/, 'https:')
                             let li = document.createElement("td")
                             li.setAttribute("deer-id", manuscriptID)
                             let a = document.createElement("a")
@@ -1427,7 +1433,8 @@ export default {
                     }
 
                     li.setAttribute("data-expanded", "true")
-                    cachedFilterableEntities.set(obj["@id"].replace(/^https?:/, 'https:'), obj)
+                    const negotiatedId = obj["@id"] ?? obj.id
+                    cachedFilterableEntities.set(negotiatedId.replace(/^https?:/, 'https:'), obj)
                     localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
                     a.appendChild(span)
                     li.appendChild(a)
@@ -1440,7 +1447,7 @@ export default {
                     const filterPresent = containingListElem.$contentState
                     const filterObj = filterPresent ? decodeContentState(containingListElem.$contentState) : {}
                     span.innerText = deerUtils.getValue(obj.identifier) ? deerUtils.getValue(obj.identifier) : "Label Unprocessable"
-                    a.setAttribute("href", options.link + obj['@id'])
+                    a.setAttribute("href", options.link + negotiatedId)
                     a.setAttribute("target", "_blank")
                     // Turn each property into an attribute for the <li> element
                     if(filterPresent) elem.classList.add("is-hidden")
@@ -1560,7 +1567,7 @@ export default {
                     edit.innerText = "edit"
                     edit.setAttribute("type", "button")
                     edit.setAttribute("target", "_blank")
-                    edit.setAttribute("href", `fragment-metadata.html#${obj["@id"]}`)
+                    edit.setAttribute("href", `fragment-metadata.html#${obj["@id"] ?? obj.id}`)
 
                     heading.classList.add("blue")
                     heading.innerText = obj?.identifier?.value ? obj.identifier.value : "Missing Shelfmark"
@@ -1646,7 +1653,7 @@ export default {
                     edit.innerText = "edit"
                     edit.setAttribute("type", "button")
                     edit.setAttribute("target", "_blank")
-                    edit.setAttribute("href", `manuscript-metadata.html#${obj["@id"]}`)
+                    edit.setAttribute("href", `manuscript-metadata.html#${obj["@id"] ?? obj.id}`)
 
                     heading.classList.add("green")
                     heading.innerText = obj?.identifier?.value ? obj.identifier.value : "Missing Shelfmark"
@@ -1656,8 +1663,9 @@ export default {
                     const historyWildcard = { "$exists": true, "$size": 0 }
 
                     // Each Fragment is partOf a Manuscript.
+                    const negotiatedId = obj["@id"] ?? obj.id
                     const fragmentAnnosQuery = {
-                        "body.partOf.value": httpsIdArray(obj["@id"]),
+                        "body.partOf.value": httpsIdArray(negotiatedId),
                         "__rerum.history.next": historyWildcard,
                         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
                     }
@@ -1781,9 +1789,10 @@ export default {
 
                     const heading = document.createElement("h4")
                     const loading = document.createElement("div")
+                    const negotiatedId = obj["@id"] ?? obj.id
                     loading.classList.add("profile-loading")
                     if(!(obj?.["@type"] === "Gloss" || obj?.["@type"] === "named-gloss")){
-                        deerUtils.broadcast(undefined, "expandError", document, { uri:obj["@id"], error:`Entity type '${obj?.["@type"]}' is not 'Gloss'` })
+                        deerUtils.broadcast(undefined, "expandError", document, { uri:negotiatedId, error:`Entity type '${obj?.["@type"]}' is not 'Gloss'` })
                         return
                     }
                     const edit = document.createElement("a")
@@ -1793,7 +1802,7 @@ export default {
                     edit.innerText = "edit"
                     edit.setAttribute("type", "button")
                     edit.setAttribute("target", "_blank")
-                    edit.setAttribute("href", `gloss-metadata.html#${obj["@id"]}`)
+                    edit.setAttribute("href", `gloss-metadata.html#${negotiatedId}`)
 
                     heading.classList.add("red")
                     heading.innerText = obj?.title?.value ? obj.title.value : "[ unlabeled ]"
