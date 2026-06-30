@@ -74,7 +74,7 @@ class ManageGlossModal extends HTMLElement {
         // Create the modal dynamically from the chosen glosses data, provided as the parameter here.
         this.open = (glossData) => {
             // TODO esc to close?
-            const negotiatedId = glossData["@id"] ?? glossData.id
+            const negotiatedId = glossData?.["@id"] ?? glossData?.id
             if(!glossData || !negotiatedId){
                 const ev = new CustomEvent("Cannot manage this gloss")
                 deerUtils.globalFeedbackBlip(ev, `Please wait for this Gloss to load.`, false)
