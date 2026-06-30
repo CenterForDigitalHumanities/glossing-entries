@@ -12,7 +12,7 @@
     <script src="js/shared.js"></script>
 </head>
 
-<body class="container">
+<body class="container" data-require-login>
     <gog-header></gog-header>
     <h3 id="glossTitle" class="deer-view send-id" deer-id="" deer-template="label">Layout Editor</h3>
     <input is="auth-creator" type="hidden" deer-key="creator" />
@@ -32,7 +32,7 @@
 
     </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
-    <script>
+    <script type="module">
         window.onhashchange = onload = () => {
             let params = (new URL(document.location)).searchParams
             let glossid = window.location.hash.slice(1)
