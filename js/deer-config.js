@@ -292,9 +292,14 @@ export default {
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.setAttribute("count", numloaded)
 
-                    // FIXME this can be improved.  We need to update localStorage, not completely refresh it.
+                    // Clear cached gloss data but preserve the auth session (gog_session)
+                    // and the Auth0 SDK cache (@@auth0spajs@@*), so refreshing the cache
+                    // does not force the user to log in again.
                     elem.querySelector(".newcache").addEventListener("click", ev => {
-                        localStorage.clear()
+                        const KEEP_PREFIXES = ["gog_session", "@@auth0spajs@@"]
+                        Object.keys(localStorage)
+                            .filter(k => !KEEP_PREFIXES.some(p => k.startsWith(p)))
+                            .forEach(k => localStorage.removeItem(k))
                         location.reload()
                     })
 
@@ -688,9 +693,14 @@ export default {
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.setAttribute("count", numloaded)
 
-                    // FIXME this can be improved.  We need to update localStorage, not completely refresh it.
+                    // Clear cached gloss data but preserve the auth session (gog_session)
+                    // and the Auth0 SDK cache (@@auth0spajs@@*), so refreshing the cache
+                    // does not force the user to log in again.
                     elem.querySelector(".newcache").addEventListener("click", ev => {
-                        localStorage.clear()
+                        const KEEP_PREFIXES = ["gog_session", "@@auth0spajs@@"]
+                        Object.keys(localStorage)
+                            .filter(k => !KEEP_PREFIXES.some(p => k.startsWith(p)))
+                            .forEach(k => localStorage.removeItem(k))
                         location.reload()
                     })
 
@@ -1278,9 +1288,14 @@ export default {
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.setAttribute("count", numloaded)
 
-                    // FIXME this can be improved.  We need to update localStorage, not completely refresh it.
+                    // Clear cached gloss data but preserve the auth session (gog_session)
+                    // and the Auth0 SDK cache (@@auth0spajs@@*), so refreshing the cache
+                    // does not force the user to log in again.
                     elem.querySelector(".newcache").addEventListener("click", ev => {
-                        localStorage.clear()
+                        const KEEP_PREFIXES = ["gog_session", "@@auth0spajs@@"]
+                        Object.keys(localStorage)
+                            .filter(k => !KEEP_PREFIXES.some(p => k.startsWith(p)))
+                            .forEach(k => localStorage.removeItem(k))
                         location.reload()
                     })
 
