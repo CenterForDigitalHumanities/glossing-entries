@@ -59,10 +59,7 @@ try {
             audience: AUTH0_AUDIENCE,
         },
         useRefreshTokens: false,
-        cacheLocation: 'localstorage',
-        onRedirectCallback: (appState) => {
-            // URL cleanup happens after successful auth restoration below.
-        }
+        cacheLocation: 'localstorage'
     })
 } catch (err) {
     console.warn("Auth0 client failed to initialize (storage blocked or SDK error):", err.message)
@@ -253,25 +250,25 @@ customElements.define('auth-creator', AuthCreator, { extends: 'input' })
 // 1. Handle OAuth callback if present
 const handled = await handleLoginRedirect()
 if (handled) {
-    revealPage()
-    // Don't continue — will redirect or reload
-}
-
-// 2. Restore cached session
-const session = getSession()
-if (isLive(session)) {
-    const user = toUser(session.payload, session.accessToken)
-    applyUser(user)
+    // Callback handled — navigation/reload is pending. Don't restore again.
     revealPage()
 } else {
-    // 3. No valid session
-    const requireLogin = document.body.hasAttribute("data-require-login")
-    if (requireLogin) {
-        login()
-        // Don't reveal — will redirect to Auth0
-    } else {
-        setAnonymous()
-        clearSession()
+    // 2. Restore cached session
+    const session = getSession()
+    if (isLive(session)) {
+        const user = toUser(session.payload, session.accessToken)
+        applyUser(user)
         revealPage()
+    } else {
+        // 3. No valid session
+        const requireLogin = document.body.hasAttribute("data-require-login")
+        if (requireLogin) {
+            login()
+            // Don't reveal — will redirect to Auth0
+        } else {
+            setAnonymous()
+            clearSession()
+            revealPage()
+        }
     }
 }
