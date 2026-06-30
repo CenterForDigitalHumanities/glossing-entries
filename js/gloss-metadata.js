@@ -343,14 +343,14 @@ async function generateWitnessesOnSubmit(glossid){
                 },
                 "value" : user_input
             }
-            const negotiatedManuscriptIdentifier = createdIdentifierAnno_Manuscript["@id"] ?? createdIdentifierAnno_Manuscript.id
+            const negotiatedManuscriptIdentifier = createdIdentifierAnno_Manuscript?.["@id"] ?? createdIdentifierAnno_Manuscript?.id
             matchedManuscript.identifier = {
                 "source":{
                     "citationSource": negotiatedManuscriptIdentifier ?? "already_existed"
                 },
                 "value" : user_input
             }
-            const negotiatedCreatedTargetCollectionAnnoId = createdTargetCollectionAnno["@id"] ?? createdTargetCollectionAnno.id
+            const negotiatedCreatedTargetCollectionAnnoId = createdTargetCollectionAnno?.["@id"] ?? createdTargetCollectionAnno?.id
             matchedManuscript.targetCollection = {
                 "source":{
                     "citationSource": negotiatedCreatedTargetCollectionAnnoId ?? "already_existed"

@@ -26,9 +26,13 @@ export default {
      * @return {Array} A new array containing only the unique elements from the input list based on the specified property.
      */
     removeDuplicates: function(list, uniqueProp) {
+        // Negotiate @id/id so entities keyed by either are deduplicated by identity.
+        // Without this, a list of items carrying `id` (not `@id`) would all compare
+        // as undefined === undefined and collapse to a single item.
+        const keyOf = (item) => uniqueProp === "@id" ? (item["@id"] ?? item.id) : item[uniqueProp]
         return list.filter((item, index, self) =>
             index === self.findIndex((t) => (
-                t[uniqueProp] === item[uniqueProp]
+                keyOf(t) === keyOf(item)
             ))
         )
     },

@@ -594,7 +594,7 @@ async function addBibliographicCitationToGloss(citationContent, glossId) {
       body: JSON.stringify(newCitation),
     }).then((resp) => resp.json())
 
-    if (savedCitation && savedCitation.hasOwnProperty("@id")) {
+    if (savedCitation && (savedCitation.hasOwnProperty("@id") || savedCitation.hasOwnProperty("id"))) {
       addEventListener("deer-updated", () => {
         const sucessfulSaveEvent = new CustomEvent("Bibliographic citation added successfully.")
         globalFeedbackBlip(sucessfulSaveEvent, "Bibliographic citation added successfully.", true)

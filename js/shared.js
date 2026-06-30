@@ -776,7 +776,7 @@ async function deleteGloss(glossURI, redirect=false) {
         "__rerum.generatedBy" : httpsIdArray(__constants.generator)
     }
     const allEntityAnnotationIds = await getPagedQuery(100, 0, allAnnotationsTargetingEntityQueryObj)
-    .then(annos => annos.map(anno => anno["@id"]))
+    .then(annos => annos.map(anno => anno["@id"] ?? anno.id))
     .catch(err => {
         alert("Could not gather Annotations to delete.")
         console.log(err)

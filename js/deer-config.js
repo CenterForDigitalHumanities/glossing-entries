@@ -1802,7 +1802,7 @@ export default {
                     edit.innerText = "edit"
                     edit.setAttribute("type", "button")
                     edit.setAttribute("target", "_blank")
-                    edit.setAttribute("href", `gloss-metadata.html#${obj["@id"]}`)
+                    edit.setAttribute("href", `gloss-metadata.html#${negotiatedId}`)
 
                     heading.classList.add("red")
                     heading.innerText = obj?.title?.value ? obj.title.value : "[ unlabeled ]"
