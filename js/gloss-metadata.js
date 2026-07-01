@@ -125,7 +125,7 @@ function initGlossForm(event){
     if(event.detail.targetChapter && !event.detail["_section"]) {
         // This conditional is solely to support Glossing Matthew data and accession it into the new encoding.
         const canonRef = document.querySelector('[deer-key="canonicalReference"]')
-        canonRef.value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `:${event.detail.targetVerse.value}` : ''}`
+        canonRef.value = `Matthew ${event.detail.targetChapter.value || ''}${event.detail.targetVerse.value ? `.${event.detail.targetVerse.value}` : ''}`
         canonRef.dispatchEvent(new Event('input', { bubbles: true }))
         parseSections()
     }
