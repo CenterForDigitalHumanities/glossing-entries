@@ -13,7 +13,7 @@
     <script src="js/shared.js"></script>
 </head>
 
-<body class="container">
+<body class="container" data-require-login>
     <gog-header></gog-header>
     <h2 class="bg-basic"> Manage Manuscripts </h2>
     <p class="bg-basic"> This page is not ready.  Check back later. </p>
@@ -35,26 +35,20 @@
     </div> -->
     <gog-footer></gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
-    <script> 
+    <script type="module">
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()
         }
 
         /**
-         * Check user roles once the user known.  This page is only for managers.
+         * Guard: this page is only for users with the glossing_user_manager role.
          */
-        document.addEventListener("gog-authenticated", function(event){
-            // This page is only for admins
-            const user = event.detail
-            if(!user["http://rerum.io/user_roles"].roles.includes("glossing_user_manager")){
-                const ev = new CustomEvent("Not Authorized")
-                globalFeedbackBlip(ev, `You must have the manager role to manage Manuscripts.  You will be redirected.`, false)
-                addEventListener("globalFeedbackFinished", () => {
-                    location.href = "manuscripts.html"
-                })
-            }
-        })
+        window.checkAuth(
+            "glossing_user_manager",
+            "manuscripts.html",
+            "You must have the manager role to manage Manuscripts.  You will be redirected."
+        )
 
         /**
          * UI/UX for when the user uses this page to delete an existing #Manuscript
@@ -62,8 +56,9 @@
         document.addEventListener("ManuscriptDeleted", function(event){
             const ev = new CustomEvent("This Manuscript has been deleted.")
             globalFeedbackBlip(ev, `Manuscript deleted`, true)
-            document.querySelector(`[deer-id="${event.detail["@id"]}"]`).closest("li").remove()
-            document.querySelector("deer-view[deer-template='managedlist']").listCache.delete(event.detail["@id"])
+            const negotiatedId = event.detail["@id"] ?? event.detail.id
+            document.querySelector(`[deer-id="${negotiatedId}"]`).closest("li").remove()
+            document.querySelector("deer-view[deer-template='managedlist']").listCache.delete(negotiatedId)
         })
 
         /**
@@ -72,7 +67,7 @@
          */
         document.addEventListener("ManuscriptDeleteError", function(event){
             const ev = new CustomEvent("Manuscript Delete Error")
-            globalFeedbackBlip(ev, `There was an issue removing the Manuscript with URI ${event.detail["@id"]}.  This item may still appear in collections.`, false)
+            globalFeedbackBlip(ev, `There was an issue removing the Manuscript with URI ${event.detail["@id"] ?? event.detail.id}.  This item may still appear in collections.`, false)
             console.error(event.error)
         })
     </script>

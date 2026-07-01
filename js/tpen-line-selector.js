@@ -153,15 +153,16 @@ class TpenLineSelector extends HTMLElement {
                         }
                     })
                     pageToggle.innerHTML = `&#9660;`
-                    pageHeader.setAttribute("tpen-canvas-id", canvas["@id"])
+                    pageHeader.setAttribute("tpen-canvas-id", canvas["@id"] ?? canvas.id)
                     pageHeader.innerText = `${canvas.label ?? "No Page Label"} (Page ${index+1})`
                     tpenProjectLines.appendChild(pageHeader)
                     tpenProjectLines.appendChild(pageToggle)
                     canvas.otherContent[0].resources.forEach(line => {
                         const lineElem = document.createElement("div")
-                        const projectLineID = line["@id"].replace("/TPEN/", `/TPEN/project/${tpenProjectURI.split("/").pop()}/`)
-                        lineElem.setAttribute("title", line["@id"])
-                        lineElem.setAttribute("tpen-line-id", line["@id"])
+                        const negotiatedId = line["@id"] ?? line.id
+                        const projectLineID = negotiatedId.replace("/TPEN/", `/TPEN/project/${tpenProjectURI.split("/").pop()}/`)
+                        lineElem.setAttribute("title", negotiatedId)
+                        lineElem.setAttribute("tpen-line-id", negotiatedId)
                         lineElem.setAttribute("tpen-project-line-id", projectLineID)
                         lineElem.setAttribute("tpen-image-url", canvas.images[0].resource["@id"])
                         lineElem.setAttribute("tpen-image-fragment", line.on.split("#").pop())
