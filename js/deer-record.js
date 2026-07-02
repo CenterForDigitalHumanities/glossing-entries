@@ -42,8 +42,11 @@ async function renderChange(mutationsList) {
                     id = id.replace(/^https?:/, 'https:') // avoid mixed content
                     obj = await fetch(id).then(response => response.json()).catch(error => error)
                     if (obj) {
-                        // Store fetched object in local storage for future use.
-                        localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
+                        //localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
+                        // Bandaid for #310: localStorage can be over quota
+                        try {
+                            localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
+                        } catch (err) { }    
                     } else {
                         return false
                     }
