@@ -1138,7 +1138,7 @@ export default {
                     }
                 </style>
                 <h2> Manuscript Witnesses </h2>
-                <small class="cachedNotice is-hidden text-primary"> These Manuscripts were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+                <small class="cachedNotice is-hidden text-primary"> To reload the data <a class="newcache tag is-small">click here</a>. </small>
                 <form id="msForm" deer-type="ManuscriptWitness" deer-context="http://www.loc.gov/mods" class="row">
                     <input id="search-bar" filter="identifier" type="text" deer-key="identifier" placeholder="&hellip;Type to filter by shelfmark" class="is-hidden serifText row">
                     <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
