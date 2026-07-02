@@ -21,6 +21,19 @@ const sortNULLS = [
     ""
 ]
 
+/**
+ * Bandaid for issue #310: the glosses list cached every expanded Gloss into the
+ * "expandedEntities" localStorage key.  With enough Glosses that JSON blob blows
+ * past localStorage's ~5MB quota, so setItem throws QuotaExceededError partway
+ * through loading and the glosses.html list stops before every Gloss appears.
+ *
+ * Until a durable caching strategy lands, keep the glosses.html cache in memory
+ * only.  It persists for the life of the page (so re-renders within a session
+ * still benefit) but never touches localStorage, so it can't overflow the quota
+ * or fill up storage the rest of the site shares.
+ */
+const inMemoryExpandedEntities = new Map()
+
 export default {
     // Configuration of custom attributes for HTML elements manipulated by the app.
     ID: "deer-id", // attribute, URI for resource to render
@@ -109,7 +122,7 @@ export default {
                     }
                 </style>
                 <h2> Glosses </h2>
-                <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+                <small class="cachedNotice is-hidden text-primary"> To reload the data <a class="newcache tag is-small">click here</a>. </small>
                 <form id="ngForm" deer-type="Gloss" deer-context="http://www.loc.gov/mods" class="row">
                     <input id="search-bar" filter="title" type="text" deer-key="title" placeholder="&hellip;Type to filter by incipit, text, or targeted text" class="is-hidden serifText row">
                     <input type="hidden" deer-key="targetCollection" value="GoG-Named-Glosses">
@@ -164,7 +177,9 @@ export default {
                 </div>
                 `,
                 then: (elem) => {
-                    const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    //const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    // Bandaid for #310: read the cache from memory, not localStorage.
+                    const cachedFilterableEntities = inMemoryExpandedEntities
                     elem.querySelector("#ngForm").addEventListener("submit", (e) => {inProgress(e, true)})
                     let numloaded = 0
                     let total = 0
@@ -423,7 +438,9 @@ export default {
             return{
                 html: ``,
                 then: (elem) => {
-                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    //let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    // Bandaid for #310: cache in memory, not localStorage (see inMemoryExpandedEntities).
+                    let cachedFilterableEntities = inMemoryExpandedEntities
                     const containingListElem = elem.closest("deer-view")
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("td")
@@ -439,7 +456,8 @@ export default {
                     li.setAttribute("data-expanded", "true")
                     const negotiatedId = obj["@id"] ?? obj.id
                     cachedFilterableEntities.set(negotiatedId.replace(/^https?:/, 'https:'), obj)
-                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    //localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    // Bandaid for #310: mutate the shared in-memory cache; do not write to localStorage
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.appendChild(li)
@@ -562,7 +580,7 @@ export default {
                     <input type="hidden" custom-key="references" />
                     <div class="col glossPicker">
                         <h2 class="nomargin">Attach Gloss</h2>
-                        <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+                        <small class="cachedNotice is-hidden text-primary"> To reload the data <a class="newcache tag is-small">click here</a>. </small>
                         <p class="filterInstructions is-hidden"> 
                             Use the filter to narrow down your options.  Select a single Gloss from the list to attach this witness to. 
                         </p>
@@ -579,7 +597,9 @@ export default {
                     </div>
                 `,
                 then: (elem) => {
-                    const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    //const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    // Bandaid for #310: read the cache from memory, not localStorage.
+                    const cachedFilterableEntities = inMemoryExpandedEntities
                     let numloaded = 0
                     let total = 0
                     const filterPresent = deerUtils.getURLParameter("gog-filter")
@@ -849,7 +869,9 @@ export default {
             return{
                 html: ``,
                 then: (elem) => {
-                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    //let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    // Bandaid for #310: cache in memory, not localStorage (see inMemoryExpandedEntities).
+                    let cachedFilterableEntities = inMemoryExpandedEntities
                     const containingListElem = elem.closest("deer-view")
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("li")
@@ -865,11 +887,12 @@ export default {
                     li.setAttribute("data-expanded", "true")
                     const negotiatedId = obj["@id"] ?? obj.id
                     cachedFilterableEntities.set(negotiatedId.replace(/^https?:/, 'https:'), obj)
-                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    //localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    // Bandaid for #310: do not write to localStorage
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.appendChild(li)
-                    
+
                     const createScenario = elem.hasAttribute("create-scenario")
                     const updateScenario = elem.hasAttribute("update-scenario")   
                     const increaseTotal = ((createScenario || updateScenario))
@@ -959,7 +982,9 @@ export default {
             return {
                 html: ``,
                 then: (elem) => {
-                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    //let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    // Bandaid for #310: cache in memory, not localStorage (see inMemoryExpandedEntities).
+                    let cachedFilterableEntities = inMemoryExpandedEntities
                     const containingListElem = elem.closest("deer-view")
                     // Be careful.  The publish list stores items via http://, but everything else is https://.  Beware the false mismatch.
                     const negotiatedId = obj["@id"] ?? obj.id
@@ -1032,7 +1057,9 @@ export default {
                     }
                     li.setAttribute("data-expanded", "true")
                     cachedFilterableEntities.set(glossID, obj)
-                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    //localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    // Bandaid for #310: mutate the shared in-memory cache; do not write to localStorage
+                    // (the "expandedEntities" blob overflowed the quota). Same fix as the glosses.html list.
 
                     a.appendChild(label)
                     li.appendChild(publishedStatus)
@@ -1111,7 +1138,7 @@ export default {
                     }
                 </style>
                 <h2> Manuscript Witnesses </h2>
-                <small class="cachedNotice is-hidden text-primary"> These Manuscripts were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+                <small class="cachedNotice is-hidden text-primary"> To reload the data <a class="newcache tag is-small">click here</a>. </small>
                 <form id="msForm" deer-type="ManuscriptWitness" deer-context="http://www.loc.gov/mods" class="row">
                     <input id="search-bar" filter="identifier" type="text" deer-key="identifier" placeholder="&hellip;Type to filter by shelfmark" class="is-hidden serifText row">
                     <input type="hidden" deer-key="targetCollection" value="GoG-Manuscripts">
@@ -1166,7 +1193,9 @@ export default {
                 </div>
                 `,
                 then: (elem) => {
-                    const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    //const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    // Bandaid for #310: read the cache from memory, not localStorage.
+                    const cachedFilterableEntities = inMemoryExpandedEntities
                     let numloaded = 0
                     let total = 0
                     const filterPresent = deerUtils.getURLParameter("gog-filter")
@@ -1419,7 +1448,9 @@ export default {
             return{
                 html: ``,
                 then: (elem) => {
-                    let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    //let cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    // Bandaid for #310: cache in memory, not localStorage (see inMemoryExpandedEntities).
+                    let cachedFilterableEntities = inMemoryExpandedEntities
                     const containingListElem = elem.closest("deer-view")
                     let filteringProps = Object.keys(obj)
                     let li = document.createElement("td")
@@ -1435,7 +1466,9 @@ export default {
                     li.setAttribute("data-expanded", "true")
                     const negotiatedId = obj["@id"] ?? obj.id
                     cachedFilterableEntities.set(negotiatedId.replace(/^https?:/, 'https:'), obj)
-                    localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    //localStorage.setItem("expandedEntities", JSON.stringify(Object.fromEntries(cachedFilterableEntities)))
+                    // Bandaid for #310: mutate the shared in-memory cache; do not write to localStorage
+                    // (the "expandedEntities" blob overflowed the quota). Same fix as the glosses.html list.
                     a.appendChild(span)
                     li.appendChild(a)
                     elem.appendChild(li)
