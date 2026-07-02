@@ -12,7 +12,7 @@
     <script src="js/shared.js"></script>
 </head>
 
-<body class="container">
+<body class="container" data-require-login>
     <gog-header></gog-header>
 
     <!-- A stub for the future "facet selector" to inform our filtering "state" technique -->
@@ -36,8 +36,7 @@
 
     </gog-footer>
     <div id="globalFeedback" class="card is-center"></div>
-    <script>
-
+    <script type="module">
         window.onload = () => { 
             setPublicCollections() 
             setListings()
@@ -49,7 +48,7 @@
                 'Gloss Created. Redirecting to Details...',
                 true
             )
-            addEventListener('globalFeedbackFinished', () => location.href = `gloss-metadata.html#${event.detail['@id']}`)
+            addEventListener('globalFeedbackFinished', () => location.href = `gloss-metadata.html#${event.detail['@id'] ?? event.detail.id}`)
         })
 
         /**

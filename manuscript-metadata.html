@@ -22,7 +22,7 @@
     </style>
 </head>
 
-<body class="container">
+<body class="container" data-require-login>
     <gog-header class="container"></gog-header>
     <h2 class="bg-basic"> Manuscript Witness Metadata </h2>
     <p id="look" class="bg-light is-hidden"> 
@@ -163,7 +163,7 @@
     <div id="globalFeedback" class="card is-center"></div>
     <script src="js/manuscript-metadata.js"></script>
 </body>
-<script>
+<script type="module">
     /**
      * Make sure DEER forms do not submit when a user hits "Enter".
      */

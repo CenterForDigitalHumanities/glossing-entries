@@ -68,7 +68,7 @@ document.addEventListener("WitnessFragmentDeleted", function(event){
  */
 document.addEventListener("WitnessFragmentDeleteError", function(event){
     const ev = new CustomEvent("WitnessFragment Delete Error")
-    globalFeedbackBlip(ev, `Error deleting the Witness Fragment with URI ${event.detail["@id"]}`, false)
+    globalFeedbackBlip(ev, `Error deleting the Witness Fragment with URI ${event.detail["@id"] ?? event.detail.id}`, false)
     console.error(event.error)
 })
 
@@ -316,11 +316,12 @@ function addButton(event) {
     const updateScenario = template_container.hasAttribute("update-scenario")
     // A new Gloss has been introduced and is done being cached.
     let inclusionBtn = document.createElement("input")
+    const negotiatedId = obj["@id"] ?? obj.id
     inclusionBtn.setAttribute("type", "button")
-    inclusionBtn.setAttribute("data-id", obj["@id"])
+    inclusionBtn.setAttribute("data-id", negotiatedId)
     let already = false
     if(witnessFragmentsObj?.referencedGlosses){
-        already = witnessFragmentsObj.referencedGlosses.has(obj["@id"]) ? "attached-to-source" : ""
+        already = witnessFragmentsObj.referencedGlosses.has(negotiatedId) ? "attached-to-source" : ""
     }
     if(updateScenario){
         inclusionBtn.setAttribute("disabled", "")
@@ -335,7 +336,7 @@ function addButton(event) {
         inclusionBtn.setAttribute("class", `toggleInclusion ${already} button primary`)
 
         // If there is a hash AND a the reference value is the same as this gloss ID, this gloss is 'attached'
-        if(witnessFragmentID && referencedGlossID === obj["@id"]){
+        if(witnessFragmentID && referencedGlossID === negotiatedId){
             // Make this button appear as 'attached'
             inclusionBtn.setAttribute("disabled", "")
             inclusionBtn.setAttribute("value", "✓ attached")
@@ -386,9 +387,9 @@ function addButton(event) {
     else if(updateScenario) { 
         // Set the references input with the new gloss URI and update the form
         const refKey = witnessFragmentForm.querySelector("input[custom-key='references']")
-        if(refKey.value !== obj["@id"]){
-            refKey.value = obj["@id"]
-            refKey.setAttribute("value", obj["@id"]) 
+        if(refKey.value !== negotiatedId){
+            refKey.value = negotiatedId
+            refKey.setAttribute("value", negotiatedId) 
             refKey.$isDirty = true
             witnessFragmentForm.$isDirty = true
             witnessFragmentForm.querySelector("input[type='submit']").click() 
@@ -405,7 +406,8 @@ function initFragmentForm(event){
     let whatRecordForm = event.target?.id
     if(whatRecordForm !== "witnessFragmentForm") return
     let annotationData = event.detail ?? {}
-    if(!annotationData["@id"]) return
+    const negotiatedId = annotationData["@id"] ?? annotationData.id
+    if(!negotiatedId) return
     const entityType = annotationData.type ?? annotationData["@type"] ?? null
     if(entityType !== "WitnessFragment"){
         const ev = new CustomEvent("Fragment Details Error")
@@ -424,7 +426,7 @@ function initFragmentForm(event){
         const ev = new CustomEvent("Witness Fragment does not have a source")
         globalFeedbackBlip(ev, `Witness Fragment does not have a source.  You will be redirected.`, false)
         addEventListener("globalFeedbackFinished", () => {
-            location.href = `fragment-metadata.html#${annotationData["@id"]}`
+            location.href = `fragment-metadata.html#${negotiatedId}`
         })
         return
     }
@@ -668,12 +670,12 @@ addEventListener('deer-updated', event => {
     event.preventDefault()
     event.stopPropagation()
     const $elem = event.target
-    const entityID = event.detail["@id"]  
+    const entityID = event.detail["@id"] ?? event.detail.id
     const shelfmark = $elem.querySelector("input[deer-key='identifier']")?.value
     // Hmm maybe do this separation of handling a bit different.
     if($elem?.id === "manuscriptWitnessForm"){
         // We generated the Manuscript Witness and can use this ID as part of the fragment for submit
-        activateFragmentForm(event.detail["@id"], shelfmark, true)
+        activateFragmentForm(entityID, shelfmark, true)
         console.log("Manuscript Witness Fully Saved")
         const ev = new CustomEvent("Manuscript Witness Submitted")
         globalFeedbackBlip(ev, `Manuscript Witness Saved and Loaded In`, true)
@@ -711,7 +713,7 @@ addEventListener('deer-updated', event => {
                     const glossURIs = el.value.split("__")
                     paginateButtonsAfterSubmit(glossURIs)
                 }
-                el.setAttribute("deer-source", a["@id"])
+                el.setAttribute("deer-source", a["@id"] ?? a.id)
             })
             .catch(err => {
                 console.error(`Could not generate Annotation for key '${key}'`)
@@ -755,7 +757,7 @@ addEventListener('deer-updated', event => {
             })
             .then(res => res.json())
             .then(a => {
-                $elem.setAttribute("deer-source", a["@id"])
+                $elem.setAttribute("deer-source", a["@id"] ?? a.id)
             })
             .catch(err => {
                 console.error(`Could not generate 'text' property Annotation`)

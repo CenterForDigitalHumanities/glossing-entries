@@ -32,7 +32,7 @@
     </style>
 </head>
 
-<body class="container">
+<body class="container" data-require-login>
     <gog-header></gog-header>
     <h2 class="bg-basic"> Gloss Transcription Witness </h2>
     <p id="look" class="bg-light is-hidden"> 
@@ -223,12 +223,12 @@
     <gloss-modal class="is-hidden"></gloss-modal>
     <script src="js/gloss-transcription.js"></script>
 </body>
-<script>
+<script type="module">
     /**
      * Make sure DEER forms do not submit when a user hits "Enter".
-     */ 
+     */
     document.querySelectorAll("form[deer-type]").forEach(form => {
-        form.addEventListener("keydown", (e)=> {
+        form.addEventListener("keydown", (e) => {
             if (e.keyIdentifier == 'U+000A' || e.keyIdentifier == 'Enter' || e.keyCode == 13) {
                 if (e.target.nodeName == 'INPUT' && e.target.type == 'text') {
                     e.preventDefault()

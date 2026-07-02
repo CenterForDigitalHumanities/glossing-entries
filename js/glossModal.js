@@ -210,7 +210,7 @@ class GlossModal extends HTMLElement {
                             "textValue" : text
                         }
                     },
-                    "target": event.detail["@id"],
+                    "target": event.detail["@id"] ?? event.detail.id,
                     "creator" : window.GOG_USER["http://store.rerum.io/agent"]
                 }
                 const el = customTextElems[1]
@@ -227,8 +227,8 @@ class GlossModal extends HTMLElement {
                 })
                 .then(res => res.json())
                 .then(a => {
-                    customTextElems[0].setAttribute("deer-source", a["@id"])
-                    customTextElems[1].setAttribute("deer-source", a["@id"])
+                    customTextElems[0].setAttribute("deer-source", a["@id"] ?? a.id)
+                    customTextElems[1].setAttribute("deer-source", a["@id"] ?? a.id)
                 })
                 .catch(err => {
                     console.error(`Could not generate 'text' property Annotation`)

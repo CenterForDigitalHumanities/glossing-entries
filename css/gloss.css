@@ -27,6 +27,11 @@ html {
   padding: 2em 0;
 }
 
+/* Hide page content while auth is resolving */
+html.auth-loading body {
+  visibility: hidden;
+}
+
 gog-header,gog-footer {
   display: block;
 }
