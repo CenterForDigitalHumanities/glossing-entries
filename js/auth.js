@@ -68,11 +68,16 @@ try {
 // --- Session helpers ---
 
 const persistSession = (result) => {
-    localStorage.setItem(SESSION_KEY, JSON.stringify({
-        idToken: result.idToken,
-        accessToken: result.accessToken,
-        payload: result.idTokenPayload
-    }))
+    // Bandaid for #310: localStorage can be over quota
+    try {
+        localStorage.setItem(SESSION_KEY, JSON.stringify({
+            idToken: result.idToken,
+            accessToken: result.accessToken,
+            payload: result.idTokenPayload
+        }))
+    } catch (err) {
+        console.warn("Failed to persist auth session; localStorage unavailable/full:", err?.name ?? err)
+    }
 }
 
 const getSession = () => {

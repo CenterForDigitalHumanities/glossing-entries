@@ -20,6 +20,14 @@ const limiter = pLimit(4)
 const changeLoader = new MutationObserver(renderChange)
 var DEER = config
 
+// Bandaid for #310: the managed list cache (expandedEntities) overflowed localStorage's
+// quota, throwing QuotaExceededError mid-load and preventing all items from loading.  Keep
+// this cache in memory only so the page always loads.  The managedlist template only reads
+// this cache (its item template holds the real data), so a fresh empty Map each session just
+// means every item expands on load — the same "no persistence, reload re-fetches" tradeoff
+// used on glosses.html.  See inMemoryExpandedEntities in deer-config.js.
+const inMemoryExpandedEntities = new Map()
+
 /**
  * Observer callback for rendering newly loaded objects. Checks the
  * mutationsList for "deep-object" attribute changes.
@@ -43,7 +51,11 @@ async function renderChange(mutationsList) {
                     id = id.replace(/^https?:/, 'https:') // avoid mixed content
                     obj = await fetch(id).then(response => response.json()).catch(error => error)
                     if (obj) {
-                        localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
+                        //localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
+                        // Bandaid for #310: localStorage can be over quota
+                        try {
+                            localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
+                        } catch (err) { }
                     } else {
                         return false
                     }
@@ -274,7 +286,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 }
             </style>
             <h2 class="nomargin"> Manage Glosses </h2>
-            <small class="cachedNotice is-hidden text-primary"> These Glosses were cached.  To reload the data <a class="newcache tag is-small">click here</a>. </small>
+            <small class="cachedNotice is-hidden text-primary"> To reload the data <a class="newcache tag is-small">click here</a>. </small>
             <div class="row is-hidden facet-filters">
                 <div class="col-4 is-hidden">
                     <div class="statusFacets">
@@ -301,7 +313,9 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             </div>
         `,
         then: (elem) => {
-            let managedListCache = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+            //let managedListCache = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+            // Bandaid for #310: read the cache from memory, not localStorage.
+            let managedListCache = inMemoryExpandedEntities
             let numloaded = 0
             let total = 0
             const type = obj.name.includes("Named-Glosses") ? "named-gloss" : "manuscript"
