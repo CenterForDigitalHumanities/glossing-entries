@@ -46,7 +46,7 @@ async function renderChange(mutationsList) {
                         // Bandaid for #310: localStorage can be over quota
                         try {
                             localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
-                        } catch (err) { }    
+                        } catch (err) { }
                     } else {
                         return false
                     }
