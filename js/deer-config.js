@@ -1732,15 +1732,60 @@ export default {
                     linkHeading.innerText= "Witness Fragment Links"
                     elem.appendChild(linkHeading)
                     const linkList = document.createElement("ul")
+
+                    // Compute a Gloss's canonical reference locator from its annotations.
+                    // Mirrors modifyTableTR() so the locator matches the Gloss list ("Matthew 5.1").
+                    const buildReferenceLocator = (glossAnnos) => {
+                        const val = (key) => glossAnnos.find(a => a?.body?.[key] !== undefined)?.body[key]?.value
+                        let canonicalReference = val("canonicalReference") || ""
+                        let doc = val("_document")
+                        const section = val("_section") || val("targetChapter")
+                        const subsection = val("_subsection") || val("targetVerse")
+                        if (!doc && section && subsection) doc = "Matthew"
+                        if (!canonicalReference && doc && section && subsection) canonicalReference = `${doc} ${section}.${subsection}`
+                        return canonicalReference
+                    }
+
+                    // A distinguishing label for a fragment: its text incipit paired with the
+                    // reference locator of the Gloss it witnesses, e.g. "quos ibixii constituit — Matthew 5.1".
+                    // Uses targeted queries (not deerUtils.expand) so a failed lookup never broadcasts
+                    // expandError, which manuscript-profile.js would treat as a fatal profile error.
+                    const buildFragmentLabel = async (uri, index) => {
+                        const fragQuery = {
+                            "target": httpsIdArray(uri),
+                            "__rerum.history.next": historyWildcard,
+                            "__rerum.generatedBy": httpsIdArray(__constants.generator)
+                        }
+                        const annos = await getPagedQuery(100, 0, fragQuery).catch(() => [])
+                        const val = (key) => annos.find(a => a?.body?.[key] !== undefined)?.body[key]?.value
+                        // The text body is { language, textValue } — it has no `.value` wrapper.
+                        const incipit = (annos.find(a => a?.body?.text)?.body.text.textValue
+                            || val("title") || val("identifier") || `Witness Fragment #${index + 1}`).trim()
+                        const glossURI = val("references")?.[0]
+                        let locator = ""
+                        if (glossURI) {
+                            const glossQuery = {
+                                "target": httpsIdArray(glossURI),
+                                "__rerum.history.next": historyWildcard,
+                                "__rerum.generatedBy": httpsIdArray(__constants.generator)
+                            }
+                            const glossAnnos = await getPagedQuery(100, 0, glossQuery).catch(() => [])
+                            locator = buildReferenceLocator(glossAnnos)
+                        }
+                        return locator ? `${incipit} — ${locator}` : incipit
+                    }
+
                     obj.fragments.value.forEach((uri, index) => {
                         let item = document.createElement("li")
                         let link = document.createElement("a")
                         link.setAttribute("target", "_blank")
                         link.setAttribute("href", `fragment-metadata.html#${uri}`)
+                        // Placeholder until the distinguishing label resolves.  If the async lookup
+                        // fails this text simply remains, so the list is never left broken.
                         link.innerText = `Witness Fragment #${index+1}`
-                        //link.innerText = uri
                         item.appendChild(link)
                         linkList.appendChild(item)
+                        buildFragmentLabel(uri, index).then(label => { link.innerText = label })
                     })
                     elem.appendChild(linkList)
                 }
