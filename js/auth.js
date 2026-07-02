@@ -68,9 +68,7 @@ try {
 // --- Session helpers ---
 
 const persistSession = (result) => {
-    // Bandaid for #310: localStorage can be over quota (the per-entity cache in
-    // renderChange fills it), so guard the session write instead of letting a
-    // QuotaExceededError throw and break login.
+    // Bandaid for #310: localStorage can be over quota
     try {
         localStorage.setItem(SESSION_KEY, JSON.stringify({
             idToken: result.idToken,
