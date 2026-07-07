@@ -9,8 +9,53 @@ var glossHashID = window.location.hash.slice(1)
 // }
 
 /**
+ * Reveal and wire the manager-only "Publish" control for this Gloss.
+ * Create mode (no hash): show the publish-on-save checkbox.
+ * Edit mode (hash): show a Publish button that commits immediately; if the Gloss is already
+ * public it shows a disabled "Published ✓" state (this page does not offer unpublish).
+ * Idempotent: safe to run on page load and again when auth resolves (gog-authenticated).
+ */
+async function setupPublishControl(){
+    const form = document.getElementById("named-gloss")
+    if (!form) return
+    const checkbox = form.querySelector("#publishOnCreateControl")
+    const btn = form.querySelector(".publishGloss")
+    if (!userHasRole("glossing_user_manager")) return   // stay hidden for non-managers
+    if (!glossHashID) {                                  // create mode
+        checkbox?.classList.remove("is-hidden")
+        return
+    }
+    // edit mode
+    if (!btn || btn.dataset.wired) return                // avoid re-checking/re-wiring on re-entry
+    btn.dataset.wired = "true"
+    btn.classList.remove("is-hidden")
+    btn.setAttribute("disabled", "")
+    let isPub = false
+    try { isPub = await isPublicGloss(glossHashID) } catch (e) { console.error(e) } // fail-open: publish is idempotent
+    if (isPub) { btn.value = "Published ✓"; return }     // already public; no unpublish offered
+    btn.value = "Publish"
+    btn.removeAttribute("disabled")
+    btn.addEventListener('click', async () => {
+        btn.setAttribute("disabled", "")
+        const label = form.querySelector('input[deer-key="title"]').value
+            || form.querySelector("textarea[custom-text-key='text']").value
+        try {
+            await publishGloss(glossHashID, label)
+            btn.value = "Published ✓"
+            globalFeedbackBlip(new CustomEvent("Gloss published"), "Gloss published.", true)
+        } catch (err) {
+            console.error(err)
+            btn.removeAttribute("disabled")
+            globalFeedbackBlip(new CustomEvent("Publish error"), "Could not publish. Please try again.", false)
+        }
+    })
+}
+// Auth may resolve after onload; re-run to reveal the control once the user's roles are known.
+document.addEventListener('gog-authenticated', setupPublishControl)
+
+/**
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
- */ 
+ */
 window.onload = () => {
     const glossForm = document.getElementById("named-gloss")
     if(!glossHashID){
@@ -75,6 +120,7 @@ window.onload = () => {
         ev.target.$isDirty = true
         glossForm.$isDirty = true
     })
+    setupPublishControl()
 }
 
 /**
@@ -395,6 +441,24 @@ addEventListener('deer-updated', async (event) => {
     const entityID = event.detail["@id"] ?? event.detail.id
     // Only have to await this if we care to stop processing on error
     const generatedQuickReferences = await generateWitnessesOnSubmit(entityID)
+
+    // Publish-on-create: if a manager opted in, add the new Gloss to the public list before the
+    // create-mode redirect below.  Awaiting here guarantees it completes prior to navigation.
+    if (!glossHashID) {
+        const publishOnCreate = $elem.querySelector("#publishOnCreate")
+        if (publishOnCreate?.checked) {
+            try {
+                const label = $elem.querySelector('input[deer-key="title"]').value
+                    || $elem.querySelector("textarea[custom-text-key='text']").value
+                await publishGloss(entityID, label)
+            } catch (err) {
+                console.error(err)
+                globalFeedbackBlip(new CustomEvent("Publish failed"),
+                    "Gloss saved but could not be published. You can publish it from this page.", false)
+                // fall through: Gloss is saved; existing redirect lands them in edit mode to retry
+            }
+        }
+    }
 
     const customTextElems = [
         $elem.querySelector("select[custom-text-key='language']"),
