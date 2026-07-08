@@ -569,10 +569,10 @@ input.required, textarea.required, select.required{
 
 .publish-control {
   display: block;
-  color:  var(--color-success);
+  color: var(--color-success);
   padding: 5px 5px 1em 5px;
 }
 
 .publish-control input:hover {
-  font-weight:  bold;
+  font-weight: bold;
 }
