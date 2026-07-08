@@ -21,14 +21,14 @@ async function setupPublishControl(){
     const btn = form.querySelector(".publishGloss")
     if (!btn) return
     let isPub = false
-    try { isPub = await isPublicGloss(glossHashID) } catch (e) { console.error(e) }
+    if (glossHashID) {
+        try { isPub = await isPublicGloss(glossHashID) } catch (e) { console.error(e) }
+    }
     if (isPub) { 
         btn.value = "Published ✓"
         btn.classList.remove("is-hidden")
         btn.setAttribute("disabled", "")
         const dropbtn = form.querySelector(".dropGloss")
-        //dropbtn.setAttribute("disabled", "")
-        //dropbtn.setAttribute("title", "Published glosses cannot be dropped here")
         dropbtn.classList.add("is-hidden")
         return 
     }
@@ -40,6 +40,8 @@ async function setupPublishControl(){
         checkbox.classList.remove("is-hidden")
         return
     }
+    if (btn.wired) return 
+    btn.wired = "true"
     btn.value = "Publish"
     btn.removeAttribute("disabled")
     btn.classList.remove("is-hidden")

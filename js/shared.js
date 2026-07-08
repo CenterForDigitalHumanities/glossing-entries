@@ -406,7 +406,7 @@ async function publishGloss(glossURI, label = "") {
     if (!publicList?.itemListElement) throw new Error("Unable to fetch public list")
     const items = publicList.itemListElement
         .filter(obj => ((obj["@id"] ?? obj.id ?? "").split('/').pop()) !== targetSeg)
-        .map(obj => ({ label: obj.label ?? obj.name ?? "", '@id': (obj["@id"] ?? obj.id).replace(/^https?:/, 'https:') }))
+        .map(obj => ({ label: obj.label ?? obj.name ?? "", '@id': (obj["@id"] ?? obj.id ?? "").replace(/^https?:/, 'https:') }))
     items.push({ label: label || normURI, '@id': normURI })
     const list = {
         '@id': __constants.ngCollection,
