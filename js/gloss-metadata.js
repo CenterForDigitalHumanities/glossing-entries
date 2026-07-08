@@ -28,9 +28,8 @@ async function setupPublishControl(){
         btn.value = "Published ✓"
         btn.classList.remove("is-hidden")
         btn.setAttribute("disabled", "")
-        const dropbtn = form.querySelector(".dropGloss")
-        dropbtn.classList.add("is-hidden")
-        return 
+        form.querySelector(".dropGloss")?.classList.add("is-hidden")
+        return
     }
     if (!userHasRole("glossing_user_manager")) return
     if (!glossHashID) {
