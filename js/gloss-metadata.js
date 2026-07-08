@@ -21,24 +21,23 @@ async function setupPublishControl(){
     const btn = form.querySelector(".publishGloss")
     if (!btn) return
     let isPub = false
-    try { isPub = await isPublicGloss(glossHashID) } catch (e) { console.error(e) } // fail-open: publish is idempotent
+    try { isPub = await isPublicGloss(glossHashID) } catch (e) { console.error(e) }
     if (isPub) { 
         btn.value = "Published ✓"
+        btn.classList.remove("is-hidden")
+        btn.setAttribute("disabled", "")
         const dropbtn = form.querySelector(".dropGloss")
-        dropbtn.setAttribute("disabled", "")
-        dropbtn.setAttribute("title", "Published glosses cannot be dropped here")
+        //dropbtn.setAttribute("disabled", "")
+        //dropbtn.setAttribute("title", "Published glosses cannot be dropped here")
+        dropbtn.classList.add("is-hidden")
         return 
     }
     if (!userHasRole("glossing_user_manager")) return
-    btn.classList.remove("is-hidden")
-    btn.setAttribute("disabled", "")
-    const checkbox = form.querySelector("#publishOnCreateControl")
-    checkbox.setAttribute("title", "This Gloss will be published immediately when this is checked.")
-    //if (!btn || btn.dataset.wired) return
-    //btn.dataset.wired = "true"
-    btn.setAttribute("disabled", "")
     if (!glossHashID) {
-        checkbox?.classList.remove("is-hidden")
+        const checkbox = form.querySelector("#publishOnCreateControl")
+        if (!checkbox) return
+        checkbox.setAttribute("title", "This Gloss will be published immediately when this is checked.")
+        checkbox.classList.remove("is-hidden")
         return
     }
     btn.value = "Publish"
