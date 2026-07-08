@@ -18,23 +18,32 @@ var glossHashID = window.location.hash.slice(1)
 async function setupPublishControl(){
     const form = document.getElementById("named-gloss")
     if (!form) return
-    const checkbox = form.querySelector("#publishOnCreateControl")
     const btn = form.querySelector(".publishGloss")
-    if (!userHasRole("glossing_user_manager")) return   // stay hidden for non-managers
-    if (!glossHashID) {                                  // create mode
+    if (!btn) return
+    let isPub = false
+    try { isPub = await isPublicGloss(glossHashID) } catch (e) { console.error(e) } // fail-open: publish is idempotent
+    if (isPub) { 
+        btn.value = "Published ✓"
+        const dropbtn = form.querySelector(".dropGloss")
+        dropbtn.setAttribute("disabled", "")
+        dropbtn.setAttribute("title", "Published glosses cannot be dropped here")
+        return 
+    }
+    if (!userHasRole("glossing_user_manager")) return
+    btn.classList.remove("is-hidden")
+    btn.setAttribute("disabled", "")
+    const checkbox = form.querySelector("#publishOnCreateControl")
+    checkbox.setAttribute("title", "This Gloss will be published immediately when this is checked.")
+    //if (!btn || btn.dataset.wired) return
+    //btn.dataset.wired = "true"
+    btn.setAttribute("disabled", "")
+    if (!glossHashID) {
         checkbox?.classList.remove("is-hidden")
         return
     }
-    // edit mode
-    if (!btn || btn.dataset.wired) return                // avoid re-checking/re-wiring on re-entry
-    btn.dataset.wired = "true"
-    btn.classList.remove("is-hidden")
-    btn.setAttribute("disabled", "")
-    let isPub = false
-    try { isPub = await isPublicGloss(glossHashID) } catch (e) { console.error(e) } // fail-open: publish is idempotent
-    if (isPub) { btn.value = "Published ✓"; return }     // already public; no unpublish offered
     btn.value = "Publish"
     btn.removeAttribute("disabled")
+    btn.classList.remove("is-hidden")
     btn.addEventListener('click', async () => {
         btn.setAttribute("disabled", "")
         const label = form.querySelector('input[deer-key="title"]').value
@@ -120,7 +129,6 @@ window.onload = () => {
         ev.target.$isDirty = true
         glossForm.$isDirty = true
     })
-    setupPublishControl()
 }
 
 /**
@@ -180,6 +188,7 @@ function initGlossForm(event){
     document.querySelector(".gloss-needed").classList.remove("is-hidden")
     setTimeout(() => {
         setFieldDisabled(false)
+        setupPublishControl()
     }, 200)
 }
 
