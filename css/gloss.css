@@ -573,6 +573,6 @@ input.required, textarea.required, select.required{
   padding: 5px 5px 1em 5px;
 }
 
-.publish-control:hover {
+.publish-control input:hover {
   font-weight:  bold;
 }
