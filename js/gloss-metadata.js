@@ -9,8 +9,62 @@ var glossHashID = window.location.hash.slice(1)
 // }
 
 /**
+ * Reveal and wire the manager-only "Publish" control for this Gloss.
+ * Create mode (no hash): show the publish-on-save checkbox.
+ * Edit mode (hash): show a Publish button that commits immediately; if the Gloss is already
+ * public it shows a disabled "Published ✓" state (this page does not offer unpublish).
+ * Idempotent: safe to run on page load and again when auth resolves (gog-authenticated).
+ */
+async function setupPublishControl(){
+    const form = document.getElementById("named-gloss")
+    if (!form) return
+    const btn = form.querySelector(".publishGloss")
+    if (!btn) return
+    let isPub = false
+    if (glossHashID) {
+        try { isPub = await isPublicGloss(glossHashID) } catch (e) { console.error(e) }
+    }
+    if (isPub) { 
+        btn.value = "Published ✓"
+        btn.classList.remove("is-hidden")
+        btn.setAttribute("disabled", "")
+        form.querySelector(".dropGloss")?.classList.add("is-hidden")
+        return
+    }
+    if (!userHasRole("glossing_user_manager")) return
+    if (!glossHashID) {
+        const checkbox = form.querySelector("#publishOnCreateControl")
+        if (!checkbox) return
+        checkbox.setAttribute("title", "This Gloss will be published immediately when this is checked.")
+        checkbox.classList.remove("is-hidden")
+        return
+    }
+    if (btn.wired) return 
+    btn.wired = "true"
+    btn.value = "Publish"
+    btn.removeAttribute("disabled")
+    btn.classList.remove("is-hidden")
+    btn.addEventListener('click', async () => {
+        btn.setAttribute("disabled", "")
+        const label = form.querySelector('input[deer-key="title"]').value
+            || form.querySelector("textarea[custom-text-key='text']").value
+        try {
+            await publishGloss(glossHashID, label)
+            btn.value = "Published ✓"
+            globalFeedbackBlip(new CustomEvent("Gloss published"), "Gloss published.", true)
+        } catch (err) {
+            console.error(err)
+            btn.removeAttribute("disabled")
+            globalFeedbackBlip(new CustomEvent("Publish error"), "Could not publish. Please try again.", false)
+        }
+    })
+}
+// Auth may resolve after onload; re-run to reveal the control once the user's roles are known.
+document.addEventListener('gog-authenticated', setupPublishControl)
+
+/**
  * Default behaviors to run on page load.  Add the event listeners to the custom form elements and mimic $isDirty.
- */ 
+ */
 window.onload = () => {
     const glossForm = document.getElementById("named-gloss")
     if(!glossHashID){
@@ -134,6 +188,7 @@ function initGlossForm(event){
     document.querySelector(".gloss-needed").classList.remove("is-hidden")
     setTimeout(() => {
         setFieldDisabled(false)
+        setupPublishControl()
     }, 200)
 }
 
@@ -395,6 +450,24 @@ addEventListener('deer-updated', async (event) => {
     const entityID = event.detail["@id"] ?? event.detail.id
     // Only have to await this if we care to stop processing on error
     const generatedQuickReferences = await generateWitnessesOnSubmit(entityID)
+
+    // Publish-on-create: if a manager opted in, add the new Gloss to the public list before the
+    // create-mode redirect below.  Awaiting here guarantees it completes prior to navigation.
+    if (!glossHashID) {
+        const publishOnCreate = $elem.querySelector("#publishOnCreate")
+        if (publishOnCreate?.checked) {
+            try {
+                const label = $elem.querySelector('input[deer-key="title"]').value
+                    || $elem.querySelector("textarea[custom-text-key='text']").value
+                await publishGloss(entityID, label)
+            } catch (err) {
+                console.error(err)
+                globalFeedbackBlip(new CustomEvent("Publish failed"),
+                    "Gloss saved but could not be published. You can publish it from this page.", false)
+                // fall through: Gloss is saved; existing redirect lands them in edit mode to retry
+            }
+        }
+    }
 
     const customTextElems = [
         $elem.querySelector("select[custom-text-key='language']"),

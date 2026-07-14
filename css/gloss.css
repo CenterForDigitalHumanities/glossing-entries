@@ -566,3 +566,13 @@ textarea:disabled, select:disabled {
 input.required, textarea.required, select.required{
     border: 1px solid black;
 }
+
+.publish-control {
+  display: block;
+  color: var(--color-success);
+  padding: 5px 5px 1em 5px;
+}
+
+.publish-control input:hover {
+  font-weight: bold;
+}

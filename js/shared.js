@@ -378,6 +378,58 @@ async function isPublicGloss(glossID){
 }
 
 /**
+ * Classic-scope mirror of the module userHasRole (deer-render.js / deer-config.js).
+ * The module copies are not on window, so this global is what non-module scripts
+ * like gloss-metadata.js call.
+ * @param {Array|String} roles - Role name(s) to check.
+ * @returns {boolean} true when the user has at least one of the roles.
+ */
+function userHasRole(roles){
+    if (!Array.isArray(roles)) { roles = [roles] }
+    return Boolean(window.GOG_USER?.["http://rerum.io/user_roles"]?.roles?.some(r => roles.includes(r)))
+}
+
+/**
+ * Publish a single Gloss by adding it to the public ItemList and persisting via /overwrite.
+ * Add-only and idempotent: dedupes by last URL path segment and normalizes to https to dodge
+ * the http/https drift in the public list.  There is no unpublish counterpart here on purpose.
+ * @param {string} glossURI - The Gloss IRI to publish.
+ * @param {string} label - Display label for the list item (title, falling back to text/URI).
+ * @returns {Promise<boolean>} Resolves true on success; throws on fetch/HTTP failure.
+ */
+async function publishGloss(glossURI, label = "") {
+    if (!glossURI) throw new Error("No gloss URI provided")
+    if (!__constants?.ngCollection) await setConstants()
+    const normURI = glossURI.replace(/^https?:/, 'https:')
+    const targetSeg = normURI.split('/').pop()
+    const publicList = await fetch(__constants.ngCollection).then(r => r.json()).catch(() => null)
+    if (!publicList?.itemListElement) throw new Error("Unable to fetch public list")
+    const items = publicList.itemListElement
+        .filter(obj => ((obj["@id"] ?? obj.id ?? "").split('/').pop()) !== targetSeg)
+        .map(obj => ({ label: obj.label ?? obj.name ?? "", '@id': (obj["@id"] ?? obj.id ?? "").replace(/^https?:/, 'https:') }))
+    items.push({ label: label || normURI, '@id': normURI })
+    const list = {
+        '@id': __constants.ngCollection,
+        '@context': 'https://schema.org/',
+        '@type': "ItemList",
+        name: "Gallery of Glosses Public Glosses List",
+        numberOfItems: items.length,
+        itemListElement: items
+    }
+    const res = await fetch(`${__constants.tiny}/overwrite`, {
+        method: "PUT",
+        mode: 'cors',
+        body: JSON.stringify(list),
+        headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": `Bearer ${window.GOG_USER.authorization}`
+        }
+    })
+    if (!res.ok) throw new Error(`Failed to overwrite public list (${res.status})`)
+    return true
+}
+
+/**
  * Creates a custom confirmation dialog box with the specified message.
  * @param {string} message - The message to be displayed in the confirmation dialog box.
  * @returns {Promise<boolean>} A Promise that resolves with a boolean value indicating whether the confirmation was accepted (true) or canceled (false).
