@@ -1792,8 +1792,10 @@ export default {
                         const annos = await getPagedQuery(100, 0, fragQuery).catch(() => [])
                         const val = (key) => annos.find(a => a?.body?.[key] !== undefined)?.body[key]?.value
                         // The text body is { language, textValue } — it has no `.value` wrapper.
-                        const incipit = (annos.find(a => a?.body?.text)?.body.text.textValue
+                        const fullIncipit = (annos.find(a => a?.body?.text)?.body.text.textValue
                             || val("title") || val("identifier") || `Witness Fragment #${index + 1}`).trim()
+                        // Incipits can run long, so cap the displayed text around 50 characters with an ellipsis.
+                        const incipit = fullIncipit.length > 50 ? `${fullIncipit.slice(0, 50).trimEnd()}…` : fullIncipit
                         const glossURI = val("references")?.[0]
                         let locator = ""
                         if (glossURI) {
@@ -1805,7 +1807,7 @@ export default {
                             const glossAnnos = await getPagedQuery(100, 0, glossQuery).catch(() => [])
                             locator = buildReferenceLocator(glossAnnos)
                         }
-                        return locator ? `${incipit} — ${locator}` : incipit
+                        return locator ? `${locator} — ${incipit}` : incipit
                     }
 
                     obj.fragments.value.forEach((uri, index) => {
