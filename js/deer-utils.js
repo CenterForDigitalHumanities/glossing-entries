@@ -149,6 +149,21 @@ export default {
         }
     },
     /**
+     * Build the RERUM server-side expansion URL for an object URI, or null when the URI is not a
+     * RERUM id URI (e.g. an external or TPEN URI).  The id is rebuilt against the configured store
+     * (DEER.URLS.BASE_ID) so the URL resolves in every environment (local and production).
+     * See UTILS.expand and issue #310.
+     * @param {string} uri an object's @id or id
+     * @returns {string|null} a stable, cacheable `<store>/id/<id>/expanded` URL
+     */
+    getExpandedURL: function (uri) {
+        const base = DEER.URLS?.BASE_ID
+        if (!base || typeof uri !== "string") return null
+        const match = uri.match(/\/id\/([^/?#]+)/)
+        if (!match) return null
+        return `${base.replace(/\/+$/, "")}/id/${match[1]}/expanded`
+    },
+    /**
      * Take a known object with an id and query for annotations targeting it.
      * Discovered annotations are asserted on the original object and returned.
      * @param {Object} entity Target object to search for description
@@ -163,6 +178,18 @@ export default {
         // Hacking this deferred TPEN bug.
         if(findId.includes("/TPEN/manifest/")) {
             findId = findId.replace("manifest.json", "")
+        }
+        // #310: Prefer server-side expansion.  RERUM exposes a stable, browser-cacheable
+        // /id/{id}/expanded URL that returns the object with its targeting Annotations already
+        // merged.  Accept that finished object as-is and do NOT expand() again on the client.
+        // Fall back to the legacy client-side expand below for non-RERUM URIs, or if the endpoint
+        // is unavailable (e.g. not yet deployed).
+        const expandedURL = UTILS.getExpandedURL(findId)
+        if (expandedURL) {
+            try {
+                const response = await fetch(expandedURL)
+                if (response.ok) { return await response.json() }
+            } catch (err) { /* fall through to the client-side expand below */ }
         }
         let getVal = UTILS.getValue
         return fetch(findId.replace(/^https?:/, 'https:')).then(response => response.json())
