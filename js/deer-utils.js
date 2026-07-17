@@ -149,19 +149,21 @@ export default {
         }
     },
     /**
-     * Build the RERUM server-side expansion URL for an object URI, or null when the URI is not a
+     * Build the GoG server-side expansion URL for an object URI, or null when the URI is not a
      * RERUM id URI (e.g. an external or TPEN URI).  The id is rebuilt against the configured store
-     * (DEER.URLS.BASE_ID) so the URL resolves in every environment (local and production).
+     * (DEER.URLS.BASE_ID) so the URL resolves in every environment (local and production).  The
+     * /gog namespace lives at the server root, not under the /v1 API prefix, so /v1 is stripped.
      * See UTILS.expand and issue #310.
      * @param {string} uri an object's @id or id
-     * @returns {string|null} a stable, cacheable `<store>/id/<id>/expanded` URL
+     * @returns {string|null} a stable, cacheable `<host>/gog/id/<id>` URL
      */
     getExpandedURL: function (uri) {
         const base = DEER.URLS?.BASE_ID
         if (!base || typeof uri !== "string") return null
         const match = uri.match(/\/id\/([^/?#]+)/)
         if (!match) return null
-        return `${base.replace(/\/+$/, "")}/id/${match[1]}/expanded`
+        const origin = base.replace(/\/+$/, "").replace(/\/v1$/, "")
+        return `${origin}/gog/id/${match[1]}`
     },
     /**
      * Take a known object with an id and query for annotations targeting it.
@@ -180,7 +182,7 @@ export default {
             findId = findId.replace("manifest.json", "")
         }
         // #310: Prefer server-side expansion.  RERUM exposes a stable, browser-cacheable
-        // /id/{id}/expanded URL that returns the object with its targeting Annotations already
+        // /gog/id/{id} URL that returns the object with its targeting Annotations already
         // merged.  Accept that finished object as-is and do NOT expand() again on the client.
         // Fall back to the legacy client-side expand below for non-RERUM URIs, or if the endpoint
         // is unavailable (e.g. not yet deployed).
