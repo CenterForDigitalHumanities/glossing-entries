@@ -285,7 +285,7 @@ self.onhashchange = loadHashId
 function loadHashId() {
     let hash = location.hash.slice(1)
     if (!hash) { return }
-    const rerumPrefix = "http://localhost:3001/v1/id/"
+    const rerumPrefix = "https://store.rerum.io/v1/id/"
     if (hash.length === 24) { hash = `${rerumPrefix}${hash}` }
     if (!hash.startsWith('http')) { return }
     document.addEventListener('DOMContentLoaded', ev => {
