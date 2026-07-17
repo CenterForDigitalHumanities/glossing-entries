@@ -150,10 +150,7 @@ export default {
     },
     /**
      * Build the GoG server-side expansion URL for an object URI, or null when the URI is not a
-     * RERUM id URI (e.g. an external or TPEN URI).  The id is rebuilt against the configured store
-     * (DEER.URLS.BASE_ID) so the URL resolves in every environment (local and production).  The
-     * /gog namespace lives at the server root, not under the /v1 API prefix, so /v1 is stripped.
-     * See UTILS.expand and issue #310.
+     * RERUM id URI.  The id is rebuilt against the configured store so the URL resolves in every environment.
      * @param {string} uri an object's @id or id
      * @returns {string|null} a stable, cacheable `<host>/gog/id/<id>` URL
      */
@@ -181,11 +178,8 @@ export default {
         if(findId.includes("/TPEN/manifest/")) {
             findId = findId.replace("manifest.json", "")
         }
-        // #310: Prefer server-side expansion.  RERUM exposes a stable, browser-cacheable
-        // /gog/id/{id} URL that returns the object with its targeting Annotations already
-        // merged.  Accept that finished object as-is and do NOT expand() again on the client.
-        // Fall back to the legacy client-side expand below for non-RERUM URIs, or if the endpoint
-        // is unavailable (e.g. not yet deployed).
+        // Prefer server-side expansion.  RERUM exposes a stable, browser-cacheable/gog/id/{id} URL 
+        // that returns the object with its targeting Annotations already merged.
         const expandedURL = UTILS.getExpandedURL(findId)
         if (expandedURL) {
             try {
