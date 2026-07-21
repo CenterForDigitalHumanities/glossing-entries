@@ -129,6 +129,7 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
     a.addEventListener("click", ev => {
         ev.preventDefault()
         const modal = document.querySelector("gloss-modal")
+        if (!modal) return
         // Pass the full expanded Gloss entity so the modal can extract all properties correctly.
         modal.open(glossObj)
     })

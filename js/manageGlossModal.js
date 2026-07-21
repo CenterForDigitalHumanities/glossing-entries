@@ -132,7 +132,7 @@ class ManageGlossModal extends HTMLElement {
             const creatorId = deerUtils.getCreator(glossData)
             const creatorElem = $this.querySelector(".gloss-creator")
             let creatorLabel = creatorId ?? "[ unlabeled ]"
-            if (creatorId && creatorId.startsWith("http")) {
+            if (typeof creatorId === "string" && creatorId.startsWith("http")) {
                 // Show agent ID initially, then update with resolved label.
                 creatorElem.innerText = creatorId
                 deerUtils.resolveAgentLabel(creatorId).then(label => {

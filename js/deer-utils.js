@@ -169,22 +169,31 @@ export default {
     agentLabelCache: new Map(),
     /**
      * Resolve an agent ID URL to a human-readable label, with caching.
+     * In-flight fetches are deduplicated — concurrent calls for the same agent ID share the same promise.
      * @param {string} agentId - Agent ID URL
      * @returns {string} Human-readable label, or the original ID if resolution fails
      */
     resolveAgentLabel: async function (agentId) {
         if (!agentId || typeof agentId !== "string") return agentId ?? "[ unlabeled ]"
-        if (this.agentLabelCache.has(agentId)) return this.agentLabelCache.get(agentId)
-        try {
-            const response = await fetch(agentId)
-            if (!response.ok) return agentId
-            const agent = await response.json()
-            const label = this.getLabel(agent) ?? agent.name ?? agent.label ?? agentId
-            this.agentLabelCache.set(agentId, label)
-            return label
-        } catch {
-            return agentId
-        }
+        const cached = this.agentLabelCache.get(agentId)
+        if (cached !== undefined) return cached
+        // Store the in-flight promise so concurrent callers share the same fetch.
+        const fetchPromise = (async () => {
+            try {
+                // Upgrade http:// to https:// to avoid mixed content errors.
+                const url = agentId.startsWith("http://") ? agentId.replace(/^http:/, "https:") : agentId
+                const response = await fetch(url)
+                if (!response.ok) return agentId
+                const agent = await response.json()
+                const label = this.getLabel(agent) ?? agent.name ?? agent.label ?? agentId
+                this.agentLabelCache.set(agentId, label)
+                return label
+            } catch {
+                return agentId
+            }
+        })()
+        this.agentLabelCache.set(agentId, fetchPromise)
+        return fetchPromise
     },
     /**
      * Format a date string as relative time (e.g., "2 hours ago", "3 days ago").
