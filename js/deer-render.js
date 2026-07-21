@@ -83,8 +83,10 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
     }
 
     // Set data attributes for new columns (sorting + filtering)
-    li.setAttribute("data-creator", UTILS.getCreator(glossObj))
-    li.setAttribute("data-modified", UTILS.getModifiedDate(glossObj))
+    const creatorRaw = UTILS.getCreator(glossObj)
+    const modifiedRaw = UTILS.getModifiedDate(glossObj)
+    li.setAttribute("data-creator", creatorRaw)
+    li.setAttribute("data-modified", modifiedRaw)
     li.setAttribute("data-witnesscount", UTILS.getWitnessCount(glossObj))
 
     // Build row content: checkbox | status | title | contributor | modified | witnesses
@@ -95,12 +97,16 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
 
     const creatorSpan = document.createElement("span")
     creatorSpan.classList.add("gloss-creator")
-    creatorSpan.innerText = UTILS.getCreator(glossObj)
+    // Resolve agent ID to human-readable label if it's a URL.
+    if (creatorRaw && creatorRaw.startsWith("http")) {
+        UTILS.resolveAgentLabel(creatorRaw).then(label => { creatorSpan.innerText = label }).catch(() => { creatorSpan.innerText = creatorRaw })
+    } else {
+        creatorSpan.innerText = creatorRaw ?? "[ unlabeled ]"
+    }
 
     const modifiedSpan = document.createElement("span")
     modifiedSpan.classList.add("gloss-modified")
-    const modifiedDate = UTILS.getModifiedDate(glossObj)
-    modifiedSpan.innerText = modifiedDate ? new Date(modifiedDate).toLocaleDateString() : "—"
+    modifiedSpan.innerText = modifiedRaw ? UTILS.formatRelativeTime(modifiedRaw) : "—"
 
     const witnessSpan = document.createElement("span")
     witnessSpan.classList.add("gloss-witnesses")
@@ -123,15 +129,8 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
     a.addEventListener("click", ev => {
         ev.preventDefault()
         const modal = document.querySelector("gloss-modal")
-        modal.open({
-            "@id": glossID,
-            title: UTILS.getLabel(glossObj),
-            text: UTILS.getValue(glossObj.text),
-            published: null, // Determined by existing pubStatus logic after load.
-            contributor: UTILS.getCreator(glossObj),
-            modified: UTILS.getModifiedDate(glossObj),
-            witnesses: UTILS.getWitnessCount(glossObj)
-        })
+        // Pass the full expanded Gloss entity so the modal can extract all properties correctly.
+        modal.open(glossObj)
     })
 
     return li

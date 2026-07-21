@@ -120,17 +120,35 @@ class ManageGlossModal extends HTMLElement {
             }
             const glossID = negotiatedId.replace(/^https?:/, 'https:')
             const published = glossData.published
-            const glossText = glossData.text
-            const glossTitle = `${published ? "✓" : "❌"}  ${glossData.title}`
 
-            // Populate metadata from expanded entity data.
-            const creator = deerUtils.getCreator(glossData)
-            const modified = deerUtils.getModifiedDate(glossData)
-            const witnesses = deerUtils.getWitnessCount(glossData)
+            // Extract values from the full Gloss entity.
+            // title and text may be objects like {value: "..."} or {textValue: "..."}.
+            const glossText = deerUtils.getValue(glossData.text) ?? ""
+            const glossTitleObj = deerUtils.getLabel(glossData) ?? glossData.title
+            const glossTitleStr = deerUtils.getValue(glossTitleObj) ?? "[ unlabeled ]"
+            const glossTitle = `${published ? "✓" : "❌"}  ${glossTitleStr}`
+
+            // Contributor: resolve agent ID to human-readable label.
+            const creatorId = deerUtils.getCreator(glossData)
+            const creatorElem = $this.querySelector(".gloss-creator")
+            let creatorLabel = creatorId ?? "[ unlabeled ]"
+            if (creatorId && creatorId.startsWith("http")) {
+                // Show agent ID initially, then update with resolved label.
+                creatorElem.innerText = creatorId
+                deerUtils.resolveAgentLabel(creatorId).then(label => {
+                    creatorElem.innerText = label
+                })
+            } else {
+                creatorElem.innerText = creatorLabel
+            }
+            const modified = deerUtils.getModifiedDate(glossData) ?? ""
+            const modifiedDisplay = modified ? deerUtils.formatRelativeTime(modified) : "—"
+
+            // Witnesses: count from the Gloss entity.
+            const witnesses = deerUtils.getWitnessCount(glossData) ?? 0
 
             $this.querySelector(".gloss-text").innerText = glossText
-            $this.querySelector(".gloss-creator").innerText = creator
-            $this.querySelector(".gloss-modified").innerText = modified ? new Date(modified).toLocaleDateString() : "—"
+            $this.querySelector(".gloss-modified").innerText = modifiedDisplay
             $this.querySelector(".gloss-witnesses").innerText = witnesses
 
             const removeBtn = `<input type="button" value="delete" glossid="${glossID}" data-type="named-gloss" class="removeCollectionItem button error is-small" title="Delete This Entry">`

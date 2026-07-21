@@ -163,15 +163,66 @@ export default {
         return `${origin}/gog/id/${match[1]}`
     },
     /**
+     * Cache of agent ID -> human-readable label mappings.
+     * Populated lazily when getCreator encounters an agent ID URL.
+     */
+    agentLabelCache: new Map(),
+    /**
+     * Resolve an agent ID URL to a human-readable label, with caching.
+     * @param {string} agentId - Agent ID URL
+     * @returns {string} Human-readable label, or the original ID if resolution fails
+     */
+    resolveAgentLabel: async function (agentId) {
+        if (!agentId || typeof agentId !== "string") return agentId ?? "[ unlabeled ]"
+        if (this.agentLabelCache.has(agentId)) return this.agentLabelCache.get(agentId)
+        try {
+            const response = await fetch(agentId)
+            if (!response.ok) return agentId
+            const agent = await response.json()
+            const label = this.getLabel(agent) ?? agent.name ?? agent.label ?? agentId
+            this.agentLabelCache.set(agentId, label)
+            return label
+        } catch {
+            return agentId
+        }
+    },
+    /**
+     * Format a date string as relative time (e.g., "2 hours ago", "3 days ago").
+     * Falls back to simple date format for dates older than a week.
+     * @param {string} dateString - ISO date string
+     * @returns {string} Formatted relative time or date
+     */
+    formatRelativeTime: function (dateString) {
+        if (!dateString) return "—"
+        const now = Date.now()
+        const date = new Date(dateString).getTime()
+        if (isNaN(date)) return "—"
+        const diff = now - date
+        const minutes = Math.floor(diff / 60000)
+        const hours = Math.floor(diff / 3600000)
+        const days = Math.floor(diff / 86400000)
+
+        if (minutes < 1) return "just now"
+        if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`
+        if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`
+        if (days < 7) return `${days} day${days !== 1 ? 's' : ''} ago`
+        return new Date(dateString).toLocaleDateString()
+    },
+    /**
      * Extract the creator label from a Gloss entity.
+     * Resolves agent ID URLs to human-readable labels (cached).
      * @param {Object} obj - A Gloss entity
      * @returns {string} The creator label, or "[ unlabeled ]" if not found
      */
     getCreator: function (obj) {
         if (!obj) return "[ unlabeled ]"
-        const creator = obj.creator ?? obj.__rerum?.history?.creator
-        if (typeof creator === "string") return creator
-        if (Array.isArray(creator)) return creator[0] ?? "[ unlabeled ]"
+        const creator = obj.creator ?? obj.__rerum?.generatedBy
+        if (typeof creator === "string") {
+            // If it's an agent ID URL, return it for lazy resolution by the UI.
+            // The UI can call resolveAgentLabel() to get the human-readable label.
+            if (creator.startsWith("http")) return creator
+            return creator
+        }
         return this.getValue(creator) ?? "[ unlabeled ]"
     },
     /**
