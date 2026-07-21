@@ -29,6 +29,159 @@ var DEER = config
 const inMemoryExpandedEntities = new Map()
 
 /**
+ * Build a managed list <li> item from an expanded Gloss object.
+ * Extracts filtering attributes, sets published status, and wires the modal click handler.
+ * @param {string} glossID The Gloss @id
+ * @param {Object} glossObj The expanded Gloss object
+ * @param {number} index Position in the list for loading messages
+ * @param {Object} options Template options (link, etc.)
+ * @param {Map} managedListCache The in-memory expanded entities cache
+ * @param {Object} filterObj Active filter state
+ * @returns {HTMLElement} The configured <li> element
+ */
+function buildManagedListItem(glossID, glossObj, index, options, managedListCache, filterObj) {
+    const publishedStatus = document.createElement("span")
+    publishedStatus.classList.add("pubStatus")
+    publishedStatus.setAttribute("glossid", glossID)
+    publishedStatus.innerText = "??"
+    const li = document.createElement("li")
+    li.setAttribute("deer-id", glossID)
+    li.classList.add("galleryEntry")
+    const a = document.createElement("a")
+    a.setAttribute("href", options.link + glossID)
+    a.setAttribute("target", "_blank")
+    const span = document.createElement("span")
+
+    // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
+    li.setAttribute("data-expanded", "true")
+
+    // Add all Gloss object properties to the <li> element as attributes to match on later
+    const filteringProps = Object.keys(glossObj)
+    filteringProps.forEach((prop) => {
+        if (prop === "text") {
+            const t = glossObj[prop]?.value?.textValue ?? ""
+            li.setAttribute("data-text", t)
+            continue
+        }
+        if (typeof UTILS.getValue(glossObj[prop]) === "string" || typeof UTILS.getValue(glossObj[prop]) === "number") {
+            let value = UTILS.getValue(glossObj[prop]) + ""
+            prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
+            const attr = `data-${prop}`
+            if (prop === "title" && !value) {
+                value = "[ unlabeled ]"
+                li.setAttribute("data-unlabeled", "true")
+            }
+            li.setAttribute(attr, value)
+            if (value.includes(filterObj[prop])) {
+                li.classList.remove("is-hidden")
+            }
+        }
+    })
+    if (!filteringProps.includes("title")) {
+        li.setAttribute("data-title", "[ unlabeled ]")
+        li.setAttribute("data-unlabeled", "true")
+    }
+
+    // Set data attributes for new columns (sorting + filtering)
+    li.setAttribute("data-creator", UTILS.getCreator(glossObj))
+    li.setAttribute("data-modified", UTILS.getModifiedDate(glossObj))
+    li.setAttribute("data-witnesscount", UTILS.getWitnessCount(glossObj))
+
+    // Build row content: checkbox | status | title | contributor | modified | witnesses
+    const checkbox = document.createElement("input")
+    checkbox.type = "checkbox"
+    checkbox.classList.add("batch-select")
+    checkbox.setAttribute("deer-id", glossID)
+
+    const creatorSpan = document.createElement("span")
+    creatorSpan.classList.add("gloss-creator")
+    creatorSpan.innerText = UTILS.getCreator(glossObj)
+
+    const modifiedSpan = document.createElement("span")
+    modifiedSpan.classList.add("gloss-modified")
+    const modifiedDate = UTILS.getModifiedDate(glossObj)
+    modifiedSpan.innerText = modifiedDate ? new Date(modifiedDate).toLocaleDateString() : "—"
+
+    const witnessSpan = document.createElement("span")
+    witnessSpan.classList.add("gloss-witnesses")
+    witnessSpan.innerText = UTILS.getWitnessCount(glossObj)
+
+    span.innerText = UTILS.getLabel(glossObj) ? UTILS.getLabel(glossObj) : "Label Unprocessable"
+    a.appendChild(span)
+
+    // Assemble row: checkbox, status, title link, contributor, modified, witnesses
+    li.appendChild(checkbox)
+    li.appendChild(publishedStatus)
+    li.appendChild(a)
+    li.appendChild(creatorSpan)
+    li.appendChild(modifiedSpan)
+    li.appendChild(witnessSpan)
+
+    // Wire the modal click handler with full entity data.
+    // The published status is determined by the existing filtering/rendering logic
+    // (pubStatus spans are updated after all items load).
+    a.addEventListener("click", ev => {
+        ev.preventDefault()
+        const modal = document.querySelector("gloss-modal")
+        modal.open({
+            "@id": glossID,
+            title: UTILS.getLabel(glossObj),
+            text: UTILS.getValue(glossObj.text),
+            published: null, // Determined by existing pubStatus logic after load.
+            contributor: UTILS.getCreator(glossObj),
+            modified: UTILS.getModifiedDate(glossObj),
+            witnesses: UTILS.getWitnessCount(glossObj)
+        })
+    })
+
+    return li
+}
+
+/**
+ * Sort the managed gloss list by a given column.
+ * @param {HTMLElement} ul The <ul> containing the header and gloss items
+ * @param {string} column The data attribute to sort by (title, creator, modified, witnesscount)
+ * @param {HTMLElement} headerEl The clicked column header element
+ */
+function sortManagedList(ul, column, headerEl) {
+    const items = Array.from(ul.querySelectorAll('li.galleryEntry'))
+    const headerIndicators = ul.querySelectorAll('.col-header .sort-indicator')
+    headerIndicators.forEach(ind => ind.textContent = '')
+
+    // Toggle direction: if already sorted by this column, reverse; otherwise default direction.
+    const currentIndicator = headerEl.querySelector('.sort-indicator')
+    let ascending = currentIndicator.textContent === '▲'
+    if (ascending) {
+        // Already ascending, toggle to descending
+        ascending = false
+    }
+    // Default sort directions: modified desc, witnesscount desc, title asc, creator asc
+    if (currentIndicator.textContent === '') {
+        ascending = (column === 'title' || column === 'creator')
+    }
+
+    items.sort((a, b) => {
+        let aVal = a.getAttribute(`data-${column}`) ?? ''
+        let bVal = b.getAttribute(`data-${column}`) ?? ''
+
+        if (column === 'witnesscount') {
+            return ascending ? Number(aVal) - Number(bVal) : Number(bVal) - Number(aVal)
+        }
+        if (column === 'modified') {
+            const aDate = new Date(aVal).getTime()
+            const bDate = new Date(bVal).getTime()
+            return ascending ? aDate - bDate : bDate - aDate
+        }
+        aVal = aVal.toLowerCase()
+        bVal = bVal.toLowerCase()
+        return ascending ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal)
+    })
+
+    items.forEach(item => ul.appendChild(item))
+    currentIndicator.textContent = ascending ? '▲' : '▼'
+}
+
+/**
  * Observer callback for rendering newly loaded objects. Checks the
  * mutationsList for "deep-object" attribute changes.
  * @param {Array} mutationsList of MutationRecord objects
@@ -270,6 +423,10 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
 
                 .galleryEntry{
                     cursor: alias;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5em;
+                    padding: 0.4em 0;
                 }
                 .totalsProgress{
                     text-align: center;
@@ -284,18 +441,148 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     list-style-type: none;
                     padding-left: 1em;
                 }
+                .managedlist-header{
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5em;
+                    padding: 0.4em 0;
+                    font-weight: bold;
+                    border-bottom: 1px solid var(--color-primary);
+                    margin-bottom: 0.4em;
+                }
+                .managedlist-header .col-header{
+                    cursor: pointer;
+                    user-select: none;
+                    padding: 0.2em 0.4em;
+                    border-radius: 3px;
+                    transition: background-color 0.15s;
+                }
+                .managedlist-header .col-header:hover{
+                    background-color: rgba(0,0,0,0.08);
+                }
+                .managedlist-header .col-header .sort-indicator{
+                    margin-left: 0.3em;
+                    font-size: 0.8em;
+                    color: var(--color-primary);
+                }
+                .managedlist-header .col-checkbox{
+                    width: 1.5em;
+                    text-align: center;
+                }
+                .managedlist-header .col-status{
+                    width: 1.5em;
+                    text-align: center;
+                }
+                .managedlist-header .col-title{
+                    flex: 2;
+                }
+                .managedlist-header .col-creator{
+                    flex: 1;
+                }
+                .managedlist-header .col-modified{
+                    flex: 0.8;
+                }
+                .managedlist-header .col-witnesses{
+                    flex: 0.5;
+                    text-align: center;
+                }
+                .gloss-creator, .gloss-modified, .gloss-witnesses{
+                    flex-shrink: 0;
+                    font-size: 0.9em;
+                    color: var(--color-lightGrey);
+                }
+                .gloss-witnesses{
+                    text-align: center;
+                    width: 3em;
+                }
+                .gloss-modified{
+                    width: 8em;
+                }
+                .gloss-creator{
+                    width: 10em;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                }
+                .batch-select{
+                    flex-shrink: 0;
+                }
+                .pubStatus{
+                    flex-shrink: 0;
+                    width: 1.5em;
+                    text-align: center;
+                }
+                .galleryEntry a{
+                    flex: 2;
+                }
+                .batch-actions{
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5em;
+                    padding: 0.5em 0;
+                    border-bottom: 1px solid var(--color-primary);
+                    margin-bottom: 0.5em;
+                }
+                .batch-actions.is-hidden{
+                    display: none;
+                }
+                .batch-actions button{
+                    padding: 0.4em 0.8em;
+                    border-radius: 3px;
+                    cursor: pointer;
+                    border: 1px solid var(--color-primary);
+                    font-size: 0.9em;
+                    transition: background-color 0.15s;
+                }
+                .batch-actions button:hover{
+                    background-color: rgba(0,0,0,0.08);
+                }
+                .batch-actions button.batch-publish{
+                    background-color: var(--color-primary);
+                    color: white;
+                }
+                .batch-actions button.batch-unpublish{
+                    background-color: var(--color-lightGrey);
+                }
+                .batch-actions button.batch-delete{
+                    background-color: #d9534f;
+                    color: white;
+                }
+                .batch-selection-count{
+                    font-size: 0.9em;
+                    color: var(--color-lightGrey);
+                    margin-left: auto;
+                }
             </style>
             <h2 class="nomargin"> Manage Glosses </h2>
             <small class="cachedNotice is-hidden text-primary"> To reload the data <a class="newcache tag is-small">click here</a>. </small>
+            <div class="batch-actions is-hidden">
+                <button class="batch-publish">Publish Selected</button>
+                <button class="batch-unpublish">Unpublish Selected</button>
+                <button class="batch-delete">Delete Selected</button>
+                <span class="batch-selection-count">0 selected</span>
+            </div>
             <div class="row is-hidden facet-filters">
                 <div class="col-4 is-hidden">
                     <div class="statusFacets">
-                        <small> 
+                        <small>
                             Check to see Glosses with the status.
                         </small>
                         <input class="statusFacet" type="checkbox" status-filter="public" /><label>Public</label>
                         <input class="statusFacet" type="checkbox" status-filter="unlabeled" /><label>Untitled</label>
                         <input class="statusFacet" type="checkbox" status-filter="other" /><label>T.B.D.</label>
+                    </div>
+                    <div class="contributorFilter">
+                        <small>
+                            Filter by contributor
+                        </small>
+                        <input filter="creator" type="text" placeholder="&hellip;Type contributor name" class="serifText">
+                    </div>
+                    <div class="dateFilter">
+                        <small>
+                            Filter by modified date
+                        </small>
+                        <input filter="modified" type="date" placeholder="Select a date" class="serifText">
                     </div>
                 </div>
                 <div class="col-12">
@@ -312,7 +599,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 </div>
             </div>
         `,
-        then: (elem) => {
+        then: async (elem) => {
             //let managedListCache = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
             // Bandaid for #310: read the cache from memory, not localStorage.
             let managedListCache = inMemoryExpandedEntities
@@ -323,74 +610,91 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             if (options.list) {
                 let ul = document.createElement("ul")
                 const deduplicatedList = UTILS.removeDuplicates(obj[options.list], '@id')
-                total = deduplicatedList.length                
+                total = deduplicatedList.length
+
+                // Collect cached vs uncached Gloss IDs upfront for parallel expansion.
+                const cachedItems = []
+                const uncachedIds = []
                 deduplicatedList.forEach((val, index) => {
                     const negotiatedId = val["@id"] ?? val.id
                     const glossID = negotiatedId.replace(/^https?:/, 'https:')
-                    const publishedStatus = document.createElement("span")
-                    publishedStatus.classList.add("pubStatus")
-                    publishedStatus.setAttribute("glossid", glossID)
-                    publishedStatus.innerText = "??"
-                    let li = document.createElement("li")
-                    li.setAttribute("deer-id", glossID)
-                    li.classList.add("galleryEntry")
-                    let a = document.createElement("a")
-                    a.setAttribute("href", options.link+glossID)
-                    a.setAttribute("target", "_blank")
-                    let span = document.createElement("span")
-
-                    if(managedListCache.get(glossID)){
-                        // We cached it in the past and are going to trust it right now.
-                        const cachedObj = managedListCache.get(glossID)
-                        let filteringProps = Object.keys(cachedObj)
-                        // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
-                        li.setAttribute("data-expanded", "true")
-                        // Add all Gloss object properties to the <li> element as attributes to match on later
-                        filteringProps.forEach( (prop) => {
-                            if(prop === "text"){
-                                const t = cachedObj[prop]?.value?.textValue ?? ""
-                                li.setAttribute("data-text", t) 
-                            }
-                            else if(typeof UTILS.getValue(cachedObj[prop]) === "string" || typeof UTILS.getValue(cachedObj[prop]) === "number") {
-                                let value = UTILS.getValue(cachedObj[prop])+""
-                                prop = prop.replaceAll("@", "") // '@' char cannot be used in HTMLElement attributes
-                                const attr = `data-${prop}`
-                                if(prop === "title" && !value){
-                                    value = "[ unlabeled ]"
-                                    li.setAttribute("data-unlabeled", "true")
-                                }
-                                li.setAttribute(attr, value)
-                                if(value.includes(filterObj[prop])){
-                                    li.classList.remove("is-hidden")
-                                }
-                            }
-                        })
-                        if(!filteringProps.includes("title")) {
-                            li.setAttribute("data-title", "[ unlabeled ]")
-                            li.setAttribute("data-unlabeled", "true")
-                        }
-                        span.innerText = UTILS.getLabel(cachedObj) ? UTILS.getLabel(cachedObj) : "Label Unprocessable"
-                        numloaded++
-                        a.appendChild(span)
-                        li.appendChild(publishedStatus)
-                        li.appendChild(a)
-                        ul.appendChild(li)
-                    }
-                    else{
-                        // This object was not cached so we do not have its properties.
-                        // Make this a deer-view so this Gloss is expanded and we can make attributes from its properties.
-                        let div = document.createElement("div")
-                        div.setAttribute("deer-template", "managedFilterableListItem")
-                        div.setAttribute("deer-id", glossID)
-                        div.classList.add("deer-view")
-                        span.innerText = `Loading Gloss #${index + 1}...`
-                        a.appendChild(span)
-                        li.appendChild(publishedStatus)
-                        li.appendChild(a)
-                        div.appendChild(li)
-                        ul.appendChild(div)
+                    if (managedListCache.get(glossID)) {
+                        cachedItems.push({ glossID, obj: managedListCache.get(glossID), index })
+                    } else {
+                        uncachedIds.push({ glossID, index })
                     }
                 })
+
+                // Render cached items immediately.
+                cachedItems.forEach(({ glossID, cachedObj, index }) => {
+                    const li = buildManagedListItem(glossID, cachedObj, index, options, managedListCache, filterObj)
+                    ul.appendChild(li)
+                    numloaded++
+                })
+
+                // Fetch uncached items in parallel via getExpandedURL (single call, annotations merged).
+                const fetchPromises = uncachedIds.map(({ glossID, index }) => {
+                    const expandedURL = UTILS.getExpandedURL(glossID)
+                    if (!expandedURL) {
+                        // Non-RERUM URI — fall back to DEER expand.
+                        return UTILS.expand({ "@id": glossID }).then(obj => {
+                            managedListCache.set(glossID, obj)
+                            return { glossID, obj, index }
+                        }).catch(err => {
+                            console.warn(`Failed to expand ${glossID}`, err)
+                            return null
+                        })
+                    }
+                    return fetch(expandedURL)
+                        .then(r => { if (!r.ok) throw new Error(r.status) ; return r.json() })
+                        .then(obj => {
+                            managedListCache.set(glossID, obj)
+                            return { glossID, obj, index }
+                        })
+                        .catch(err => {
+                            console.warn(`Failed to fetch ${glossID}`, err)
+                            return null
+                        })
+                })
+
+                const fetchedItems = (await Promise.all(fetchPromises)).filter(Boolean)
+                fetchedItems.forEach(({ glossID, obj, index }) => {
+                    const li = buildManagedListItem(glossID, obj, index, options, managedListCache, filterObj)
+                    ul.appendChild(li)
+                    numloaded++
+                })
+
+                // Add sortable column header row before the list.
+                const headerLi = document.createElement("li")
+                headerLi.classList.add("managedlist-header")
+                headerLi.innerHTML = `
+                    <span class="col-checkbox"><input type="checkbox" class="select-all"></span>
+                    <span class="col-status"></span>
+                    <span class="col-header col-title" data-sort="title">Title <span class="sort-indicator"></span></span>
+                    <span class="col-header col-creator" data-sort="creator">Contributor <span class="sort-indicator"></span></span>
+                    <span class="col-header col-modified" data-sort="modified">Modified <span class="sort-indicator">▼</span></span>
+                    <span class="col-header col-witnesses" data-sort="witnesscount">Witnesses <span class="sort-indicator"></span></span>
+                `
+                ul.insertBefore(headerLi, ul.firstChild)
+
+                // Wire column header click handlers for sorting.
+                headerLi.querySelectorAll('.col-header[data-sort]').forEach(header => {
+                    header.addEventListener('click', () => sortManagedList(ul, header.getAttribute('data-sort'), header))
+                })
+
+                // Wire select-all checkbox.
+                headerLi.querySelector('.select-all').addEventListener('change', ev => {
+                    ul.querySelectorAll('.batch-select').forEach(cb => { cb.checked = ev.target.checked })
+                    updateBatchSelectionCount(elem)
+                })
+
+                // Wire individual checkbox change events for selection count.
+                ul.addEventListener('change', ev => {
+                    if (ev.target.classList.contains('batch-select')) {
+                        updateBatchSelectionCount(elem)
+                    }
+                })
+
                 elem.appendChild(ul)
             }
             else{
@@ -406,10 +710,52 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             const facetInputs = elem.querySelectorAll(".statusFacet")
             const cachedNotice = elem.querySelector(".cachedNotice")
             const progressArea = elem.querySelector(".progressArea")
+            const batchActions = elem.querySelector(".batch-actions")
 
             totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
             totalsProgress.setAttribute("total", total)
             totalsProgress.setAttribute("count", numloaded)
+
+            // Wire batch action buttons.
+            batchActions?.querySelector('.batch-publish')?.addEventListener('click', async () => {
+                const selected = getSelectedGlosses(elem)
+                if (selected.length === 0) return
+                for (const glossID of selected) {
+                    await publishGloss(glossID)
+                    const li = elem.querySelector(`li[deer-id="${glossID}"]`)
+                    if (li) {
+                        li.setAttribute("data-public", "true")
+                        const span = li.querySelector('.pubStatus')
+                        if (span) span.innerHTML = "✓"
+                    }
+                }
+            })
+
+            batchActions?.querySelector('.batch-unpublish')?.addEventListener('click', async () => {
+                const selected = getSelectedGlosses(elem)
+                if (selected.length === 0) return
+                for (const glossID of selected) {
+                    await unpublishGloss(glossID)
+                    const li = elem.querySelector(`li[deer-id="${glossID}"]`)
+                    if (li) {
+                        li.setAttribute("data-public", "false")
+                        const span = li.querySelector('.pubStatus')
+                        if (span) span.innerHTML = "❌"
+                    }
+                }
+            })
+
+            batchActions?.querySelector('.batch-delete')?.addEventListener('click', async () => {
+                const selected = getSelectedGlosses(elem)
+                if (selected.length === 0) return
+                const confirmed = await showCustomConfirm(`Delete ${selected.length} selected Gloss${selected.length > 1 ? 'es' : ''}? This cannot be undone.`)
+                if (!confirmed) return
+                for (const glossID of selected) {
+                    await deleteGloss(glossID)
+                    const li = elem.querySelector(`li[deer-id="${glossID}"]`)
+                    if (li) li.remove()
+                }
+            })
 
             // Clear cached gloss data but preserve the auth session (gog_session)
             // and the Auth0 SDK cache (@@auth0spajs@@*), so refreshing the cache
@@ -423,36 +769,116 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             })
 
             // These particular ones are true/false flags, so their value is "true" and "false" not some other string to match on.
-            // TODO work with other filters.  Will it be $AND or $OR?
             facetInputs.forEach(input => {
                 input.addEventListener('input', ev =>{
-                    const k = ev?.target.getAttribute("status-filter")
-                    const url = new URL(window.location.href)
-                    let filterQuery
-                    let filters = {}
-                    // TODO need the build this filter based on every checked status and typed text to match on.
-                    if(ev?.target.checked){
-                        filters[k] = "true"
-                    }
-                    if(Object.keys(filters).length === 0) filters.title = ""
-                    filterQuery = encodeContentState(JSON.stringify(filters))
-                    debounce(filterGlosses(filterQuery))
+                    applyFilters()
                 })    
             })
-            
-            // This is a freeform filter to match on text.  
-            // TODO It will need to take the statuses into account.  Will it be $AND or $OR?
-            filter.addEventListener('input', ev =>{
-                const val = ev?.target.value.trim()
-                let filterQuery
-                if(val){
-                    filterQuery = encodeContentState(JSON.stringify({"title" : ev?.target.value, "text": ev?.target.value, "targetedtext": ev?.target.value}))
-                }
-                else{
-                    filterQuery = encodeContentState(JSON.stringify({"title" : ""}))
-                }
-                debounce(filterGlosses(filterQuery))
+
+            // Contributor filter: match against data-creator attribute.
+            const creatorFilter = elem.querySelector('input[filter="creator"]')
+            creatorFilter.addEventListener('input', ev =>{
+                applyFilters()
             })
+
+            // Date filter: match against data-modified attribute (YYYY-MM-DD format).
+            const dateFilter = elem.querySelector('input[filter="modified"]')
+            dateFilter.addEventListener('input', ev =>{
+                applyFilters()
+            })
+            
+            // This is a freeform filter to match on text.
+            filter.addEventListener('input', ev =>{
+                applyFilters()
+            })
+
+            /**
+             * Apply all active filters together (AND logic between filter types, OR within status facets).
+             * A Gloss is shown only if it matches ALL active filter criteria.
+             */
+            function applyFilters() {
+                const textQuery = filter?.value?.trim().toLowerCase() ?? ""
+                const creatorQuery = creatorFilter?.value?.trim().toLowerCase() ?? ""
+                const dateQuery = dateFilter?.value ?? ""
+                const publicChecked = elem.querySelector('.statusFacet[status-filter="public"]')?.checked
+                const unlabeledChecked = elem.querySelector('.statusFacet[status-filter="unlabeled"]')?.checked
+                const otherChecked = elem.querySelector('.statusFacet[status-filter="other"]')?.checked
+                const anyStatusChecked = publicChecked || unlabeledChecked || otherChecked
+
+                const items = elem.querySelectorAll('li.galleryEntry')
+                items.forEach(li => {
+                    let show = true
+
+                    // Text filter: match title or text
+                    if (textQuery) {
+                        const title = (li.getAttribute("data-title") ?? "").toLowerCase()
+                        const text = (li.getAttribute("data-text") ?? "").toLowerCase()
+                        if (!title.includes(textQuery) && !text.includes(textQuery)) {
+                            show = false
+                        }
+                    }
+
+                    // Contributor filter: match creator
+                    if (creatorQuery && show) {
+                        const creator = (li.getAttribute("data-creator") ?? "").toLowerCase()
+                        if (!creator.includes(creatorQuery)) {
+                            show = false
+                        }
+                    }
+
+                    // Date filter: match modified date (compare YYYY-MM-DD prefix)
+                    if (dateQuery && show) {
+                        const modified = li.getAttribute("data-modified") ?? ""
+                        if (!modified.startsWith(dateQuery)) {
+                            show = false
+                        }
+                    }
+
+                    // Status facets: if any are checked, Gloss must match at least one.
+                    if (anyStatusChecked && show) {
+                        const isPublic = li.getAttribute("data-public") === "true"
+                        const isUnlabeled = li.getAttribute("data-unlabeled") === "true"
+                        let matchesStatus = false
+                        if (publicChecked && isPublic) matchesStatus = true
+                        if (unlabeledChecked && isUnlabeled) matchesStatus = true
+                        if (otherChecked && !isPublic && !isUnlabeled) matchesStatus = true
+                        if (!matchesStatus) {
+                            show = false
+                        }
+                    }
+
+                    if (show) {
+                        li.classList.remove("is-hidden")
+                    } else {
+                        li.classList.add("is-hidden")
+                    }
+                })
+            }
+
+            /**
+             * Get all selected Gloss IDs from visible (non-filtered) list items.
+             * @param {HTMLElement} elem The deer-view container
+             * @returns {string[]} Array of selected Gloss IDs
+             */
+            function getSelectedGlosses(elem) {
+                return Array.from(elem.querySelectorAll('li.galleryEntry:not(.is-hidden) input.batch-select:checked'))
+                    .map(cb => cb.getAttribute('deer-id'))
+            }
+
+            /**
+             * Update the batch selection count display.
+             * @param {HTMLElement} elem The deer-view container
+             */
+            function updateBatchSelectionCount(elem) {
+                const count = elem.querySelectorAll('li.galleryEntry input.batch-select:checked').length
+                const countSpan = elem.querySelector('.batch-selection-count')
+                if (countSpan) countSpan.innerText = `${count} selected`
+                const batchActions = elem.querySelector('.batch-actions')
+                if (batchActions) {
+                    if (count > 0) batchActions.classList.remove('is-hidden')
+                    else batchActions.classList.add('is-hidden')
+                }
+            }
             
             if(numloaded === total){
                 cachedNotice.classList.remove("is-hidden")
@@ -461,50 +887,6 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 elem.querySelector(".facet-filters").classList.remove("is-hidden")
                 elem.querySelectorAll("input[filter]").forEach(i => {
                     i.classList.remove("is-hidden")
-                })
-            }
-            function debounce(func, timeout = 500) {
-                let timer
-                return (...args) => {
-                    clearTimeout(timer)
-                    timer = setTimeout(() => { func.apply(this, args) }, timeout)
-                }
-            }
-
-            /** 
-             * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
-             */ 
-            function filterGlosses(queryString = '') {
-                const numloaded = parseInt(totalsProgress.getAttribute("count"))
-                const total = parseInt(totalsProgress.getAttribute("total"))
-                if (numloaded !== total) {
-                    const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
-                    UTILS.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
-                    return
-                }
-                queryString = queryString.trim()
-                const query = decodeContentState(queryString)
-                for (const prop in query) {
-                    if (typeof query[prop] === 'string') {
-                        query[prop] = query[prop].trim()
-                    }
-                }
-                const items = elem.querySelectorAll('li')
-                items.forEach(li=>{
-                    const templateContainer = li.parentElement.hasAttribute("deer-template") ? li.parentElement : null
-                    const elem = templateContainer ?? li
-                    if(!elem.classList.contains("is-hidden")){
-                        elem.classList.add("is-hidden")
-                    }
-                    for(const prop in query){
-                        if(li.hasAttribute(`data-${prop}`)){
-                            const action = li.getAttribute(`data-${prop}`).toLowerCase().includes(query[prop].toLowerCase()) ? "remove" : "add"
-                            elem.classList[action](`is-hidden`,`un${action}-item`)
-                            setTimeout(()=>elem.classList.remove(`un${action}-item`),500)
-                            // If it is showing, no need to check other properties for filtering.
-                            if(action === "remove") break
-                        }
-                    }
                 })
             }
 
@@ -548,11 +930,14 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     const glossTitle = parentDataElem.getAttribute("data-title") ? parentDataElem.getAttribute("data-title") : ""
                     const published = parentDataElem.getAttribute("data-public") === "true" ? true : false
                     const glossText = parentDataElem.getAttribute("data-text") ? parentDataElem.getAttribute("data-text") : ""
+                    // Enrich with full expanded entity data for the modal.
+                    const cachedEntity = managedListCache.get(glossID)
                     const glossData = {
                         "@id": glossID,
                         "title": glossTitle,
                         "text" : glossText,
-                        "published": published
+                        "published": published,
+                        ...(cachedEntity ?? {})
                     }
                     document.querySelector("manage-gloss-modal").open(glossData)
                 }))

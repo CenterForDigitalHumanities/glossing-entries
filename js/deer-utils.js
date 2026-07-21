@@ -163,6 +163,47 @@ export default {
         return `${origin}/gog/id/${match[1]}`
     },
     /**
+     * Extract the creator label from a Gloss entity.
+     * @param {Object} obj - A Gloss entity
+     * @returns {string} The creator label, or "[ unlabeled ]" if not found
+     */
+    getCreator: function (obj) {
+        if (!obj) return "[ unlabeled ]"
+        const creator = obj.creator ?? obj.__rerum?.history?.creator
+        if (typeof creator === "string") return creator
+        if (Array.isArray(creator)) return creator[0] ?? "[ unlabeled ]"
+        return this.getValue(creator) ?? "[ unlabeled ]"
+    },
+    /**
+     * Extract the modification timestamp from a Gloss entity.
+     * Falls back to creation date if no modification is recorded.
+     * @param {Object} obj - A Gloss entity
+     * @returns {string} ISO date string, or empty string if not found
+     */
+    getModifiedDate: function (obj) {
+        if (!obj) return ""
+        // Check for explicit modification timestamp
+        const modified = obj.modified ?? obj.__rerum?.history?.modified
+        if (modified) return typeof modified === "string" ? modified : this.getValue(modified) ?? ""
+        // Fall back to creation timestamp
+        const created = obj.created ?? obj.__rerum?.history?.created ?? obj.__rerum?.generatedAt
+        return typeof created === "string" ? created : this.getValue(created) ?? ""
+    },
+    /**
+     * Return the count of WitnessFragments attached to a Gloss.
+     * @param {Object} obj - A Gloss entity
+     * @returns {number} The witness count, or 0 if not found
+     */
+    getWitnessCount: function (obj) {
+        if (!obj) return 0
+        // Check attach property (common pattern for connected witnesses)
+        if (obj.attach?.items) return obj.attach.items.length
+        if (obj.attach?.itemListElement) return obj.attach.itemListElement.length
+        // Check for a cached count property
+        if (typeof obj.witnessCount === "number") return obj.witnessCount
+        return 0
+    },
+    /**
      * Take a known object with an id and query for annotations targeting it.
      * Discovered annotations are asserted on the original object and returned.
      * @param {Object} entity Target object to search for description

@@ -430,6 +430,91 @@ async function publishGloss(glossURI, label = "") {
 }
 
 /**
+ * Unpublish a single Gloss by removing it from the public ItemList and persisting via /overwrite.
+ * Remove-only and idempotent: dedupes by last URL path segment.
+ * @param {string} glossURI - The Gloss IRI to unpublish.
+ * @returns {Promise<boolean>} Resolves true on success; throws on fetch/HTTP failure.
+ */
+async function unpublishGloss(glossURI) {
+    if (!glossURI) throw new Error("No gloss URI provided")
+    if (!__constants?.ngCollection) await setConstants()
+    const targetSeg = glossURI.split('/').pop()
+    const publicList = await fetch(__constants.ngCollection).then(r => r.json()).catch(() => null)
+    if (!publicList?.itemListElement) throw new Error("Unable to fetch public list")
+    const items = publicList.itemListElement
+        .filter(obj => ((obj["@id"] ?? obj.id ?? "").split('/').pop()) !== targetSeg)
+        .map(obj => ({ label: obj.label ?? obj.name ?? "", '@id': (obj["@id"] ?? obj.id ?? "").replace(/^https?:/, 'https:') }))
+    const list = {
+        '@id': __constants.ngCollection,
+        '@context': 'https://schema.org/',
+        '@type': "ItemList",
+        name: "Gallery of Glosses Public Glosses List",
+        numberOfItems: items.length,
+        itemListElement: items
+    }
+    const res = await fetch(`${__constants.tiny}/overwrite`, {
+        method: "PUT",
+        mode: 'cors',
+        body: JSON.stringify(list),
+        headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": `Bearer ${window.GOG_USER.authorization}`
+        }
+    })
+    if (!res.ok) throw new Error(`Failed to overwrite public list (${res.status})`)
+    return true
+}
+
+/**
+ * Delete a single Gloss by removing it from the backend and the public list if present.
+ * Simpler than deleteManagedGloss — does not cascade-delete annotations or witnesses.
+ * Use for batch delete operations where the user has already confirmed.
+ * @param {string} glossURI - The Gloss IRI to delete.
+ * @returns {Promise<boolean>} Resolves true on success; throws on fetch/HTTP failure.
+ */
+async function deleteGloss(glossURI) {
+    if (!glossURI) throw new Error("No gloss URI provided")
+    if (!__constants?.ngCollection) await setConstants()
+    const targetSeg = glossURI.split('/').pop()
+    // Remove from public list if present.
+    const publicList = await fetch(__constants.ngCollection).then(r => r.json()).catch(() => null)
+    if (publicList?.itemListElement) {
+        const items = publicList.itemListElement
+            .filter(obj => ((obj["@id"] ?? obj.id ?? "").split('/').pop()) !== targetSeg)
+            .map(obj => ({ label: obj.label ?? obj.name ?? "", '@id': (obj["@id"] ?? obj.id ?? "").replace(/^https?:/, 'https:') }))
+        const list = {
+            '@id': __constants.ngCollection,
+            '@context': 'https://schema.org/',
+            '@type': "ItemList",
+            name: "Gallery of Glosses Public Glosses List",
+            numberOfItems: items.length,
+            itemListElement: items
+        }
+        await fetch(`${__constants.tiny}/overwrite`, {
+            method: "PUT",
+            mode: 'cors',
+            body: JSON.stringify(list),
+            headers: {
+                "Content-Type": "application/json; charset=utf-8",
+                "Authorization": `Bearer ${window.GOG_USER.authorization}`
+            }
+        })
+    }
+    // Delete the Gloss entity.
+    const res = await fetch(`${__constants.tiny}/delete`, {
+        method: "DELETE",
+        mode: 'cors',
+        body: JSON.stringify({ "@id": glossURI }),
+        headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Authorization": `Bearer ${window.GOG_USER.authorization}`
+        }
+    })
+    if (!res.ok) throw new Error(`Failed to delete gloss (${res.status})`)
+    return true
+}
+
+/**
  * Creates a custom confirmation dialog box with the specified message.
  * @param {string} message - The message to be displayed in the confirmation dialog box.
  * @returns {Promise<boolean>} A Promise that resolves with a boolean value indicating whether the confirmation was accepted (true) or canceled (false).

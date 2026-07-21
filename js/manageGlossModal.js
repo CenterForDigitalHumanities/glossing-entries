@@ -38,6 +38,30 @@ class ManageGlossModal extends HTMLElement {
                 width: 100%;
                 height: 100%;
             }
+            .gloss-meta{
+                margin: 0.5em 0;
+                padding: 0.5em;
+                background: rgba(0,0,0,0.04);
+                border-radius: 4px;
+            }
+            .gloss-text{
+                margin: 0 0 0.5em 0;
+                font-style: italic;
+            }
+            .meta-row{
+                display: flex;
+                gap: 0.5em;
+                margin: 0.25em 0;
+                font-size: 0.9em;
+            }
+            .meta-label{
+                font-weight: bold;
+                color: var(--color-lightGrey);
+                min-width: 7em;
+            }
+            .meta-value{
+                color: var(--color-dark);
+            }
         </style>
 
         <div class="window-shadow"> 
@@ -46,7 +70,21 @@ class ManageGlossModal extends HTMLElement {
                     <header>
                         <h4>Gloss Title</h4>
                     </header>
-                    <p>Check below for available statuses and actions for this Gloss.</p>
+                    <div class="gloss-meta">
+                        <p class="gloss-text"></p>
+                        <div class="meta-row">
+                            <span class="meta-label">Contributor:</span>
+                            <span class="meta-value gloss-creator">—</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Modified:</span>
+                            <span class="meta-value gloss-modified">—</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Witnesses:</span>
+                            <span class="meta-value gloss-witnesses">—</span>
+                        </div>
+                    </div>
                     <footer>
                         <a class="button" href="#">Review</a>
                         <input type="button" class="button" value="Publish"/>
@@ -85,6 +123,16 @@ class ManageGlossModal extends HTMLElement {
             const glossText = glossData.text
             const glossTitle = `${published ? "✓" : "❌"}  ${glossData.title}`
 
+            // Populate metadata from expanded entity data.
+            const creator = deerUtils.getCreator(glossData)
+            const modified = deerUtils.getModifiedDate(glossData)
+            const witnesses = deerUtils.getWitnessCount(glossData)
+
+            $this.querySelector(".gloss-text").innerText = glossText
+            $this.querySelector(".gloss-creator").innerText = creator
+            $this.querySelector(".gloss-modified").innerText = modified ? new Date(modified).toLocaleDateString() : "—"
+            $this.querySelector(".gloss-witnesses").innerText = witnesses
+
             const removeBtn = `<input type="button" value="delete" glossid="${glossID}" data-type="named-gloss" class="removeCollectionItem button error is-small" title="Delete This Entry">`
             const visibilityBtn = `<input type="button" value="${published ? "unpublish" : "publish"}" class="togglePublic button ${published ? "error" : "success"} is-small" glossid="${glossID}" title="Toggle public visibility"/>`
             const moreOptionsBtn = `<input type="button" value="more..." glossid="${glossID}" class="otherModalBtn button primary is-small" title="See detailed modal for this Gloss">`
@@ -92,7 +140,6 @@ class ManageGlossModal extends HTMLElement {
 
             $this.querySelector("a").setAttribute("href", `gloss-metadata.html#${glossID}`)
             $this.querySelector("h4").innerText = glossTitle
-            $this.querySelector("p").innerText = glossText
             $this.querySelector("footer").innerHTML = reviewBtn + visibilityBtn + moreOptionsBtn + removeBtn
 
             // 'Close' functionality
