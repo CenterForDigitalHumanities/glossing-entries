@@ -42,14 +42,14 @@
             await setListings()
 
             /**
-             * Guard: this page is only for users with the glossing_user_manager role.
+             * Guard: this page is only for users with the glossing_user_manager or glossing_user_admin role.
              * Moved into onload so auth.js (loaded as module) has attached window.checkAuth.
              */
             if (typeof window.checkAuth === "function") {
                 window.checkAuth(
-                    "glossing_user_manager",
+                    ["glossing_user_manager", "glossing_user_admin"],
                     "glosses.html",
-                    "You must have the manager role to manage Glosses.  You will be redirected."
+                    "You must have the manager or admin role to manage Glosses.  You will be redirected."
                 )
             }
         }
