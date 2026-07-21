@@ -41,13 +41,14 @@ const inMemoryExpandedEntities = new Map()
  */
 function buildManagedListItem(glossID, glossObj, index, options, managedListCache, filterObj) {
     const publishedStatus = document.createElement("span")
-    publishedStatus.classList.add("pubStatus")
+    publishedStatus.classList.add("pubStatus", "col-status")
     publishedStatus.setAttribute("glossid", glossID)
     publishedStatus.innerText = "??"
     const li = document.createElement("li")
     li.setAttribute("deer-id", glossID)
-    li.classList.add("galleryEntry")
+    li.classList.add("galleryEntry", "managedlist-item")
     const a = document.createElement("a")
+    a.classList.add("col-title")
     a.setAttribute("href", options.link + glossID)
     a.setAttribute("target", "_blank")
     const span = document.createElement("span")
@@ -96,14 +97,14 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
     li.setAttribute("data-modified", modifiedRaw)
     li.setAttribute("data-witnesscount", UTILS.getWitnessCount(glossObj))
 
-    // Build row content: checkbox | status | title | contributor | modified | witnesses
+    // Build row content: checkbox | status | title | contributor | modified
     const checkbox = document.createElement("input")
     checkbox.type = "checkbox"
-    checkbox.classList.add("batch-select")
+    checkbox.classList.add("batch-select", "col-checkbox")
     checkbox.setAttribute("deer-id", glossID)
 
     const creatorSpan = document.createElement("span")
-    creatorSpan.classList.add("gloss-creator")
+    creatorSpan.classList.add("col-contributor")
     // Resolve agent ID to human-readable label if it's a URL.
     if (typeof creatorStr === "string" && creatorStr.startsWith("http")) {
         UTILS.resolveAgentLabel(creatorStr).then(label => { creatorSpan.innerText = label }).catch(() => { creatorSpan.innerText = creatorStr })
@@ -112,24 +113,21 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
     }
 
     const modifiedSpan = document.createElement("span")
-    modifiedSpan.classList.add("gloss-modified")
+    modifiedSpan.classList.add("col-modified")
     modifiedSpan.innerText = modifiedRaw ? UTILS.formatRelativeTime(modifiedRaw) : "—"
-
-    const witnessSpan = document.createElement("span")
-    witnessSpan.classList.add("gloss-witnesses")
-    // Witness count requires a dynamic query — shown in the modal, not the list.
-    witnessSpan.innerText = "—"
 
     span.innerText = UTILS.getLabel(glossObj) ? UTILS.getLabel(glossObj) : "Label Unprocessable"
     a.appendChild(span)
 
-    // Assemble row: checkbox, status, title link, contributor, modified, witnesses
+    // Assemble row: checkbox, status, title link, contributor, modified
     li.appendChild(checkbox)
     li.appendChild(publishedStatus)
     li.appendChild(a)
     li.appendChild(creatorSpan)
     li.appendChild(modifiedSpan)
-    li.appendChild(witnessSpan)
+
+    // Prevent checkbox clicks from bubbling to the row and opening the modal.
+    checkbox.addEventListener("click", ev => ev.stopPropagation())
 
     // Wire the modal click handler with full entity data.
     // The published status is determined by the existing filtering/rendering logic
@@ -623,6 +621,9 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     </div>
                 </div>
                 <div class="col-12">
+                    <label><input type="checkbox" id="unpublishedToggle"> Show only unpublished glosses</label>
+                    <span class="unpublished-count"></span>
+                    <br>
                     <small> 
                         Find Glosses by text
                     </small>
@@ -708,11 +709,28 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     <span class="col-checkbox"><input type="checkbox" class="select-all"></span>
                     <span class="col-status"></span>
                     <span class="col-header col-title" data-sort="title">Title <span class="sort-indicator"></span></span>
-                    <span class="col-header col-creator" data-sort="creator">Contributor <span class="sort-indicator"></span></span>
+                    <span class="col-header col-contributor" data-sort="creator">Contributor <span class="sort-indicator"></span></span>
                     <span class="col-header col-modified" data-sort="modified">Modified <span class="sort-indicator">▼</span></span>
-                    <span class="col-header col-witnesses" data-sort="witnesscount">Witnesses <span class="sort-indicator"></span></span>
                 `
                 ul.insertBefore(headerLi, ul.firstChild)
+
+                // Wire unpublished toggle (in the filter area above the list).
+                const unpublishedToggle = elem.querySelector('#unpublishedToggle')
+                const unpublishedCount = elem.querySelector('.unpublished-count')
+                unpublishedToggle.addEventListener('change', () => {
+                    const showUnpublished = unpublishedToggle.checked
+                    let count = 0
+                    ul.querySelectorAll('li.galleryEntry').forEach(item => {
+                        const isPublic = item.getAttribute('data-public') === 'true'
+                        if (!isPublic) count++
+                        if (showUnpublished && isPublic) {
+                            item.classList.add('is-hidden')
+                        } else {
+                            item.classList.remove('is-hidden')
+                        }
+                    })
+                    unpublishedCount.textContent = showUnpublished ? ` (${count} unpublished)` : ''
+                })
 
                 // Wire column header click handlers for sorting.
                 headerLi.querySelectorAll('.col-header[data-sort]').forEach(header => {
