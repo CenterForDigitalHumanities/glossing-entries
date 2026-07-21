@@ -152,12 +152,18 @@ class ManageGlossModal extends HTMLElement {
             const modified = deerUtils.getModifiedDate(glossData) ?? ""
             const modifiedDisplay = modified ? deerUtils.formatRelativeTime(modified) : "—"
 
-            // Witnesses: count from the Gloss entity.
-            const witnesses = deerUtils.getWitnessCount(glossData) ?? 0
+            // Witnesses: requires a dynamic query — fetch asynchronously.
+            const witnessesElem = $this.querySelector(".gloss-witnesses")
+            witnessesElem.innerText = "..."
+            const glossURI = glossID ?? glossData?.["@id"] ?? glossData?.id
+            deerUtils.getWitnessCountForGloss(glossURI).then(count => {
+                witnessesElem.innerText = count
+            }).catch(() => {
+                witnessesElem.innerText = "—"
+            })
 
             $this.querySelector(".gloss-text").innerText = glossText
             $this.querySelector(".gloss-modified").innerText = modifiedDisplay
-            $this.querySelector(".gloss-witnesses").innerText = witnesses
 
             const removeBtn = `<input type="button" value="delete" glossid="${glossID}" data-type="named-gloss" class="removeCollectionItem button error is-small" title="Delete This Entry">`
             const visibilityBtn = `<input type="button" value="${published ? "unpublish" : "publish"}" class="togglePublic button ${published ? "error" : "success"} is-small" glossid="${glossID}" title="Toggle public visibility"/>`

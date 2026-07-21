@@ -117,7 +117,8 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
 
     const witnessSpan = document.createElement("span")
     witnessSpan.classList.add("gloss-witnesses")
-    witnessSpan.innerText = UTILS.getWitnessCount(glossObj)
+    // Witness count requires a dynamic query — shown in the modal, not the list.
+    witnessSpan.innerText = "—"
 
     span.innerText = UTILS.getLabel(glossObj) ? UTILS.getLabel(glossObj) : "Label Unprocessable"
     a.appendChild(span)

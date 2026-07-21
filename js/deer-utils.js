@@ -264,6 +264,42 @@ export default {
         return 0
     },
     /**
+     * Asynchronously count the Manuscript Witnesses connected to a Gloss.
+     * Witnesses are not embedded on the Gloss entity — they are separate WitnessFragment
+     * entities connected via annotations with body.references.value pointing to the Gloss URI.
+     * @param {string} glossURI - The @id or id of the Gloss entity.
+     * @returns {Promise<number>} The number of Manuscript Witnesses connected to this Gloss.
+     */
+    getWitnessCountForGloss: async function(glossURI) {
+        if (!glossURI) return 0
+        const httpsId = glossURI.startsWith("https://") ? glossURI : `https://${glossURI.replace("http://", "")}`
+        const query = {
+            "body.references.value": this.httpsIdArray(httpsId, true),
+            "__rerum.history.next": { $exists: true, $type: "array", $eq: [] },
+            "__rerum.generatedBy": this.httpsIdArray(DEER.GENERATOR, true)
+        }
+        try {
+            const annotations = await this.getPagedQuery(100, 0, query)
+            // Filter to only WitnessFragment targets
+            const fragmentTargets = new Set()
+            for (const anno of annotations) {
+                try {
+                    const entity = await fetch(anno.target).then(resp => resp.json()).catch(() => null)
+                    if (entity?.["@type"] === "WitnessFragment") {
+                        fragmentTargets.add(anno.target)
+                    }
+                } catch {
+                    // skip unresolvable targets
+                }
+            }
+            // Each unique WitnessFragment maps to one ManuscriptWitness
+            return fragmentTargets.size
+        } catch (err) {
+            console.warn("Could not fetch witness count for Gloss", glossURI, err)
+            return 0
+        }
+    },
+    /**
      * Take a known object with an id and query for annotations targeting it.
      * Discovered annotations are asserted on the original object and returned.
      * @param {Object} entity Target object to search for description
