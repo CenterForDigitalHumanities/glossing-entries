@@ -40,16 +40,19 @@
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()
-        }
 
-        /**
-         * Guard: this page is only for users with the glossing_user_manager role.
-         */
-        window.checkAuth(
-            "glossing_user_manager",
-            "glosses.html",
-            "You must have the manager role to manage Glosses.  You will be redirected."
-        )
+            /**
+             * Guard: this page is only for users with the glossing_user_manager role.
+             * Moved into onload so auth.js (loaded as module) has attached window.checkAuth.
+             */
+            if (typeof window.checkAuth === "function") {
+                window.checkAuth(
+                    "glossing_user_manager",
+                    "glosses.html",
+                    "You must have the manager role to manage Glosses.  You will be redirected."
+                )
+            }
+        }
 
         /**
          * UI/UX for when the user uses this page to delete an existing #Gloss
