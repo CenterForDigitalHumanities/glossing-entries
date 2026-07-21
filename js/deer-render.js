@@ -595,7 +595,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             <div class="progressArea row">
                 <div class="col">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
-                    <div class="totalsProgress" count="0"> Loading Glosses... </div>
+                    <div class="totalsProgress" count="0"> Loading Glosses... 
                 </div>
             </div>
         `,

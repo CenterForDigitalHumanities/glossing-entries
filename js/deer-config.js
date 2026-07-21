@@ -173,7 +173,7 @@ export default {
                 </div>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
-                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
+                    <div class="totalsProgress" count="0"> Loading Glosses... </div>
                 </div>
                 `,
                 then: (elem) => {
@@ -588,11 +588,7 @@ export default {
                         <gloss-modal-button class="is-right is-hidden"></gloss-modal-button>
                         <div class="progressArea">
                             <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
-                            <div class="totalsProgress" count="0"> 
-                                {loaded} out of {total} loaded (0%)<br>
-                                You may click to select any Gloss loaded already.<br>
-                                A filter will become available when all items are loaded.
-                            </div>
+                            <div class="totalsProgress" count="0"> Loading Glosses... </div>
                         </div>
                     </div>
                 `,
@@ -1193,7 +1189,7 @@ export default {
                 </div>
                 `,
                 then: (elem) => {
-                    //const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
+                    //const cachedFilterableEntities = locaLoading Manuscripts...  Map()
                     // Bandaid for #310: read the cache from memory, not localStorage.
                     const cachedFilterableEntities = inMemoryExpandedEntities
                     let numloaded = 0
