@@ -57,11 +57,11 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
 
     // Add all Gloss object properties to the <li> element as attributes to match on later
     const filteringProps = Object.keys(glossObj)
-    for (const prop of filteringProps) {
+    filteringProps.forEach((prop) => {
         if (prop === "text") {
             const t = glossObj[prop]?.value?.textValue ?? ""
             li.setAttribute("data-text", t)
-            continue
+            return
         }
         if (typeof UTILS.getValue(glossObj[prop]) === "string" || typeof UTILS.getValue(glossObj[prop]) === "number") {
             let value = UTILS.getValue(glossObj[prop]) + ""
@@ -76,7 +76,7 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
                 li.classList.remove("is-hidden")
             }
         }
-    }
+    })
     if (!filteringProps.includes("title")) {
         li.setAttribute("data-title", "[ unlabeled ]")
         li.setAttribute("data-unlabeled", "true")
