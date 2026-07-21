@@ -122,16 +122,22 @@ class ManageGlossModal extends HTMLElement {
             const published = glossData.published
 
             // Extract values from the full Gloss entity.
-            // title and text may be objects like {value: "..."} or {textValue: "..."}.
-            const glossText = deerUtils.getValue(glossData.text) ?? ""
+            // text is {value: {textValue: "..."}} - extract the innermost string.
+            const glossText = glossData.text?.value?.textValue ?? ""
             const glossTitleObj = deerUtils.getLabel(glossData) ?? glossData.title
             const glossTitleStr = deerUtils.getValue(glossTitleObj) ?? "[ unlabeled ]"
             const glossTitle = `${published ? "✓" : "❌"}  ${glossTitleStr}`
 
-            // Contributor: resolve agent ID to human-readable label.
-            const creatorId = deerUtils.getCreator(glossData)
+            // Contributor: getCreator() can return string, array, or object.
+            // If array, take the first element. If object, extract its value.
+            const creatorRaw = deerUtils.getCreator(glossData)
             const creatorElem = $this.querySelector(".gloss-creator")
-            let creatorLabel = creatorId ?? "[ unlabeled ]"
+            let creatorId = creatorRaw
+            if (Array.isArray(creatorRaw)) {
+                creatorId = creatorRaw[0] ?? creatorRaw
+            } else if (typeof creatorRaw === "object" && creatorRaw !== null) {
+                creatorId = deerUtils.getValue(creatorRaw) ?? "[ unlabeled ]"
+            }
             if (typeof creatorId === "string" && creatorId.startsWith("http")) {
                 // Show agent ID initially, then update with resolved label.
                 creatorElem.innerText = creatorId
@@ -139,8 +145,10 @@ class ManageGlossModal extends HTMLElement {
                     creatorElem.innerText = label
                 })
             } else {
-                creatorElem.innerText = creatorLabel
+                creatorElem.innerText = creatorId ?? "[ unlabeled ]"
             }
+
+            // Modified: check the same fields as the list view.
             const modified = deerUtils.getModifiedDate(glossData) ?? ""
             const modifiedDisplay = modified ? deerUtils.formatRelativeTime(modified) : "—"
 

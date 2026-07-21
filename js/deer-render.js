@@ -85,7 +85,14 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
     // Set data attributes for new columns (sorting + filtering)
     const creatorRaw = UTILS.getCreator(glossObj)
     const modifiedRaw = UTILS.getModifiedDate(glossObj)
-    li.setAttribute("data-creator", creatorRaw)
+    // getCreator() can return array or object; normalize to string for data attribute.
+    let creatorStr = creatorRaw
+    if (Array.isArray(creatorRaw)) {
+        creatorStr = creatorRaw[0] ?? ""
+    } else if (typeof creatorRaw === "object" && creatorRaw !== null) {
+        creatorStr = UTILS.getValue(creatorRaw) ?? ""
+    }
+    li.setAttribute("data-creator", creatorStr)
     li.setAttribute("data-modified", modifiedRaw)
     li.setAttribute("data-witnesscount", UTILS.getWitnessCount(glossObj))
 
@@ -98,10 +105,10 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
     const creatorSpan = document.createElement("span")
     creatorSpan.classList.add("gloss-creator")
     // Resolve agent ID to human-readable label if it's a URL.
-    if (typeof creatorRaw === "string" && creatorRaw.startsWith("http")) {
-        UTILS.resolveAgentLabel(creatorRaw).then(label => { creatorSpan.innerText = label }).catch(() => { creatorSpan.innerText = creatorRaw })
+    if (typeof creatorStr === "string" && creatorStr.startsWith("http")) {
+        UTILS.resolveAgentLabel(creatorStr).then(label => { creatorSpan.innerText = label }).catch(() => { creatorSpan.innerText = creatorStr })
     } else {
-        creatorSpan.innerText = creatorRaw ?? "[ unlabeled ]"
+        creatorSpan.innerText = creatorStr ?? "[ unlabeled ]"
     }
 
     const modifiedSpan = document.createElement("span")
