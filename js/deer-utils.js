@@ -243,10 +243,10 @@ export default {
     getModifiedDate: function (obj) {
         if (!obj) return ""
         // Check for explicit modification timestamp
-        const modified = obj.modified ?? obj.__rerum?.history?.modified
+        const modified = obj.modified ?? obj.__rerum?.modified
         if (modified) return typeof modified === "string" ? modified : this.getValue(modified) ?? ""
         // Fall back to creation timestamp
-        const created = obj.created ?? obj.__rerum?.history?.created ?? obj.__rerum?.generatedAt
+        const created = obj.created ?? obj.__rerum?.generatedAt
         return typeof created === "string" ? created : this.getValue(created) ?? ""
     },
     /**
@@ -264,14 +264,14 @@ export default {
         return 0
     },
     /**
-     * Asynchronously count the Manuscript Witnesses connected to a Gloss.
+     * Asynchronously retrieve the Manuscript Witnesses connected to a Gloss.
      * Witnesses are not embedded on the Gloss entity — they are separate WitnessFragment
      * entities connected via annotations with body.references.value pointing to the Gloss URI.
      * @param {string} glossURI - The @id or id of the Gloss entity.
-     * @returns {Promise<number>} The number of Manuscript Witnesses connected to this Gloss.
+     * @returns {Promise<Array>} Array of ManuscriptWitness URIs connected to this Gloss.
      */
-    getWitnessCountForGloss: async function(glossURI) {
-        if (!glossURI) return 0
+    getWitnessesForGloss: async function(glossURI) {
+        if (!glossURI) return []
         const httpsId = glossURI.startsWith("https://") ? glossURI : `https://${glossURI.replace("http://", "")}`
         // Step 1: find WitnessFragment annotations that reference this Gloss
         const fragmentQuery = {
@@ -293,7 +293,7 @@ export default {
                     // skip unresolvable targets
                 }
             }
-            if (fragmentTargets.size === 0) return 0
+            if (fragmentTargets.size === 0) return []
             // Step 2: for each WitnessFragment, find the ManuscriptWitness via partOf annotations
             const manuscriptWitnesses = new Set()
             for (const fragmentURI of fragmentTargets) {
@@ -315,11 +315,20 @@ export default {
                     }
                 } catch { /* skip fragments without partOf annotations */ }
             }
-            return manuscriptWitnesses.size
+            return Array.from(manuscriptWitnesses)
         } catch (err) {
-            console.warn("Could not fetch witness count for Gloss", glossURI, err)
-            return 0
+            console.warn("Could not fetch witnesses for Gloss", glossURI, err)
+            return []
         }
+    },
+    /**
+     * Asynchronously count the Manuscript Witnesses connected to a Gloss.
+     * @param {string} glossURI - The @id or id of the Gloss entity.
+     * @returns {Promise<number>} The number of Manuscript Witnesses connected to this Gloss.
+     */
+    getWitnessCountForGloss: async function(glossURI) {
+        const witnesses = await this.getWitnessesForGloss(glossURI)
+        return witnesses.length
     },
     /**
      * Take a known object with an id and query for annotations targeting it.

@@ -156,8 +156,26 @@ class ManageGlossModal extends HTMLElement {
             const witnessesElem = $this.querySelector(".gloss-witnesses")
             witnessesElem.innerText = "..."
             const glossURI = glossID ?? glossData?.["@id"] ?? glossData?.id
-            deerUtils.getWitnessCountForGloss(glossURI).then(count => {
-                witnessesElem.innerText = count
+            deerUtils.getWitnessesForGloss(glossURI).then(witnesses => {
+                if (witnesses.length === 0) {
+                    witnessesElem.innerText = "—"
+                    return
+                }
+                witnessesElem.innerHTML = ""
+                const ul = document.createElement("ul")
+                ul.style.listStyle = "none"
+                ul.style.padding = "0"
+                ul.style.margin = "0"
+                for (const witnessURI of witnesses) {
+                    const li = document.createElement("li")
+                    const a = document.createElement("a")
+                    a.href = `manuscript-profile.html#${witnessURI}`
+                    a.target = "_blank"
+                    a.textContent = witnessURI.split("/").pop()
+                    li.appendChild(a)
+                    ul.appendChild(li)
+                }
+                witnessesElem.appendChild(ul)
             }).catch(() => {
                 witnessesElem.innerText = "—"
             })
