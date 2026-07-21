@@ -275,9 +275,9 @@ export default {
         const httpsId = glossURI.startsWith("https://") ? glossURI : `https://${glossURI.replace("http://", "")}`
         // Step 1: find WitnessFragment annotations that reference this Gloss
         const fragmentQuery = {
-            "body.references.value": this.httpsIdArray(httpsId, true),
+            "body.references.value": this.httpsIdArray(httpsId),
             "__rerum.history.next": { $exists: true, $type: "array", $eq: [] },
-            "__rerum.generatedBy": this.httpsIdArray(DEER.GENERATOR, true)
+            "__rerum.generatedBy": this.httpsIdArray(DEER.GENERATOR)
         }
         try {
             const annotations = await this.getPagedQuery(100, 0, fragmentQuery)
@@ -299,9 +299,9 @@ export default {
             for (const fragmentURI of fragmentTargets) {
                 const partOfQuery = {
                     "body.partOf.value": { "$exists": true },
-                    "target": this.httpsIdArray(fragmentURI, true),
+                    "target": this.httpsIdArray(fragmentURI),
                     "__rerum.history.next": { $exists: true, $type: "array", $eq: [] },
-                    "__rerum.generatedBy": this.httpsIdArray(DEER.GENERATOR, true)
+                    "__rerum.generatedBy": this.httpsIdArray(DEER.GENERATOR)
                 }
                 try {
                     const partOfAnnos = await this.getPagedQuery(100, 0, partOfQuery)
