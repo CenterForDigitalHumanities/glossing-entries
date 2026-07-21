@@ -273,14 +273,15 @@ export default {
     getWitnessCountForGloss: async function(glossURI) {
         if (!glossURI) return 0
         const httpsId = glossURI.startsWith("https://") ? glossURI : `https://${glossURI.replace("http://", "")}`
-        const query = {
+        // Step 1: find WitnessFragment annotations that reference this Gloss
+        const fragmentQuery = {
             "body.references.value": this.httpsIdArray(httpsId, true),
             "__rerum.history.next": { $exists: true, $type: "array", $eq: [] },
             "__rerum.generatedBy": this.httpsIdArray(DEER.GENERATOR, true)
         }
         try {
-            const annotations = await this.getPagedQuery(100, 0, query)
-            // Filter to only WitnessFragment targets
+            const annotations = await this.getPagedQuery(100, 0, fragmentQuery)
+            // Resolve to unique WitnessFragment targets
             const fragmentTargets = new Set()
             for (const anno of annotations) {
                 try {
@@ -292,8 +293,29 @@ export default {
                     // skip unresolvable targets
                 }
             }
-            // Each unique WitnessFragment maps to one ManuscriptWitness
-            return fragmentTargets.size
+            if (fragmentTargets.size === 0) return 0
+            // Step 2: for each WitnessFragment, find the ManuscriptWitness via partOf annotations
+            const manuscriptWitnesses = new Set()
+            for (const fragmentURI of fragmentTargets) {
+                const partOfQuery = {
+                    "body.partOf.value": { "$exists": true },
+                    "target": this.httpsIdArray(fragmentURI, true),
+                    "__rerum.history.next": { $exists: true, $type: "array", $eq: [] },
+                    "__rerum.generatedBy": this.httpsIdArray(DEER.GENERATOR, true)
+                }
+                try {
+                    const partOfAnnos = await this.getPagedQuery(100, 0, partOfQuery)
+                    for (const anno of partOfAnnos) {
+                        try {
+                            const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(() => null)
+                            if (entity?.["@type"] === "ManuscriptWitness") {
+                                manuscriptWitnesses.add(anno.body.partOf.value)
+                            }
+                        } catch { /* skip */ }
+                    }
+                } catch { /* skip fragments without partOf annotations */ }
+            }
+            return manuscriptWitnesses.size
         } catch (err) {
             console.warn("Could not fetch witness count for Gloss", glossURI, err)
             return 0
