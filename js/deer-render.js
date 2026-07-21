@@ -403,6 +403,35 @@ DEER.TEMPLATES.osd = function (obj, options = {}) {
 }
 
 /**
+ * Start an elapsed-time countdown on a totalsProgress element.
+ * Call this before the parallel fetches begin; the timer is cleared when the progress text is updated.
+ * @param {HTMLElement} totalsProgress - The .totalsProgress element
+ */
+function startLoadTimer(totalsProgress) {
+    const timerSpan = totalsProgress?.querySelector('.loadTimer')
+    if (!timerSpan) return
+    const startTime = Date.now()
+    const interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000)
+        const mins = Math.floor(elapsed / 60)
+        const secs = elapsed % 60
+        timerSpan.textContent = `(${mins}:${secs.toString().padStart(2, '0')} elapsed)`
+    }, 1000)
+    totalsProgress._loadTimerInterval = interval
+}
+
+/**
+ * Stop the elapsed-time countdown on a totalsProgress element.
+ * @param {HTMLElement} totalsProgress - The .totalsProgress element
+ */
+function stopLoadTimer(totalsProgress) {
+    if (totalsProgress?._loadTimerInterval) {
+        clearInterval(totalsProgress._loadTimerInterval)
+        delete totalsProgress._loadTimerInterval
+    }
+}
+
+/**
  * Generates HTML and functionality for managing glosses.
  * @param {Object} obj - The gloss object.
  * @param {Object} options - Options for customization.
@@ -595,7 +624,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             <div class="progressArea row">
                 <div class="col">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
-                    <div class="totalsProgress" count="0"> Loading Glosses... 
+                    <div class="totalsProgress" count="0"> Loading Glosses... This may take a few minutes. <span class="loadTimer"></span></div>
                 </div>
             </div>
         `,
@@ -705,6 +734,9 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             elem.$contentState = ""
             const totalsProgress = elem.querySelector(".totalsProgress")
 
+            // Start elapsed timer so user sees progress while loading.
+            startLoadTimer(totalsProgress)
+
             const filter = elem.querySelector('input[filter="title"]')
             const facetFilter = elem.querySelector(".statusFacets")
             const facetInputs = elem.querySelectorAll(".statusFacet")
@@ -712,6 +744,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             const progressArea = elem.querySelector(".progressArea")
             const batchActions = elem.querySelector(".batch-actions")
 
+            stopLoadTimer(totalsProgress)
             totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
             totalsProgress.setAttribute("total", total)
             totalsProgress.setAttribute("count", numloaded)
