@@ -242,12 +242,12 @@ export default {
      */
     getModifiedDate: function (obj) {
         if (!obj) return ""
-        // Check for explicit modification timestamp
-        const modified = obj.modified ?? obj.__rerum?.modified
-        if (modified) return typeof modified === "string" ? modified : this.getValue(modified) ?? ""
+        // Check for modification timestamp (__rerum.isOverwritten is non-empty when modified)
+        const modified = obj.__rerum?.isOverwritten
+        if (modified && modified !== "") return modified
         // Fall back to creation timestamp
-        const created = obj.created ?? obj.__rerum?.generatedAt
-        return typeof created === "string" ? created : this.getValue(created) ?? ""
+        const created = obj.__rerum?.createdAt
+        return created ?? ""
     },
     /**
      * Return the count of WitnessFragments attached to a Gloss.
