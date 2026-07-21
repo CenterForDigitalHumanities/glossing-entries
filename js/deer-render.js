@@ -98,7 +98,7 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
     const creatorSpan = document.createElement("span")
     creatorSpan.classList.add("gloss-creator")
     // Resolve agent ID to human-readable label if it's a URL.
-    if (creatorRaw && creatorRaw.startsWith("http")) {
+    if (typeof creatorRaw === "string" && creatorRaw.startsWith("http")) {
         UTILS.resolveAgentLabel(creatorRaw).then(label => { creatorSpan.innerText = label }).catch(() => { creatorSpan.innerText = creatorRaw })
     } else {
         creatorSpan.innerText = creatorRaw ?? "[ unlabeled ]"
