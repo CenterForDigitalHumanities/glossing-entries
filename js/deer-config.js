@@ -107,7 +107,7 @@ export default {
                 <style>
                     .cachedNotice{
                       margin-top: -1em;
-                      display: block;
+                      display: none;
                     }
 
                     .cachedNotice a{
@@ -550,7 +550,7 @@ export default {
                     <style>
                         .cachedNotice{
                             margin-top: -1em;
-                            display:block;
+                            display:none;
                         }
 
                         .cachedNotice a{
@@ -1123,7 +1123,7 @@ export default {
                 <style>
                     .cachedNotice{
                       margin-top: -1em;
-                      display: block;
+                      display: none;
                     }
 
                     .cachedNotice a{
