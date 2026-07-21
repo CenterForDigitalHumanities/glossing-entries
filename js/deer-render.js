@@ -261,7 +261,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             <style>
                 .cachedNotice{
                     margin-top: -1em;
-                    display: block;
+                    display: none;
                     margin-bottom: 0.55em;
                 }
                 .cachedNotice a{
