@@ -178,7 +178,7 @@ export default {
         if(findId.includes("/TPEN/manifest/")) {
             findId = findId.replace("manifest.json", "")
         }
-        // Prefer server-side expansion.  RERUM exposes a stable, browser-cacheable/gog/id/{id} URL 
+        // Prefer server-side expansion.  RERUM exposes a stable, browser-cacheable /gog/id/{id} URL 
         // that returns the object with its targeting Annotations already merged.
         const expandedURL = UTILS.getExpandedURL(findId)
         if (expandedURL) {
