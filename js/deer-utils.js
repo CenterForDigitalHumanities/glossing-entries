@@ -726,8 +726,37 @@ export default {
     },
 
     /**
+     * Start an elapsed-time countdown on a totalsProgress element.
+     * Call this before the parallel fetches begin; the timer is cleared when the progress text is updated.
+     * @param {HTMLElement} totalsProgress - The .totalsProgress element
+     */
+    startLoadTimer: function (totalsProgress) {
+        const timerSpan = totalsProgress?.querySelector('.loadTimer')
+        if (!timerSpan) return
+        const startTime = Date.now()
+        const interval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000)
+            const mins = Math.floor(elapsed / 60)
+            const secs = elapsed % 60
+            timerSpan.textContent = `(${mins}:${secs.toString().padStart(2, '0')} elapsed)`
+        }, 1000)
+        totalsProgress._loadTimerInterval = interval
+    },
+
+    /**
+     * Stop the elapsed-time countdown on a totalsProgress element.
+     * @param {HTMLElement} totalsProgress - The .totalsProgress element
+     */
+    stopLoadTimer: function (totalsProgress) {
+        if (totalsProgress?._loadTimerInterval) {
+            clearInterval(totalsProgress._loadTimerInterval)
+            delete totalsProgress._loadTimerInterval
+        }
+    },
+
+    /**
      * Since all Linked Data has the right to be described by multiple contexts, DEER has a special
-     * syntax to support this.  The value of an HTML Attribute DEER.CONTEXT ('deer-context' by default) 
+     * syntax to support this.  The value of an HTML Attribute DEER.CONTEXT ('deer-context' by default)
      * can list multiple URLs like in the example below.
      *
      * <span deer-context="[http://example.org/context.json][https://otherexample.org/othercontext.json]"></span>

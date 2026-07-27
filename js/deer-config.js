@@ -34,35 +34,6 @@ const sortNULLS = [
  */
 const inMemoryExpandedEntities = new Map()
 
-/**
- * Start an elapsed-time countdown on a totalsProgress element.
- * Call this before the parallel fetches begin; the timer is cleared when the progress text is updated.
- * @param {HTMLElement} totalsProgress - The .totalsProgress element
- */
-function startLoadTimer(totalsProgress) {
-    const timerSpan = totalsProgress?.querySelector('.loadTimer')
-    if (!timerSpan) return
-    const startTime = Date.now()
-    const interval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000)
-        const mins = Math.floor(elapsed / 60)
-        const secs = elapsed % 60
-        timerSpan.textContent = `(${mins}:${secs.toString().padStart(2, '0')} elapsed)`
-    }, 1000)
-    totalsProgress._loadTimerInterval = interval
-}
-
-/**
- * Stop the elapsed-time countdown on a totalsProgress element.
- * @param {HTMLElement} totalsProgress - The .totalsProgress element
- */
-function stopLoadTimer(totalsProgress) {
-    if (totalsProgress?._loadTimerInterval) {
-        clearInterval(totalsProgress._loadTimerInterval)
-        delete totalsProgress._loadTimerInterval
-    }
-}
-
 export default {
     // Configuration of custom attributes for HTML elements manipulated by the app.
     ID: "deer-id", // attribute, URI for resource to render
@@ -327,14 +298,14 @@ export default {
                     }
                     const totalsProgress = elem.querySelector(".totalsProgress")
                     // Start elapsed timer so user sees progress while loading.
-                    startLoadTimer(totalsProgress)
+                    UTILS.startLoadTimer(totalsProgress)
                     // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                     const filter = elem.querySelector('input')
                     const cachedNotice = elem.querySelector(".cachedNotice")
                     const progressArea = elem.querySelector(".progressArea")
                     const approximate = elem.querySelector("#approximate")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
-                    stopLoadTimer(totalsProgress)
+                    UTILS.stopLoadTimer(totalsProgress)
                     totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.setAttribute("count", numloaded)
@@ -1217,7 +1188,7 @@ export default {
                 </div>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Manuscript filter detected.  Please note that Manuscripts will appear as they are fully loaded. </p>
-                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Manuscript loaded already.</div>
+                    <div class="totalsProgress" count="0"> Loading Manuscripts... This may take a few minutes. <span class="loadTimer"></span></div>
                 </div>
                 `,
                 then: (elem) => {
@@ -1336,14 +1307,14 @@ export default {
                     }
                     const totalsProgress = elem.querySelector(".totalsProgress")
                     // Start elapsed timer so user sees progress while loading.
-                    startLoadTimer(totalsProgress)
+                    UTILS.startLoadTimer(totalsProgress)
                     // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                     const filter = elem.querySelector('input')
                     const cachedNotice = elem.querySelector(".cachedNotice")
                     const progressArea = elem.querySelector(".progressArea")
                     const approximate = elem.querySelector("#approximate")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
-                    stopLoadTimer(totalsProgress)
+                    UTILS.stopLoadTimer(totalsProgress)
                     totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Manuscript loaded already.`
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.setAttribute("count", numloaded)
