@@ -34,6 +34,35 @@ const sortNULLS = [
  */
 const inMemoryExpandedEntities = new Map()
 
+/**
+ * Start an elapsed-time countdown on a totalsProgress element.
+ * Call this before the parallel fetches begin; the timer is cleared when the progress text is updated.
+ * @param {HTMLElement} totalsProgress - The .totalsProgress element
+ */
+function startLoadTimer(totalsProgress) {
+    const timerSpan = totalsProgress?.querySelector('.loadTimer')
+    if (!timerSpan) return
+    const startTime = Date.now()
+    const interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000)
+        const mins = Math.floor(elapsed / 60)
+        const secs = elapsed % 60
+        timerSpan.textContent = `(${mins}:${secs.toString().padStart(2, '0')} elapsed)`
+    }, 1000)
+    totalsProgress._loadTimerInterval = interval
+}
+
+/**
+ * Stop the elapsed-time countdown on a totalsProgress element.
+ * @param {HTMLElement} totalsProgress - The .totalsProgress element
+ */
+function stopLoadTimer(totalsProgress) {
+    if (totalsProgress?._loadTimerInterval) {
+        clearInterval(totalsProgress._loadTimerInterval)
+        delete totalsProgress._loadTimerInterval
+    }
+}
+
 export default {
     // Configuration of custom attributes for HTML elements manipulated by the app.
     ID: "deer-id", // attribute, URI for resource to render
