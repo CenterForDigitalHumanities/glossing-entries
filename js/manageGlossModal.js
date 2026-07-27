@@ -550,9 +550,9 @@ class ManageGlossModal extends HTMLElement {
             if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
 
             const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
-                return fetch(`${__constants.tiny}/delete`, {
+                const annoId = annoUri.split("/").pop()
+                return fetch(`${__constants.tiny}/delete/${annoId}`, {
                     method: "DELETE",
-                    body: JSON.stringify({"@id":annoUri.replace(/^https?:/, 'https:')}),
                     headers: {
                         "Content-Type": "application/json; charset=utf-8",
                         "Authorization": `Bearer ${window.GOG_USER.authorization}`
@@ -594,9 +594,9 @@ class ManageGlossModal extends HTMLElement {
             })
 
             // Now the entity itself
-            fetch(`${__constants.tiny}/delete`, {
+            const glossId = id.split("/").pop()
+            fetch(`${__constants.tiny}/delete/${glossId}`, {
                 method: "DELETE",
-                body: JSON.stringify({ "@id": id }),
                 headers: {
                     "Content-Type": "application/json; charset=utf-8",
                     "Authorization": `Bearer ${window.GOG_USER.authorization}`

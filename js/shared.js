@@ -501,10 +501,10 @@ async function deleteGloss(glossURI) {
         })
     }
     // Delete the Gloss entity.
-    const res = await fetch(`${__constants.tiny}/delete`, {
+    const glossId = glossURI.split("/").pop()
+    const res = await fetch(`${__constants.tiny}/delete/${glossId}`, {
         method: "DELETE",
         mode: 'cors',
-        body: JSON.stringify({ "@id": glossURI }),
         headers: {
             "Content-Type": "application/json; charset=utf-8",
             "Authorization": `Bearer ${window.GOG_USER.authorization}`
@@ -712,9 +712,9 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
     if(anno_ids === null) throw new Error("Cannot find Entity Annotations")
 
     let delete_calls = anno_ids.map(annoUri => {
-        return fetch(`${__constants.tiny}/delete`, {
+        const annoId = annoUri.split("/").pop()
+        return fetch(`${__constants.tiny}/delete/${annoId}`, {
             method: "DELETE",
-            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
@@ -732,14 +732,16 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
     })
 
     delete_calls.push(
-        fetch(`${__constants.tiny}/delete`, {
-            method: "DELETE",
-            body: JSON.stringify({"@id" : witnessFragmentURI.replace(/^https?:/, 'https:')}),
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            },
-        })
+        (() => {
+            const witnessId = witnessFragmentURI.split("/").pop()
+            return fetch(`${__constants.tiny}/delete/${witnessId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                },
+            })
+        })()
         .then(r => {
             if(r.ok) {return r}
             else {throw new Error(r.text)}
@@ -812,9 +814,9 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
     if(manuscript_anno_ids === null) throw new Error("Cannot find Entity Annotations")
 
     let manuscript_delete_calls = manuscript_anno_ids.map(annoUri => {
-        return fetch(`${__constants.tiny}/delete`, {
+        const annoId = annoUri.split("/").pop()
+        return fetch(`${__constants.tiny}/delete/${annoId}`, {
             method: "DELETE",
-            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
@@ -832,14 +834,16 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
     })
 
     manuscript_delete_calls.push(
-        fetch(`${__constants.tiny}/delete`, {
-            method: "DELETE",
-            body: JSON.stringify({"@id" : manuscriptWitnessURI.replace(/^https?:/, 'https:')}),
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            },
-        })
+        (() => {
+            const manuscriptId = manuscriptWitnessURI.split("/").pop()
+            return fetch(`${__constants.tiny}/delete/${manuscriptId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                },
+            })
+        })()
         .then(r => {
             if(r.ok) {return r}
             else {throw new Error(r.text)}
@@ -924,9 +928,9 @@ async function deleteGloss(glossURI, redirect=false) {
     if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
 
     const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
-        return fetch(`${__constants.tiny}/delete`, {
+        const annoId = annoUri.split("/").pop()
+        return fetch(`${__constants.tiny}/delete/${annoId}`, {
             method: "DELETE",
-            body: JSON.stringify({"@id":annoUri.replace(/^https?:/, 'https:')}),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
@@ -968,9 +972,9 @@ async function deleteGloss(glossURI, redirect=false) {
     })
 
     // Now the entity itself
-    fetch(`${__constants.tiny}/delete`, {
+    const glossId = glossURI.split("/").pop()
+    fetch(`${__constants.tiny}/delete/${glossId}`, {
         method: "DELETE",
-        body: JSON.stringify({ "@id": glossURI }),
         headers: {
             "Content-Type": "application/json; charset=utf-8",
             "Authorization": `Bearer ${window.GOG_USER.authorization}`
