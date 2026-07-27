@@ -237,7 +237,13 @@ const RENDER = {}
 
 RENDER.element = function (elem, obj) {
 
-    return UTILS.expand(obj).then(obj => {
+    // Skip expansion for container/list objects (they have itemListElement, not @id).
+    // Expansion applies to entity objects that have an @id to fetch annotations for.
+    let objPromise = obj.itemListElement
+        ? Promise.resolve(obj)
+        : UTILS.expand(obj)
+
+    return objPromise.then(obj => {
         let tmplName = elem.getAttribute(DEER.TEMPLATE) ?? (elem.getAttribute(DEER.COLLECTION) ? "list" : "json")
         let template = DEER.TEMPLATES[tmplName] ?? DEER.TEMPLATES.json
         let options = {
@@ -1170,9 +1176,8 @@ export default class DeerRender {
                         .then(list => {
                             listObj.itemListElement = listObj.itemListElement.concat(list.map(anno => ({ '@id': anno.target ?? anno["@id"] ?? anno.id })))
                             this.elem.setAttribute(DEER.LIST, "itemListElement")
-                            try {
-                                listObj["@type"] = list[0]["@type"] ?? list[0].type ?? "ItemList"
-                            } catch (err) { }
+                            // Container objects with itemListElement should be ItemList type
+                            listObj["@type"] = "ItemList"
                             if (list.length ?? (list.length % lim === 0)) {
                                 return getListPagedQuery.bind(this)(lim, it + list.length)
                             }

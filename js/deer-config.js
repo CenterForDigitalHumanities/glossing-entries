@@ -298,14 +298,14 @@ export default {
                     }
                     const totalsProgress = elem.querySelector(".totalsProgress")
                     // Start elapsed timer so user sees progress while loading.
-                    UTILS.startLoadTimer(totalsProgress)
+                    deerUtils.startLoadTimer(totalsProgress)
                     // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                     const filter = elem.querySelector('input')
                     const cachedNotice = elem.querySelector(".cachedNotice")
                     const progressArea = elem.querySelector(".progressArea")
                     const approximate = elem.querySelector("#approximate")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
-                    UTILS.stopLoadTimer(totalsProgress)
+                    deerUtils.stopLoadTimer(totalsProgress)
                     totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.setAttribute("count", numloaded)
@@ -1307,14 +1307,14 @@ export default {
                     }
                     const totalsProgress = elem.querySelector(".totalsProgress")
                     // Start elapsed timer so user sees progress while loading.
-                    UTILS.startLoadTimer(totalsProgress)
+                    deerUtils.startLoadTimer(totalsProgress)
                     // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                     const filter = elem.querySelector('input')
                     const cachedNotice = elem.querySelector(".cachedNotice")
                     const progressArea = elem.querySelector(".progressArea")
                     const approximate = elem.querySelector("#approximate")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
-                    UTILS.stopLoadTimer(totalsProgress)
+                    deerUtils.stopLoadTimer(totalsProgress)
                     totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Manuscript loaded already.`
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.setAttribute("count", numloaded)
