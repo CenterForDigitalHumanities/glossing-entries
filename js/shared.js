@@ -7,6 +7,9 @@
  * @class
  */
 class CustomConfirmModal extends HTMLElement {
+    // Cleans up the document-level listeners this element adds, see connectedCallback.
+    #listeners
+
     constructor() {
         super()
         this.attachShadow({mode: 'open'})
@@ -64,6 +67,22 @@ class CustomConfirmModal extends HTMLElement {
     `
         this.shadowRoot.querySelector('.confirm').addEventListener('click', () => this.resolveConfirm(true))
         this.shadowRoot.querySelector('.cancel').addEventListener('click', () => this.resolveConfirm(false))
+
+        // Esc cancels, the same as clicking Cancel.  The listener is on document because focus is
+        // usually still on whatever button opened this.  If confirms ever stack, only the newest
+        // one answers, so Esc dismisses them one at a time from the top.
+        this.#listeners = new AbortController()
+        document.addEventListener("keydown", ev => {
+            if (ev.key !== "Escape") return
+            const stack = document.querySelectorAll("custom-confirm-modal")
+            if (stack[stack.length - 1] !== this) return
+            this.resolveConfirm(false)
+        }, { signal: this.#listeners.signal })
+    }
+
+    disconnectedCallback() {
+        // resolveConfirm() removes this element, so this is where the document listener is dropped.
+        this.#listeners?.abort()
     }
 
     resolveConfirm(result) {
@@ -430,96 +449,16 @@ async function publishGloss(glossURI, label = "") {
 }
 
 /**
- * Unpublish a single Gloss by removing it from the public ItemList and persisting via /overwrite.
- * Remove-only and idempotent: dedupes by last URL path segment.
- * @param {string} glossURI - The Gloss IRI to unpublish.
- * @returns {Promise<boolean>} Resolves true on success; throws on fetch/HTTP failure.
- */
-async function unpublishGloss(glossURI) {
-    if (!glossURI) throw new Error("No gloss URI provided")
-    if (!__constants?.ngCollection) await setConstants()
-    const targetSeg = glossURI.split('/').pop()
-    const publicList = await fetch(__constants.ngCollection).then(r => r.json()).catch(() => null)
-    if (!publicList?.itemListElement) throw new Error("Unable to fetch public list")
-    const items = publicList.itemListElement
-        .filter(obj => ((obj["@id"] ?? obj.id ?? "").split('/').pop()) !== targetSeg)
-        .map(obj => ({ label: obj.label ?? obj.name ?? "", '@id': (obj["@id"] ?? obj.id ?? "").replace(/^https?:/, 'https:') }))
-    const list = {
-        '@id': __constants.ngCollection,
-        '@context': 'https://schema.org/',
-        '@type': "ItemList",
-        name: "Gallery of Glosses Public Glosses List",
-        numberOfItems: items.length,
-        itemListElement: items
-    }
-    const res = await fetch(`${__constants.tiny}/overwrite`, {
-        method: "PUT",
-        mode: 'cors',
-        body: JSON.stringify(list),
-        headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Authorization": `Bearer ${window.GOG_USER.authorization}`
-        }
-    })
-    if (!res.ok) throw new Error(`Failed to overwrite public list (${res.status})`)
-    return true
-}
-
-/**
- * Delete a single Gloss by removing it from the backend and the public list if present.
- * Simpler than deleteManagedGloss — does not cascade-delete annotations or witnesses.
- * Use for batch delete operations where the user has already confirmed.
- * @param {string} glossURI - The Gloss IRI to delete.
- * @returns {Promise<boolean>} Resolves true on success; throws on fetch/HTTP failure.
- */
-async function deleteGloss(glossURI) {
-    if (!glossURI) throw new Error("No gloss URI provided")
-    if (!__constants?.ngCollection) await setConstants()
-    const targetSeg = glossURI.split('/').pop()
-    // Remove from public list if present.
-    const publicList = await fetch(__constants.ngCollection).then(r => r.json()).catch(() => null)
-    if (publicList?.itemListElement) {
-        const items = publicList.itemListElement
-            .filter(obj => ((obj["@id"] ?? obj.id ?? "").split('/').pop()) !== targetSeg)
-            .map(obj => ({ label: obj.label ?? obj.name ?? "", '@id': (obj["@id"] ?? obj.id ?? "").replace(/^https?:/, 'https:') }))
-        const list = {
-            '@id': __constants.ngCollection,
-            '@context': 'https://schema.org/',
-            '@type': "ItemList",
-            name: "Gallery of Glosses Public Glosses List",
-            numberOfItems: items.length,
-            itemListElement: items
-        }
-        await fetch(`${__constants.tiny}/overwrite`, {
-            method: "PUT",
-            mode: 'cors',
-            body: JSON.stringify(list),
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            }
-        })
-    }
-    // Delete the Gloss entity.
-    const glossId = glossURI.split("/").pop()
-    const res = await fetch(`${__constants.tiny}/delete/${glossId}`, {
-        method: "DELETE",
-        mode: 'cors',
-        headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "Authorization": `Bearer ${window.GOG_USER.authorization}`
-        }
-    })
-    if (!res.ok) throw new Error(`Failed to delete gloss (${res.status})`)
-    return true
-}
-
-/**
  * Creates a custom confirmation dialog box with the specified message.
  * @param {string} message - The message to be displayed in the confirmation dialog box.
+ * @param {boolean} lockFields - Disable every field on the page while the confirmed action runs.
+ *      The caller then owns unlocking them again with inProgress(null, false) when the action
+ *      settles.  Pass false when the caller cannot make that guarantee, because the lock lands on
+ *      a timer after this resolves: an action that finishes inside that window is re-locked after
+ *      it has already released, and the page stays frozen with no way back.
  * @returns {Promise<boolean>} A Promise that resolves with a boolean value indicating whether the confirmation was accepted (true) or canceled (false).
  */
-async function showCustomConfirm(message) {
+async function showCustomConfirm(message, lockFields = true) {
     const confirmModal = document.createElement('custom-confirm-modal')
     confirmModal.setAttribute('message', message)
     document.body.appendChild(confirmModal);
@@ -528,7 +467,7 @@ async function showCustomConfirm(message) {
         confirmModal.addEventListener('customModalConfirm', event => {
             resolve(event.detail.confirmed)
             // The resolve function above needs a little time to finish.  inProgress() makes the button it wants to click disabled too fast.
-            if(event.detail.confirmed) {
+            if(event.detail.confirmed && lockFields) {
                 setTimeout(function() {
                     inProgress(event, true)
                 }, 250)
@@ -885,9 +824,14 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
  * 
  * @param id {String} The Gloss IRI.
  * @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
+ * @param {boolean} skipConfirm - Suppress this function's own confirmation prompt.  Batch callers
+ *                                confirm once for the whole selection and must not re-prompt per Gloss.
+ * @returns {Promise<boolean>} true only when the Gloss entity was actually deleted.  Callers must not
+ *                             remove UI for a Gloss unless this resolves true.  On success a
+ *                             'GlossDeleted' event is broadcast, on failure 'GlossDeleteError'.
  */
-async function deleteGloss(glossURI, redirect=false) {
-    if(!glossURI) return
+async function deleteGloss(glossURI, redirect=false, skipConfirm=false) {
+    if(!glossURI) return false
     if(!__constants?.generator) await setConstants()
     const entity = await fetch(glossURI).then(resp => resp.json()).catch(err => {throw err})
     const typecheck = entity ? entity.type ?? entity["@type"] ?? "" : ""
@@ -895,10 +839,10 @@ async function deleteGloss(glossURI, redirect=false) {
     if(!(typecheck === "Gloss" || typecheck === "named-gloss")){
         const entity_err = new CustomEvent("Bad Entity")
         broadcast(entity_err, "GlossDeleteError", document, {"@id":glossURI, "error":`Entity type '${typecheck}' is not a Gloss`} )
-        return
-    }   
+        return false
+    }
     // Confirm they want to do this
-    if (!await showCustomConfirm(`Really delete this Gloss and remove its Witness Fragments?\n(Cannot be undone)`)) return
+    if (!skipConfirm && !await showCustomConfirm(`Really delete this Gloss and remove its Witness Fragments?\n(Cannot be undone)`)) return false
 
     // No extra clicks while you await.
     if(redirect) document.querySelector(".dropGloss")?.setAttribute("disabled", "true")
@@ -906,7 +850,7 @@ async function deleteGloss(glossURI, redirect=false) {
     if(await isPublicGloss(glossURI)){
         const ev = new CustomEvent("Gloss is public")
         globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
-        return
+        return false
     }
     let allWitnessFragmentsOfGloss = await getAllWitnessFragmentsOfGloss(glossURI)
     const historyWildcard = { "$exists": true, "$size": 0 }
@@ -971,9 +915,9 @@ async function deleteGloss(glossURI, redirect=false) {
         console.log(err)
     })
 
-    // Now the entity itself
+    // Now the entity itself.  Awaited so callers can tell whether the Gloss actually went away.
     const glossId = glossURI.split("/").pop()
-    fetch(`${__constants.tiny}/delete/${glossId}`, {
+    return fetch(`${__constants.tiny}/delete/${glossId}`, {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json; charset=utf-8",
@@ -984,16 +928,16 @@ async function deleteGloss(glossURI, redirect=false) {
         if(r.ok){
             const ev = new CustomEvent("Gloss Deleted")
             broadcast(ev, "GlossDeleted", document, { "@id":glossURI, "redirect":redirect })
-            return r
+            return true
         }
-        else{ 
+        else{
             throw new Error(r.text)
         }
     })
-    .catch(err => {        
+    .catch(err => {
         const ev_err = new CustomEvent("Gloss Delete Error")
         broadcast(ev_err, "GlossDeleteError", document, { "@id":glossURI, "error":err })
-        return err
+        return false
     })
 }
 

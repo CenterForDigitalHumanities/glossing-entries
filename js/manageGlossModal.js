@@ -5,6 +5,8 @@ import { default as deerUtils } from './deer-utils.js'
   * Specifically designed for manage-glosses.html
 */
 class ManageGlossModal extends HTMLElement {
+    // Cleans up the document-level listeners this element adds, see connectedCallback.
+    #listeners
     template = `
         <style>
             small{
@@ -56,7 +58,7 @@ class ManageGlossModal extends HTMLElement {
             }
             .meta-label{
                 font-weight: bold;
-                color: var(--color-lightGrey);
+                color: var(--color-grey);
                 min-width: 7em;
             }
             .meta-value{
@@ -102,7 +104,7 @@ class ManageGlossModal extends HTMLElement {
                 font-size: 0.9em;
             }
             .fragment-card-folio{
-                color: var(--color-lightGrey);
+                color: var(--color-grey);
                 font-size: 0.8em;
             }
             .fragment-card-text{
@@ -117,7 +119,7 @@ class ManageGlossModal extends HTMLElement {
                 flex-wrap: wrap;
                 gap: 0.8em;
                 font-size: 0.75em;
-                color: var(--color-lightGrey);
+                color: var(--color-grey);
             }
             .fragment-card-meta span{
                 display: inline-block;
@@ -158,12 +160,8 @@ class ManageGlossModal extends HTMLElement {
                         <div class="more-details-inner">
                             <div class="fragment-card-list gloss-fragments"></div>
                             <div class="fragment-item">
-                                <span class="fragment-label">Target:</span>
+                                <span class="fragment-label">Reference:</span>
                                 <span class="fragment-value gloss-target">—</span>
-                            </div>
-                            <div class="fragment-item">
-                                <span class="fragment-label">Type:</span>
-                                <span class="fragment-value gloss-type">—</span>
                             </div>
                         </div>
                     </div>
@@ -185,6 +183,18 @@ class ManageGlossModal extends HTMLElement {
             $this.classList.add("is-hidden")
         }
 
+        // Esc closes the modal.  This is not a native <dialog>, so the key has to be handled here.
+        // The listener is on document because focus is normally still on the list row that opened
+        // the modal, not on anything inside it.  A custom-confirm-modal stacks on top of this one
+        // and removes itself once answered, so while one is present Esc belongs to it.
+        this.#listeners = new AbortController()
+        document.addEventListener("keydown", ev => {
+            if (ev.key !== "Escape") return
+            if ($this.classList.contains("is-hidden")) return
+            if (document.querySelector("custom-confirm-modal")) return
+            $this.close()
+        }, { signal: this.#listeners.signal })
+
         // Create the modal dynamically from the chosen glosses data, provided as the parameter here.
         this.open = (glossData) => {
             // Reset collapsible details to collapsed state for each open.
@@ -192,9 +202,7 @@ class ManageGlossModal extends HTMLElement {
             moreDetails.classList.remove("is-open")
             $this.querySelector(".gloss-fragments").innerHTML = ""
             $this.querySelector(".gloss-target").innerText = "—"
-            $this.querySelector(".gloss-type").innerText = "—"
 
-            // TODO esc to close?
             const negotiatedId = glossData?.["@id"] ?? glossData?.id
             if(!glossData || !negotiatedId){
                 const ev = new CustomEvent("Cannot manage this gloss")
@@ -334,7 +342,6 @@ class ManageGlossModal extends HTMLElement {
                 const details = $this.querySelector(".more-details")
                 const fragmentsElem = $this.querySelector(".gloss-fragments")
                 const targetElem = $this.querySelector(".gloss-target")
-                const typeElem = $this.querySelector(".gloss-type")
 
                 // Populate heavy data on first click only.
                 if (!moreLoaded) {
@@ -370,7 +377,8 @@ class ManageGlossModal extends HTMLElement {
                                 }
                                 return ""
                             }
-                            const shelfmark = val(frag.identifier) ?? val(frag.title) ?? "Unlabeled"
+                            // val() returns "" for absent fields, so these fall back with || not ??.
+                            const shelfmark = val(frag.identifier) || val(frag.title) || "Unlabeled"
                             const folio = val(frag._folio) ?? ""
                             const text = val(frag.text) ?? ""
                             const language = val(frag.language) ?? ""
@@ -410,34 +418,29 @@ class ManageGlossModal extends HTMLElement {
                             }
                             const meta = document.createElement("div")
                             meta.className = "fragment-card-meta"
-                            if (language) {
-                                const langSpan = document.createElement("span")
-                                langSpan.innerHTML = `<strong>Language:</strong>${language}`
-                                meta.appendChild(langSpan)
+                            // Fragment values come from RERUM, which does not constrain them on read.
+                            // Build these with textContent so entity data can never be parsed as markup.
+                            const addMeta = (label, value) => {
+                                if (!value) return
+                                const span = document.createElement("span")
+                                const strong = document.createElement("strong")
+                                strong.textContent = `${label}:`
+                                span.append(strong, value)
+                                meta.appendChild(span)
                             }
-                            if (glossFormat) {
-                                const fmtSpan = document.createElement("span")
-                                fmtSpan.innerHTML = `<strong>Format:</strong>${glossFormat}`
-                                meta.appendChild(fmtSpan)
-                            }
-                            if (glossLocation) {
-                                const locSpan = document.createElement("span")
-                                locSpan.innerHTML = `<strong>Location:</strong>${glossLocation}`
-                                meta.appendChild(locSpan)
-                            }
-                            if (glossatorHand) {
-                                const handSpan = document.createElement("span")
-                                handSpan.innerHTML = `<strong>Hand:</strong>${glossatorHand}`
-                                meta.appendChild(handSpan)
-                            }
+                            addMeta("Language", language)
+                            addMeta("Format", glossFormat)
+                            addMeta("Location", glossLocation)
+                            addMeta("Hand", glossatorHand)
                             if (manuscript) {
                                 const msSpan = document.createElement("span")
+                                const strong = document.createElement("strong")
+                                strong.textContent = "Manuscript:"
                                 const msLink = document.createElement("a")
                                 msLink.href = `manuscript-profile.html#${manuscript}`
                                 msLink.target = "_blank"
                                 msLink.textContent = manuscript.split("/").pop()
-                                msSpan.innerHTML = `<strong>Manuscript:</strong>`
-                                msSpan.appendChild(msLink)
+                                msSpan.append(strong, msLink)
                                 meta.appendChild(msSpan)
                             }
                             card.appendChild(meta)
@@ -446,12 +449,10 @@ class ManageGlossModal extends HTMLElement {
                     }).catch(() => {
                         fragmentsContainer.innerHTML = "<div class='fragment-card'><div class='fragment-card-header'>Could not load Witness Fragments</div></div>"
                     })
-                    // Target: the text passage this Gloss targets.
-                    const target = glossData.target ?? glossData.body?.target ?? "—"
-                    targetElem.innerText = typeof target === "string" ? target : "—"
-                    // Type: entity type.
-                    const type = glossData["@type"] ?? glossData.type ?? "—"
-                    typeElem.innerText = typeof type === "string" ? type : "—"
+                    // The place in the source text being glossed, the same value the Browse Glosses
+                    // table shows under "Reference".  Glosses record this as canonicalReference or as
+                    // targetChapter/targetVerse, never as a `target` key.
+                    targetElem.innerText = deerUtils.getCanonicalReference(glossData) || "—"
                 }
 
                 // Toggle the slide open/close.
@@ -528,8 +529,9 @@ class ManageGlossModal extends HTMLElement {
                 confirmMessage = `This Gloss is public and will be removed from the public list.\n${confirmMessage}`
                 overwriteList = true
             }
-            // Confirm they want to do this
-            if (!await showCustomConfirm(confirmMessage)) return
+            // Confirm they want to do this.  lockFields false: this page has nothing that unlocks the
+            // fields again, so taking the page wide lock here freezes the list for the rest of the session.
+            if (!await showCustomConfirm(confirmMessage, false)) return
             let allWitnessFragmentsOfGloss = await getAllWitnessFragmentsOfGloss(id)
             const historyWildcard = { "$exists": true, "$size": 0 }
 
@@ -618,10 +620,15 @@ class ManageGlossModal extends HTMLElement {
             })
             .catch(err => {
                 const err_ev = new CustomEvent("Gloss Delete Error")
-                broadcast(ev, "GlossDeleteError", document, { "@id":id, "error":err })
+                broadcast(err_ev, "GlossDeleteError", document, { "@id":id, "error":err })
                 return err
             })
         }
+    }
+
+    disconnectedCallback() {
+        // The keydown handler lives on document, so it outlives this element unless it is aborted.
+        this.#listeners?.abort()
     }
 }
 

@@ -1192,7 +1192,7 @@ export default {
                 </div>
                 `,
                 then: (elem) => {
-                    //const cachedFilterableEntities = locaLoading Manuscripts...  Map()
+                    //const cachedFilterableEntities = localStorage.getItem("expandedEntities") ? new Map(Object.entries(JSON.parse(localStorage.getItem("expandedEntities")))) : new Map()
                     // Bandaid for #310: read the cache from memory, not localStorage.
                     const cachedFilterableEntities = inMemoryExpandedEntities
                     let numloaded = 0

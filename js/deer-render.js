@@ -33,13 +33,11 @@ const inMemoryExpandedEntities = new Map()
  * Extracts filtering attributes, sets published status, and wires the modal click handler.
  * @param {string} glossID The Gloss @id
  * @param {Object} glossObj The expanded Gloss object
- * @param {number} index Position in the list for loading messages
  * @param {Object} options Template options (link, etc.)
- * @param {Map} managedListCache The in-memory expanded entities cache
  * @param {Object} filterObj Active filter state
  * @returns {HTMLElement} The configured <li> element
  */
-function buildManagedListItem(glossID, glossObj, index, options, managedListCache, filterObj) {
+function buildManagedListItem(glossID, glossObj, options, filterObj) {
     const publishedStatus = document.createElement("span")
     publishedStatus.classList.add("pubStatus", "col-status")
     publishedStatus.setAttribute("glossid", glossID)
@@ -129,16 +127,9 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
     // Prevent checkbox clicks from bubbling to the row and opening the modal.
     checkbox.addEventListener("click", ev => ev.stopPropagation())
 
-    // Wire the modal click handler with full entity data.
-    // The published status is determined by the existing filtering/rendering logic
-    // (pubStatus spans are updated after all items load).
-    a.addEventListener("click", ev => {
-        ev.preventDefault()
-        const modal = document.querySelector("gloss-modal")
-        if (!modal) return
-        // Pass the full expanded Gloss entity so the modal can extract all properties correctly.
-        modal.open(glossObj)
-    })
+    // The modal is opened by the delegated '.galleryEntry' click handler set up once the public
+    // list has loaded, which has the published status this row's data needs.  Do not add a second
+    // handler here.
 
     return li
 }
@@ -151,20 +142,20 @@ function buildManagedListItem(glossID, glossObj, index, options, managedListCach
  */
 function sortManagedList(ul, column, headerEl) {
     const items = Array.from(ul.querySelectorAll('li.galleryEntry'))
-    const headerIndicators = ul.querySelectorAll('.col-header .sort-indicator')
-    headerIndicators.forEach(ind => ind.textContent = '')
-
-    // Toggle direction: if already sorted by this column, reverse; otherwise default direction.
     const currentIndicator = headerEl.querySelector('.sort-indicator')
-    let ascending = currentIndicator.textContent === '▲'
-    if (ascending) {
-        // Already ascending, toggle to descending
-        ascending = false
-    }
-    // Default sort directions: modified desc, witnesscount desc, title asc, creator asc
-    if (currentIndicator.textContent === '') {
-        ascending = (column === 'title' || column === 'creator')
-    }
+
+    // Read the current direction BEFORE clearing.  currentIndicator is one of the indicators about
+    // to be blanked, so capturing it afterwards would always look unsorted and the toggle would
+    // never flip.
+    const previous = currentIndicator.textContent
+    // Only the active column shows an arrow; clearing the rest keeps that a single, honest signal.
+    ul.querySelectorAll('.col-header .sort-indicator').forEach(ind => ind.textContent = '')
+
+    // Unsorted column: start on its natural direction (newest first for dates and counts,
+    // A-Z for names).  Already sorted: flip.
+    const ascending = previous === ''
+        ? (column === 'title' || column === 'creator')
+        : previous === '▼'
 
     items.sort((a, b) => {
         let aVal = a.getAttribute(`data-${column}`) ?? ''
@@ -498,19 +489,24 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     flex: 0.5;
                     text-align: center;
                 }
-                .gloss-creator, .gloss-modified, .gloss-witnesses{
+                /* Scoped to the list row.  This <style> block is injected into the document, not a
+                   shadow root, so bare .gloss-* selectors would also hit <manage-gloss-modal>,
+                   which uses those class names for its own metadata rows. */
+                .managedlist-item .col-contributor,
+                .managedlist-item .col-modified,
+                .managedlist-item .col-witnesses{
                     flex-shrink: 0;
                     font-size: 0.9em;
-                    color: var(--color-lightGrey);
+                    color: var(--color-grey);
                 }
-                .gloss-witnesses{
+                .managedlist-item .col-witnesses{
                     text-align: center;
                     width: 3em;
                 }
-                .gloss-modified{
+                .managedlist-item .col-modified{
                     width: 8em;
                 }
-                .gloss-creator{
+                .managedlist-item .col-contributor{
                     width: 10em;
                     overflow: hidden;
                     text-overflow: ellipsis;
@@ -562,7 +558,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 }
                 .batch-selection-count{
                     font-size: 0.9em;
-                    color: var(--color-lightGrey);
+                    color: var(--color-grey);
                     margin-left: auto;
                 }
             </style>
@@ -641,8 +637,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 })
 
                 // Render cached items immediately.
-                cachedItems.forEach(({ glossID, cachedObj, index }) => {
-                    const li = buildManagedListItem(glossID, cachedObj, index, options, managedListCache, filterObj)
+                cachedItems.forEach(({ glossID, cachedObj }) => {
+                    const li = buildManagedListItem(glossID, cachedObj, options, filterObj)
                     ul.appendChild(li)
                     numloaded++
                 })
@@ -673,8 +669,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 })
 
                 const fetchedItems = (await Promise.all(fetchPromises)).filter(Boolean)
-                fetchedItems.forEach(({ glossID, obj, index }) => {
-                    const li = buildManagedListItem(glossID, obj, index, options, managedListCache, filterObj)
+                fetchedItems.forEach(({ glossID, obj }) => {
+                    const li = buildManagedListItem(glossID, obj, options, filterObj)
                     ul.appendChild(li)
                     numloaded++
                 })
@@ -687,36 +683,22 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     <span class="col-status"></span>
                     <span class="col-header col-title" data-sort="title">Title <span class="sort-indicator"></span></span>
                     <span class="col-header col-contributor" data-sort="creator">Contributor <span class="sort-indicator"></span></span>
-                    <span class="col-header col-modified" data-sort="modified">Modified <span class="sort-indicator">▼</span></span>
+                    <span class="col-header col-modified" data-sort="modified">Modified <span class="sort-indicator"></span></span>
                 `
                 ul.insertBefore(headerLi, ul.firstChild)
-
-                // Wire unpublished toggle (in the filter area above the list).
-                const unpublishedToggle = elem.querySelector('#unpublishedToggle')
-                const unpublishedCount = elem.querySelector('.unpublished-count')
-                unpublishedToggle.addEventListener('change', () => {
-                    const showUnpublished = unpublishedToggle.checked
-                    let count = 0
-                    ul.querySelectorAll('li.galleryEntry').forEach(item => {
-                        const isPublic = item.getAttribute('data-public') === 'true'
-                        if (!isPublic) count++
-                        if (showUnpublished && isPublic) {
-                            item.classList.add('is-hidden')
-                        } else {
-                            item.classList.remove('is-hidden')
-                        }
-                    })
-                    unpublishedCount.textContent = showUnpublished ? ` (${count} unpublished)` : ''
-                })
 
                 // Wire column header click handlers for sorting.
                 headerLi.querySelectorAll('.col-header[data-sort]').forEach(header => {
                     header.addEventListener('click', () => sortManagedList(ul, header.getAttribute('data-sort'), header))
                 })
 
-                // Wire select-all checkbox.
+                // Wire select-all checkbox.  Only rows the filters currently show are touched —
+                // batch actions ignore filtered-out rows, so selecting them would promise more than
+                // the buttons will actually do.  Selections on hidden rows are left as they are and
+                // come back when the filter clears.
                 headerLi.querySelector('.select-all').addEventListener('change', ev => {
-                    ul.querySelectorAll('.batch-select').forEach(cb => { cb.checked = ev.target.checked })
+                    ul.querySelectorAll('li.galleryEntry:not(.is-hidden) input.batch-select')
+                        .forEach(cb => { cb.checked = ev.target.checked })
                     updateBatchSelectionCount(elem)
                 })
 
@@ -752,45 +734,120 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             totalsProgress.setAttribute("total", total)
             totalsProgress.setAttribute("count", numloaded)
 
+            /**
+             * Report the outcome of a batch run.  Always tells the user what happened, including
+             * partial success, so a silently truncated batch can never look like a clean one.
+             * @param {string} verb Past-tense action for the message, e.g. "published"
+             * @param {string[]} failed Gloss IDs that did not complete
+             * @param {number} total Number of Glosses the batch attempted
+             */
+            function reportBatchResult(verb, failed, total) {
+                const succeeded = total - failed.length
+                if (failed.length === 0) {
+                    UTILS.globalFeedbackBlip(new CustomEvent("Batch complete"),
+                        `${succeeded} Gloss${succeeded === 1 ? '' : 'es'} ${verb}.`, true)
+                    return
+                }
+                console.warn(`Batch ${verb} failed for:`, failed)
+                UTILS.globalFeedbackBlip(new CustomEvent("Batch incomplete"),
+                    `${succeeded} of ${total} ${verb}.  ${failed.length} failed — see the console for details.`, false)
+            }
+
+            /**
+             * Run a batch action over the current selection, one Gloss at a time.
+             * Each Gloss is isolated so one failure cannot abort the rest of the batch, and the row
+             * is only updated when its action actually succeeded.
+             * @param {HTMLElement} btn The button that triggered the run, disabled while it works
+             * @param {string} verb Past-tense action for the summary message
+             * @param {Function} action async (glossID) => boolean; false or a throw counts as a failure
+             */
+            async function runBatch(btn, verb, action) {
+                const selected = getSelectedGlosses(elem)
+                if (selected.length === 0) return
+                const failed = []
+                btn.setAttribute("disabled", "true")
+                try {
+                    for (const glossID of selected) {
+                        try {
+                            const ok = await action(glossID)
+                            if (ok === false) failed.push(glossID)
+                        } catch (err) {
+                            console.error(`Batch ${verb} failed for ${glossID}`, err)
+                            failed.push(glossID)
+                        }
+                    }
+                } finally {
+                    btn.removeAttribute("disabled")
+                }
+                updateBatchSelectionCount(elem)
+                reportBatchResult(verb, failed, selected.length)
+            }
+
+            /**
+             * Reflect a completed publish/unpublish on the row, so the status column and the
+             * facet/toggle filters stay in step with the server.
+             * @param {string} glossID The Gloss IRI
+             * @param {boolean} isPublic The Gloss's new published state
+             */
+            function markRowPublished(glossID, isPublic) {
+                const li = elem.querySelector(`li[deer-id="${glossID}"]`)
+                if (!li) return
+                li.setAttribute("data-public", isPublic ? "true" : "false")
+                const a = li.querySelector("a")
+                if (a) a.setAttribute("data-public", isPublic ? "true" : "false")
+                const span = li.querySelector('.pubStatus')
+                if (span) span.innerText = isPublic ? "✓" : "❌"
+                if (isPublic) elem.listCache?.add(glossID)
+                else elem.listCache?.delete(glossID)
+            }
+
+            /**
+             * Mark every selected Gloss for addition to or removal from the public list.
+             *
+             * This only stages the change in elem.listCache and enables 'Submit', matching what the
+             * modal's publish/unpublish button does.  Do NOT write each Gloss to the server here:
+             * publishGloss()/unpublishGloss() each re-read and overwrite the WHOLE public list, so
+             * running them in a loop is a read-modify-write race — the second call re-reads a list
+             * that does not yet contain the first call's change and overwrites it away.  Staging
+             * means overwriteList() persists the whole selection in one atomic PUT instead.
+             * @param {boolean} isPublic true to mark for addition, false to mark for removal
+             * @param {string} verb Past-tense description for the confirmation message
+             */
+            function markSelectedPublished(isPublic, verb) {
+                const selected = getSelectedGlosses(elem)
+                if (selected.length === 0) return
+                if (!elem.listCache) {
+                    UTILS.globalFeedbackBlip(new CustomEvent("Not Ready"),
+                        `Please wait for the public list to finish loading.`, false)
+                    return
+                }
+                selected.forEach(glossID => markRowPublished(glossID, isPublic))
+                saveList.removeAttribute("disabled")
+                updateBatchSelectionCount(elem)
+                UTILS.globalFeedbackBlip(new CustomEvent("Glosses Marked"),
+                    `${selected.length} Gloss${selected.length === 1 ? '' : 'es'} ${verb}.  Don't forget to submit your changes.`, true)
+            }
+
             // Wire batch action buttons.
-            batchActions?.querySelector('.batch-publish')?.addEventListener('click', async () => {
-                const selected = getSelectedGlosses(elem)
-                if (selected.length === 0) return
-                for (const glossID of selected) {
-                    await publishGloss(glossID)
-                    const li = elem.querySelector(`li[deer-id="${glossID}"]`)
-                    if (li) {
-                        li.setAttribute("data-public", "true")
-                        const span = li.querySelector('.pubStatus')
-                        if (span) span.innerHTML = "✓"
-                    }
-                }
-            })
+            batchActions?.querySelector('.batch-publish')
+                ?.addEventListener('click', () => markSelectedPublished(true, "marked to be added to the public list"))
 
-            batchActions?.querySelector('.batch-unpublish')?.addEventListener('click', async () => {
-                const selected = getSelectedGlosses(elem)
-                if (selected.length === 0) return
-                for (const glossID of selected) {
-                    await unpublishGloss(glossID)
-                    const li = elem.querySelector(`li[deer-id="${glossID}"]`)
-                    if (li) {
-                        li.setAttribute("data-public", "false")
-                        const span = li.querySelector('.pubStatus')
-                        if (span) span.innerHTML = "❌"
-                    }
-                }
-            })
+            batchActions?.querySelector('.batch-unpublish')
+                ?.addEventListener('click', () => markSelectedPublished(false, "marked to be removed from the public list"))
 
-            batchActions?.querySelector('.batch-delete')?.addEventListener('click', async () => {
+            const deleteBtn = batchActions?.querySelector('.batch-delete')
+            deleteBtn?.addEventListener('click', async () => {
                 const selected = getSelectedGlosses(elem)
                 if (selected.length === 0) return
-                const confirmed = await showCustomConfirm(`Delete ${selected.length} selected Gloss${selected.length > 1 ? 'es' : ''}? This cannot be undone.`)
+                // lockFields false: this page never unlocks, so a refused Gloss used to leave the whole
+                // list frozen.  runBatch disables the button it was handed for the length of the run,
+                // which is the guard that matters here, and it always gives that back.
+                const confirmed = await showCustomConfirm(`Delete ${selected.length} selected Gloss${selected.length > 1 ? 'es' : ''}? This cannot be undone.`, false)
                 if (!confirmed) return
-                for (const glossID of selected) {
-                    await deleteGloss(glossID)
-                    const li = elem.querySelector(`li[deer-id="${glossID}"]`)
-                    if (li) li.remove()
-                }
+                // skipConfirm: the user just confirmed the whole selection, so deleteGloss must not re-prompt.
+                // The row is removed by the page's own 'GlossDeleted' listener, which only fires on a real
+                // delete — a Gloss that is public (or otherwise refused) keeps its row.
+                await runBatch(deleteBtn, "deleted", glossID => deleteGloss(glossID, false, true))
             })
 
             // Clear cached gloss data but preserve the auth session (gog_session)
@@ -822,6 +879,14 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             dateFilter.addEventListener('input', ev =>{
                 applyFilters()
             })
+
+            // Unpublished-only toggle.  Routed through applyFilters() like every other control so the
+            // filters compose instead of each one resetting the others' visibility.
+            const unpublishedToggle = elem.querySelector('#unpublishedToggle')
+            const unpublishedCount = elem.querySelector('.unpublished-count')
+            unpublishedToggle.addEventListener('change', ev =>{
+                applyFilters()
+            })
             
             // This is a freeform filter to match on text.
             filter.addEventListener('input', ev =>{
@@ -840,6 +905,8 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 const unlabeledChecked = elem.querySelector('.statusFacet[status-filter="unlabeled"]')?.checked
                 const otherChecked = elem.querySelector('.statusFacet[status-filter="other"]')?.checked
                 const anyStatusChecked = publicChecked || unlabeledChecked || otherChecked
+                const showUnpublishedOnly = unpublishedToggle?.checked ?? false
+                let unpublishedTotal = 0
 
                 const items = elem.querySelectorAll('li.galleryEntry')
                 items.forEach(li => {
@@ -883,16 +950,28 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                         }
                     }
 
+                    // Unpublished-only toggle.  Handled here rather than in its own listener so it
+                    // composes with the other filters instead of overwriting their visibility.
+                    if (li.getAttribute("data-public") !== "true") unpublishedTotal++
+                    if (showUnpublishedOnly && show && li.getAttribute("data-public") === "true") {
+                        show = false
+                    }
+
                     if (show) {
                         li.classList.remove("is-hidden")
                     } else {
                         li.classList.add("is-hidden")
                     }
                 })
+
+                unpublishedCount.textContent = showUnpublishedOnly ? ` (${unpublishedTotal} unpublished)` : ''
+                // Hiding a row can drop it out of the selection, so keep the count honest.
+                updateBatchSelectionCount(elem)
             }
 
             /**
              * Get all selected Gloss IDs from visible (non-filtered) list items.
+             * Batch actions only ever operate on what the user can currently see.
              * @param {HTMLElement} elem The deer-view container
              * @returns {string[]} Array of selected Gloss IDs
              */
@@ -903,16 +982,26 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
 
             /**
              * Update the batch selection count display.
+             * Counts exactly what getSelectedGlosses() would act on, so the number the user reads
+             * can never promise more than the buttons will do.
              * @param {HTMLElement} elem The deer-view container
              */
             function updateBatchSelectionCount(elem) {
-                const count = elem.querySelectorAll('li.galleryEntry input.batch-select:checked').length
+                const count = getSelectedGlosses(elem).length
                 const countSpan = elem.querySelector('.batch-selection-count')
                 if (countSpan) countSpan.innerText = `${count} selected`
                 const batchActions = elem.querySelector('.batch-actions')
                 if (batchActions) {
                     if (count > 0) batchActions.classList.remove('is-hidden')
                     else batchActions.classList.add('is-hidden')
+                }
+                // Keep the header checkbox describing the visible rows only, so it stays truthful
+                // when a filter changes what "all" means underneath it.
+                const selectAll = elem.querySelector('.select-all')
+                if (selectAll) {
+                    const visible = elem.querySelectorAll('li.galleryEntry:not(.is-hidden) input.batch-select').length
+                    selectAll.checked = visible > 0 && count === visible
+                    selectAll.indeterminate = count > 0 && count < visible
                 }
             }
             
@@ -931,9 +1020,15 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             fetch(url).then(r => r.json())
             .then(list => {
                 elem.listCache = new Set()
+                // Remember each entry's saved label.  Some public entries have no row here (a Gloss
+                // outside this collection), and overwriteList() needs their label to write them back
+                // unchanged instead of dropping them.
+                elem.listLabels = new Map()
                 list.itemListElement?.forEach(item => {
                     const negotiatedId = item['@id'] ?? item.id
-                    elem.listCache.add(negotiatedId.replace(/^https?:/, 'https:'))
+                    const uri = negotiatedId.replace(/^https?:/, 'https:')
+                    elem.listCache.add(uri)
+                    elem.listLabels.set(uri, item.label ?? item.name ?? "")
                 })
                 for (const span of elem.querySelectorAll('.pubStatus')) {
                     const li = span.parentElement
@@ -983,27 +1078,42 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
              * Overwrites the list of glosses with updated data.
              */            
             function overwriteList() {
+                // Refuse only while Glosses are genuinely still loading — writing then would drop
+                // every entry whose row has not rendered yet.  Ask the progress element directly
+                // rather than inferring it from a missing row: an entry can also lack a row because
+                // it is not part of this collection at all, which is not a loading problem.
+                const loaded = parseInt(totalsProgress.getAttribute("count"))
+                const expected = parseInt(totalsProgress.getAttribute("total"))
+                if (loaded !== expected) {
+                    const ev = new CustomEvent("Not Ready")
+                    UTILS.globalFeedbackBlip(ev, `Cannot overwrite list while glosses are still loading.`, false)
+                    return
+                }
+
                 let mss = []
-                let missing = false
+                const orphans = []
                 elem.listCache.forEach(uri => {
                     uri = uri.replace(/^https?:/, 'https:')
                     let labelElement = document.querySelector(`li[deer-id='${uri}'] a span`)
                     if (labelElement) {
-                        let label = labelElement.textContent.trim()
                         mss.push({
-                            label: label,
+                            label: labelElement.textContent.trim(),
                             '@id': uri
                         })
                     } else {
-                        console.log(`Element with deer-id '${uri}' not found.`)
-                        missing = true
+                        // No row to read a label from, so write the entry back exactly as it was
+                        // found.  Dropping it would silently unpublish a Gloss the manager can
+                        // neither see nor have chosen to remove.
+                        orphans.push(uri)
+                        mss.push({
+                            label: elem.listLabels?.get(uri) ?? uri,
+                            '@id': uri
+                        })
                     }
                 })
-                
-                if (missing) {
-                    const ev = new CustomEvent("Not Ready")
-                    UTILS.globalFeedbackBlip(ev, `Cannot overwrite list while glosses are still loading.`, false)
-                    return
+
+                if (orphans.length) {
+                    console.warn(`Preserved ${orphans.length} public list entr${orphans.length === 1 ? 'y' : 'ies'} with no row in this collection:`, orphans)
                 }
 
                 const list = {

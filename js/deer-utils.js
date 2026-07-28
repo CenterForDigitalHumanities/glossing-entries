@@ -226,13 +226,40 @@ export default {
     getCreator: function (obj) {
         if (!obj) return "[ unlabeled ]"
         const creator = obj.creator ?? obj.__rerum?.generatedBy
-        if (typeof creator === "string") {
-            // If it's an agent ID URL, return it for lazy resolution by the UI.
-            // The UI can call resolveAgentLabel() to get the human-readable label.
-            if (creator.startsWith("http")) return creator
-            return creator
-        }
+        // A string is returned as-is.  When it is an agent ID URL the UI resolves it to a
+        // human-readable label with resolveAgentLabel().
+        if (typeof creator === "string") return creator
         return this.getValue(creator) ?? "[ unlabeled ]"
+    },
+    /**
+     * Resolve the place in the source text a Gloss is glossing.
+     * Prefers a saved canonicalReference, otherwise composes one from the structured target
+     * Annotations the way the Gloss tables do.  Glosses carry targetChapter/targetVerse rather
+     * than a plain `target` key, so reading `obj.target` finds nothing.
+     * The source text is not always scripture, so this is a document/section/subsection locator
+     * rather than a book/chapter/verse one.
+     * @param {Object} obj - A Gloss entity
+     * @returns {string} e.g. "Matthew 5.1" or "Decretum C.32 q.1", or "" when nothing can be composed
+     */
+    getCanonicalReference: function (obj) {
+        if (!obj) return ""
+        // getValue() logs an error for absent properties, so only ask about ones that are present.
+        const read = (...keys) => {
+            for (const k of keys) {
+                if (obj[k] === undefined || obj[k] === "") continue
+                const v = this.getValue(obj[k])
+                if (v !== undefined && v !== "") return `${v}`
+            }
+            return ""
+        }
+        const canonical = read("canonicalReference")
+        if (canonical) return canonical
+        const section = read("_section", "targetChapter")
+        const subsection = read("_subsection", "targetVerse")
+        // Back support for old data that recorded chapter/verse without naming the document.
+        const doc = read("_document") || (section && subsection ? "Matthew" : "")
+        if (!doc || !section || !subsection) return ""
+        return `${doc} ${section}.${subsection}`
     },
     /**
      * Extract the modification timestamp from a Gloss entity.
