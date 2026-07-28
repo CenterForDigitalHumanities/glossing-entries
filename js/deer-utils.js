@@ -166,9 +166,18 @@ export default {
      * Take a known object with an id and query for annotations targeting it.
      * Discovered annotations are asserted on the original object and returned.
      * @param {Object} entity Target object to search for description
+     * @param {Array} matchOn properties checkMatch() uses to recognize an annotation of interest
+     * @param {Object} options `{fresh:true}` reads past the browser cache for this call.
+     *   RERUM serves these URIs with `Cache-Control: max-age=86400`, so by default the browser can
+     *   answer from disk for a day without asking the server.  That is what we want for browsing.
+     *   Callers that must see current server state -- anything prefilling an editable form -- pass
+     *   `fresh`.  `cache:"no-cache"` still stores and revalidates, so an unchanged entity comes back
+     *   304 and the cache keeps paying for itself.  Do not use "reload"/"no-store" here; they send
+     *   `Cache-Control: no-cache`, which forces RERUM to answer 200 with a full body every time.
      */
-    async expand(entity, matchOn = ["__rerum.generatedBy", "creator"]) {
+    async expand(entity, matchOn = ["__rerum.generatedBy", "creator"], options = {}) {
         let UTILS = this
+        const fetchOptions = options.fresh ? { cache: "no-cache" } : undefined
         let findId = entity["@id"] ?? entity.id ?? entity
         if (typeof findId !== "string") {
             UTILS.warning("Unable to find URI in object:", entity)
@@ -183,12 +192,12 @@ export default {
         const expandedURL = UTILS.getExpandedURL(findId)
         if (expandedURL) {
             try {
-                const response = await fetch(expandedURL)
+                const response = await fetch(expandedURL, fetchOptions)
                 if (response.ok) { return await response.json() }
             } catch (err) { /* fall through to the client-side expand below */ }
         }
         let getVal = UTILS.getValue
-        return fetch(findId.replace(/^https?:/, 'https:')).then(response => response.json())
+        return fetch(findId.replace(/^https?:/, 'https:'), fetchOptions).then(response => response.json())
             .then(obj => UTILS.findByTargetId(findId)
                 .then(function (annos) {
                     for (let i = 0; i < annos.length; i++) {

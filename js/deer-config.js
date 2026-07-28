@@ -52,6 +52,7 @@ export default {
     FORM: "form[deer-type]", // selector, identifies data entry containers
     ITEMTYPE: "deer-item-type", //attribute, specialty forms ('entity' by default)
     SOURCE: "deer-source", // attribute, URI for asserting annotation
+    FRESH: "deer-fresh", // attribute, read this resource past the browser cache
     EVIDENCE: "nv-evidence", // attribute, URI for supporting evidence
     INPUTTYPE: "deer-input-type", //attribute, defines whether this is an array list, array set, or object 
     ARRAYDELIMETER: "deer-array-delimeter", //attribute, denotes delimeter to use for array.join()
