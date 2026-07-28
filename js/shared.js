@@ -295,9 +295,7 @@ function loadHashId() {
         })
         document.querySelectorAll('[hash-id]').forEach(el => {
             // Addressed by URL hash means a single direct resource the user navigated to, so it has
-            // to reflect current server state instead of a day-old cached copy.  Set this before
-            // deer-id -- deer-id is what triggers the read.  ('deer-fresh' is DEER.FRESH; this is a
-            // classic script and cannot import deer-config.js.)
+            // to reflect current server state instead of a day-old cached copy.
             el.setAttribute('deer-fresh', '')
             el.setAttribute('deer-id', hash)
         })

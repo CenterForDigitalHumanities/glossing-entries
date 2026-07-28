@@ -165,15 +165,12 @@ export default {
     /**
      * Take a known object with an id and query for annotations targeting it.
      * Discovered annotations are asserted on the original object and returned.
+     * RERUM serves these URIs with `Cache-Control: max-age=86400`, so by default the browser can
+     * answer from disk for a day without asking the server.  That is what we want for browsing.
+     * Callers that must see current server state pass options.fresh.
      * @param {Object} entity Target object to search for description
      * @param {Array} matchOn properties checkMatch() uses to recognize an annotation of interest
      * @param {Object} options `{fresh:true}` reads past the browser cache for this call.
-     *   RERUM serves these URIs with `Cache-Control: max-age=86400`, so by default the browser can
-     *   answer from disk for a day without asking the server.  That is what we want for browsing.
-     *   Callers that must see current server state -- anything prefilling an editable form -- pass
-     *   `fresh`.  `cache:"no-cache"` still stores and revalidates, so an unchanged entity comes back
-     *   304 and the cache keeps paying for itself.  Do not use "reload"/"no-store" here; they send
-     *   `Cache-Control: no-cache`, which forces RERUM to answer 200 with a full body every time.
      */
     async expand(entity, matchOn = ["__rerum.generatedBy", "creator"], options = {}) {
         let UTILS = this

@@ -77,8 +77,7 @@ async function renderChange(mutationsList) {
 const RENDER = {}
 
 RENDER.element = function (elem, obj, renderOptions = {}) {
-    // Views are cached by default: list templates create one .deer-view per item, so revalidating
-    // every one of them would be hundreds of round trips.  Single-resource views opt in with
+    // Views are cached by default.  Single-resource views opt in with
     // DEER.FRESH, which shared.js stamps on anything driven by the URL hash.
     const fresh = renderOptions.fresh ?? elem?.hasAttribute?.(DEER.FRESH) ?? false
     return UTILS.expand(obj, undefined, { fresh }).then(obj => {

@@ -98,11 +98,11 @@ export default class DeerReport {
         elem.onsubmit = this.processRecord.bind(this)
 
         if (this.id) {
-            //Do we want to expand for all types?
-            // Always read past the browser cache.  A stale prefill leaves DEER.SOURCE unset on the
-            // inputs, and processRecord() then POSTs a duplicate Annotation instead of PUTting the
-            // existing one.  Unconditional rather than attribute-driven: forms exist to edit data,
-            // and some get their deer-id programmatically with no markup to hang an attribute on.
+            /**
+             * Always read past the browser cache.  A stale prefill leaves DEER.SOURCE unset on the
+             * inputs, and processRecord() then POSTs a duplicate Annotation instead of PUTting the
+             * existing one.  This causes multiple leaves and is detrimental to the data and UX.
+             */
             UTILS.expand({ "@id": this.id }, undefined, { fresh: true })
                 .then((function (obj) {
                     try {
