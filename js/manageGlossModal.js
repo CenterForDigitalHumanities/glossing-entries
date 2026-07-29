@@ -168,9 +168,9 @@ class ManageGlossModal extends HTMLElement {
                         </div>
                     </div>
                     <footer>
+                        <input type="button" class="button otherModalBtn" value="More..."/>
                         <a class="button" href="#">Review</a>
                         <input type="button" class="button" value="Publish"/>
-                        <input type="button" class="button otherModalBtn" value="More..."/>
                         <input type="button" class="button" value="Delete"/>
                     </footer>
                     <div class="more-details">
@@ -273,7 +273,7 @@ class ManageGlossModal extends HTMLElement {
 
             $this.querySelector("a").setAttribute("href", `gloss-metadata.html#${glossID}`)
             $this.querySelector("h4").innerText = glossTitle
-            $this.querySelector("footer").innerHTML = reviewBtn + visibilityBtn + moreOptionsBtn + removeBtn
+            $this.querySelector("footer").innerHTML = moreOptionsBtn + reviewBtn + visibilityBtn +  removeBtn
 
             // 'Close' functionality
             $this.querySelector(".closeModal").addEventListener('click', ev => {
