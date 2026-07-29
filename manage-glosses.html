@@ -72,7 +72,7 @@
         document.addEventListener("GlossDeleteError", function(event){
             const ev = new CustomEvent("Gloss Delete Error")
             globalFeedbackBlip(ev, `There was an issue removing the Gloss with URI ${event.detail["@id"] ?? event.detail.id}.  This item may still appear in collections.`, false)
-            console.error(event.error)
+            console.error(event.detail.error)
         })
     </script>
 </body>

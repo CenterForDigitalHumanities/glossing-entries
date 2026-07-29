@@ -659,9 +659,9 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
             }
         })
-        .then(r => {
+        .then(async r => {
             if(r.ok) {return r}
-            else {throw new Error(r.text)}
+            else {throw new Error(await r.text())}
         })
         .catch(err => {
             console.warn(`There was an issue removing an Annotation: ${annoUri}`)
@@ -681,9 +681,9 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
                 },
             })
         })()
-        .then(r => {
+        .then(async r => {
             if(r.ok) {return r}
-            else {throw new Error(r.text)}
+            else {throw new Error(await r.text())}
         })
         .catch(err => {
             console.warn(`There was an issue removing the Witness Fragment: ${witnessFragmentURI}`)
@@ -761,9 +761,9 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
             }
         })
-        .then(r => {
+        .then(async r => {
             if(r.ok) {return r}
-            else {throw new Error(r.text)}
+            else {throw new Error(await r.text())}
         })
         .catch(err => {
             console.warn(`There was an issue removing an Annotation: ${annoUri}`)
@@ -783,9 +783,9 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
                 },
             })
         })()
-        .then(r => {
+        .then(async r => {
             if(r.ok) {return r}
-            else {throw new Error(r.text)}
+            else {throw new Error(await r.text())}
         })
         .catch(err => {
             console.warn(`There was an issue removing the Manuscript Witness: ${manuscriptWitnessURI}`)
@@ -880,9 +880,9 @@ async function deleteGloss(glossURI, redirect=false, skipConfirm=false) {
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
             }
         })
-        .then(r => {
+        .then(async r => {
             if(r.ok) {return r}
-            else {throw new Error(r.text)}
+            else {throw new Error(await r.text())}
         })
         .catch(err => { 
             console.warn("issue removing Gloss Entity Annotations")
@@ -924,17 +924,18 @@ async function deleteGloss(glossURI, redirect=false, skipConfirm=false) {
             "Authorization": `Bearer ${window.GOG_USER.authorization}`
         }
     })
-    .then(r => {
+    .then(async r => {
         if(r.ok){
             const ev = new CustomEvent("Gloss Deleted")
             broadcast(ev, "GlossDeleted", document, { "@id":glossURI, "redirect":redirect })
             return true
         }
         else{
-            throw new Error(r.text)
+            throw new Error(await r.text())
         }
     })
     .catch(err => {
+        console.error(`Error deleting the Gloss ${glossURI}`, err)
         const ev_err = new CustomEvent("Gloss Delete Error")
         broadcast(ev_err, "GlossDeleteError", document, { "@id":glossURI, "error":err })
         return false

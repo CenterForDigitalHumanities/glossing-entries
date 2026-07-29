@@ -560,9 +560,9 @@ class ManageGlossModal extends HTMLElement {
                         "Authorization": `Bearer ${window.GOG_USER.authorization}`
                     }
                 })
-                .then(r => {
+                .then(async r => {
                     if(r.ok) {return r}
-                    else {throw new Error(r.text)}
+                    else {throw new Error(await r.text())}
                 })
                 .catch(err => { 
                     console.warn("issue removing Gloss Entity Annotations")
@@ -615,10 +615,11 @@ class ManageGlossModal extends HTMLElement {
                     broadcast(ev, "GlossDeleted", document, { "@id":id, "redirect":false })
                 }
                 else{
-                    throw new Error(r.text)
+                    throw new Error(await r.text())
                 }
             })
             .catch(err => {
+                console.error(`Error deleting the Gloss ${id}`, err)
                 const err_ev = new CustomEvent("Gloss Delete Error")
                 broadcast(err_ev, "GlossDeleteError", document, { "@id":id, "error":err })
                 return err
