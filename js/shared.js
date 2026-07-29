@@ -7,6 +7,9 @@
  * @class
  */
 class CustomConfirmModal extends HTMLElement {
+    // Cleans up the document-level listeners this element adds, see connectedCallback.
+    #listeners
+
     constructor() {
         super()
         this.attachShadow({mode: 'open'})
@@ -64,6 +67,19 @@ class CustomConfirmModal extends HTMLElement {
     `
         this.shadowRoot.querySelector('.confirm').addEventListener('click', () => this.resolveConfirm(true))
         this.shadowRoot.querySelector('.cancel').addEventListener('click', () => this.resolveConfirm(false))
+
+        // Esc cancels, the same as clicking Cancel
+        this.#listeners = new AbortController()
+        document.addEventListener("keydown", ev => {
+            if (ev.key !== "Escape") return
+            const stack = document.querySelectorAll("custom-confirm-modal")
+            if (stack[stack.length - 1] !== this) return
+            this.resolveConfirm(false)
+        }, { signal: this.#listeners.signal })
+    }
+
+    disconnectedCallback() {
+        this.#listeners?.abort()
     }
 
     resolveConfirm(result) {
@@ -432,9 +448,10 @@ async function publishGloss(glossURI, label = "") {
 /**
  * Creates a custom confirmation dialog box with the specified message.
  * @param {string} message - The message to be displayed in the confirmation dialog box.
+ * @param {boolean} lockFields - Disable every field on the page while the confirmed action runs.
  * @returns {Promise<boolean>} A Promise that resolves with a boolean value indicating whether the confirmation was accepted (true) or canceled (false).
  */
-async function showCustomConfirm(message) {
+async function showCustomConfirm(message, lockFields = true) {
     const confirmModal = document.createElement('custom-confirm-modal')
     confirmModal.setAttribute('message', message)
     document.body.appendChild(confirmModal);
@@ -443,7 +460,7 @@ async function showCustomConfirm(message) {
         confirmModal.addEventListener('customModalConfirm', event => {
             resolve(event.detail.confirmed)
             // The resolve function above needs a little time to finish.  inProgress() makes the button it wants to click disabled too fast.
-            if(event.detail.confirmed) {
+            if(event.detail.confirmed && lockFields) {
                 setTimeout(function() {
                     inProgress(event, true)
                 }, 250)
@@ -627,17 +644,17 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
     if(anno_ids === null) throw new Error("Cannot find Entity Annotations")
 
     let delete_calls = anno_ids.map(annoUri => {
-        return fetch(`${__constants.tiny}/delete`, {
+        const annoId = annoUri.split("/").pop()
+        return fetch(`${__constants.tiny}/delete/${annoId}`, {
             method: "DELETE",
-            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
             }
         })
-        .then(r => {
+        .then(async r => {
             if(r.ok) {return r}
-            else {throw new Error(r.text)}
+            else {throw new Error(await r.text())}
         })
         .catch(err => {
             console.warn(`There was an issue removing an Annotation: ${annoUri}`)
@@ -647,17 +664,19 @@ async function deleteWitnessFragment(witnessFragmentURI=null, redirect=false){
     })
 
     delete_calls.push(
-        fetch(`${__constants.tiny}/delete`, {
-            method: "DELETE",
-            body: JSON.stringify({"@id" : witnessFragmentURI.replace(/^https?:/, 'https:')}),
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            },
-        })
-        .then(r => {
+        (() => {
+            const witnessId = witnessFragmentURI.split("/").pop()
+            return fetch(`${__constants.tiny}/delete/${witnessId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                },
+            })
+        })()
+        .then(async r => {
             if(r.ok) {return r}
-            else {throw new Error(r.text)}
+            else {throw new Error(await r.text())}
         })
         .catch(err => {
             console.warn(`There was an issue removing the Witness Fragment: ${witnessFragmentURI}`)
@@ -727,17 +746,17 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
     if(manuscript_anno_ids === null) throw new Error("Cannot find Entity Annotations")
 
     let manuscript_delete_calls = manuscript_anno_ids.map(annoUri => {
-        return fetch(`${__constants.tiny}/delete`, {
+        const annoId = annoUri.split("/").pop()
+        return fetch(`${__constants.tiny}/delete/${annoId}`, {
             method: "DELETE",
-            body: JSON.stringify({ "@id": annoUri.replace(/^https?:/, 'https:') }),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
             }
         })
-        .then(r => {
+        .then(async r => {
             if(r.ok) {return r}
-            else {throw new Error(r.text)}
+            else {throw new Error(await r.text())}
         })
         .catch(err => {
             console.warn(`There was an issue removing an Annotation: ${annoUri}`)
@@ -747,17 +766,19 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
     })
 
     manuscript_delete_calls.push(
-        fetch(`${__constants.tiny}/delete`, {
-            method: "DELETE",
-            body: JSON.stringify({"@id" : manuscriptWitnessURI.replace(/^https?:/, 'https:')}),
-            headers: {
-                "Content-Type": "application/json; charset=utf-8",
-                "Authorization": `Bearer ${window.GOG_USER.authorization}`
-            },
-        })
-        .then(r => {
+        (() => {
+            const manuscriptId = manuscriptWitnessURI.split("/").pop()
+            return fetch(`${__constants.tiny}/delete/${manuscriptId}`, {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json; charset=utf-8",
+                    "Authorization": `Bearer ${window.GOG_USER.authorization}`
+                },
+            })
+        })()
+        .then(async r => {
             if(r.ok) {return r}
-            else {throw new Error(r.text)}
+            else {throw new Error(await r.text())}
         })
         .catch(err => {
             console.warn(`There was an issue removing the Manuscript Witness: ${manuscriptWitnessURI}`)
@@ -796,9 +817,11 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
  * 
  * @param id {String} The Gloss IRI.
  * @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
+ * @param {boolean} skipConfirm - Suppress this function's own confirmation prompt.
+ * @returns {Promise<boolean>} true only when the Gloss entity was actually deleted.
  */
-async function deleteGloss(glossURI, redirect=false) {
-    if(!glossURI) return
+async function deleteGloss(glossURI, redirect=false, skipConfirm=false) {
+    if(!glossURI) return false
     if(!__constants?.generator) await setConstants()
     const entity = await fetch(glossURI).then(resp => resp.json()).catch(err => {throw err})
     const typecheck = entity ? entity.type ?? entity["@type"] ?? "" : ""
@@ -806,10 +829,10 @@ async function deleteGloss(glossURI, redirect=false) {
     if(!(typecheck === "Gloss" || typecheck === "named-gloss")){
         const entity_err = new CustomEvent("Bad Entity")
         broadcast(entity_err, "GlossDeleteError", document, {"@id":glossURI, "error":`Entity type '${typecheck}' is not a Gloss`} )
-        return
-    }   
+        return false
+    }
     // Confirm they want to do this
-    if (!await showCustomConfirm(`Really delete this Gloss and remove its Witness Fragments?\n(Cannot be undone)`)) return
+    if (!skipConfirm && !await showCustomConfirm(`Really delete this Gloss and remove its Witness Fragments?\n(Cannot be undone)`)) return false
 
     // No extra clicks while you await.
     if(redirect) document.querySelector(".dropGloss")?.setAttribute("disabled", "true")
@@ -817,7 +840,7 @@ async function deleteGloss(glossURI, redirect=false) {
     if(await isPublicGloss(glossURI)){
         const ev = new CustomEvent("Gloss is public")
         globalFeedbackBlip(ev, `This Gloss is public and cannot be deleted from here.`, false)
-        return
+        return false
     }
     let allWitnessFragmentsOfGloss = await getAllWitnessFragmentsOfGloss(glossURI)
     const historyWildcard = { "$exists": true, "$size": 0 }
@@ -839,17 +862,17 @@ async function deleteGloss(glossURI, redirect=false) {
     if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
 
     const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
-        return fetch(`${__constants.tiny}/delete`, {
+        const annoId = annoUri.split("/").pop()
+        return fetch(`${__constants.tiny}/delete/${annoId}`, {
             method: "DELETE",
-            body: JSON.stringify({"@id":annoUri.replace(/^https?:/, 'https:')}),
             headers: {
                 "Content-Type": "application/json; charset=utf-8",
                 "Authorization": `Bearer ${window.GOG_USER.authorization}`
             }
         })
-        .then(r => {
+        .then(async r => {
             if(r.ok) {return r}
-            else {throw new Error(r.text)}
+            else {throw new Error(await r.text())}
         })
         .catch(err => { 
             console.warn("issue removing Gloss Entity Annotations")
@@ -882,29 +905,30 @@ async function deleteGloss(glossURI, redirect=false) {
         console.log(err)
     })
 
-    // Now the entity itself
-    fetch(`${__constants.tiny}/delete`, {
+    // Now the entity itself.  Awaited so callers can tell whether the Gloss actually went away.
+    const glossId = glossURI.split("/").pop()
+    return fetch(`${__constants.tiny}/delete/${glossId}`, {
         method: "DELETE",
-        body: JSON.stringify({ "@id": glossURI }),
         headers: {
             "Content-Type": "application/json; charset=utf-8",
             "Authorization": `Bearer ${window.GOG_USER.authorization}`
         }
     })
-    .then(r => {
+    .then(async r => {
         if(r.ok){
             const ev = new CustomEvent("Gloss Deleted")
             broadcast(ev, "GlossDeleted", document, { "@id":glossURI, "redirect":redirect })
-            return r
+            return true
         }
-        else{ 
-            throw new Error(r.text)
+        else{
+            throw new Error(await r.text())
         }
     })
-    .catch(err => {        
+    .catch(err => {
+        console.error(`Error deleting the Gloss ${glossURI}`, err)
         const ev_err = new CustomEvent("Gloss Delete Error")
         broadcast(ev_err, "GlossDeleteError", document, { "@id":glossURI, "error":err })
-        return err
+        return false
     })
 }
 
