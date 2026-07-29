@@ -45,12 +45,12 @@ function buildManagedListItem(glossID, glossObj, options, filterObj) {
     const li = document.createElement("li")
     li.setAttribute("deer-id", glossID)
     li.classList.add("galleryEntry", "managedlist-item")
-    const a = document.createElement("a")
-    a.classList.add("col-title")
-    a.setAttribute("href", options.link + glossID)
-    a.setAttribute("target", "_blank")
-    const span = document.createElement("span")
-
+    // const a = document.createElement("a")
+    // a.classList.add("col-title")
+    // a.setAttribute("href", options.link + glossID)
+    // a.setAttribute("target", "_blank")
+    const labelSpan = document.createElement("span")
+    labelSpan.classList.add("col-title")
     // Setting deer-expanded here means the <li> won't be expanded later as a filterableListItem (already have the data).
     li.setAttribute("data-expanded", "true")
 
@@ -114,13 +114,13 @@ function buildManagedListItem(glossID, glossObj, options, filterObj) {
     modifiedSpan.classList.add("col-modified")
     modifiedSpan.innerText = modifiedRaw ? UTILS.formatRelativeTime(modifiedRaw) : "—"
 
-    span.innerText = UTILS.getLabel(glossObj) ? UTILS.getLabel(glossObj) : "Label Unprocessable"
-    a.appendChild(span)
+    labelSpan.innerText = UTILS.getLabel(glossObj) ? UTILS.getLabel(glossObj) : "Label Unprocessable"
+    //a.appendChild(span)
 
     // Assemble row: checkbox, status, title link, contributor, modified
     li.appendChild(checkbox)
     li.appendChild(publishedStatus)
-    li.appendChild(a)
+    li.appendChild(labelSpan)
     li.appendChild(creatorSpan)
     li.appendChild(modifiedSpan)
 
@@ -425,7 +425,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 }
 
                 .galleryEntry{
-                    cursor: alias;
+                    cursor: pointer;
                     display: flex;
                     align-items: center;
                     gap: 0.5em;
@@ -477,7 +477,11 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     text-align: center;
                 }
                 .managedlist-header .col-title{
+                    color: var(--color-grey);
                     flex: 2;
+                }
+                span.col-title {
+                    color: var(--color-primary);
                 }
                 .managedlist-header .col-creator{
                     flex: 1;
@@ -511,6 +515,9 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
+                }
+                .managedlist-item:hover {
+                    background-color: rgba(0,0,0,0.08);
                 }
                 .batch-select{
                     flex-shrink: 0;
@@ -1032,16 +1039,16 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 })
                 for (const span of elem.querySelectorAll('.pubStatus')) {
                     const li = span.parentElement
-                    const a = li.querySelector("a")
+                    //const a = li.querySelector("a")
                     if(elem.listCache.has(span.getAttribute("glossid"))){
                         span.innerHTML = "✓"
                         li.setAttribute("data-public", "true")
-                        a.setAttribute("data-public", "true")
+                        //a.setAttribute("data-public", "true")
                     }
                     else{
                         span.innerHTML = "❌"
                         li.setAttribute("data-public", "false")
-                        a.setAttribute("data-public", "false")
+                        //a.setAttribute("data-public", "false")
                     }
                 }
             })

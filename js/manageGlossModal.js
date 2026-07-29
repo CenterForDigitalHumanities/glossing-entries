@@ -125,6 +125,7 @@ class ManageGlossModal extends HTMLElement {
                 font-size: 0.8em;
             }
             .fragment-card-text{
+                display: block;
                 font-style: italic;
                 color: var(--color-dark);
                 font-size: 0.85em;
@@ -354,14 +355,16 @@ class ManageGlossModal extends HTMLElement {
                         const fragmentFetches = fragmentURIs.map(async (fragmentURI) => {
                             try {
                                 const frag = await deerUtils.expand({ "@id": fragmentURI })
-                                return frag
+                                // Carry the URI alongside: it is what the card links to, and reading it
+                                // back off the expanded entity would trust expand() to preserve @id.
+                                return { fragmentURI, frag }
                             } catch {
                                 return null
                             }
                         })
                         const fragments = (await Promise.all(fragmentFetches)).filter(Boolean)
                         fragmentsContainer.innerHTML = ""
-                        for (const frag of fragments) {
+                        for (const { fragmentURI, frag } of fragments) {
                             const card = document.createElement("div")
                             card.className = "fragment-card"
                             // WitnessFragment properties may be plain strings, {value: "..."} objects,
@@ -385,20 +388,30 @@ class ManageGlossModal extends HTMLElement {
                             const depiction = val(frag.depiction) ?? ""
                             const cardHeader = document.createElement("div")
                             cardHeader.className = "fragment-card-header"
-                            const shelfmarkSpan = document.createElement("span")
-                            shelfmarkSpan.className = "fragment-card-shelfmark"
-                            shelfmarkSpan.textContent = shelfmark
+                            // The shelfmark names the Manuscript this Fragment belongs to, so it points
+                            // at the ManuscriptWitness.  A Fragment with no partOf has no Manuscript to
+                            // reach, so it stays plain text rather than becoming a broken link.
+                            const shelfmarkEl = document.createElement(manuscript ? "a" : "span")
+                            shelfmarkEl.className = "fragment-card-shelfmark"
+                            shelfmarkEl.textContent = shelfmark
+                            if (manuscript) {
+                                shelfmarkEl.href = `manuscript-profile.html#${manuscript}`
+                                shelfmarkEl.target = "_blank"
+                            }
                             const folioSpan = document.createElement("span")
                             folioSpan.className = "fragment-card-folio"
                             folioSpan.textContent = folio ? `(${folio})` : ""
-                            cardHeader.appendChild(shelfmarkSpan)
+                            cardHeader.appendChild(shelfmarkEl)
                             cardHeader.appendChild(folioSpan)
                             card.appendChild(cardHeader)
                             if (text) {
-                                const textDiv = document.createElement("div")
-                                textDiv.className = "fragment-card-text"
-                                textDiv.textContent = text
-                                card.appendChild(textDiv)
+                                // The Fragment's own text is the way through to its detail page.
+                                const textLink = document.createElement("a")
+                                textLink.className = "fragment-card-text"
+                                textLink.href = `fragment-metadata.html#${fragmentURI}`
+                                textLink.target = "_blank"
+                                textLink.textContent = text
+                                card.appendChild(textLink)
                             }
                             if (depiction) {
                                 const imgContainer = document.createElement("div")
@@ -428,17 +441,6 @@ class ManageGlossModal extends HTMLElement {
                             addMeta("Format", glossFormat)
                             addMeta("Location", glossLocation)
                             addMeta("Hand", glossatorHand)
-                            if (manuscript) {
-                                const msSpan = document.createElement("span")
-                                const strong = document.createElement("strong")
-                                strong.textContent = "Manuscript:"
-                                const msLink = document.createElement("a")
-                                msLink.href = `manuscript-profile.html#${manuscript}`
-                                msLink.target = "_blank"
-                                msLink.textContent = manuscript.split("/").pop()
-                                msSpan.append(strong, msLink)
-                                meta.appendChild(msSpan)
-                            }
                             card.appendChild(meta)
                             fragmentsContainer.appendChild(card)
                         }
