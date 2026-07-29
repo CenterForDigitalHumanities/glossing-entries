@@ -324,7 +324,6 @@ export default {
                     })
 
                     // Filter the list of glosses as users type their query against 'title'
-                    // notifyIfIncomplete=false for sorting, which works on the loaded items and does not need all data.
                     function filterHandle(notifyIfIncomplete=true) {
                         const val = filter.value.trim()
                         let filterQuery

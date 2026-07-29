@@ -16,12 +16,9 @@ import { default as config } from './deer-config.js'
 import { OpenSeadragon } from './openseadragon.js'
 import pLimit from './plimit.js'
 
-// 12 is where store.rerum.io stops rewarding concurrency: measured against /v1/id, throughput
-// goes 63 items/s at 4 -> 108 at 12, then flat at 24 and 48.  Well under any browser limit —
-// the ERR_INSUFFICIENT_RESOURCES failures took thousands of simultaneous requests, not dozens.
+// 12 is where store.rerum.io stops rewarding concurrency: measured against /v1/id.
 const limiter = pLimit(12)
-// Separate budget for expanding a managed list.  A list run queues thousands of tasks at once,
-// so sharing `limiter` would park every other deer-view render behind the whole list.
+// Separate budget for expanding a managed list.
 const listLimiter = pLimit(12)
 const changeLoader = new MutationObserver(renderChange)
 var DEER = config
@@ -233,8 +230,7 @@ async function renderChange(mutationsList) {
 const RENDER = {}
 
 RENDER.element = function (elem, obj, renderOptions = {}) {
-    // Views are cached by default.  Single-resource views opt in with
-    // DEER.FRESH, which shared.js stamps on anything driven by the URL hash.
+    // Views are cached by default.  Single-resource views opt in with DEER.FRESH
     const fresh = renderOptions.fresh ?? elem?.hasAttribute?.(DEER.FRESH) ?? false
 
     // Skip expansion for container/list objects (they have itemListElement, not @id).
@@ -659,9 +655,6 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     numloaded++
                 })
 
-                // Count up as the uncached items arrive, one at a time, the same way the
-                // glosses.html list does it.  Without this the page sits on "Loading Glosses..."
-                // for the whole fetch and looks hung.
                 const loadingProgress = elem.querySelector(".totalsProgress")
                 let fetchedCount = 0
                 const noteProgress = () => {
@@ -671,10 +664,6 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     loadingProgress.innerHTML = `${numloaded + fetchedCount} of ${total} loaded (${parseInt((numloaded + fetchedCount) / total * 100)}%).  `
                 }
 
-                // Fetch uncached items via getExpandedURL (single call, annotations merged).
-                // Bounded by `listLimiter` — firing one fetch per Gloss at once exhausts the browser's
-                // socket pool on a collection this size and every request fails with
-                // net::ERR_INSUFFICIENT_RESOURCES, so nothing loads at all.
                 const fetchPromises = uncachedIds.map(({ glossID, index }) => listLimiter(() => {
                     const expandedURL = UTILS.getExpandedURL(glossID)
                     if (!expandedURL) {
