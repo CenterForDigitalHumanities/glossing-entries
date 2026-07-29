@@ -16,7 +16,13 @@ import { default as config } from './deer-config.js'
 import { OpenSeadragon } from './openseadragon.js'
 import pLimit from './plimit.js'
 
-const limiter = pLimit(4)
+// 12 is where store.rerum.io stops rewarding concurrency: measured against /v1/id, throughput
+// goes 63 items/s at 4 -> 108 at 12, then flat at 24 and 48.  Well under any browser limit —
+// the ERR_INSUFFICIENT_RESOURCES failures took thousands of simultaneous requests, not dozens.
+const limiter = pLimit(12)
+// Separate budget for expanding a managed list.  A list run queues thousands of tasks at once,
+// so sharing `limiter` would park every other deer-view render behind the whole list.
+const listLimiter = pLimit(12)
 const changeLoader = new MutationObserver(renderChange)
 var DEER = config
 
@@ -616,7 +622,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             <div class="progressArea row">
                 <div class="col">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
-                    <div class="totalsProgress" count="0"> Loading Glosses... This may take a few minutes. <span class="loadTimer"></span></div>
+                    <div class="totalsProgress" count="0"> Loading Glosses... This may take a few minutes. </div>
                 </div>
             </div>
         `,
@@ -647,14 +653,29 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                 })
 
                 // Render cached items immediately.
-                cachedItems.forEach(({ glossID, cachedObj }) => {
-                    const li = buildManagedListItem(glossID, cachedObj, options, filterObj)
+                cachedItems.forEach(({ glossID, obj }) => {
+                    const li = buildManagedListItem(glossID, obj, options, filterObj)
                     ul.appendChild(li)
                     numloaded++
                 })
 
-                // Fetch uncached items in parallel via getExpandedURL (single call, annotations merged).
-                const fetchPromises = uncachedIds.map(({ glossID, index }) => {
+                // Count up as the uncached items arrive, one at a time, the same way the
+                // glosses.html list does it.  Without this the page sits on "Loading Glosses..."
+                // for the whole fetch and looks hung.
+                const loadingProgress = elem.querySelector(".totalsProgress")
+                let fetchedCount = 0
+                const noteProgress = () => {
+                    fetchedCount++
+                    const loaded = numloaded + fetchedCount
+                    loadingProgress.setAttribute("count", loaded)
+                    loadingProgress.innerHTML = `${numloaded + fetchedCount} of ${total} loaded (${parseInt((numloaded + fetchedCount) / total * 100)}%).  `
+                }
+
+                // Fetch uncached items via getExpandedURL (single call, annotations merged).
+                // Bounded by `listLimiter` — firing one fetch per Gloss at once exhausts the browser's
+                // socket pool on a collection this size and every request fails with
+                // net::ERR_INSUFFICIENT_RESOURCES, so nothing loads at all.
+                const fetchPromises = uncachedIds.map(({ glossID, index }) => listLimiter(() => {
                     const expandedURL = UTILS.getExpandedURL(glossID)
                     if (!expandedURL) {
                         // Non-RERUM URI — fall back to DEER expand.
@@ -676,7 +697,10 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                             console.warn(`Failed to fetch ${glossID}`, err)
                             return null
                         })
-                })
+                }).then(result => {
+                    noteProgress()
+                    return result
+                }))
 
                 const fetchedItems = (await Promise.all(fetchPromises)).filter(Boolean)
                 fetchedItems.forEach(({ glossID, obj }) => {
@@ -728,10 +752,6 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             }
             elem.$contentState = ""
             const totalsProgress = elem.querySelector(".totalsProgress")
-
-            // Start elapsed timer so user sees progress while loading.
-            UTILS.startLoadTimer(totalsProgress)
-
             const filter = elem.querySelector('input[filter="title"]')
             const facetFilter = elem.querySelector(".statusFacets")
             const facetInputs = elem.querySelectorAll(".statusFacet")
@@ -739,7 +759,6 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
             const progressArea = elem.querySelector(".progressArea")
             const batchActions = elem.querySelector(".batch-actions")
 
-            UTILS.stopLoadTimer(totalsProgress)
             totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
             totalsProgress.setAttribute("total", total)
             totalsProgress.setAttribute("count", numloaded)

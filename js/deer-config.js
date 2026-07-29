@@ -216,7 +216,8 @@ export default {
                         Array.from(ul.children[0].children[0].children).forEach((val, index) => {
                             val.onclick = _ => {
                                 customSortIcon(index, down, up)
-                                filterHandle()
+                                // Sorting only rearranges what is loaded, so do not nag about data still loading.
+                                filterHandle(false)
                             }
                         })
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
@@ -323,7 +324,8 @@ export default {
                     })
 
                     // Filter the list of glosses as users type their query against 'title'
-                    function filterHandle() {
+                    // notifyIfIncomplete=false for sorting, which works on the loaded items and does not need all data.
+                    function filterHandle(notifyIfIncomplete=true) {
                         const val = filter.value.trim()
                         let filterQuery
                         if(val){
@@ -334,10 +336,10 @@ export default {
                         }
                         if (options.list)
                             smartFilter()
-                        debounce(filterGlosses(filterQuery))
+                        debounce(filterGlosses(filterQuery, notifyIfIncomplete))
                     }
-                    filter.addEventListener('input', filterHandle)
-                    Array.from(approximate.children).forEach(e => e.addEventListener('change', filterHandle))
+                    filter.addEventListener('input', () => filterHandle())
+                    Array.from(approximate.children).forEach(e => e.addEventListener('change', () => filterHandle()))
 
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
@@ -362,14 +364,16 @@ export default {
                      * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
                      * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
                      */ 
-                    function filterGlosses(queryString=''){
+                    function filterGlosses(queryString='', notifyIfIncomplete=true){
                         const numloaded = parseInt(totalsProgress.getAttribute("count"))
                         const total = parseInt(totalsProgress.getAttribute("total"))
                         let parent = null
                         if(numloaded !== total){
-                            //alert("All data must be loaded to use this filter.  Please wait.")
-                            const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
-                            deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
+                            if(notifyIfIncomplete){
+                                //alert("All data must be loaded to use this filter.  Please wait.")
+                                const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
+                                deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
+                            }
                             return
                         }
                         queryString = queryString.trim()
@@ -1230,7 +1234,8 @@ export default {
                         Array.from(ul.children[0].children[0].children).forEach((val, index) => {
                             val.onclick = _ => {
                                 customSortIcon(index, down, up)
-                                filterHandle()
+                                // Sorting only rearranges what is loaded, so do not nag about data still loading.
+                                filterHandle(false)
                             }
                         })
                         const deduplicatedList = deerUtils.removeDuplicates(obj[options.list], '@id')
@@ -1332,7 +1337,8 @@ export default {
                     })
 
                     // Filter the list of manuscripts as users type their query against 'identifier'
-                    function filterHandle() {
+                    // notifyIfIncomplete=false for sorting, which works on the loaded items and does not need all data.
+                    function filterHandle(notifyIfIncomplete=true) {
                         const val = filter.value.trim()
                         let filterQuery
                         if(val){
@@ -1343,10 +1349,10 @@ export default {
                         }
                         if (options.list)
                             smartFilter()
-                        debounce(filterManuscripts(filterQuery))
+                        debounce(filterManuscripts(filterQuery, notifyIfIncomplete))
                     }
-                    filter.addEventListener('input', filterHandle)
-                    Array.from(approximate.children).forEach(e => e.addEventListener('change', filterHandle))
+                    filter.addEventListener('input', () => filterHandle())
+                    Array.from(approximate.children).forEach(e => e.addEventListener('change', () => filterHandle()))
 
                     if(numloaded === total){
                         cachedNotice.classList.remove("is-hidden")
@@ -1371,14 +1377,16 @@ export default {
                      * This presumes things are already loaded.  Do not use this function unless all glosses are loaded.
                      * Write the new encoded filter string to the URL with no programmatic page refresh.  If the user refreshes, the filter is applied.
                      */ 
-                    function filterManuscripts(queryString=''){
+                    function filterManuscripts(queryString='', notifyIfIncomplete=true){
                         const numloaded = parseInt(totalsProgress.getAttribute("count"))
                         const total = parseInt(totalsProgress.getAttribute("total"))
                         let parent = null
                         if(numloaded !== total){
-                            //alert("All data must be loaded to use this filter.  Please wait.")
-                            const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
-                            deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
+                            if(notifyIfIncomplete){
+                                //alert("All data must be loaded to use this filter.  Please wait.")
+                                const ev = new CustomEvent("All data must be loaded to use this filter.  Please wait.")
+                                deerUtils.globalFeedbackBlip(ev, `All data must be loaded to use this filter.  Please wait.`, false)
+                            }
                             return
                         }
                         queryString = queryString.trim()
