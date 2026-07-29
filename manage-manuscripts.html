@@ -39,16 +39,18 @@
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()
-        }
 
-        /**
-         * Guard: this page is only for users with the glossing_user_manager role.
-         */
-        window.checkAuth(
-            "glossing_user_manager",
-            "manuscripts.html",
-            "You must have the manager role to manage Manuscripts.  You will be redirected."
-        )
+            /**
+             * Guard: this page is only for users with the glossing_user_manager or glossing_user_admin role.
+             */
+            if (typeof window.checkAuth === "function") {
+                window.checkAuth(
+                    ["glossing_user_manager", "glossing_user_admin"],
+                    "manuscripts.html",
+                    "You must have the manager or admin role to manage Manuscripts.  You will be redirected."
+                )
+            }
+        }
 
         /**
          * UI/UX for when the user uses this page to delete an existing #Manuscript

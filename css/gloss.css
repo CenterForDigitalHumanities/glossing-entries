@@ -576,3 +576,192 @@ input.required, textarea.required, select.required{
 .publish-control input:hover {
   font-weight: bold;
 }
+
+/* Managed list column headers */
+.managedlist-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 0;
+  border-bottom: 2px solid var(--color-lightGrey);
+  margin-bottom: 0.5em;
+  font-size: 0.85em;
+  font-weight: bold;
+  color: var(--color-grey);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.managedlist-header .col-header {
+  cursor: pointer;
+  user-select: none;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  transition: background-color 0.15s;
+}
+
+.managedlist-header .col-header:hover {
+  background-color: var(--color-lightGrey);
+}
+
+.managedlist-header .col-header .sort-arrow {
+  display: inline-block;
+  margin-left: 0.3em;
+  font-size: 0.8em;
+  color: var(--color-primary);
+}
+
+.managedlist-header .col-checkbox {
+  width: 1.75em;
+  text-align: center;
+}
+
+.managedlist-header .col-status {
+  width: 1.75em;
+  text-align: center;
+}
+
+.managedlist-header .col-title {
+  flex: 2;
+}
+
+.managedlist-header .col-contributor {
+  flex: 1;
+}
+
+.managedlist-header .col-modified {
+  flex: 1;
+}
+
+.managedlist-header .col-witnesses {
+  flex: 0.5;
+  text-align: center;
+}
+
+/* Batch actions bar */
+.batch-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 0;
+  margin-bottom: 0.5em;
+  border-bottom: 1px solid var(--color-lightGrey);
+  font-size: 0.9em;
+}
+
+.batch-selection-count {
+  color: var(--color-grey);
+  font-size: 0.85em;
+  min-width: 8em;
+}
+
+.batch-actions .button {
+  padding: 0.3em 0.6em;
+  font-size: 0.85em;
+}
+
+/* Filter sections */
+.filter-section {
+  margin-bottom: 0.5em;
+}
+
+.filter-section h5 {
+  font-size: 0.85em;
+  color: var(--color-grey);
+  margin: 0 0 0.3em 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.filter-section label {
+  display: inline-block;
+  margin-right: 0.8em;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.filter-section input[type="checkbox"] {
+  margin-right: 0.3em;
+}
+
+/* List item columns */
+.managedlist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.4em 0;
+  border-bottom: 1px solid var(--color-lightGrey);
+}
+
+.managedlist-item .col-checkbox {
+  width: 1.75em;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.managedlist-item .col-status {
+  width: 1.75em;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.managedlist-item .col-title {
+  flex: 2;
+  min-width: 0;
+}
+
+.managedlist-item .col-contributor {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-grey);
+  font-size: 0.9em;
+}
+
+.managedlist-item .col-modified {
+  flex: 1;
+  min-width: 0;
+  color: var(--color-grey);
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.managedlist-item .col-witnesses {
+  flex: 0.5;
+  text-align: center;
+  color: var(--color-grey);
+  font-size: 0.9em;
+  flex-shrink: 0;
+}
+
+/* Modal metadata rows */
+.gloss-meta {
+  margin: 0.5em 0;
+  padding: 0.5em;
+  background: rgba(0,0,0,0.04);
+  border-radius: 4px;
+}
+
+.gloss-text {
+  margin: 0 0 0.5em 0;
+  font-style: italic;
+}
+
+.meta-row {
+  display: flex;
+  gap: 0.5em;
+  margin: 0.25em 0;
+  font-size: 0.9em;
+}
+
+.meta-label {
+  font-weight: bold;
+  color: var(--color-lightGrey);
+  min-width: 7em;
+}
+
+.meta-value {
+  color: var(--color-dark);
+}

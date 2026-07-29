@@ -174,7 +174,7 @@ export default {
                 </div>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
-                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Gloss loaded already.</div>
+                    <div class="totalsProgress" count="0"> Loading Glosses... This may take a few minutes. <span class="loadTimer"></span></div>
                 </div>
                 `,
                 then: (elem) => {
@@ -298,12 +298,15 @@ export default {
                         elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                     }
                     const totalsProgress = elem.querySelector(".totalsProgress")
+                    // Start elapsed timer so user sees progress while loading.
+                    deerUtils.startLoadTimer(totalsProgress)
                     // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                     const filter = elem.querySelector('input')
                     const cachedNotice = elem.querySelector(".cachedNotice")
                     const progressArea = elem.querySelector(".progressArea")
                     const approximate = elem.querySelector("#approximate")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
+                    deerUtils.stopLoadTimer(totalsProgress)
                     totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.setAttribute("count", numloaded)
@@ -589,11 +592,7 @@ export default {
                         <gloss-modal-button class="is-right is-hidden"></gloss-modal-button>
                         <div class="progressArea">
                             <p class="filterNotice is-hidden"> Gloss filter detected.  Please note that Glosses will appear as they are fully loaded. </p>
-                            <div class="totalsProgress" count="0"> 
-                                {loaded} out of {total} loaded (0%)<br>
-                                You may click to select any Gloss loaded already.<br>
-                                A filter will become available when all items are loaded.
-                            </div>
+                            <div class="totalsProgress" count="0"> Loading Glosses... This may take a few minutes. <span class="loadTimer"></span></div>
                         </div>
                     </div>
                 `,
@@ -1190,7 +1189,7 @@ export default {
                 </div>
                 <div class="progressArea">
                     <p class="filterNotice is-hidden"> Manuscript filter detected.  Please note that Manuscripts will appear as they are fully loaded. </p>
-                    <div class="totalsProgress" count="0"> {loaded} out of {total} loaded (0%).  This may take a few minutes.  You may click to select any Manuscript loaded already.</div>
+                    <div class="totalsProgress" count="0"> Loading Manuscripts... This may take a few minutes. <span class="loadTimer"></span></div>
                 </div>
                 `,
                 then: (elem) => {
@@ -1308,12 +1307,15 @@ export default {
                         elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                     }
                     const totalsProgress = elem.querySelector(".totalsProgress")
+                    // Start elapsed timer so user sees progress while loading.
+                    deerUtils.startLoadTimer(totalsProgress)
                     // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                     const filter = elem.querySelector('input')
                     const cachedNotice = elem.querySelector(".cachedNotice")
                     const progressArea = elem.querySelector(".progressArea")
                     const approximate = elem.querySelector("#approximate")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
+                    deerUtils.stopLoadTimer(totalsProgress)
                     totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Manuscript loaded already.`
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.setAttribute("count", numloaded)
