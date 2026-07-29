@@ -234,10 +234,7 @@ export default {
     /**
      * Resolve the place in the source text a Gloss is glossing.
      * Prefers a saved canonicalReference, otherwise composes one from the structured target
-     * Annotations the way the Gloss tables do.  Glosses carry targetChapter/targetVerse rather
-     * than a plain `target` key, so reading `obj.target` finds nothing.
-     * The source text is not always scripture, so this is a document/section/subsection locator
-     * rather than a book/chapter/verse one.
+     * Annotations the way the Gloss tables do.
      * @param {Object} obj - A Gloss entity
      * @returns {string} e.g. "Matthew 5.1" or "Decretum C.32 q.1", or "" when nothing can be composed
      */
@@ -292,8 +289,7 @@ export default {
     },
     /**
      * Asynchronously retrieve the Manuscript Witnesses connected to a Gloss.
-     * Witnesses are not embedded on the Gloss entity — they are separate WitnessFragment
-     * entities connected via annotations with body.references.value pointing to the Gloss URI.
+     * They are separate WitnessFragment entities connected via annotations.
      * @param {string} glossURI - The @id or id of the Gloss entity.
      * @returns {Promise<Array>} Array of ManuscriptWitness URIs connected to this Gloss.
      */

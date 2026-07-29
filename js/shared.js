@@ -68,9 +68,7 @@ class CustomConfirmModal extends HTMLElement {
         this.shadowRoot.querySelector('.confirm').addEventListener('click', () => this.resolveConfirm(true))
         this.shadowRoot.querySelector('.cancel').addEventListener('click', () => this.resolveConfirm(false))
 
-        // Esc cancels, the same as clicking Cancel.  The listener is on document because focus is
-        // usually still on whatever button opened this.  If confirms ever stack, only the newest
-        // one answers, so Esc dismisses them one at a time from the top.
+        // Esc cancels, the same as clicking Cancel
         this.#listeners = new AbortController()
         document.addEventListener("keydown", ev => {
             if (ev.key !== "Escape") return
@@ -81,7 +79,6 @@ class CustomConfirmModal extends HTMLElement {
     }
 
     disconnectedCallback() {
-        // resolveConfirm() removes this element, so this is where the document listener is dropped.
         this.#listeners?.abort()
     }
 
@@ -452,10 +449,6 @@ async function publishGloss(glossURI, label = "") {
  * Creates a custom confirmation dialog box with the specified message.
  * @param {string} message - The message to be displayed in the confirmation dialog box.
  * @param {boolean} lockFields - Disable every field on the page while the confirmed action runs.
- *      The caller then owns unlocking them again with inProgress(null, false) when the action
- *      settles.  Pass false when the caller cannot make that guarantee, because the lock lands on
- *      a timer after this resolves: an action that finishes inside that window is re-locked after
- *      it has already released, and the page stays frozen with no way back.
  * @returns {Promise<boolean>} A Promise that resolves with a boolean value indicating whether the confirmation was accepted (true) or canceled (false).
  */
 async function showCustomConfirm(message, lockFields = true) {
@@ -824,11 +817,8 @@ async function deleteManuscriptWitness(manuscriptWitnessURI=null, redirect=false
  * 
  * @param id {String} The Gloss IRI.
  * @param {boolean} redirect - A flag for whether or not to redirect as part of the UX.
- * @param {boolean} skipConfirm - Suppress this function's own confirmation prompt.  Batch callers
- *                                confirm once for the whole selection and must not re-prompt per Gloss.
- * @returns {Promise<boolean>} true only when the Gloss entity was actually deleted.  Callers must not
- *                             remove UI for a Gloss unless this resolves true.  On success a
- *                             'GlossDeleted' event is broadcast, on failure 'GlossDeleteError'.
+ * @param {boolean} skipConfirm - Suppress this function's own confirmation prompt.
+ * @returns {Promise<boolean>} true only when the Gloss entity was actually deleted.
  */
 async function deleteGloss(glossURI, redirect=false, skipConfirm=false) {
     if(!glossURI) return false
