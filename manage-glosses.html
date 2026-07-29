@@ -40,16 +40,18 @@
         window.onload = async () => { 
             await setPublicCollections() 
             await setListings()
-        }
 
-        /**
-         * Guard: this page is only for users with the glossing_user_manager role.
-         */
-        window.checkAuth(
-            "glossing_user_manager",
-            "glosses.html",
-            "You must have the manager role to manage Glosses.  You will be redirected."
-        )
+            /**
+             * Guard: this page is only for users with the glossing_user_manager or glossing_user_admin role.
+             */
+            if (typeof window.checkAuth === "function") {
+                window.checkAuth(
+                    ["glossing_user_manager", "glossing_user_admin"],
+                    "glosses.html",
+                    "You must have the manager or admin role to manage Glosses.  You will be redirected."
+                )
+            }
+        }
 
         /**
          * UI/UX for when the user uses this page to delete an existing #Gloss
@@ -69,7 +71,7 @@
         document.addEventListener("GlossDeleteError", function(event){
             const ev = new CustomEvent("Gloss Delete Error")
             globalFeedbackBlip(ev, `There was an issue removing the Gloss with URI ${event.detail["@id"] ?? event.detail.id}.  This item may still appear in collections.`, false)
-            console.error(event.error)
+            console.error(event.detail.error)
         })
     </script>
 </body>

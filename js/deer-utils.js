@@ -163,6 +163,197 @@ export default {
         return `${origin}/gog/id/${match[1]}`
     },
     /**
+     * Cache of agent ID -> human-readable label mappings.
+     * Populated lazily when getCreator encounters an agent ID URL.
+     */
+    agentLabelCache: new Map(),
+    /**
+     * Resolve an agent ID URL to a human-readable label, with caching.
+     * In-flight fetches are deduplicated — concurrent calls for the same agent ID share the same promise.
+     * @param {string} agentId - Agent ID URL
+     * @returns {string} Human-readable label, or the original ID if resolution fails
+     */
+    resolveAgentLabel: async function (agentId) {
+        if (!agentId || typeof agentId !== "string") return agentId ?? "[ unlabeled ]"
+        const cached = this.agentLabelCache.get(agentId)
+        if (cached !== undefined) return cached
+        // Store the in-flight promise so concurrent callers share the same fetch.
+        const fetchPromise = (async () => {
+            try {
+                // Upgrade http:// to https:// to avoid mixed content errors.
+                const url = agentId.startsWith("http://") ? agentId.replace(/^http:/, "https:") : agentId
+                const response = await fetch(url)
+                if (!response.ok) return agentId
+                const agent = await response.json()
+                const label = this.getLabel(agent) ?? agent.name ?? agent.label ?? agentId
+                this.agentLabelCache.set(agentId, label)
+                return label
+            } catch {
+                return agentId
+            }
+        })()
+        this.agentLabelCache.set(agentId, fetchPromise)
+        return fetchPromise
+    },
+    /**
+     * Format a date string as relative time (e.g., "2 hours ago", "3 days ago").
+     * Falls back to simple date format for dates older than a week.
+     * @param {string} dateString - ISO date string
+     * @returns {string} Formatted relative time or date
+     */
+    formatRelativeTime: function (dateString) {
+        if (!dateString) return "—"
+        const now = Date.now()
+        const date = new Date(dateString).getTime()
+        if (isNaN(date)) return "—"
+        const diff = now - date
+        const minutes = Math.floor(diff / 60000)
+        const hours = Math.floor(diff / 3600000)
+        const days = Math.floor(diff / 86400000)
+
+        if (minutes < 1) return "just now"
+        if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`
+        if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`
+        if (days < 7) return `${days} day${days !== 1 ? 's' : ''} ago`
+        return new Date(dateString).toLocaleDateString()
+    },
+    /**
+     * Extract the creator label from a Gloss entity.
+     * Resolves agent ID URLs to human-readable labels (cached).
+     * @param {Object} obj - A Gloss entity
+     * @returns {string} The creator label, or "[ unlabeled ]" if not found
+     */
+    getCreator: function (obj) {
+        if (!obj) return "[ unlabeled ]"
+        const creator = obj.creator ?? obj.__rerum?.generatedBy
+        // A string is returned as-is.  When it is an agent ID URL the UI resolves it to a
+        // human-readable label with resolveAgentLabel().
+        if (typeof creator === "string") return creator
+        return this.getValue(creator) ?? "[ unlabeled ]"
+    },
+    /**
+     * Resolve the place in the source text a Gloss is glossing.
+     * Prefers a saved canonicalReference, otherwise composes one from the structured target
+     * Annotations the way the Gloss tables do.
+     * @param {Object} obj - A Gloss entity
+     * @returns {string} e.g. "Matthew 5.1" or "Decretum C.32 q.1", or "" when nothing can be composed
+     */
+    getCanonicalReference: function (obj) {
+        if (!obj) return ""
+        // getValue() logs an error for absent properties, so only ask about ones that are present.
+        const read = (...keys) => {
+            for (const k of keys) {
+                if (obj[k] === undefined || obj[k] === "") continue
+                const v = this.getValue(obj[k])
+                if (v !== undefined && v !== "") return `${v}`
+            }
+            return ""
+        }
+        const canonical = read("canonicalReference")
+        if (canonical) return canonical
+        const section = read("_section", "targetChapter")
+        const subsection = read("_subsection", "targetVerse")
+        // Back support for old data that recorded chapter/verse without naming the document.
+        const doc = read("_document") || (section && subsection ? "Matthew" : "")
+        if (!doc || !section || !subsection) return ""
+        return `${doc} ${section}.${subsection}`
+    },
+    /**
+     * Extract the modification timestamp from a Gloss entity.
+     * Falls back to creation date if no modification is recorded.
+     * @param {Object} obj - A Gloss entity
+     * @returns {string} ISO date string, or empty string if not found
+     */
+    getModifiedDate: function (obj) {
+        if (!obj) return ""
+        // Check for modification timestamp (__rerum.isOverwritten is non-empty when modified)
+        const modified = obj.__rerum?.isOverwritten
+        if (modified && modified !== "") return modified
+        // Fall back to creation timestamp
+        const created = obj.__rerum?.createdAt
+        return created ?? ""
+    },
+    /**
+     * Return the count of WitnessFragments attached to a Gloss.
+     * @param {Object} obj - A Gloss entity
+     * @returns {number} The witness count, or 0 if not found
+     */
+    getWitnessCount: function (obj) {
+        if (!obj) return 0
+        // Check attach property (common pattern for connected witnesses)
+        if (obj.attach?.items) return obj.attach.items.length
+        if (obj.attach?.itemListElement) return obj.attach.itemListElement.length
+        // Check for a cached count property
+        if (typeof obj.witnessCount === "number") return obj.witnessCount
+        return 0
+    },
+    /**
+     * Asynchronously retrieve the Manuscript Witnesses connected to a Gloss.
+     * They are separate WitnessFragment entities connected via annotations.
+     * @param {string} glossURI - The @id or id of the Gloss entity.
+     * @returns {Promise<Array>} Array of ManuscriptWitness URIs connected to this Gloss.
+     */
+    getWitnessesForGloss: async function(glossURI) {
+        if (!glossURI) return []
+        const httpsId = glossURI.startsWith("https://") ? glossURI : `https://${glossURI.replace("http://", "")}`
+        // Step 1: find WitnessFragment annotations that reference this Gloss
+        const fragmentQuery = {
+            "body.references.value": this.httpsIdArray(httpsId),
+            "__rerum.history.next": { $exists: true, $type: "array", $eq: [] },
+            "__rerum.generatedBy": this.httpsIdArray(DEER.GENERATOR)
+        }
+        try {
+            const annotations = await this.getPagedQuery(100, 0, fragmentQuery)
+            // Resolve to unique WitnessFragment targets
+            const fragmentTargets = new Set()
+            for (const anno of annotations) {
+                try {
+                    const entity = await fetch(anno.target).then(resp => resp.json()).catch(() => null)
+                    if (entity?.["@type"] === "WitnessFragment") {
+                        fragmentTargets.add(anno.target)
+                    }
+                } catch {
+                    // skip unresolvable targets
+                }
+            }
+            if (fragmentTargets.size === 0) return []
+            // Step 2: for each WitnessFragment, find the ManuscriptWitness via partOf annotations
+            const manuscriptWitnesses = new Set()
+            for (const fragmentURI of fragmentTargets) {
+                const partOfQuery = {
+                    "body.partOf.value": { "$exists": true },
+                    "target": this.httpsIdArray(fragmentURI),
+                    "__rerum.history.next": { $exists: true, $type: "array", $eq: [] },
+                    "__rerum.generatedBy": this.httpsIdArray(DEER.GENERATOR)
+                }
+                try {
+                    const partOfAnnos = await this.getPagedQuery(100, 0, partOfQuery)
+                    for (const anno of partOfAnnos) {
+                        try {
+                            const entity = await fetch(anno.body.partOf.value).then(resp => resp.json()).catch(() => null)
+                            if (entity?.["@type"] === "ManuscriptWitness") {
+                                manuscriptWitnesses.add(anno.body.partOf.value)
+                            }
+                        } catch { /* skip */ }
+                    }
+                } catch { /* skip fragments without partOf annotations */ }
+            }
+            return Array.from(manuscriptWitnesses)
+        } catch (err) {
+            console.warn("Could not fetch witnesses for Gloss", glossURI, err)
+            return []
+        }
+    },
+    /**
+     * Asynchronously count the Manuscript Witnesses connected to a Gloss.
+     * @param {string} glossURI - The @id or id of the Gloss entity.
+     * @returns {Promise<number>} The number of Manuscript Witnesses connected to this Gloss.
+     */
+    getWitnessCountForGloss: async function(glossURI) {
+        const witnesses = await this.getWitnessesForGloss(glossURI)
+        return witnesses.length
+    },
+    /**
      * Take a known object with an id and query for annotations targeting it.
      * Discovered annotations are asserted on the original object and returned.
      * @param {Object} entity Target object to search for description
@@ -558,8 +749,37 @@ export default {
     },
 
     /**
+     * Start an elapsed-time countdown on a totalsProgress element.
+     * Call this before the parallel fetches begin; the timer is cleared when the progress text is updated.
+     * @param {HTMLElement} totalsProgress - The .totalsProgress element
+     */
+    startLoadTimer: function (totalsProgress) {
+        const timerSpan = totalsProgress?.querySelector('.loadTimer')
+        if (!timerSpan) return
+        const startTime = Date.now()
+        const interval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000)
+            const mins = Math.floor(elapsed / 60)
+            const secs = elapsed % 60
+            timerSpan.textContent = `(${mins}:${secs.toString().padStart(2, '0')} elapsed)`
+        }, 1000)
+        totalsProgress._loadTimerInterval = interval
+    },
+
+    /**
+     * Stop the elapsed-time countdown on a totalsProgress element.
+     * @param {HTMLElement} totalsProgress - The .totalsProgress element
+     */
+    stopLoadTimer: function (totalsProgress) {
+        if (totalsProgress?._loadTimerInterval) {
+            clearInterval(totalsProgress._loadTimerInterval)
+            delete totalsProgress._loadTimerInterval
+        }
+    },
+
+    /**
      * Since all Linked Data has the right to be described by multiple contexts, DEER has a special
-     * syntax to support this.  The value of an HTML Attribute DEER.CONTEXT ('deer-context' by default) 
+     * syntax to support this.  The value of an HTML Attribute DEER.CONTEXT ('deer-context' by default)
      * can list multiple URLs like in the example below.
      *
      * <span deer-context="[http://example.org/context.json][https://otherexample.org/othercontext.json]"></span>

@@ -5,6 +5,8 @@ import { default as deerUtils } from './deer-utils.js'
   * Specifically designed for manage-glosses.html
 */
 class ManageGlossModal extends HTMLElement {
+    // Cleans up the document-level listeners this element adds, see connectedCallback.
+    #listeners
     template = `
         <style>
             small{
@@ -24,11 +26,23 @@ class ManageGlossModal extends HTMLElement {
             input[filter="title"]{
                 border: 2px solid var(--color-primary);
             }
-            .manageModal{
+            .manageModal.container{
                 position: relative;
-                display: block;
-                top: 15vh;
+                display: flex;
+                flex-direction: column;
+                top: 0vh;
+                max-height: 92vh;
+                overflow: hidden;
                 z-index: 2;
+            }
+            .manageModal .card{
+                display: flex;
+                flex-direction: column;
+                flex: 1 1 auto;
+                min-height: 0;
+            }
+            .manageModal .card > *{
+                flex: 0 0 auto;
             }
             .window-shadow{
                 position: fixed;
@@ -38,6 +52,99 @@ class ManageGlossModal extends HTMLElement {
                 width: 100%;
                 height: 100%;
             }
+            .gloss-meta{
+                margin: 0.5em 0;
+                padding: 0.5em;
+                background: rgba(0,0,0,0.04);
+                border-radius: 4px;
+            }
+            .gloss-text{
+                margin: 0 0 0.5em 0;
+                font-style: italic;
+            }
+            .meta-row{
+                display: flex;
+                gap: 0.5em;
+                margin: 0.25em 0;
+                font-size: 0.9em;
+            }
+            .meta-label{
+                font-weight: bold;
+                color: var(--color-grey);
+                min-width: 7em;
+            }
+            .meta-value{
+                color: var(--color-dark);
+            }
+            .manageModal .more-details{
+                flex: 0 1 auto;
+                min-height: 0;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.3s ease-out;
+            }
+            .manageModal .more-details.is-open{
+                max-height: 100vh;
+                overflow-y: auto;
+            }
+            .manageModal footer {
+                margin-top: 1em;
+            }
+            .more-details-inner{
+                padding: 0.5em;
+                margin: 0.5em 0;
+                background: rgba(0,0,0,0.02);
+                border-radius: 4px;
+                border-top: 1px solid rgba(0,0,0,0.08);
+            }
+            .fragment-card{
+                background: white;
+                border: 1px solid rgba(0,0,0,0.12);
+                border-radius: 4px;
+                padding: 0.6em;
+                margin-bottom: 0.5em;
+            }
+            .fragment-card:last-child{
+                margin-bottom: 0;
+            }
+            .fragment-card-header{
+                display: flex;
+                align-items: baseline;
+                gap: 0.5em;
+                margin-bottom: 0.4em;
+                padding-bottom: 0.3em;
+                border-bottom: 1px solid rgba(0,0,0,0.06);
+            }
+            .fragment-card-shelfmark{
+                font-weight: bold;
+                color: var(--color-primary);
+                font-size: 0.9em;
+            }
+            .fragment-card-folio{
+                color: var(--color-grey);
+                font-size: 0.8em;
+            }
+            .fragment-card-text{
+                display: block;
+                font-style: italic;
+                color: var(--color-dark);
+                font-size: 0.85em;
+                margin-bottom: 0.3em;
+                word-break: break-word;
+            }
+            .fragment-card-meta{
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.8em;
+                font-size: 0.75em;
+                color: var(--color-grey);
+            }
+            .fragment-card-meta span{
+                display: inline-block;
+            }
+            .fragment-card-meta strong{
+                margin-right: 0.2em;
+            }
         </style>
 
         <div class="window-shadow"> 
@@ -46,13 +153,34 @@ class ManageGlossModal extends HTMLElement {
                     <header>
                         <h4>Gloss Title</h4>
                     </header>
-                    <p>Check below for available statuses and actions for this Gloss.</p>
+                    <div class="gloss-meta">
+                        <p class="gloss-text"></p>
+                        <div class="meta-row">
+                            <span class="meta-label">Contributor:</span>
+                            <span class="meta-value gloss-creator">—</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Modified:</span>
+                            <span class="meta-value gloss-modified">—</span>
+                        </div>
+                        <div class="meta-row">
+                            <span class="meta-label">Reference:</span>
+                            <span class="meta-value gloss-target">—</span>
+                        </div>
+                    </div>
                     <footer>
+                        <input type="button" class="button otherModalBtn" value="More..."/>
                         <a class="button" href="#">Review</a>
                         <input type="button" class="button" value="Publish"/>
-                        <input type="button" class="button" value="More..."/>
                         <input type="button" class="button" value="Delete"/>
                     </footer>
+                    <div class="more-details">
+                        <hr></hr>
+                        <span class="meta-label">Witnesses</span>
+                        <div class="more-details-inner">
+                            <div class="fragment-card-list gloss-fragments"></div>
+                        </div>
+                    </div>
                     <div class="is-right">
                         <input type="button" class="button closeModal" value="Close"/>
                     </div>
@@ -71,9 +199,26 @@ class ManageGlossModal extends HTMLElement {
             $this.classList.add("is-hidden")
         }
 
+        // Esc closes the modal.  This is not a native <dialog>, so the key has to be handled here.
+        // The listener is on document because focus is normally still on the list row that opened
+        // the modal, not on anything inside it.  A custom-confirm-modal stacks on top of this one
+        // and removes itself once answered, so while one is present Esc belongs to it.
+        this.#listeners = new AbortController()
+        document.addEventListener("keydown", ev => {
+            if (ev.key !== "Escape") return
+            if ($this.classList.contains("is-hidden")) return
+            if (document.querySelector("custom-confirm-modal")) return
+            $this.close()
+        }, { signal: this.#listeners.signal })
+
         // Create the modal dynamically from the chosen glosses data, provided as the parameter here.
         this.open = (glossData) => {
-            // TODO esc to close?
+            // Reset collapsible details to collapsed state for each open.
+            const moreDetails = $this.querySelector(".more-details")
+            moreDetails.classList.remove("is-open")
+            $this.querySelector(".gloss-fragments").innerHTML = ""
+            $this.querySelector(".gloss-target").innerText = "—"
+
             const negotiatedId = glossData?.["@id"] ?? glossData?.id
             if(!glossData || !negotiatedId){
                 const ev = new CustomEvent("Cannot manage this gloss")
@@ -82,8 +227,45 @@ class ManageGlossModal extends HTMLElement {
             }
             const glossID = negotiatedId.replace(/^https?:/, 'https:')
             const published = glossData.published
-            const glossText = glossData.text
-            const glossTitle = `${published ? "✓" : "❌"}  ${glossData.title}`
+
+            // Extract values from the full Gloss entity.
+            // text is {value: {textValue: "..."}} - extract the innermost string.
+            const glossText = glossData.text?.value?.textValue ?? ""
+            const glossTitleObj = deerUtils.getLabel(glossData) ?? glossData.title
+            const glossTitleStr = deerUtils.getValue(glossTitleObj) ?? "[ unlabeled ]"
+            const glossTitle = `${published ? "✓" : "❌"}  ${glossTitleStr}`
+
+            // Contributor: getCreator() can return string, array, or object.
+            // If array, take the first element. If object, extract its value.
+            const creatorRaw = deerUtils.getCreator(glossData)
+            const creatorElem = $this.querySelector(".gloss-creator")
+            let creatorId = creatorRaw
+            if (Array.isArray(creatorRaw)) {
+                creatorId = creatorRaw[0] ?? creatorRaw
+            } else if (typeof creatorRaw === "object" && creatorRaw !== null) {
+                creatorId = deerUtils.getValue(creatorRaw) ?? "[ unlabeled ]"
+            }
+            if (typeof creatorId === "string" && creatorId.startsWith("http")) {
+                // Show agent ID initially, then update with resolved label.
+                creatorElem.innerText = creatorId
+                deerUtils.resolveAgentLabel(creatorId).then(label => {
+                    creatorElem.innerText = label
+                })
+            } else {
+                creatorElem.innerText = creatorId ?? "[ unlabeled ]"
+            }
+
+            // Modified: check the same fields as the list view.
+            const modified = deerUtils.getModifiedDate(glossData) ?? ""
+            const modifiedDisplay = modified ? deerUtils.formatRelativeTime(modified) : "—"
+
+            $this.querySelector(".gloss-text").innerText = glossText
+            $this.querySelector(".gloss-modified").innerText = modifiedDisplay
+            // The place in the source text being glossed, the same value the Browse Glosses table
+            // shows under "Reference".  Glosses record this as canonicalReference or as
+            // targetChapter/targetVerse, never as a `target` key.  It reads straight off glossData,
+            // so it costs nothing to show up front rather than behind the disclosure.
+            $this.querySelector(".gloss-target").innerText = deerUtils.getCanonicalReference(glossData) || "—"
 
             const removeBtn = `<input type="button" value="delete" glossid="${glossID}" data-type="named-gloss" class="removeCollectionItem button error is-small" title="Delete This Entry">`
             const visibilityBtn = `<input type="button" value="${published ? "unpublish" : "publish"}" class="togglePublic button ${published ? "error" : "success"} is-small" glossid="${glossID}" title="Toggle public visibility"/>`
@@ -92,8 +274,7 @@ class ManageGlossModal extends HTMLElement {
 
             $this.querySelector("a").setAttribute("href", `gloss-metadata.html#${glossID}`)
             $this.querySelector("h4").innerText = glossTitle
-            $this.querySelector("p").innerText = glossText
-            $this.querySelector("footer").innerHTML = reviewBtn + visibilityBtn + moreOptionsBtn + removeBtn
+            $this.querySelector("footer").innerHTML = moreOptionsBtn + reviewBtn + visibilityBtn +  removeBtn
 
             // 'Close' functionality
             $this.querySelector(".closeModal").addEventListener('click', ev => {
@@ -146,17 +327,130 @@ class ManageGlossModal extends HTMLElement {
                 globalFeedbackBlip(shout, `This Gloss is now marked to be ${included ? "removed from" : "added to"} the public list.  Don't forget to submit your changes.`, true)
             })
 
-            // Other functionality, TBD.
+            // More details: slide open heavy details on demand.
+            let moreLoaded = false
             $this.querySelector(".otherModalBtn").addEventListener('click', ev => {
                 ev.preventDefault()
                 ev.stopPropagation()
-                const fn = () => {
-                    $this.classList.add("is-hidden")
-                    removeEventListener("globalFeedbackFinished", fn)
+                const details = $this.querySelector(".more-details")
+                const fragmentsElem = $this.querySelector(".gloss-fragments")
+
+                // Populate heavy data on first click only.
+                if (!moreLoaded) {
+                    moreLoaded = true
+                    const glossURI = glossID ?? glossData?.["@id"] ?? glossData?.id
+
+                    // Image fragments: fetch full WitnessFragment details and render as cards.
+                    const fragmentsContainer = $this.querySelector(".gloss-fragments")
+                    // These are the WitnessFragments themselves, not the ManuscriptWitnesses they
+                    // belong to.  getWitnessesForGloss() walks fragment -> partOf -> manuscript and
+                    // returns the manuscript, which carries a shelfmark but none of the per-fragment
+                    // detail the cards below render.
+                    getAllWitnessFragmentsOfGloss(glossURI).then(async (fragmentURIs) => {
+                        if (fragmentURIs.length === 0) {
+                            fragmentsContainer.innerHTML = "<div class='fragment-card'><div class='fragment-card-header'>No Witness Fragments</div></div>"
+                            return
+                        }
+                        // Fetch full WitnessFragment details for each fragment URI.
+                        const fragmentFetches = fragmentURIs.map(async (fragmentURI) => {
+                            try {
+                                const frag = await deerUtils.expand({ "@id": fragmentURI })
+                                // Carry the URI alongside: it is what the card links to, and reading it
+                                // back off the expanded entity would trust expand() to preserve @id.
+                                return { fragmentURI, frag }
+                            } catch {
+                                return null
+                            }
+                        })
+                        const fragments = (await Promise.all(fragmentFetches)).filter(Boolean)
+                        fragmentsContainer.innerHTML = ""
+                        for (const { fragmentURI, frag } of fragments) {
+                            const card = document.createElement("div")
+                            card.className = "fragment-card"
+                            // WitnessFragment properties may be plain strings, {value: "..."} objects,
+                            // or {value: {textValue: "..."}} (custom-text-key fields).
+                            const val = (v) => {
+                                if (typeof v === "string") return v
+                                if (v && typeof v === "object") {
+                                    return v.value?.textValue ?? v.value ?? ""
+                                }
+                                return ""
+                            }
+                            // val() returns "" for absent fields, so these fall back with || not ??.
+                            const shelfmark = val(frag.identifier) || val(frag.title) || "Unlabeled"
+                            const folio = val(frag._folio) ?? ""
+                            const text = val(frag.text) ?? ""
+                            const language = val(frag.language) ?? ""
+                            const glossFormat = val(frag._glossFormat) ?? ""
+                            const glossLocation = val(frag._glossLocation) ?? ""
+                            const glossatorHand = val(frag._glossatorHand) ?? ""
+                            const manuscript = val(frag.partOf) ?? ""
+                            const depiction = val(frag.depiction) ?? ""
+                            const cardHeader = document.createElement("div")
+                            cardHeader.className = "fragment-card-header"
+                            // The shelfmark names the Manuscript this Fragment belongs to, so it points
+                            // at the ManuscriptWitness.  A Fragment with no partOf has no Manuscript to
+                            // reach, so it stays plain text rather than becoming a broken link.
+                            const shelfmarkEl = document.createElement(manuscript ? "a" : "span")
+                            shelfmarkEl.className = "fragment-card-shelfmark"
+                            shelfmarkEl.textContent = shelfmark
+                            if (manuscript) {
+                                shelfmarkEl.href = `manuscript-profile.html#${manuscript}`
+                                shelfmarkEl.target = "_blank"
+                            }
+                            const folioSpan = document.createElement("span")
+                            folioSpan.className = "fragment-card-folio"
+                            folioSpan.textContent = folio ? `(${folio})` : ""
+                            cardHeader.appendChild(shelfmarkEl)
+                            cardHeader.appendChild(folioSpan)
+                            card.appendChild(cardHeader)
+                            if (text) {
+                                // The Fragment's own text is the way through to its detail page.
+                                const textLink = document.createElement("a")
+                                textLink.className = "fragment-card-text"
+                                textLink.href = `fragment-metadata.html#${fragmentURI}`
+                                textLink.target = "_blank"
+                                textLink.textContent = text
+                                card.appendChild(textLink)
+                            }
+                            if (depiction) {
+                                const imgContainer = document.createElement("div")
+                                imgContainer.style.marginBottom = "0.3em"
+                                const img = document.createElement("img")
+                                img.src = depiction
+                                img.alt = "Fragment depiction"
+                                img.style.maxWidth = "100%"
+                                img.style.maxHeight = "6em"
+                                img.style.objectFit = "contain"
+                                imgContainer.appendChild(img)
+                                card.appendChild(imgContainer)
+                            }
+                            const meta = document.createElement("div")
+                            meta.className = "fragment-card-meta"
+                            // Fragment values come from RERUM, which does not constrain them on read.
+                            // Build these with textContent so entity data can never be parsed as markup.
+                            const addMeta = (label, value) => {
+                                if (!value) return
+                                const span = document.createElement("span")
+                                const strong = document.createElement("strong")
+                                strong.textContent = `${label}:`
+                                span.append(strong, value)
+                                meta.appendChild(span)
+                            }
+                            addMeta("Language", language)
+                            addMeta("Format", glossFormat)
+                            addMeta("Location", glossLocation)
+                            addMeta("Hand", glossatorHand)
+                            card.appendChild(meta)
+                            fragmentsContainer.appendChild(card)
+                        }
+                    }).catch(() => {
+                        fragmentsContainer.innerHTML = "<div class='fragment-card'><div class='fragment-card-header'>Could not load Witness Fragments</div></div>"
+                    })
                 }
-                addEventListener("globalFeedbackFinished", fn)
-                const shout = new CustomEvent("Other Functionality")
-                globalFeedbackBlip(shout, `Other Management Functionality!`, true)
+
+                // Toggle the slide open/close.
+                details.classList.toggle("is-open")
             })
 
             $this.classList.remove("is-hidden")
@@ -229,8 +523,9 @@ class ManageGlossModal extends HTMLElement {
                 confirmMessage = `This Gloss is public and will be removed from the public list.\n${confirmMessage}`
                 overwriteList = true
             }
-            // Confirm they want to do this
-            if (!await showCustomConfirm(confirmMessage)) return
+            // Confirm they want to do this.  lockFields false: this page has nothing that unlocks the
+            // fields again, so taking the page wide lock here freezes the list for the rest of the session.
+            if (!await showCustomConfirm(confirmMessage, false)) return
             let allWitnessFragmentsOfGloss = await getAllWitnessFragmentsOfGloss(id)
             const historyWildcard = { "$exists": true, "$size": 0 }
 
@@ -251,17 +546,17 @@ class ManageGlossModal extends HTMLElement {
             if(allEntityAnnotationIds === null) throw new Error("Cannot find Entity Annotations")
 
             const allEntityAnnotations = allEntityAnnotationIds.map(annoUri => {
-                return fetch(`${__constants.tiny}/delete`, {
+                const annoId = annoUri.split("/").pop()
+                return fetch(`${__constants.tiny}/delete/${annoId}`, {
                     method: "DELETE",
-                    body: JSON.stringify({"@id":annoUri.replace(/^https?:/, 'https:')}),
                     headers: {
                         "Content-Type": "application/json; charset=utf-8",
                         "Authorization": `Bearer ${window.GOG_USER.authorization}`
                     }
                 })
-                .then(r => {
+                .then(async r => {
                     if(r.ok) {return r}
-                    else {throw new Error(r.text)}
+                    else {throw new Error(await r.text())}
                 })
                 .catch(err => { 
                     console.warn("issue removing Gloss Entity Annotations")
@@ -295,9 +590,9 @@ class ManageGlossModal extends HTMLElement {
             })
 
             // Now the entity itself
-            fetch(`${__constants.tiny}/delete`, {
+            const glossId = id.split("/").pop()
+            fetch(`${__constants.tiny}/delete/${glossId}`, {
                 method: "DELETE",
-                body: JSON.stringify({ "@id": id }),
                 headers: {
                     "Content-Type": "application/json; charset=utf-8",
                     "Authorization": `Bearer ${window.GOG_USER.authorization}`
@@ -314,15 +609,21 @@ class ManageGlossModal extends HTMLElement {
                     broadcast(ev, "GlossDeleted", document, { "@id":id, "redirect":false })
                 }
                 else{
-                    throw new Error(r.text)
+                    throw new Error(await r.text())
                 }
             })
             .catch(err => {
+                console.error(`Error deleting the Gloss ${id}`, err)
                 const err_ev = new CustomEvent("Gloss Delete Error")
-                broadcast(ev, "GlossDeleteError", document, { "@id":id, "error":err })
+                broadcast(err_ev, "GlossDeleteError", document, { "@id":id, "error":err })
                 return err
             })
         }
+    }
+
+    disconnectedCallback() {
+        // The keydown handler lives on document, so it outlives this element unless it is aborted.
+        this.#listeners?.abort()
     }
 }
 
