@@ -26,11 +26,23 @@ class ManageGlossModal extends HTMLElement {
             input[filter="title"]{
                 border: 2px solid var(--color-primary);
             }
-            .manageModal{
+            .manageModal.container{
                 position: relative;
-                display: block;
-                top: 15vh;
+                display: flex;
+                flex-direction: column;
+                top: 0vh;
+                max-height: 92vh;
+                overflow: hidden;
                 z-index: 2;
+            }
+            .manageModal .card{
+                display: flex;
+                flex-direction: column;
+                flex: 1 1 auto;
+                min-height: 0;
+            }
+            .manageModal .card > *{
+                flex: 0 0 auto;
             }
             .window-shadow{
                 position: fixed;
@@ -64,14 +76,19 @@ class ManageGlossModal extends HTMLElement {
             .meta-value{
                 color: var(--color-dark);
             }
-            .more-details{
+            .manageModal .more-details{
+                flex: 0 1 auto;
+                min-height: 0;
                 max-height: 0;
                 overflow: hidden;
                 transition: max-height 0.3s ease-out;
             }
-            .more-details.is-open{
-                max-height: 500px;
+            .manageModal .more-details.is-open{
+                max-height: 100vh;
                 overflow-y: auto;
+            }
+            .manageModal footer {
+                margin-top: 1em;
             }
             .more-details-inner{
                 padding: 0.5em;
@@ -146,8 +163,8 @@ class ManageGlossModal extends HTMLElement {
                             <span class="meta-value gloss-modified">—</span>
                         </div>
                         <div class="meta-row">
-                            <span class="meta-label">Witnesses:</span>
-                            <span class="meta-value gloss-witnesses">—</span>
+                            <span class="meta-label">Reference:</span>
+                            <span class="meta-value gloss-target">—</span>
                         </div>
                     </div>
                     <footer>
@@ -157,12 +174,10 @@ class ManageGlossModal extends HTMLElement {
                         <input type="button" class="button" value="Delete"/>
                     </footer>
                     <div class="more-details">
+                        <hr></hr>
+                        <span class="meta-label">Witnesses</span>
                         <div class="more-details-inner">
                             <div class="fragment-card-list gloss-fragments"></div>
-                            <div class="fragment-item">
-                                <span class="fragment-label">Reference:</span>
-                                <span class="fragment-value gloss-target">—</span>
-                            </div>
                         </div>
                     </div>
                     <div class="is-right">
@@ -243,36 +258,13 @@ class ManageGlossModal extends HTMLElement {
             const modified = deerUtils.getModifiedDate(glossData) ?? ""
             const modifiedDisplay = modified ? deerUtils.formatRelativeTime(modified) : "—"
 
-            // Witnesses: requires a dynamic query — fetch asynchronously.
-            const witnessesElem = $this.querySelector(".gloss-witnesses")
-            witnessesElem.innerText = "..."
-            const glossURI = glossID ?? glossData?.["@id"] ?? glossData?.id
-            deerUtils.getWitnessesForGloss(glossURI).then(witnesses => {
-                if (witnesses.length === 0) {
-                    witnessesElem.innerText = "—"
-                    return
-                }
-                witnessesElem.innerHTML = ""
-                const ul = document.createElement("ul")
-                ul.style.listStyle = "none"
-                ul.style.padding = "0"
-                ul.style.margin = "0"
-                for (const witnessURI of witnesses) {
-                    const li = document.createElement("li")
-                    const a = document.createElement("a")
-                    a.href = `manuscript-profile.html#${witnessURI}`
-                    a.target = "_blank"
-                    a.textContent = witnessURI.split("/").pop()
-                    li.appendChild(a)
-                    ul.appendChild(li)
-                }
-                witnessesElem.appendChild(ul)
-            }).catch(() => {
-                witnessesElem.innerText = "—"
-            })
-
             $this.querySelector(".gloss-text").innerText = glossText
             $this.querySelector(".gloss-modified").innerText = modifiedDisplay
+            // The place in the source text being glossed, the same value the Browse Glosses table
+            // shows under "Reference".  Glosses record this as canonicalReference or as
+            // targetChapter/targetVerse, never as a `target` key.  It reads straight off glossData,
+            // so it costs nothing to show up front rather than behind the disclosure.
+            $this.querySelector(".gloss-target").innerText = deerUtils.getCanonicalReference(glossData) || "—"
 
             const removeBtn = `<input type="button" value="delete" glossid="${glossID}" data-type="named-gloss" class="removeCollectionItem button error is-small" title="Delete This Entry">`
             const visibilityBtn = `<input type="button" value="${published ? "unpublish" : "publish"}" class="togglePublic button ${published ? "error" : "success"} is-small" glossid="${glossID}" title="Toggle public visibility"/>`
@@ -341,23 +333,27 @@ class ManageGlossModal extends HTMLElement {
                 ev.stopPropagation()
                 const details = $this.querySelector(".more-details")
                 const fragmentsElem = $this.querySelector(".gloss-fragments")
-                const targetElem = $this.querySelector(".gloss-target")
 
                 // Populate heavy data on first click only.
                 if (!moreLoaded) {
                     moreLoaded = true
-                    // Image fragments: fetch full WitnessFragment details and render as cards.
                     const glossURI = glossID ?? glossData?.["@id"] ?? glossData?.id
+
+                    // Image fragments: fetch full WitnessFragment details and render as cards.
                     const fragmentsContainer = $this.querySelector(".gloss-fragments")
-                    deerUtils.getWitnessesForGloss(glossURI).then(async (witnesses) => {
-                        if (witnesses.length === 0) {
+                    // These are the WitnessFragments themselves, not the ManuscriptWitnesses they
+                    // belong to.  getWitnessesForGloss() walks fragment -> partOf -> manuscript and
+                    // returns the manuscript, which carries a shelfmark but none of the per-fragment
+                    // detail the cards below render.
+                    getAllWitnessFragmentsOfGloss(glossURI).then(async (fragmentURIs) => {
+                        if (fragmentURIs.length === 0) {
                             fragmentsContainer.innerHTML = "<div class='fragment-card'><div class='fragment-card-header'>No Witness Fragments</div></div>"
                             return
                         }
-                        // Fetch full WitnessFragment details for each witness URI.
-                        const fragmentFetches = witnesses.map(async (witnessURI) => {
+                        // Fetch full WitnessFragment details for each fragment URI.
+                        const fragmentFetches = fragmentURIs.map(async (fragmentURI) => {
                             try {
-                                const frag = await deerUtils.expand({ "@id": witnessURI })
+                                const frag = await deerUtils.expand({ "@id": fragmentURI })
                                 return frag
                             } catch {
                                 return null
@@ -449,10 +445,6 @@ class ManageGlossModal extends HTMLElement {
                     }).catch(() => {
                         fragmentsContainer.innerHTML = "<div class='fragment-card'><div class='fragment-card-header'>Could not load Witness Fragments</div></div>"
                     })
-                    // The place in the source text being glossed, the same value the Browse Glosses
-                    // table shows under "Reference".  Glosses record this as canonicalReference or as
-                    // targetChapter/targetVerse, never as a `target` key.
-                    targetElem.innerText = deerUtils.getCanonicalReference(glossData) || "—"
                 }
 
                 // Toggle the slide open/close.
