@@ -432,7 +432,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     display: flex;
                     align-items: center;
                     gap: 0.5em;
-                    padding: 0.4em 0;
+                    padding: 0.8em 0em 0.4em 0em;
                 }
                 .totalsProgress{
                     text-align: center;
