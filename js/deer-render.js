@@ -661,7 +661,7 @@ DEER.TEMPLATES.managedlist = function (obj, options = {}) {
                     fetchedCount++
                     const loaded = numloaded + fetchedCount
                     loadingProgress.setAttribute("count", loaded)
-                    loadingProgress.innerHTML = `${numloaded + fetchedCount} of ${total} loaded (${parseInt((numloaded + fetchedCount) / total * 100)}%).  `
+                    loadingProgress.innerHTML = `${numloaded + fetchedCount} of ${total} loaded (${parseInt((numloaded + fetchedCount) / total * 100)}%)  `
                 }
 
                 const fetchPromises = uncachedIds.map(({ glossID, index }) => listLimiter(() => {
