@@ -109,10 +109,7 @@ let __constants = {}
 setConstants()
 
 async function setConstants(){
-    // Document-relative, not '../'.  This is a classic script, so the URL resolves against the page,
-    // not this file.  Every page is at the app root, so 'properties.json' is correct whether the app
-    // is served from '/' (glossing.rerum.io) or from '/glossing' (the dev and local mounts).
-    __constants = await fetch("properties.json").then(r=>r.json()).catch(e=>{return {}})
+    __constants = await fetch("../properties.json").then(r=>r.json()).catch(e=>{return {}})
 }
 
 /**
