@@ -309,7 +309,12 @@ function loadHashId() {
             if (el.value) { el.value = el.value.replace("Create", "Update") }
             if (el.textContent) { el.textContent = "Update" }
         })
-        document.querySelectorAll('[hash-id]').forEach(el => el.setAttribute('deer-id', hash))
+        document.querySelectorAll('[hash-id]').forEach(el => {
+            // Addressed by URL hash means a single direct resource the user navigated to, so it has
+            // to reflect current server state instead of a day-old cached copy.
+            el.setAttribute('deer-fresh', '')
+            el.setAttribute('deer-id', hash)
+        })
     })
 }
 if (document.readyState === 'interactive' || 'loaded') loadHashId()
