@@ -237,7 +237,7 @@ RENDER.element = function (elem, obj, renderOptions = {}) {
     // Expansion applies to entity objects that have an @id to fetch annotations for.
     let objPromise = obj.itemListElement
         ? Promise.resolve(obj)
-        : UTILS.expand(obj, undefined, { fresh })
+        : UTILS.expand(obj, { fresh })
 
     return objPromise.then(obj => {
         let tmplName = elem.getAttribute(DEER.TEMPLATE) ?? (elem.getAttribute(DEER.COLLECTION) ? "list" : "json")
@@ -1267,7 +1267,10 @@ export default class DeerRender {
                         }, {
                             "body.partOf": this.collection
                         }],
-                        "__rerum.history.next": historyWildcard
+                        "__rerum.history.next": historyWildcard,
+                        // Only this app's own Annotations.  A foreign app's Annotation on the same
+                        // collection would put its entities into our listings.
+                        "__rerum.generatedBy": UTILS.httpsIdArray(DEER.GENERATOR)
                     }
                     const listObj = {
                         name: this.collection,

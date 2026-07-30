@@ -103,7 +103,7 @@ export default class DeerReport {
              * inputs, and processRecord() then POSTs a duplicate Annotation instead of PUTting the
              * existing one.  This causes multiple leaves and is detrimental to the data and UX.
              */
-            UTILS.expand({ "@id": this.id }, undefined, { fresh: true })
+            UTILS.expand({ "@id": this.id }, { fresh: true })
                 .then((function (obj) {
                     try {
                         let inputElems = this.inputs

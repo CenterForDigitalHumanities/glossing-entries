@@ -17,7 +17,7 @@ export default {
         if (!id.startsWith("http")) return justArray ? [ id ] : id
         if (id.startsWith("https://")) return justArray ? [ id, id.replace('https','http') ] : { $in: [ id, id.replace('https','http') ] }
         return justArray ? [ id, id.replace('http','https') ] : { $in: [ id, id.replace('http','https') ] }
-    }, 
+    },
     /**
      * Removes duplicate elements from the input list based on the specified unique property
      * for each element and keeping only the first occurrence of each unique value.
@@ -359,11 +359,12 @@ export default {
      * RERUM serves these URIs with `Cache-Control: max-age=86400`, so by default the browser can
      * answer from disk for a day without asking the server.  That is what we want for browsing.
      * Callers that must see current server state pass options.fresh.
+     * Only Annotations this app generated are considered.  findByTargetId() applies that filter in
+     * the query itself, and the /gog/id/ endpoint applies the equivalent filter server-side.
      * @param {Object} entity Target object to search for description
-     * @param {Array} matchOn properties checkMatch() uses to recognize an annotation of interest
      * @param {Object} options `{fresh:true}` reads past the browser cache for this call.
      */
-    async expand(entity, matchOn = ["__rerum.generatedBy", "creator"], options = {}) {
+    async expand(entity, options = {}) {
         let UTILS = this
         const fetchOptions = options.fresh ? { cache: "no-cache" } : undefined
         let findId = entity["@id"] ?? entity.id ?? entity
@@ -403,10 +404,6 @@ export default {
                         }
                         Leaf: for (let j = 0; j < body.length; j++) {
                             try {
-                                if (!checkMatch(obj, annos[i], matchOn)) {
-                                    // this is not recognized as an annotation of interest by the interface
-                                    continue Leaf
-                                }
                                 if (annos[i].hasOwnProperty("__rerum") && annos[i].__rerum.history.next.length) {
                                     // this may not be the most recent available
                                     // TODO: this is incorrect. There could be an unrelated @id in the .next and isUpdatedBy() will never fire
@@ -481,46 +478,6 @@ export default {
             return anno.__rerum.history.previous === assertionID
         }
         /**
-         * Match on criteria(if exists) and return true if it appears to match on the values specified.
-         * A true result means that the incoming assertion is likely to be relevant and authorized to 
-         * augment the original object.
-         * TODO: consider moving this up in scope, if useful
-         * @param Object o existing Object with values to check.
-         * @param Object a asserting Annotation to compare.
-         * @param Array<String> matchOn dot-separated property paths on the two Objects to compare.
-         * @returns Boolean if annotation should be considered a replacement for the current value.
-         **/
-        function checkMatch(expanding, asserting, matchOn) {
-            return true
-            let match = false
-            CheckMatch: for (const m of matchOn) {
-                let obj_match = m.split('.').reduce((o, i) => o[i], expanding)
-                let anno_match = m.split('.').reduce((o, i) => o[i], asserting)
-                if (obj_match === undefined || anno_match === undefined) {
-                    // Matching is not violated if one of the checked values is missing from a comparator,
-                    // but it is not a match without any positive matches.
-                    continue
-                }
-                // check for match within Arrays as well
-                if (!Array.isArray(obj_match)) { obj_match = [obj_match] }
-                if (!Array.isArray(anno_match)) { anno_match = [anno_match] }
-                if (!anno_match.every(item => obj_match.includes(item))) {
-                    // Any mismatch (generous typecasting) will return a false result.
-                    if (anno_match.some(item => obj_match.includes(item))) {
-                        // NOTE: this mismatches if some of the Anno assertion is missing, which
-                        // may lead to duplicates downstream.
-                        // TODO: ticket this as an issue...
-                        console.warn("Incomplete match may require additional handling. ", obj_match, anno_match)
-                    }
-                    break
-                } else {
-                    // High confidence this match is affirmative, continue checking others.
-                    match = true
-                }
-            }
-            return match
-        }
-        /**
          * Regularizes assertions on expanded objects to enforce the existence of a `source` key.
          * The return is only the value of the assertion, so the desired key must be applied upstream
          * from the scope of this function.
@@ -547,6 +504,7 @@ export default {
      * @param [String] targetStyle other formats of resource targeting.  May be null
      */
     findByTargetId: async function (id, targetStyle = []) {
+        const ourGenerators = this.httpsIdArray(DEER.GENERATOR, true)
         let everything = Object.keys(localStorage).map(k => {
             try {
                 return JSON.parse(localStorage.getItem(k))
@@ -560,7 +518,12 @@ export default {
         }
         targetStyle = targetStyle.concat(["target", "target.@id", "target.id"]) //target.source?
         let historyWildcard = { "$exists": true, "$size": 0 }
-        let obj = { "$or": [], "__rerum.history.next": historyWildcard }
+        // Only this app's own Annotations, so a foreign assertion can never be merged onto the entity.
+        let obj = {
+            "$or": [],
+            "__rerum.history.next": historyWildcard,
+            "__rerum.generatedBy": this.httpsIdArray(DEER.GENERATOR)
+        }
         const uris = this.httpsIdArray(id,true)
         for (let target of targetStyle) {
             //Entries that are not strings are not supported.  Ignore those entries.  
@@ -583,7 +546,8 @@ export default {
         })
             .then(response => response.json())
             .catch((err) => console.error(err))
-        let local_matches = everything.filter(o => o.target === id)
+        // The cached entries bypass the query above, so apply the same generator test to them.
+        let local_matches = everything.filter(o => o.target === id && ourGenerators.includes(o.__rerum?.generatedBy))
         matches = local_matches.concat(matches)
         return matches
     },
