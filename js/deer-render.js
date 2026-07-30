@@ -192,29 +192,29 @@ async function renderChange(mutationsList) {
             case DEER.ID:
             case DEER.KEY:
             case DEER.LINK:
-            case DEER.LIST:
-                let id = mutation.target.getAttribute(DEER.ID)
-                if (id === null ?? mutation.target.getAttribute(DEER.COLLECTION)) return
-                let obj = {}
-                try {
-                    obj = JSON.parse(localStorage.getItem(id))
-                } catch (err) { }
-                const negotiatedId = obj?.["@id"] ?? obj?.id
-                if (!negotiatedId) {
-                    id = id.replace(/^https?:/, 'https:') // avoid mixed content
-                    obj = await fetch(id).then(response => response.json()).catch(error => error)
-                    if (obj) {
-                        //localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
-                        // Bandaid for #310: localStorage can be over quota
-                        try {
-                            localStorage.setItem(obj["@id"] ?? obj.id, JSON.stringify(obj))
-                        } catch (err) { }
-                    } else {
-                        return false
-                    }
+            case DEER.LIST: {
+                const rawId = mutation.target.getAttribute(DEER.ID)
+                // A deer-collection element builds its own list object and must not also render by id.
+                // Note this was `id === null ?? ...`, which is always a boolean and so never nullish,
+                // leaving the collection test dead.  `continue` also replaces a `return` that abandoned
+                // the rest of mutationsList instead of skipping this one entry.
+                if (rawId === null || mutation.target.getAttribute(DEER.COLLECTION)) { continue }
+                const id = rawId.replace(/^https?:/, 'https:') // avoid mixed content
+                // expand() resolves the object with its annotations already merged, so the old
+                // localStorage seed plus bare fetch was a round trip whose result was thrown away.
+                // Dropping the localStorage write also stops seeding the quota overflow behind #310.
+                const obj = await UTILS.expand({ "@id": id }, { fresh: mutation.target.hasAttribute(DEER.FRESH) })
+                // expand() resolves with an Error rather than rejecting, and has already broadcast
+                // expandError in that case.  Stay quiet so the failure is only announced once.
+                if (obj instanceof Error) { continue }
+                if (!(obj?.["@id"] ?? obj?.id)) {
+                    const err = new Error(`No resolvable entity at '${id}'`)
+                    UTILS.broadcast(undefined, "expandError", document, { uri: id, error: err, message: `Could not get details for '${id}'` })
+                    continue
                 }
-                RENDER.element(mutation.target, obj)
+                RENDER.element(mutation.target, obj, { expanded: true })
                 break
+            }
             case DEER.LISTENING:
                 let listensTo = mutation.target.getAttribute(DEER.LISTENING)
                 if (listensTo) {
@@ -231,11 +231,14 @@ const RENDER = {}
 
 RENDER.element = function (elem, obj, renderOptions = {}) {
     // Views are cached by default.  Single-resource views opt in with DEER.FRESH
+    // Only consulted when this function is the one making the request.
     const fresh = renderOptions.fresh ?? elem?.hasAttribute?.(DEER.FRESH) ?? false
 
-    // Skip expansion for container/list objects (they have itemListElement, not @id).
+    // renderOptions.expanded means the caller already paid for the /gog/id/ round trip and handed
+    // us the result.  Expanding again would repeat that request once per view.
+    // Skip expansion for container/list objects too (they have itemListElement, not @id).
     // Expansion applies to entity objects that have an @id to fetch annotations for.
-    let objPromise = obj.itemListElement
+    let objPromise = (renderOptions.expanded || obj.itemListElement)
         ? Promise.resolve(obj)
         : UTILS.expand(obj, { fresh })
 
@@ -1226,15 +1229,30 @@ DEER.TEMPLATES.entity = function (obj, options = {}) {
     return tmpl
 }
 
+/**
+ * Fold a caller's DEER overrides into the module's config.
+ * This used to run in the DeerRender constructor, i.e. once per <deer-view>.  On a list page that is
+ * thousands of self-assignments of TEMPLATES/URLS/EVENTS/etc. onto themselves, since
+ * initializeDeerViews always passes the same object.  The merge is idempotent, so do it once per
+ * distinct config instead.
+ * @param {Object} deer a DEER configuration, or {} for none
+ */
+const mergedConfigs = new WeakSet()
+function mergeDeerConfig(deer = {}) {
+    if (mergedConfigs.has(deer)) { return }
+    mergedConfigs.add(deer)
+    for (let key in DEER) {
+        if (typeof DEER[key] === "string") {
+            DEER[key] = deer[key] ?? config[key]
+        } else {
+            DEER[key] = Object.assign(config[key], deer[key])
+        }
+    }
+}
+
 export default class DeerRender {
     constructor(elem, deer = {}) {
-        for (let key in DEER) {
-            if (typeof DEER[key] === "string") {
-                DEER[key] = deer[key] ?? config[key]
-            } else {
-                DEER[key] = Object.assign(config[key], deer[key])
-            }
-        }
+        mergeDeerConfig(deer)
         changeLoader.observe(elem, {
             attributes: true
         })
@@ -1251,10 +1269,30 @@ export default class DeerRender {
             } else {
                 if (this.id) {
                     this.id = (!this.id.includes("localhost")) ? this.id.replace(/^https?:/, 'https:') : this.id // avoid mixed content
-                    limiter(() => fetch(this.id).then(response => response.json()).then(obj => RENDER.element(this.elem, obj)).catch(err => {
-                        UTILS.broadcast(undefined, "expandError", document, { uri:this.id, error:err, message: `Could not get details for '${this.id}'` })
-                        return err
-                    }))
+                    // DEER.FRESH is read here rather than in RENDER.element because expand() is now the
+                    // call making the request, so it is the one that must read past the browser cache.
+                    const fresh = elem.hasAttribute(DEER.FRESH)
+                    // Only the request is inside the limiter.  Holding a slot through RENDER.element
+                    // would keep it busy for that row's rendering as well, so the budget would sit idle
+                    // instead of fetching the next row.
+                    limiter(() => UTILS.expand({ "@id": this.id }, { fresh }))
+                        .then(obj => {
+                            // expand() resolves with an Error rather than rejecting, and has already
+                            // broadcast expandError in that case.  Returning quietly keeps a failure to
+                            // exactly one announcement; pages treat that event as fatal.
+                            if (obj instanceof Error) { return obj }
+                            if (!(obj?.["@id"] ?? obj?.id)) {
+                                // Resolved, but not with an entity, and nothing has announced it yet.
+                                const err = new Error(`No resolvable entity at '${this.id}'`)
+                                UTILS.broadcast(undefined, "expandError", document, { uri:this.id, error:err, message: `Could not get details for '${this.id}'` })
+                                return err
+                            }
+                            return RENDER.element(this.elem, obj, { expanded: true })
+                        })
+                        .catch(err => {
+                            UTILS.broadcast(undefined, "expandError", document, { uri:this.id, error:err, message: `Could not get details for '${this.id}'` })
+                            return err
+                        })
                 } else if (this.collection) {
                     // Look not only for direct objects, but also collection annotations
                     // Only the most recent, do not consider history parent or children history nodes

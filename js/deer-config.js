@@ -298,14 +298,13 @@ export default {
                         elem.querySelector(".filterNotice").classList.remove("is-hidden")
                         elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                     }
-                    const totalsProgress = elem.querySelector(".totalsProgress")
+                    // Resolve the container refs once, here, so each row does not re-query for them.
+                    elem.$listRefs = listRefs(elem)
+                    const { totalsProgress, cachedNotice, progressArea, approximate } = elem.$listRefs
                     // Start elapsed timer so user sees progress while loading.
                     deerUtils.startLoadTimer(totalsProgress)
                     // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                     const filter = elem.querySelector('input')
-                    const cachedNotice = elem.querySelector(".cachedNotice")
-                    const progressArea = elem.querySelector(".progressArea")
-                    const approximate = elem.querySelector("#approximate")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                     deerUtils.stopLoadTimer(totalsProgress)
                     totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Gloss loaded already.`
@@ -504,20 +503,17 @@ export default {
                         }    
                     })
 
-                    // Pagination for the progress indicator element
-                    const totalsProgress = containingListElem.querySelector(".totalsProgress")
+                    // Pagination for the progress indicator element.
+                    // These come from the container, resolved once by listRefs() rather than re-queried
+                    // per row — some of them cannot match here and the miss would walk the whole table.
+                    const { totalsProgress, cachedNotice, progressArea, modalBtn, approximate, filterInstructions } = containingListElem.$listRefs ?? listRefs(containingListElem)
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
                     let total = parseInt(totalsProgress.getAttribute("total"))
                     if(increaseTotal) total++
-                    const cachedNotice = containingListElem.querySelector(".cachedNotice")
-                    const progressArea = containingListElem.querySelector(".progressArea")
-                    const modalBtn = containingListElem.querySelector("gloss-modal-button")
-                    const approximate = containingListElem.querySelector("#approximate")
-                    const filterInstructions = containingListElem.querySelector(".filterInstructions")
                     totalsProgress.setAttribute("count", numloaded)
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.innerHTML = `
-                        ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>  
+                        ${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%)<br>
                         You may click to select any Gloss loaded already.<br>
                         A filter will become available when all items are loaded.`
                     if(numloaded === total){
@@ -700,13 +696,12 @@ export default {
                         elem.querySelector(".filterNotice").classList.remove("is-hidden")
                         elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                     }
-                    const totalsProgress = elem.querySelector(".totalsProgress")
+                    // Resolve the container refs once, here, so each row does not re-query for them.
+                    elem.$listRefs = listRefs(elem)
+                    const { totalsProgress, cachedNotice, progressArea, filterInstructions, modalBtn } = elem.$listRefs
                     // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
+                    // This template's markup opens with a hidden input, so the filter must be selected by attribute.
                     const filter = elem.querySelector('input[filter]')
-                    const cachedNotice = elem.querySelector(".cachedNotice")
-                    const progressArea = elem.querySelector(".progressArea")
-                    const filterInstructions = elem.querySelector(".filterInstructions")
-                    const modalBtn = elem.querySelector("gloss-modal-button")
                     let blip = new CustomEvent("Blip")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                     totalsProgress.innerHTML = `
@@ -933,16 +928,13 @@ export default {
                     }
                     li.setAttribute("data-expanded", "true")
 
-                    // Pagination for the progress indicator element
-                    const totalsProgress = containingListElem.querySelector(".totalsProgress")
+                    // Pagination for the progress indicator element.
+                    // These come from the container, resolved once by listRefs() rather than re-queried
+                    // per row — some of them cannot match here and the miss would walk the whole list.
+                    const { totalsProgress, cachedNotice, progressArea, modalBtn, approximate, filterInstructions } = containingListElem.$listRefs ?? listRefs(containingListElem)
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
                     let total = parseInt(totalsProgress.getAttribute("total"))
                     if(increaseTotal) total++
-                    const cachedNotice = containingListElem.querySelector(".cachedNotice")
-                    const progressArea = containingListElem.querySelector(".progressArea")
-                    const modalBtn = containingListElem.querySelector("gloss-modal-button")
-                    const approximate = containingListElem.querySelector("#approximate")
-                    const filterInstructions = containingListElem.querySelector(".filterInstructions")
                     totalsProgress.setAttribute("count", numloaded)
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.innerHTML = `
@@ -1310,14 +1302,13 @@ export default {
                         elem.querySelector(".filterNotice").classList.remove("is-hidden")
                         elem.$contentState = deerUtils.getURLParameter("gog-filter").trim()
                     }
-                    const totalsProgress = elem.querySelector(".totalsProgress")
+                    // Resolve the container refs once, here, so each row does not re-query for them.
+                    elem.$listRefs = listRefs(elem)
+                    const { totalsProgress, cachedNotice, progressArea, approximate } = elem.$listRefs
                     // Start elapsed timer so user sees progress while loading.
                     deerUtils.startLoadTimer(totalsProgress)
                     // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
                     const filter = elem.querySelector('input')
-                    const cachedNotice = elem.querySelector(".cachedNotice")
-                    const progressArea = elem.querySelector(".progressArea")
-                    const approximate = elem.querySelector("#approximate")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
                     deerUtils.stopLoadTimer(totalsProgress)
                     totalsProgress.innerText = `${numloaded} of ${total} loaded (${parseInt(numloaded/total*100)}%).  This may take a few minutes.  You may click to select any Manuscript loaded already.`
@@ -1516,16 +1507,13 @@ export default {
                         }    
                     })
 
-                    // Pagination for the progress indicator element
-                    const totalsProgress = containingListElem.querySelector(".totalsProgress")
+                    // Pagination for the progress indicator element.
+                    // These come from the container, resolved once by listRefs() rather than re-queried
+                    // per row — some of them cannot match here and the miss would walk the whole table.
+                    const { totalsProgress, cachedNotice, progressArea, approximate, filterInstructions } = containingListElem.$listRefs ?? listRefs(containingListElem)
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
                     let total = parseInt(totalsProgress.getAttribute("total"))
                     if(increaseTotal) total++
-                    const cachedNotice = containingListElem.querySelector(".cachedNotice")
-                    const progressArea = containingListElem.querySelector(".progressArea")
-                    //const modalBtn = containingListElem.querySelector("gloss-modal-button")
-                    const approximate = containingListElem.querySelector("#approximate")
-                    const filterInstructions = containingListElem.querySelector(".filterInstructions")
                     totalsProgress.setAttribute("count", numloaded)
                     totalsProgress.setAttribute("total", total)
                     totalsProgress.innerHTML = `
@@ -1955,6 +1943,30 @@ function hideSearchBar() {
             }
         }, true)
         searchBar.addEventListener('input', e => searchSubmit.classList[e.target.value.trim().length === 0 ? 'add' : 'remove']("fade"), true)    
+    }
+}
+
+/**
+ * Resolve, once per list, the container elements each row's template needs to touch.
+ *
+ * Rows used to re-query the containing <deer-view> for every one of these as they rendered.  Several
+ * of them cannot match — ngListFilterable's markup has no <gloss-modal-button> and no
+ * .filterInstructions — and a querySelector miss has to walk the entire subtree, which is the table
+ * the list is still filling in.  That made row rendering O(n^2) in the number of rows.
+ *
+ * Stored as elem.$listRefs, following the same list-to-row handoff as elem.$contentState.
+ * Anything this list's markup does not have is null, which is exactly what the rows expect.
+ * @param {HTMLElement} elem the containing <deer-view>
+ * @returns {Object} the resolved references
+ */
+function listRefs(elem) {
+    return {
+        totalsProgress: elem.querySelector(".totalsProgress"),
+        cachedNotice: elem.querySelector(".cachedNotice"),
+        progressArea: elem.querySelector(".progressArea"),
+        approximate: elem.querySelector("#approximate"),
+        modalBtn: elem.querySelector("gloss-modal-button"),
+        filterInstructions: elem.querySelector(".filterInstructions")
     }
 }
 
