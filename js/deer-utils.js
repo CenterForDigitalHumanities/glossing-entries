@@ -518,7 +518,6 @@ export default {
         }
         targetStyle = targetStyle.concat(["target", "target.@id", "target.id"]) //target.source?
         let historyWildcard = { "$exists": true, "$size": 0 }
-        // Only this app's own Annotations, so a foreign assertion can never be merged onto the entity.
         let obj = {
             "$or": [],
             "__rerum.history.next": historyWildcard,

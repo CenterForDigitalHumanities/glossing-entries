@@ -1268,8 +1268,6 @@ export default class DeerRender {
                             "body.partOf": this.collection
                         }],
                         "__rerum.history.next": historyWildcard,
-                        // Only this app's own Annotations.  A foreign app's Annotation on the same
-                        // collection would put its entities into our listings.
                         "__rerum.generatedBy": UTILS.httpsIdArray(DEER.GENERATOR)
                     }
                     const listObj = {
