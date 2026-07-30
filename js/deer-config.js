@@ -503,9 +503,6 @@ export default {
                         }    
                     })
 
-                    // Pagination for the progress indicator element.
-                    // These come from the container, resolved once by listRefs() rather than re-queried
-                    // per row — some of them cannot match here and the miss would walk the whole table.
                     const { totalsProgress, cachedNotice, progressArea, modalBtn, approximate, filterInstructions } = containingListElem.$listRefs ?? listRefs(containingListElem)
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
                     let total = parseInt(totalsProgress.getAttribute("total"))
@@ -700,7 +697,6 @@ export default {
                     elem.$listRefs = listRefs(elem)
                     const { totalsProgress, cachedNotice, progressArea, filterInstructions, modalBtn } = elem.$listRefs
                     // Note 'filter' will need to change here.  It will be a lot of filters on some faceted search UI.  It is the only input right now.
-                    // This template's markup opens with a hidden input, so the filter must be selected by attribute.
                     const filter = elem.querySelector('input[filter]')
                     let blip = new CustomEvent("Blip")
                     // Pagination for the progress indicator element.  It should know how many of the items were in cache and 'fully loaded' already.
@@ -928,9 +924,6 @@ export default {
                     }
                     li.setAttribute("data-expanded", "true")
 
-                    // Pagination for the progress indicator element.
-                    // These come from the container, resolved once by listRefs() rather than re-queried
-                    // per row — some of them cannot match here and the miss would walk the whole list.
                     const { totalsProgress, cachedNotice, progressArea, modalBtn, approximate, filterInstructions } = containingListElem.$listRefs ?? listRefs(containingListElem)
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
                     let total = parseInt(totalsProgress.getAttribute("total"))
@@ -1507,9 +1500,6 @@ export default {
                         }    
                     })
 
-                    // Pagination for the progress indicator element.
-                    // These come from the container, resolved once by listRefs() rather than re-queried
-                    // per row — some of them cannot match here and the miss would walk the whole table.
                     const { totalsProgress, cachedNotice, progressArea, approximate, filterInstructions } = containingListElem.$listRefs ?? listRefs(containingListElem)
                     const numloaded = parseInt(totalsProgress.getAttribute("count")) + 1
                     let total = parseInt(totalsProgress.getAttribute("total"))
