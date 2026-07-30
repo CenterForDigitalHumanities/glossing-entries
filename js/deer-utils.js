@@ -376,7 +376,7 @@ export default {
         if(findId.includes("/TPEN/manifest/")) {
             findId = findId.replace("manifest.json", "")
         }
-        // Prefer server-side expansion.  RERUM exposes a stable, browser-cacheable /gog/id/{id} URL 
+        // Prefer server-side expansion.  RERUM exposes a stable, browser-cacheable /gog/id/{id} URL
         // that returns the object with its targeting Annotations already merged.
         const expandedURL = UTILS.getExpandedURL(findId)
         if (expandedURL) {
@@ -526,7 +526,7 @@ export default {
         }
         const uris = this.httpsIdArray(id,true)
         for (let target of targetStyle) {
-            //Entries that are not strings are not supported.  Ignore those entries.  
+            //Entries that are not strings are not supported.  Ignore those entries.
             //TODO: should we we let the user know we had to ignore something here?
             if (typeof target === "string") {
                 uris.forEach(uri=>{
