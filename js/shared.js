@@ -1405,7 +1405,8 @@ function focusGlossInList(listElem, glossID){
     if(!focusElem) return null
     focusElem.classList.remove("is-hidden")
     list.prepend(focusElem)
-    if(focusElem.hasAttribute("deer-template")){
+    // DEER leaves deer-template in place after expanding, so an expanded <li> is what says this Gloss has loaded.
+    if(focusElem.hasAttribute("deer-template") && !focusElem.querySelector("li[data-expanded]")){
         // This Gloss has not been expanded yet.  Let the user know this is the Gloss they are waiting on.
         const placeholder = focusElem.querySelector("span")
         if(placeholder) placeholder.innerText = "Loading the attached Gloss..."
