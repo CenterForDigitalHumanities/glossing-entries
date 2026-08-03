@@ -45,14 +45,16 @@ function directUser(event){
     	where = 
     	`
     	<span>
-    		This Witness Fragment does not have a source yet.  Decide where to go to.<br>
+    		This Witness Fragment does not have a source yet.  Decide where to go to.<br><br>
     		<a href="gloss-transcription.html#${witnessFragmentID}">This Witness Fragment is for a T-PEN transcription</a><br>
-    		<a href="gloss-witness.html#${witnessFragmentID}">This Witness Fragment is for a textual resource.</a>
+    		<a href="gloss-witness.html#${witnessFragmentID}">This Witness Fragment is for some other textual resource</a>
     	</span>
     	`
+        forNow.innerHTML = where
+        return where
     }
 
-    if(source.includes("t-pen.org")){
+    if(source?.includes("t-pen.org")){
     	where = 
     	`
 		<span>
