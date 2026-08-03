@@ -1371,6 +1371,49 @@ addEventListener('gloss-modal-saved', event => {
 })
 
 /**
+ * A #WitnessFragment loaded in through the URL hash already knows the Gloss it is attached to.
+ * Narrow the Gloss picker down to that Gloss right away instead of waiting for every Gloss in the
+ * collection to load so that the text filter can be applied to them.
+ *
+ * @param {HTMLElement} listElem - The <deer-view> containing the Gloss picker list.
+ * @param {string} glossID - The URI of the Gloss attached to the loaded #WitnessFragment.
+ * @returns {HTMLElement|null} The list item element for the attached Gloss, or null if it was not focused.
+ */
+function focusGlossInList(listElem, glossID){
+    if(!listElem || !glossID) return null
+    // Everything is loaded already.  The text filter is available and is the way to narrow the list.
+    if(listElem.hasAttribute("ng-list-loaded")) return null
+    const list = listElem.querySelector("ul")
+    if(!list) return null
+    // Match on the RERUM id alone.  The list items and the Gloss data may not agree on http/https.
+    const glossHex = glossID.split("/").pop()
+    let focusElem = null
+    for(const item of list.children){
+        // Cached Glosses are an <li>.  Glosses that must still be expanded are a <div> containing an <li>.
+        if(item.getAttribute("deer-id")?.split("/").pop() === glossHex){
+            focusElem = item
+            continue
+        }
+        item.classList.add("is-hidden")
+    }
+    if(!focusElem) return null
+    focusElem.classList.remove("is-hidden")
+    list.prepend(focusElem)
+    // DEER leaves deer-template in place after expanding, so an expanded <li> is what says this Gloss has loaded.
+    if(focusElem.hasAttribute("deer-template") && !focusElem.querySelector("li[data-expanded]")){
+        // This Gloss has not been expanded yet.  Let the user know this is the Gloss they are waiting on.
+        const placeholder = focusElem.querySelector("span")
+        if(placeholder) placeholder.innerText = "Loading the attached Gloss..."
+    }
+    const notice = listElem.querySelector(".filterNotice")
+    if(notice){
+        notice.innerText = "Showing the attached Gloss only.  The other Glosses are still loading.  The filter becomes available once they have all loaded."
+        notice.classList.remove("is-hidden")
+    }
+    return focusElem
+}
+
+/**
  * Remove all URL parameters and restart the user flow on the active HTML page.
  */ 
 function startOver(){
