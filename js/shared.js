@@ -1375,12 +1375,6 @@ addEventListener('gloss-modal-saved', event => {
  * Narrow the Gloss picker down to that Gloss right away instead of waiting for every Gloss in the
  * collection to load so that the text filter can be applied to them.
  *
- * The Gloss picker items know their Gloss URI before they are expanded, so the attached Gloss can be
- * chosen out of the list immediately.  It is moved to the front of the list because DEER expands the
- * <deer-view> items in DOM order, which puts this Gloss in the first batch of Glosses to load.
- * The other Glosses continue to load in the background.  They remain hidden until the text filter
- * becomes available, which requires all of them to be loaded.
- *
  * @param {HTMLElement} listElem - The <deer-view> containing the Gloss picker list.
  * @param {string} glossID - The URI of the Gloss attached to the loaded #WitnessFragment.
  * @returns {HTMLElement|null} The list item element for the attached Gloss, or null if it was not focused.
