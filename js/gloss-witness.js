@@ -436,6 +436,8 @@ function initFragmentForm(event){
         prefillReferences(annotationData["references"], ngCollectionList)
     }
     else{
+        // The Gloss picker may have already built its list without knowing the attached Gloss.  Focus it now.
+        focusGlossInList(ngCollectionList, referencedGlossID)
         addEventListener('ng-list-loaded', ngListLoaded)
         function ngListLoaded(event){
             if(event.target.id === "ngCollectionList"){

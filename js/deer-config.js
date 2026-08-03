@@ -799,6 +799,11 @@ export default {
                         })
                         hideSearchBar()
                     }
+                    else if(!filterPresent){
+                        // The attached Gloss of a #WitnessFragment loaded through the URL hash is already known.
+                        // Show it now instead of waiting for every Gloss to load so the filter can be applied.
+                        focusGlossInList(elem, referencedGlossID)
+                    }
                     /**
                      * Debounces function calls by delaying execution until after a specified time has elapsed since the last call.
                      * @param {Function} func Function to debounce.
